@@ -147,6 +147,67 @@ to demonstrate something. Current state across seven seeds: baselines 0.530 to
 0.587 against nulls near 0.50, all significant, all under the 0.65 ceiling, all
 usable.
 
+## What was measured, and what broke
+
+Three findings from building the labelling path end to end. All are reproducible
+from the scripts named, all used `qwen2.5:7b-instruct` on an 8 GB RTX 3060 Ti, and
+each one changed the design rather than confirming it.
+
+### 1. Leave-one-out attribution cannot produce a correct governed label
+
+`scripts/measure_label_fidelity.py`. Eight-source summarization turns, exact
+leave-one-out: **62% source recall, and a wrong label on half of all turns, always
+under-restrictive.** One turn moved from `RESTRICTED[LIAISON,PARTNER,SENSOR]` to
+`PROTECTED[LEGAL]`, not merely laxer but incomparable.
+
+The cause is corroboration. Leave-one-out asks which single source is
+load-bearing, and a fact reported through several channels has none: drop any one
+copy and the fact survives in the others, so no source is blamed and none of their
+labels enters the join. Corroboration is not an edge case in this domain, it is
+what channels are for. Leave-one-out is also the ceiling that cheaper estimators
+approximate, so nothing faster repairs it.
+
+The replacement costs nothing. Given what the output asserts, join the labels of
+every source that **could** have asserted it. One detection pass, no ablation
+sweep, and conservative by construction, so the error direction is creep rather
+than leak.
+
+### 2. The design is bimodal on one policy ruling
+
+`scripts/measure_federation_eligibility.py`. Three aggregator ceilings, four
+capacities. Turns average 2.88 compartments of 4, and seven of eight already sit
+at the top of the level ladder, because a summary over eight sources joins nearly
+everything.
+
+| Declassification policy | FREETEXT | SPAN | SCALAR | ENUM |
+| --- | --- | --- | --- | --- |
+| keep compartments (fail-closed default) | 0-12% | 0-12% | 0-12% | 0-12% |
+| drop compartments for low capacity | 0-12% | 0-12% | **100%** | **100%** |
+
+So the question "may a low-capacity verdict shed the compartments of its sources?"
+is not a detail. Answer no and the fleet is a set of unconnected local learners.
+Answer yes and verdict-shaped outputs federate completely while prose never does,
+which reproduces the design's split table from measurement rather than assertion.
+
+### 3. The specialist cannot do its own task
+
+`scripts/measure_triage_lift.py`. Triage is a three-way conjunction over facts
+split across separate reports, with the rule stated in the prompt.
+
+| Prompt | Accuracy | Majority floor | Precision | Recall |
+| --- | --- | --- | --- | --- |
+| Plain instruction | 0.292 | 0.750 | 0.238 | 0.833 |
+| Explicit checklist | 0.708 | 0.750 | 0.333 | 0.167 |
+
+Neither beats majority-class guessing. The prompt flips the bias, from escalating
+almost everything to missing five of six real events, without producing the
+conjunction in between. This cuts two ways and both matter. It is good for a
+benchmark, since a task the base model already aces cannot demonstrate that
+fine-tuning helped. It is a problem for the design's premise, which assumes
+analysts correct at the margins: a specialist this weak yields an
+overwhelmingly-reject signal, and preference learning needs contrastive pairs
+rather than uniform rejection.
+
 ## Build order
 
 Step 1, here, is the label algebra, generator, and gate. Still ahead:

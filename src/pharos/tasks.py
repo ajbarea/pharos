@@ -98,3 +98,70 @@ def build_tasks(
             if limit is not None and len(tasks) >= limit:
                 return tasks
     return tasks
+
+
+TRIAGE_INSTRUCTION = (
+    "You are a maritime watch officer. The numbered reports above all concern one "
+    "vessel during one watch window. Decide whether they together indicate a "
+    "SIGNIFICANT event requiring escalation, or ROUTINE activity.\n\n"
+    "A significant event is one where the vessel shows a draft below its declared "
+    "laden figure AND a course deviation from filed routing AND an unlit contact "
+    "closing on it. Any one or two of those alone is routine.\n\n"
+    "Answer with exactly one word: SIGNIFICANT or ROUTINE."
+)
+
+
+@dataclass(frozen=True, slots=True)
+class TriageTask:
+    """One event's reporting, and whether it is significant.
+
+    The decision rule is stated in the prompt on purpose. The task is not to guess
+    an unstated convention, it is to apply a stated one across several reports that
+    each carry only part of the picture, which is what makes it a conjunction over
+    sources rather than a keyword match.
+    """
+
+    task_id: str
+    event_id: str
+    vessel_name: str
+    sources: tuple[Report, ...]
+    significant: bool
+
+    @property
+    def prompt(self) -> str:
+        body = "\n\n".join(
+            f"[{index + 1}] {report.text}" for index, report in enumerate(self.sources)
+        )
+        return f"{body}\n\n{TRIAGE_INSTRUCTION}"
+
+    @property
+    def label(self) -> Label:
+        """The verdict's own label: the join of its sources at ENUM capacity.
+
+        ENUM rather than FREETEXT because the output is one word from a closed set,
+        which is exactly the low-capacity case that can be declassified.
+        """
+        return join([r.label for r in self.sources], capacity=Capacity.ENUM)
+
+
+def build_triage_tasks(reports: list[Report], *, limit: int | None = None) -> list[TriageTask]:
+    """One triage task per event, carrying every report about that event."""
+    by_event: dict[str, list[Report]] = defaultdict(list)
+    for report in reports:
+        by_event[report.event_id].append(report)
+
+    tasks: list[TriageTask] = []
+    for event_id in sorted(by_event):
+        group = by_event[event_id]
+        tasks.append(
+            TriageTask(
+                task_id=f"TR-{len(tasks):04d}",
+                event_id=event_id,
+                vessel_name=group[0].vessel_name,
+                sources=tuple(group),
+                significant=group[0].is_plant,
+            )
+        )
+        if limit is not None and len(tasks) >= limit:
+            break
+    return tasks
