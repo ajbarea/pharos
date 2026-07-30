@@ -25,13 +25,23 @@ def _report(manifest) -> None:
     print(f"gate held out     {', '.join(gate.held_out_centers)}")
     for probe, auc in gate.per_probe_auc.items():
         print(f"  probe {probe:22} AUC {auc:.4f}")
-    print(f"gate AUC          {gate.auc:.4f}  band {gate.band[0]} to {gate.band[1]}")
+    print(
+        f"surface baseline  {gate.surface_baseline:.4f}  (ceiling {manifest.max_surface_baseline})"
+    )
+    if gate.null_mean is not None:
+        print(
+            f"permutation null  {gate.null_mean:.4f} +/- {gate.null_sd:.4f}  "
+            f"p95 {gate.null_p95:.4f}  over {gate.null_trials} trials"
+        )
+        print(f"leak vs null      z = {gate.null_z:+.2f}  significant: {gate.leak_is_significant}")
+    print(f"strict band       {gate.band[0]} to {gate.band[1]}  (met: {gate.passed})")
     print(f"VERDICT           {'USABLE' if manifest.usable else 'NOT USABLE'}")
-    if not manifest.usable:
-        print()
-        print("A corpus that fails the gate carries a surface tell: something about")
-        print("report shape predicts plant membership without reading the text. A fleet")
-        print("trained on it would federate the tell to every deployment.")
+    print()
+    print("The surface baseline is what a model reaches while reading nothing, so any")
+    print("triage score has to be reported against it. It is expected to exceed chance:")
+    print("plants carry the significant facts more often by construction, so the fact")
+    print("mix differs and shape carries some information. What matters is that the")
+    print("baseline is measured, exceeds the gate's own null, and leaves room above it.")
     print("=" * 68)
 
 

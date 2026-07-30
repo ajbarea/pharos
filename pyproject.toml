@@ -51,10 +51,12 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"] # asserts are the point
 "src/pharos/cli.py" = ["T201"] # CLI prints its report
-# Reproducible pseudorandomness is this module's contract: a corpus must be
-# regenerable from (seed, config) alone, which is exactly what a CSPRNG cannot
-# offer. Nothing here is security-bearing.
+# Reproducible pseudorandomness is these modules' contract: a corpus must be
+# regenerable from (seed, config) alone, and a permutation null must be
+# reproducible from its seed, which is exactly what a CSPRNG cannot offer.
+# Nothing in either module is security-bearing.
 "src/pharos/generate.py" = ["S311"]
+"src/pharos/gate.py" = ["S311"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["pharos"]

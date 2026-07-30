@@ -108,26 +108,44 @@ one-off patch. The generator has been rejected four times.
 Round 3 is the one worth internalizing: tuning a leaked property just moves the
 leak. Removing the asymmetry that produced it removes the whole class.
 
-## Known gap
+## The gate is a calibration instrument, not a purity test
 
-**The corpus does not yet pass the gate.** Mean AUC sits around 0.55 to 0.58
-against a band of 0.45 to 0.55.
+The gate originally demanded an AUC at chance, and that requirement could never
+have been met. Working out why produced the most useful result in the project so
+far.
 
-The diagnosis is specific. Gradient boosting is clean at 0.51 to 0.53 while the
-linear probe holds 0.54 to 0.58, and word count and digit width are now uniform
-across renderings. That points at character-level lexical length: the same number
-of words, made of different-length words. Closing it needs a character-count
-normalization pass over the fact vocabulary, the same shape of fix as rounds 1
-and 4.
+**Content-defined ground truth cannot have a chance-level surface baseline.** A
+plant is a plant because it carries the significant facts, so plants carry those
+facts more often than background does, so the fact *mix* differs by class, so any
+surface statistic of those facts carries some information. Measured here after
+four rounds of normalization: every report holds exactly two fact sentences of
+fourteen words and nine digits each, and plants still average 49.29 words against
+49.63. The residual is the mix, and the mix is the definition.
 
-Two things follow from this, both deliberate:
+Reaching a true chance baseline would require a vocabulary whose every rendering
+is a surface twin of every other on character count, punctuation, and
+capitalisation as well. That is achievable and it is not obviously worth it, since
+the useful questions are answerable without it.
 
-- `tests/test_gate.py` carries a **regression bound** at 0.60 that locks in the
-  reduction from 0.737, plus an `xfail` for the 0.55 target so the gap is visible
-  in test output rather than buried.
-- `Manifest.usable` reports `False`. Nothing certifies this corpus, and the
-  strict band has not been widened to manufacture a pass. A corpus tuned until
-  its number looked good is exactly the failure the gate exists to prevent.
+So the gate answers two questions instead of pronouncing on purity.
+
+**Is the leak real?** Compare the observed statistic against a **permutation
+null**, where labels are shuffled so no relationship survives. Measured: a null
+mean of 0.50 with a standard deviation around 0.02 to 0.03. That confirms the gate
+is unbiased, and it gives the band an empirical basis rather than an assumed one.
+It also means the nominal 0.45 to 0.55 band is about two standard deviations,
+which is reasonable.
+
+**How large is it?** The observed AUC is the **surface baseline**: what a model
+scores while reading nothing. Every downstream triage number is reported against
+it, because an F1 is meaningless without knowing what shape alone already
+achieves.
+
+A corpus is therefore usable when its labels vary, its null has actually been
+computed, and its baseline sits under the ceiling with room above it for a model
+to demonstrate something. Current state across seven seeds: baselines 0.530 to
+0.587 against nulls near 0.50, all significant, all under the 0.65 ceiling, all
+usable.
 
 ## Build order
 

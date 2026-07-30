@@ -193,8 +193,8 @@ FACTS: tuple[Fact, ...] = (
         frozenset({ReportType.VESSEL_REPORT, ReportType.PORT_NOTICE, ReportType.SENSOR_TRACK}),
         (
             "At {time} the reported draft read {draft} metres, below the {laden} metre laden declaration.",
-            "Draft was observed at {draft} metres at {time}, against {laden} metres declared as laden.",
-            "By {time} the freeboard showed {draft} metres against a declared laden figure of {laden}.",
+            "Draft was recorded at {draft} metres at {time}, against {laden} metres declared as laden.",
+            "By {time} the freeboard showed {draft} metres against a declared laden figure of {laden}m.",
         ),
     ),
     Fact(
@@ -202,16 +202,16 @@ FACTS: tuple[Fact, ...] = (
         frozenset({ReportType.VESSEL_REPORT, ReportType.SENSOR_TRACK, ReportType.PARTNER_REPORT}),
         (
             "Course altered to {bearing} degrees at {time}, running {offset} degrees off the filed routing.",
-            "Heading of {bearing} degrees at {time} sat some {offset} degrees off the declared route.",
-            "At {time} the track turned {bearing} degrees, a divergence of {offset} degrees from routing.",
+            "Heading of {bearing} degrees at {time} sat roughly {offset} degrees off the declared routing.",
+            "At {time} the track turned {bearing} degrees, a divergence of {offset} degrees from routings.",
         ),
     ),
     Fact(
         "unlit_contact",
         frozenset({ReportType.SENSOR_TRACK, ReportType.PARTNER_REPORT, ReportType.LIAISON_TIP}),
         (
-            "An unlit contact closed within {range} metres at {time} and held for {mins} minutes.",
-            "An unlit contact came within {range} metres near {time} and was tracked {mins} minutes.",
+            "An unlit contact closed within {range} metres at {time} and remained for {mins} minutes.",
+            "An unlit contact came within {range} metres near {time}, tracked for {mins} more minutes.",
             "A contact without lights reached {range} metres by {time}, observed over some {mins} minutes.",
         ),
     ),

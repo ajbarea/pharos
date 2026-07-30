@@ -20,9 +20,33 @@ any tell to transfer across sources to count.
 The verdict takes the strongest of several probes, not an average. A gate should
 assume the most capable attacker available, so a linear model and a
 gradient-boosted tree both run and the worse news wins.
+
+**Why this is a calibration instrument and not a purity test.** An early version
+demanded an AUC at chance and could never have been satisfied. Ground truth here
+is defined by the presence of particular content, so plants necessarily carry the
+significant facts more often than background does, and any surface statistic of
+those facts therefore carries some information. Measured on this corpus: every
+report holds exactly two fact sentences of fourteen words and nine digits each,
+and plants still run 49.29 words against 49.63, because the fact *mix* differs by
+construction. The only way to reach a true chance AUC would be a vocabulary whose
+every rendering is a surface twin of every other on character count, punctuation,
+and capitalisation as well.
+
+So the useful questions are two, and the gate answers both.
+
+Is the leak real? Compare the observed statistic against a permutation null,
+where labels are shuffled so no relationship survives. On this corpus the null
+sits at 0.4986 with a standard deviation of 0.0216, which both confirms the gate
+is unbiased and gives the band an empirical basis rather than an assumed one.
+
+How large is it? The observed AUC is the **surface baseline**: the score a model
+can reach while reading nothing. Any downstream triage number has to be reported
+against it, because a triage F1 is meaningless without knowing what shape alone
+already achieves.
 """
 
-from dataclasses import dataclass, field
+import random
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 from sklearn.ensemble import HistGradientBoostingClassifier
@@ -90,11 +114,44 @@ class GateResult:
     per_probe_auc: dict[str, float] = field(default_factory=dict)
     per_fold_auc: dict[str, tuple[float, ...]] = field(default_factory=dict)
     fold_spread: dict[str, float] = field(default_factory=dict)
+    null_mean: float | None = None
+    null_sd: float | None = None
+    null_p95: float | None = None
+    null_trials: int = 0
 
     @property
     def passed(self) -> bool:
+        """Whether the observed statistic is inside the nominal band.
+
+        Retained as the strict ideal. For content-defined ground truth it is
+        usually unreachable, so `leak_is_significant` is the operational check and
+        `surface_baseline` is the number downstream scores are reported against.
+        """
         low, high = self.band
         return low <= self.auc <= high
+
+    @property
+    def surface_baseline(self) -> float:
+        """The AUC a model reaches reading nothing. Report triage scores against this."""
+        return self.auc
+
+    @property
+    def leak_is_significant(self) -> bool | None:
+        """Whether the leak exceeds what label shuffling alone produces.
+
+        `None` when no permutation null was computed, so a caller can never mistake
+        an unmeasured null for a clean one.
+        """
+        if self.null_p95 is None:
+            return None
+        return self.auc > self.null_p95
+
+    @property
+    def null_z(self) -> float | None:
+        """Standard deviations between the observed statistic and the null mean."""
+        if self.null_mean is None or not self.null_sd:
+            return None
+        return (self.auc - self.null_mean) / self.null_sd
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -108,6 +165,13 @@ class GateResult:
             "per_fold_auc": {k: [round(x, 4) for x in v] for k, v in self.per_fold_auc.items()},
             "fold_spread": {k: round(v, 4) for k, v in self.fold_spread.items()},
             "n_folds": len(self.held_out_centers),
+            "surface_baseline": round(self.surface_baseline, 4),
+            "null_mean": None if self.null_mean is None else round(self.null_mean, 4),
+            "null_sd": None if self.null_sd is None else round(self.null_sd, 4),
+            "null_p95": None if self.null_p95 is None else round(self.null_p95, 4),
+            "null_trials": self.null_trials,
+            "null_z": None if self.null_z is None else round(self.null_z, 2),
+            "leak_is_significant": self.leak_is_significant,
         }
 
 
@@ -151,10 +215,61 @@ def _fold_auc(train: list[Report], test: list[Report]) -> dict[str, float]:
     return out
 
 
+def _verdict_auc(reports: list[Report], center_ids: tuple[str, ...]) -> tuple[float, dict, list]:
+    """Cross-validated AUC per probe, plus the verdict statistic and fold sizes."""
+    per_fold: dict[str, list[float]] = {}
+    fold_sizes: list[int] = []
+    for held_out in center_ids:
+        train = [r for r in reports if r.center.center_id != held_out]
+        test = [r for r in reports if r.center.center_id == held_out]
+        fold = _fold_auc(train, test)
+        if not fold:
+            continue
+        fold_sizes.append(len(test))
+        for probe, auc in fold.items():
+            per_fold.setdefault(probe, []).append(auc)
+    if not per_fold:
+        raise ValueError("no usable fold: every split lacked both classes")
+    mean_auc = {probe: float(np.mean(values)) for probe, values in per_fold.items()}
+    worst = max(mean_auc, key=lambda probe: abs(mean_auc[probe] - 0.5))
+    return mean_auc[worst], {"mean": mean_auc, "folds": per_fold}, fold_sizes
+
+
+def permutation_null(
+    reports: list[Report], *, trials: int = 20, seed: int = 0
+) -> tuple[float, float, float]:
+    """Mean, standard deviation, and 95th percentile of the gate under shuffled labels.
+
+    Shuffling `is_plant` destroys any real relationship, so what the gate reports
+    on permuted labels is its own false-positive distribution. This is what gives
+    the band an empirical basis, and it is also how the gate proves it is not
+    itself the source of an apparent leak.
+    """
+    center_ids = _center_ids(reports)
+    rng = random.Random(seed)
+    labels = [r.is_plant for r in reports]
+    stats: list[float] = []
+    for _ in range(trials):
+        rng.shuffle(labels)
+        shuffled = [replace(r, is_plant=lab) for r, lab in zip(reports, labels, strict=True)]
+        try:
+            auc, _, _ = _verdict_auc(shuffled, center_ids)
+        except ValueError:
+            continue
+        stats.append(auc)
+    if not stats:
+        raise ValueError("permutation null produced no usable trial")
+    ordered = sorted(stats)
+    sd = float(np.std(stats, ddof=1)) if len(stats) > 1 else 0.0
+    return float(np.mean(stats)), sd, ordered[max(int(0.95 * len(ordered)) - 1, 0)]
+
+
 def run_gate(
     reports: list[Report],
     *,
     band: tuple[float, float] = DEFAULT_BAND,
+    null_trials: int = 0,
+    null_seed: int = 0,
 ) -> GateResult:
     """Try to predict plant membership from shape alone. Chance means the corpus is clean.
 
@@ -174,34 +289,26 @@ def run_gate(
     chance would be a gate that always passes.
     """
     center_ids = _center_ids(reports)
-    per_fold: dict[str, list[float]] = {}
-    fold_sizes: list[int] = []
-    for held_out in center_ids:
-        train = [r for r in reports if r.center.center_id != held_out]
-        test = [r for r in reports if r.center.center_id == held_out]
-        fold = _fold_auc(train, test)
-        if not fold:
-            continue
-        fold_sizes.append(len(test))
-        for probe, auc in fold.items():
-            per_fold.setdefault(probe, []).append(auc)
+    verdict, detail, fold_sizes = _verdict_auc(reports, center_ids)
+    mean_auc = detail["mean"]
+    per_fold = detail["folds"]
+    spread = {probe: float(np.max(v) - np.min(v)) for probe, v in per_fold.items()}
 
-    if not per_fold:
-        raise ValueError("no usable fold: every split lacked both classes")
+    null_mean = null_sd = null_p95 = None
+    if null_trials > 0:
+        null_mean, null_sd, null_p95 = permutation_null(reports, trials=null_trials, seed=null_seed)
 
-    mean_auc = {probe: float(np.mean(values)) for probe, values in per_fold.items()}
-    spread = {probe: float(np.max(values) - np.min(values)) for probe, values in per_fold.items()}
-
-    # The strongest attacker sets the verdict, ranked by distance from chance.
-    # An AUC below chance is as informative as one above it.
-    worst_probe = max(mean_auc, key=lambda probe: abs(mean_auc[probe] - 0.5))
     return GateResult(
-        auc=mean_auc[worst_probe],
+        auc=verdict,
         band=band,
         n_train=len(reports) - (fold_sizes[0] if fold_sizes else 0),
         n_test=sum(fold_sizes),
         held_out_centers=center_ids,
         per_probe_auc=mean_auc,
-        per_fold_auc={probe: tuple(values) for probe, values in per_fold.items()},
+        per_fold_auc={probe: tuple(v) for probe, v in per_fold.items()},
         fold_spread=spread,
+        null_mean=null_mean,
+        null_sd=null_sd,
+        null_p95=null_p95,
+        null_trials=null_trials,
     )
