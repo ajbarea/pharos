@@ -51,6 +51,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101"] # asserts are the point
 "src/pharos/cli.py" = ["T201"] # CLI prints its report
+"scripts/*.py" = ["T201"] # measurement scripts report to the terminal
 # Reproducible pseudorandomness is these modules' contract: a corpus must be
 # regenerable from (seed, config) alone, and a permutation null must be
 # reproducible from its seed, which is exactly what a CSPRNG cannot offer.
