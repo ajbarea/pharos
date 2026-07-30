@@ -24,6 +24,11 @@ dev = [
     "ruff>=0.15",
     "ty>=0.0.44,<0.1",
     "hypothesis>=6.152",
+    # Present in dev so the optional telemetry path is genuinely exercised by the
+    # suite rather than pragma-excluded from it.
+    "opentelemetry-api>=1.30",
+    "opentelemetry-sdk>=1.30",
+    "opentelemetry-exporter-otlp-proto-http>=1.30",
 ]
 
 [build-system]

@@ -319,6 +319,9 @@ otel = [
 [package.dev-dependencies]
 dev = [
     { name = "hypothesis" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-sdk" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
@@ -338,6 +341,9 @@ provides-extras = ["otel"]
 [package.metadata.requires-dev]
 dev = [
     { name = "hypothesis", specifier = ">=6.152" },
+    { name = "opentelemetry-api", specifier = ">=1.30" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.30" },
+    { name = "opentelemetry-sdk", specifier = ">=1.30" },
     { name = "pytest", specifier = ">=9.0" },
     { name = "pytest-cov", specifier = ">=6.0" },
     { name = "ruff", specifier = ">=0.15" },
