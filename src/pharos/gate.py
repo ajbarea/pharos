@@ -47,6 +47,7 @@ already achieves.
 
 import random
 from dataclasses import dataclass, field, replace
+from typing import NamedTuple
 
 import numpy as np
 from sklearn.ensemble import HistGradientBoostingClassifier
@@ -215,7 +216,16 @@ def _fold_auc(train: list[Report], test: list[Report]) -> dict[str, float]:
     return out
 
 
-def _verdict_auc(reports: list[Report], center_ids: tuple[str, ...]) -> tuple[float, dict, list]:
+class _Sweep(NamedTuple):
+    """One cross-validated sweep: the verdict statistic and everything behind it."""
+
+    verdict: float
+    mean_auc: dict[str, float]
+    per_fold: dict[str, list[float]]
+    fold_sizes: list[int]
+
+
+def _verdict_auc(reports: list[Report], center_ids: tuple[str, ...]) -> _Sweep:
     """Cross-validated AUC per probe, plus the verdict statistic and fold sizes."""
     per_fold: dict[str, list[float]] = {}
     fold_sizes: list[int] = []
@@ -232,7 +242,7 @@ def _verdict_auc(reports: list[Report], center_ids: tuple[str, ...]) -> tuple[fl
         raise ValueError("no usable fold: every split lacked both classes")
     mean_auc = {probe: float(np.mean(values)) for probe, values in per_fold.items()}
     worst = max(mean_auc, key=lambda probe: abs(mean_auc[probe] - 0.5))
-    return mean_auc[worst], {"mean": mean_auc, "folds": per_fold}, fold_sizes
+    return _Sweep(mean_auc[worst], mean_auc, per_fold, fold_sizes)
 
 
 def permutation_null(
@@ -253,10 +263,10 @@ def permutation_null(
         rng.shuffle(labels)
         shuffled = [replace(r, is_plant=lab) for r, lab in zip(reports, labels, strict=True)]
         try:
-            auc, _, _ = _verdict_auc(shuffled, center_ids)
+            sweep = _verdict_auc(shuffled, center_ids)
         except ValueError:
             continue
-        stats.append(auc)
+        stats.append(sweep.verdict)
     if not stats:
         raise ValueError("permutation null produced no usable trial")
     ordered = sorted(stats)
@@ -289,9 +299,10 @@ def run_gate(
     chance would be a gate that always passes.
     """
     center_ids = _center_ids(reports)
-    verdict, detail, fold_sizes = _verdict_auc(reports, center_ids)
-    mean_auc = detail["mean"]
-    per_fold = detail["folds"]
+    sweep = _verdict_auc(reports, center_ids)
+    mean_auc = sweep.mean_auc
+    per_fold = sweep.per_fold
+    fold_sizes = sweep.fold_sizes
     spread = {probe: float(np.max(v) - np.min(v)) for probe, v in per_fold.items()}
 
     null_mean = null_sd = null_p95 = None
@@ -299,7 +310,7 @@ def run_gate(
         null_mean, null_sd, null_p95 = permutation_null(reports, trials=null_trials, seed=null_seed)
 
     return GateResult(
-        auc=verdict,
+        auc=sweep.verdict,
         band=band,
         n_train=len(reports) - (fold_sizes[0] if fold_sizes else 0),
         n_test=sum(fold_sizes),
