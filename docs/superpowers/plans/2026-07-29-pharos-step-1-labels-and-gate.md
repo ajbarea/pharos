@@ -545,3 +545,51 @@ git add -A && git commit -m "feat(manifest): citable corpus manifest and gate CL
 **Placeholders.** Tasks 3, 4, and 5 describe implementations by contract rather than pasting full source, because the world vocabulary and template grammar run to a few hundred lines of data. The `Interfaces` blocks pin every name and type those tasks export, and the tests are complete and executable. No step says "add error handling" or "write tests for the above".
 
 **Type consistency.** `Label` is `(sensitivity, compartments, capacity)` everywhere. `join` takes `capacity` as a keyword in Task 1 and is used that way after. `declassify(label, policy)` and `shared_eligible(label, release_ceiling, policy)` keep their argument order across Tasks 2 and 5. `Report.with_text` is introduced in Task 4's contract and added to the Task 3 dataclass, which Task 4's commit step reflects by staging `generate.py`.
+
+---
+
+## Execution log (2026-07-30)
+
+Executed inline. Repo: <https://github.com/ajbarea/pharos> (private).
+
+| Task | State | Notes |
+| --- | --- | --- |
+| 1. Label lattice | Done | `3010c74`. 15 tests |
+| 2. Type-based declassification | Done | Same commit; folded in, one module |
+| 3. World and generator | Done | `d00fdf4`. 13 tests |
+| 4. Shortcut gate | Done, corpus not passing | `d00fdf4`, `ebc3ddc`. See below |
+| 5. Manifest and CLI | Done | `ebc3ddc`. 6 tests |
+
+43 tests pass, 1 documented xfail. `ruff format`, `ruff check`, and `ty check`
+clean. CI green on Python 3.12 and 3.13.
+
+### Two plan assumptions that turned out wrong
+
+**The gate needed cross-validation, not one held-out center.** The plan specified
+`holdout_centers: int = 1`. With four centers that tests on a quarter of the
+corpus, where AUC sampling error is around four points, so the five-point pass
+band sat inside the gate's own noise. The single-fold gate passed two seeds and
+failed three at values it could not distinguish from chance, and I had been
+tuning against a seed that passed. `run_gate` now does leave-one-center-out and
+reports per-fold values so a wide spread stays visible.
+
+**Task 3's invariant was harder to satisfy than the plan implied.** "Plants and
+background differ only semantically" took four attempts, and the gate rejected
+each one: numeric slot density (0.737), rendering word length (0.581), the
+structural asymmetry of plants being the only class with a fixed triple (0.572),
+and slot digit width (~0.55). Round 3 is the lesson: tuning a leaked property
+just relocates the leak, so background now draws decoy triples and both classes
+are structurally identical.
+
+### The one task remaining in step 1
+
+Character-count normalization over the fact vocabulary. Word count (14) and digit
+count (9) are now uniform per rendering, but character count is not, so the same
+number of words made of different-length words still carries a signal. Evidence:
+gradient boosting is clean at 0.51 to 0.53 while the linear probe holds 0.54 to
+0.58.
+
+Until it lands: a regression bound at 0.60 in `tests/test_gate.py`, an `xfail` on
+the 0.55 target, `Manifest.usable` reporting `False`, and the CI gate job
+advisory with a note to make it blocking. The band was not widened and the seed
+list was not narrowed to the passing ones.
