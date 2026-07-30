@@ -1,0 +1,71 @@
+[project]
+name = "pharos"
+version = "0.1.0"
+description = "Labeled fleet testbed for federated personalization with a governed disclosure boundary"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "numpy>=2.1",
+    "scikit-learn>=1.6",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+    "pytest-cov>=6.0",
+    "ruff>=0.15",
+    "ty>=0.0.44,<0.1",
+    "hypothesis>=6.152",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pharos"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "I", "UP", "B", "SIM", "W", "C4", "S", "T20",
+    "PERF",
+    "RUF",
+    "PTH",
+    "N",
+    "PIE",
+    "FURB",
+    "TCH",
+    "FLY",
+]
+fixable = ["ALL"]
+unfixable = ["T20"]
+ignore = [
+    "E501",   # handled by the formatter
+    "SIM108", # ternary rewrites hurt readability in the lattice code
+    "RUF001", # ambiguous unicode in strings
+    "RUF002", # ambiguous unicode in docstrings
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"] # asserts are the point
+"src/pharos/cli.py" = ["T201"] # CLI prints its report
+
+[tool.ruff.lint.isort]
+known-first-party = ["pharos"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ty.src]
+include = ["src", "tests"]
+
+[tool.ty.rules]
+all = "warn"
+unresolved-import = "error"
