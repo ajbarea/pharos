@@ -203,14 +203,14 @@ FACTS: tuple[Fact, ...] = (
         (
             "Course altered to {bearing} degrees at {time}, running {offset} degrees off the filed routing.",
             "Heading of {bearing} degrees at {time} sat some {offset} degrees off the declared route.",
-            "At {time} the track turned to {bearing} degrees, a divergence of {offset} degrees from routing.",
+            "At {time} the track turned {bearing} degrees, a divergence of {offset} degrees from routing.",
         ),
     ),
     Fact(
         "unlit_contact",
         frozenset({ReportType.SENSOR_TRACK, ReportType.PARTNER_REPORT, ReportType.LIAISON_TIP}),
         (
-            "An unlit contact closed to within {range} metres at {time} and held for {mins} minutes.",
+            "An unlit contact closed within {range} metres at {time} and held for {mins} minutes.",
             "An unlit contact came within {range} metres near {time} and was tracked {mins} minutes.",
             "A contact without lights reached {range} metres by {time}, observed over some {mins} minutes.",
         ),
@@ -219,9 +219,9 @@ FACTS: tuple[Fact, ...] = (
         "pilot_absent",
         frozenset({ReportType.VESSEL_REPORT, ReportType.PORT_NOTICE}),
         (
-            "Departure at {time} carried no pilot across {count} of {total} compulsory pilotage zones.",
-            "No pilot embarked for the {time} sailing, covering {count} of {total} compulsory zones.",
-            "The {time} departure went unpiloted through {count} of {total} pilotage zones.",
+            "Departure at {time} carried no pilot across {count} of {total} compulsory inbound pilotage zones.",
+            "No pilot embarked for the {time} sailing, which covered {count} of {total} compulsory zones.",
+            "The {time} departure went unpiloted through {count} of the {total} compulsory pilotage zones listed.",
         ),
     ),
     Fact(
@@ -229,7 +229,7 @@ FACTS: tuple[Fact, ...] = (
         frozenset({ReportType.CREW_MANIFEST, ReportType.DETENTION_RECORD}),
         (
             "An engineering substitution filed at {time} came {hours} hours before departure, {count} in total.",
-            "The manifest logged {count} engineer changes at {time}, the last {hours} hours prior.",
+            "The manifest logged {count} engineer changes at {time}, the last one {hours} hours prior.",
             "A late engineering change lodged {time} was {count} of the period, {hours} hours ahead.",
         ),
     ),
@@ -237,27 +237,27 @@ FACTS: tuple[Fact, ...] = (
         "certificate_unresolved",
         frozenset({ReportType.CREW_MANIFEST, ReportType.DETENTION_RECORD}),
         (
-            "A registry query at {time} left {count} certificate numbers unresolved of {total} checked.",
-            "At {time} the issuing registry returned no record for {count} of {total} certificates.",
-            "Of {total} certificates checked at {time}, {count} failed to resolve against registry.",
+            "A registry query at {time} left {count} certificate numbers unresolved out of {total} checked.",
+            "At {time} the issuing registry returned no record for {count} of the {total} certificates.",
+            "Of the {total} certificates checked at {time}, {count} failed to resolve against the registry.",
         ),
     ),
     Fact(
         "berth_closure",
         frozenset({ReportType.PORT_NOTICE, ReportType.PRESS_ITEM}),
         (
-            "From {time} berths {berth} and {berth2} are closed to all commercial traffic for scheduled works.",
-            "Maintenance beginning {time} closes berths {berth} and {berth2} to all commercial movements.",
-            "Commercial traffic is excluded from berths {berth} and {berth2} with effect from {time}.",
+            "From {time} berths {berth} and {berth2} are closed to commercial traffic for scheduled works.",
+            "Maintenance beginning at {time} closes berths {berth} and {berth2} to all commercial vessel movements.",
+            "Commercial traffic is excluded from berths {berth} and {berth2} with immediate effect from {time}.",
         ),
     ),
     Fact(
         "demurrage_dispute",
         frozenset({ReportType.PRESS_ITEM, ReportType.DETENTION_RECORD}),
         (
-            "Trade press filed {time} reports demurrage disputes on {count} of {total} operator hulls.",
-            "Reporting timed {time} places demurrage claims against {count} of {total} vessels.",
-            "A {time} trade item lists {count} of {total} operator ships in demurrage dispute.",
+            "Trade press filed at {time} reports demurrage disputes on {count} of {total} operator hulls.",
+            "Reporting timed at {time} places outstanding demurrage claims against {count} of the {total} vessels.",
+            "A {time} trade item lists {count} of the {total} operator ships in demurrage dispute.",
         ),
     ),
     Fact(
@@ -266,24 +266,24 @@ FACTS: tuple[Fact, ...] = (
         (
             "Records up to {time} show {count} of {total} operator vessels were reflagged this period.",
             "As of {time}, {count} hulls of {total} under this operator had already changed flag.",
-            "Flag changes recorded by {time} affected {count} of {total} vessels under this operator.",
+            "Flag changes recorded by {time} affected {count} of the {total} vessels under this operator.",
         ),
     ),
     Fact(
         "ship_transfer_claim",
         frozenset({ReportType.LIAISON_TIP, ReportType.PARTNER_REPORT}),
         (
-            "One account timed {time} places the hull at a transfer {range} metres out, {count} source only.",
+            "One account timed {time} places the hull at a transfer {range} metres from {count} source.",
             "An unverified report at {time} sites a transfer {range} metres offshore from {count} source.",
-            "A single source timed {time} describes a transfer {range} metres out, {count} corroboration.",
+            "A single source timed {time} describes a transfer {range} metres out with {count} corroboration.",
         ),
     ),
     Fact(
         "shoal_activity",
         frozenset({ReportType.PARTNER_REPORT, ReportType.PORT_NOTICE, ReportType.LIAISON_TIP}),
         (
-            "Small-craft movement in the closed shoals reached {count} of {total} sightings by {time}.",
-            "By {time} the closed shoals had logged {count} small-craft sightings over {total} nights.",
+            "Small-craft movement in the closed shoals reached {count} of {total} recorded sightings by {time}.",
+            "By {time} the closed shoals had logged {count} small-craft sightings across {total} separate nights.",
             "Activity in the closed shoals hit {count} sightings across {total} nights as of {time}.",
         ),
     ),
@@ -291,8 +291,8 @@ FACTS: tuple[Fact, ...] = (
         "inspection_history",
         frozenset({ReportType.DETENTION_RECORD, ReportType.CREW_MANIFEST}),
         (
-            "Port state control logged {count} inspections across {total} operator hulls before {time}.",
-            "Records up to {time} list {count} port state examinations across {total} operator vessels.",
+            "Port state control logged {count} inspections across {total} of the operator hulls before {time}.",
+            "Records up to {time} list {count} port state examinations across {total} operator vessels total.",
             "As of {time}, {count} of {total} operator vessels had drawn a port state inspection.",
         ),
     ),
@@ -300,25 +300,25 @@ FACTS: tuple[Fact, ...] = (
         "routine_transit",
         frozenset({ReportType.VESSEL_REPORT, ReportType.SENSOR_TRACK, ReportType.PORT_NOTICE}),
         (
-            "Outbound transit ran {speed} knots at {time} on routing filed {hours} hours prior.",
+            "Outbound transit ran {speed} knots at {time} on the routing filed {hours} hours prior.",
             "The vessel made {speed} knots by {time}, on a route filed {hours} hours earlier.",
-            "Transit held {speed} knots at {time} along routing lodged {hours} hours before.",
+            "Transit held {speed} knots at {time} along the routing lodged some {hours} hours before.",
         ),
     ),
     Fact(
         "cargo_declared",
         frozenset({ReportType.PORT_NOTICE, ReportType.CREW_MANIFEST, ReportType.PRESS_ITEM}),
         (
-            "Cargo declared at {time} matched {count} of {total} manifest lines lodged with port.",
-            "At {time} the lodged manifest agreed on {count} of {total} declared cargo lines.",
-            "Of {total} manifest lines checked at {time}, {count} matched the declared cargo.",
+            "Cargo declared at {time} matched {count} of {total} manifest lines lodged with the port.",
+            "At {time} the lodged manifest agreed on {count} of the {total} declared cargo lines.",
+            "Of the {total} manifest lines checked at {time}, {count} matched the cargo as declared.",
         ),
     ),
     Fact(
         "weather_note",
         frozenset({ReportType.PORT_NOTICE, ReportType.SENSOR_TRACK, ReportType.PRESS_ITEM}),
         (
-            "Visibility held above {vis} nautical miles at {time} with a reported sea state of {count}.",
+            "Visibility held above {vis} nautical miles at {time} with a reported sea state {count}.",
             "At {time} visibility stayed over {vis} nautical miles with sea state recorded at {count}.",
             "Conditions at {time} gave over {vis} nautical miles of visibility and sea state {count}.",
         ),

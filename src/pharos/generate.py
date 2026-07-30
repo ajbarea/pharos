@@ -155,27 +155,32 @@ def _slot_values(rng: random.Random) -> dict[str, str]:
     gate's features are deliberately naive, so the corpus has to be clean under
     naive features rather than under clever ones.
 
-    Widths are held to one to three digits across every slot so that digit ratio
-    does not vary systematically by which fact was rendered.
+    Every non-time slot is a two-digit integer, so each rendering carries exactly
+    nine digits: five for the timestamp and two apiece for its other slots. This is
+    the third leak the shortcut gate caught. Slot widths had varied (a range in
+    hundreds of metres, a count in single digits), so which slots a fact used was a
+    digit signature, and the significant facts averaged 9.00 digits against 8.25
+    for fillers. Uniform width removes the signature at the source.
     """
     hour = rng.randint(0, 23)
     minute = rng.randint(0, 59)
-    laden = rng.randint(10, 14)
+    draft = rng.randint(10, 13)
+    count = rng.randint(10, 40)
     return {
-        "draft": str(rng.randint(6, laden - 1)),
-        "laden": str(laden),
-        "bearing": str(rng.randint(1, 359)),
+        "draft": str(draft),
+        "laden": str(rng.randint(draft + 1, 19)),
+        "bearing": str(rng.randint(10, 99)),
         "offset": str(rng.randint(10, 90)),
         "time": f"{hour:02d}{minute:02d}Z",
-        "range": str(rng.randrange(200, 900, 20)),
-        "mins": str(rng.randint(4, 55)),
-        "hours": str(rng.randint(6, 72)),
-        "berth": str(rng.randint(1, 20)),
-        "berth2": str(rng.randint(1, 20)),
-        "count": str(rng.randint(2, 9)),
-        "total": str(rng.randint(10, 40)),
-        "speed": str(rng.randint(8, 15)),
-        "vis": str(rng.randint(3, 12)),
+        "range": str(rng.randint(20, 99)),
+        "mins": str(rng.randint(10, 55)),
+        "hours": str(rng.randint(10, 72)),
+        "berth": str(rng.randint(10, 20)),
+        "berth2": str(rng.randint(10, 20)),
+        "count": str(count),
+        "total": str(rng.randint(41, 99)),
+        "speed": str(rng.randint(10, 15)),
+        "vis": str(rng.randint(10, 12)),
     }
 
 

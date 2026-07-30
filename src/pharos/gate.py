@@ -88,6 +88,8 @@ class GateResult:
     n_test: int
     held_out_centers: tuple[str, ...]
     per_probe_auc: dict[str, float] = field(default_factory=dict)
+    per_fold_auc: dict[str, tuple[float, ...]] = field(default_factory=dict)
+    fold_spread: dict[str, float] = field(default_factory=dict)
 
     @property
     def passed(self) -> bool:
@@ -103,6 +105,9 @@ class GateResult:
             "n_test": self.n_test,
             "held_out_centers": list(self.held_out_centers),
             "per_probe_auc": {k: round(v, 4) for k, v in self.per_probe_auc.items()},
+            "per_fold_auc": {k: [round(x, 4) for x in v] for k, v in self.per_fold_auc.items()},
+            "fold_spread": {k: round(v, 4) for k, v in self.fold_spread.items()},
+            "n_folds": len(self.held_out_centers),
         }
 
 
@@ -113,38 +118,19 @@ def _matrix(reports: list[Report]) -> tuple[np.ndarray, np.ndarray]:
     return features, labels
 
 
-def _held_out_centers(reports: list[Report], holdout: int) -> tuple[str, ...]:
-    """The last `holdout` center ids in sorted order, so the split is deterministic."""
-    center_ids = sorted({r.center.center_id for r in reports})
-    if len(center_ids) <= holdout:
-        raise ValueError(
-            f"cannot hold out {holdout} of {len(center_ids)} centers; need at least one to train on"
-        )
-    return tuple(center_ids[-holdout:])
+def _center_ids(reports: list[Report]) -> tuple[str, ...]:
+    center_ids = tuple(sorted({r.center.center_id for r in reports}))
+    if len(center_ids) < 2:
+        raise ValueError("cannot hold out a center when the corpus has fewer than two")
+    return center_ids
 
 
-def run_gate(
-    reports: list[Report],
-    *,
-    band: tuple[float, float] = DEFAULT_BAND,
-    holdout_centers: int = 1,
-) -> GateResult:
-    """Try to predict plant membership from shape alone. Chance means the corpus is clean.
-
-    Raises `ValueError` when the split leaves a side without both classes, since
-    an AUC over one class is undefined and silently returning 0.5 would be a
-    gate that always passes.
-    """
-    held_out = _held_out_centers(reports, holdout_centers)
-    train = [r for r in reports if r.center.center_id not in held_out]
-    test = [r for r in reports if r.center.center_id in held_out]
-
+def _fold_auc(train: list[Report], test: list[Report]) -> dict[str, float]:
+    """AUC per probe for one fold, or an empty dict when the fold is undefined."""
     if len({r.is_plant for r in train}) < 2 or len({r.is_plant for r in test}) < 2:
-        raise ValueError("both splits need both classes for AUC to be defined")
-
+        return {}
     x_train, y_train = _matrix(train)
     x_test, y_test = _matrix(test)
-
     scaler = StandardScaler().fit(x_train)
     probes = {
         "logistic": (
@@ -158,21 +144,64 @@ def run_gate(
             x_test,
         ),
     }
-
-    per_probe: dict[str, float] = {}
+    out: dict[str, float] = {}
     for name, (model, fit_x, score_x) in probes.items():
         model.fit(fit_x, y_train)
-        scores = model.predict_proba(score_x)[:, 1]
-        per_probe[name] = float(roc_auc_score(y_test, scores))
+        out[name] = float(roc_auc_score(y_test, model.predict_proba(score_x)[:, 1]))
+    return out
 
-    # The strongest attacker sets the verdict. An AUC below chance is just as
-    # informative as one above it, so distance from 0.5 is what ranks probes.
-    worst = max(per_probe.items(), key=lambda kv: abs(kv[1] - 0.5))
+
+def run_gate(
+    reports: list[Report],
+    *,
+    band: tuple[float, float] = DEFAULT_BAND,
+) -> GateResult:
+    """Try to predict plant membership from shape alone. Chance means the corpus is clean.
+
+    Uses leave-one-center-out cross-validation rather than a single held-out
+    center. That is a correctness requirement, not a refinement. With four
+    centers a single fold tests on roughly a quarter of the corpus, and the
+    sampling error on an AUC over that many rows is around four points, so a
+    band of five points either side of chance sits inside the gate's own noise.
+    An early single-fold version of this gate duly passed two seeds and failed
+    three at values it could not distinguish from chance.
+
+    Averaging over every fold uses the whole corpus for testing, roughly halving
+    the spread, and the per-fold values are reported so a wide spread is visible
+    rather than hidden inside a mean.
+
+    Raises `ValueError` when no fold is well defined, since silently returning
+    chance would be a gate that always passes.
+    """
+    center_ids = _center_ids(reports)
+    per_fold: dict[str, list[float]] = {}
+    fold_sizes: list[int] = []
+    for held_out in center_ids:
+        train = [r for r in reports if r.center.center_id != held_out]
+        test = [r for r in reports if r.center.center_id == held_out]
+        fold = _fold_auc(train, test)
+        if not fold:
+            continue
+        fold_sizes.append(len(test))
+        for probe, auc in fold.items():
+            per_fold.setdefault(probe, []).append(auc)
+
+    if not per_fold:
+        raise ValueError("no usable fold: every split lacked both classes")
+
+    mean_auc = {probe: float(np.mean(values)) for probe, values in per_fold.items()}
+    spread = {probe: float(np.max(values) - np.min(values)) for probe, values in per_fold.items()}
+
+    # The strongest attacker sets the verdict, ranked by distance from chance.
+    # An AUC below chance is as informative as one above it.
+    worst_probe = max(mean_auc, key=lambda probe: abs(mean_auc[probe] - 0.5))
     return GateResult(
-        auc=worst[1],
+        auc=mean_auc[worst_probe],
         band=band,
-        n_train=len(train),
-        n_test=len(test),
-        held_out_centers=held_out,
-        per_probe_auc=per_probe,
+        n_train=len(reports) - (fold_sizes[0] if fold_sizes else 0),
+        n_test=sum(fold_sizes),
+        held_out_centers=center_ids,
+        per_probe_auc=mean_auc,
+        per_fold_auc={probe: tuple(values) for probe, values in per_fold.items()},
+        fold_spread=spread,
     )

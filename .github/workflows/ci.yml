@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: astral-sh/setup-uv@d31148d669074a8d0a63714ba94f3201e7020bc3 # v8.3.0
+        with:
+          enable-cache: true
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync --all-groups
+      - run: uv run ruff format --check .
+      - run: uv run ruff check .
+      - run: uv run ty check
+      - run: uv run pytest --cov=pharos --cov-report=term-missing
+
+  shortcut-gate:
+    # The gate is meant to be a release condition: a corpus carrying a surface
+    # tell would let a fleet federate that tell to every deployment.
+    #
+    # It is advisory FOR NOW because the corpus does not pass yet (mean AUC ~0.55
+    # against a 0.45 to 0.55 band; see README "Known gap"). Narrowing the seed
+    # list to the ones that happen to pass, or widening the band, would be
+    # exactly the self-deception the gate exists to prevent, so instead the job
+    # reports every seed and the regression bound in `lint-and-test` is what
+    # actually blocks. Flip `continue-on-error` off once the character-count
+    # normalization lands.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: astral-sh/setup-uv@d31148d669074a8d0a63714ba94f3201e7020bc3 # v8.3.0
+        with:
+          enable-cache: true
+      - run: uv sync --all-groups
+      - name: Gate several seeds
+        run: |
+          failed=0
+          for seed in 1 7 11 23 101 202 303; do
+            uv run python -m pharos.cli gate --seed "$seed" --events 400 || failed=$((failed + 1))
+          done
+          echo "seeds failing the gate: $failed of 7"
+          exit $((failed > 0))

@@ -9,3 +9,4 @@ build/
 *.egg-info/
 out/
 COMMITS.md
+out-manifest.json
