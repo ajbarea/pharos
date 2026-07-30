@@ -56,6 +56,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
 
 from pharos.generate import Report
+from pharos.telemetry import record, span
 from pharos.world import ReportType, Voice
 
 #: The features the probe is allowed. Shape only. Adding anything derived from
@@ -299,7 +300,8 @@ def run_gate(
     chance would be a gate that always passes.
     """
     center_ids = _center_ids(reports)
-    sweep = _verdict_auc(reports, center_ids)
+    with span("gate.sweep", n_reports=len(reports), n_folds=len(center_ids)):
+        sweep = _verdict_auc(reports, center_ids)
     mean_auc = sweep.mean_auc
     per_fold = sweep.per_fold
     fold_sizes = sweep.fold_sizes
@@ -308,6 +310,15 @@ def run_gate(
     null_mean = null_sd = null_p95 = None
     if null_trials > 0:
         null_mean, null_sd, null_p95 = permutation_null(reports, trials=null_trials, seed=null_seed)
+
+    # Emit the measurements structurally as well as returning them, so a run is
+    # analysable from its own log stream without re-deriving anything.
+    for probe, value in mean_auc.items():
+        record("gate.probe_auc", value, probe=probe, n_reports=len(reports))
+    record("gate.surface_baseline", sweep.verdict, n_reports=len(reports), n_folds=len(center_ids))
+    if null_mean is not None:
+        record("gate.null_mean", null_mean, trials=null_trials)
+        record("gate.null_z", (sweep.verdict - null_mean) / (null_sd or 1.0), trials=null_trials)
 
     return GateResult(
         auc=sweep.verdict,

@@ -8,6 +8,15 @@ dependencies = [
     "scikit-learn>=1.6",
 ]
 
+[project.optional-dependencies]
+# Optional on purpose: Pharos must stay offline and deterministic, so telemetry is
+# something a run can have, never something it needs.
+otel = [
+    "opentelemetry-api>=1.30",
+    "opentelemetry-sdk>=1.30",
+    "opentelemetry-exporter-otlp-proto-http>=1.30",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=9.0",
@@ -76,3 +85,13 @@ include = ["src", "tests"]
 [tool.ty.rules]
 all = "warn"
 unresolved-import = "error"
+
+# The OpenTelemetry packages live in an optional extra and are deliberately absent
+# from the default environment, since Pharos must run offline with no collector.
+# Their imports are guarded by try/except ImportError at the only site that uses
+# them, so an unresolved import there is the intended state rather than a defect.
+[[tool.ty.overrides]]
+include = ["src/pharos/telemetry.py"]
+
+[tool.ty.overrides.rules]
+unresolved-import = "ignore"

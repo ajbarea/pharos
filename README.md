@@ -249,6 +249,29 @@ baseline as a published property of a *correct* corpus rather than a defect to
 drive to chance. A triage score is reported against it, and the ceiling on what
 counts as usable has to accommodate what answerability costs.
 
+## Observability
+
+Runs are analysable from their own output. Every measurement goes out as a
+structured JSON log line carrying typed fields, so a surface baseline or a per-fold
+AUC can be queried rather than parsed back out of a message:
+
+~~~json
+{"message": "gate.surface_baseline", "metric": "gate.surface_baseline",
+ "value": 0.5867, "n_reports": 1200, "n_folds": 4}
+~~~
+
+OpenTelemetry is an **optional extra**, and deliberately so: Pharos has to run
+offline and deterministically, so a missing collector or a missing dependency
+degrades to silence rather than to an exception or a different number. There is a
+test for exactly that. With  and  set,
+spans and histograms export over OTLP and log lines gain  / , so
+one identifier ties a generation to its gate and its permutation null.
+
+~~~bash
+export PHAROS_OTLP_ENDPOINT=http://localhost:4318
+uv run --extra otel python -m pharos.cli gate
+~~~
+
 ## Build order
 
 Step 1, here, is the label algebra, generator, and gate. Still ahead:

@@ -21,6 +21,7 @@ import random
 from dataclasses import dataclass, field, replace
 
 from pharos.labels import Capacity, Label
+from pharos.telemetry import record, span
 from pharos.world import (
     ALL_FACT_IDS,
     CENTERS,
@@ -313,34 +314,37 @@ def _report_channels(rng: random.Random, event: Event) -> list[tuple[ReportType,
 
 def generate(config: GeneratorConfig) -> list[Report]:
     """The corpus for `config`, reproducible from its seed alone."""
-    rng = random.Random(config.seed)
-    reports: list[Report] = []
-    counter = 0
-    for event in _events(rng, config):
-        for channel, fact_ids in _report_channels(rng, event):
-            center = rng.choice(config.centers)
-            sensitivity, compartments = CHANNEL_LABELS[channel]
-            report_id = f"R-{counter:05d}"
-            counter += 1
-            reports.append(
-                Report(
-                    report_id=report_id,
-                    report_type=channel,
-                    center=center,
-                    voice=center.voice,
-                    event_id=event.event_id,
-                    vessel_name=event.vessel.name,
-                    text=_render(
-                        rng,
+    with span("generate.corpus", seed=config.seed, n_events=config.n_events):
+        rng = random.Random(config.seed)
+        reports: list[Report] = []
+        counter = 0
+
+        for event in _events(rng, config):
+            for channel, fact_ids in _report_channels(rng, event):
+                center = rng.choice(config.centers)
+                sensitivity, compartments = CHANNEL_LABELS[channel]
+                report_id = f"R-{counter:05d}"
+                counter += 1
+                reports.append(
+                    Report(
+                        report_id=report_id,
                         report_type=channel,
                         center=center,
-                        event=event,
-                        fact_ids=fact_ids,
-                        report_id=report_id,
-                    ),
-                    label=Label(sensitivity, compartments, Capacity.FREETEXT),
-                    is_plant=event.significant,
-                    fact_ids=tuple(fact_ids),
+                        voice=center.voice,
+                        event_id=event.event_id,
+                        vessel_name=event.vessel.name,
+                        text=_render(
+                            rng,
+                            report_type=channel,
+                            center=center,
+                            event=event,
+                            fact_ids=fact_ids,
+                            report_id=report_id,
+                        ),
+                        label=Label(sensitivity, compartments, Capacity.FREETEXT),
+                        is_plant=event.significant,
+                        fact_ids=tuple(fact_ids),
+                    )
                 )
-            )
+    record("generate.reports", len(reports), seed=config.seed, n_events=config.n_events)
     return reports
