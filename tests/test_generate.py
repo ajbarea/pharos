@@ -4,7 +4,7 @@ from collections import Counter
 
 from pharos.generate import FACTS_PER_EVENT, GeneratorConfig, generate
 from pharos.labels import Capacity, Compartment, Sensitivity
-from pharos.world import CHANNEL_LABELS, SIGNIFICANT_PATTERN, ReportType
+from pharos.world import CHANNEL_LABELS, FACTS_BY_ID, SIGNIFICANT_PATTERN, ReportType
 
 CONFIG = GeneratorConfig(seed=1, n_events=120, plant_rate=0.3)
 REPORTS = generate(CONFIG)
@@ -96,3 +96,52 @@ def test_voice_is_independent_of_class():
     plant_voices = Counter(r.voice for r in REPORTS if r.is_plant)
     background_voices = Counter(r.voice for r in REPORTS if not r.is_plant)
     assert set(plant_voices) == set(background_voices)
+
+
+# --- semantic integrity -------------------------------------------------------
+# The shortcut gate tests whether SHAPE predicts the label. These test whether the
+# label is derivable from the CONTENT, which is a different property and the one an
+# earlier version of the generator silently violated: only 34% of significant events
+# rendered all three of their defining facts, so two thirds of the positive class was
+# unanswerable from its own prompt.
+
+INTEGRITY_REPORTS = generate(GeneratorConfig(seed=13, n_events=250, plant_rate=0.3))
+
+
+def _by_event(reports):
+    grouped: dict[str, list] = {}
+    for report in reports:
+        grouped.setdefault(report.event_id, []).append(report)
+    return grouped
+
+
+def test_every_significant_event_renders_all_of_its_defining_facts():
+    """Otherwise the task is unanswerable from its own prompt."""
+    for group in _by_event(INTEGRITY_REPORTS).values():
+        if not group[0].is_plant:
+            continue
+        rendered = {f for r in group for f in r.fact_ids}
+        assert rendered >= SIGNIFICANT_PATTERN, "significant event missing its own evidence"
+
+
+def test_no_routine_event_renders_the_whole_significant_pattern():
+    """Otherwise a negative is indistinguishable from a positive and the label is noise."""
+    for group in _by_event(INTEGRITY_REPORTS).values():
+        if group[0].is_plant:
+            continue
+        rendered = {f for r in group for f in r.fact_ids}
+        assert not rendered >= SIGNIFICANT_PATTERN
+
+
+def test_no_report_asserts_a_fact_outside_its_own_event():
+    """Padding from the whole vocabulary put false evidence into reports."""
+    for group in _by_event(INTEGRITY_REPORTS).values():
+        event_facts = {f for r in group for f in r.fact_ids}
+        for report in group:
+            assert set(report.fact_ids) <= event_facts
+
+
+def test_every_rendered_fact_is_plausible_on_its_channel():
+    for report in INTEGRITY_REPORTS:
+        for fact_id in report.fact_ids:
+            assert report.report_type in FACTS_BY_ID[fact_id].channels

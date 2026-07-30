@@ -189,24 +189,65 @@ is not a detail. Answer no and the fleet is a set of unconnected local learners.
 Answer yes and verdict-shaped outputs federate completely while prose never does,
 which reproduces the design's split table from measurement rather than assertion.
 
-### 3. The specialist cannot do its own task
+### 3. A corpus bug, a retracted finding, and a real benchmark target
 
-`scripts/measure_triage_lift.py`. Triage is a three-way conjunction over facts
-split across separate reports, with the rule stated in the prompt.
+`scripts/measure_triage_lift.py`. This one went wrong before it went right, and the
+sequence is the useful part.
 
-| Prompt | Accuracy | Majority floor | Precision | Recall |
-| --- | --- | --- | --- | --- |
-| Plain instruction | 0.292 | 0.750 | 0.238 | 0.833 |
-| Explicit checklist | 0.708 | 0.750 | 0.333 | 0.167 |
+The first measurement said the specialist could not do its own task: triage
+accuracy 0.35 against a majority floor of 0.725, and a checklist prompt moved
+accuracy up while collapsing recall to 0.167. The conclusion drawn was that a 7B
+model cannot evaluate a three-way conjunction over facts split across reports.
 
-Neither beats majority-class guessing. The prompt flips the bias, from escalating
-almost everything to missing five of six real events, without producing the
-conjunction in between. This cuts two ways and both matter. It is good for a
-benchmark, since a task the base model already aces cannot demonstrate that
-fine-tuning helped. It is a problem for the design's premise, which assumes
-analysts correct at the margins: a specialist this weak yields an
-overwhelmingly-reject signal, and preference learning needs contrastive pairs
-rather than uniform rejection.
+**That conclusion was wrong, and the cause was a corpus bug.** Only **34% of
+significant events actually rendered all three of their defining facts** into their
+reports, because channels were chosen before coverage was checked and any shortfall
+was padded from the whole vocabulary. Two thirds of the positive class was
+unanswerable from its own prompt, and reports asserted facts their event did not
+have. The model was being scored on evidence it was never shown, and its
+escalate-on-anything behaviour was a reasonable response to partial evidence.
+
+Worth noting: the shortcut gate could never have caught this. A surface probe tests
+whether shape predicts the label, not whether the label is derivable from the
+content. Semantic integrity needs its own checks, and they are now in the test
+suite.
+
+Generation now guarantees coverage: every fact of an event is rendered by some
+channel that can carry it, no report asserts a fact outside its event, and the
+per-report fact count stays constant so length carries no class signal. Verified
+across seeds at 100% answerable and 0 indistinguishable.
+
+On the corrected corpus:
+
+| Setup | Accuracy | Majority | Precision | Recall | F1 |
+| --- | --- | --- | --- | --- | --- |
+| Rule stated, plain prompt | 0.433 | 0.633 | 0.393 | 1.000 | 0.564 |
+| **Rule stated, checklist prompt** | **1.000** | 0.633 | 1.000 | 1.000 | **1.000** |
+| Rule withheld, plain prompt | 0.367 | 0.633 | 0.367 | 1.000 | 0.537 |
+| Rule withheld, brief reasoning | 0.667 | 0.633 | 0.524 | 1.000 | 0.688 |
+
+So the model does the conjunction perfectly **when the rule is given and the prompt
+structures the check**. Which exposed a design error of its own: stating the rule in
+the prompt leaves nothing for the fleet to learn, and learning the analyst's rule
+from accept/revise/reject is the entire premise of personalization.
+
+Withholding the rule gives the benchmark its proper shape. A ceiling of F1 1.000,
+known to be reachable because a rule-given prompt reaches it, against a base of
+0.537 to 0.688 that over-escalates at recall 1.000 and precision 0.37 to 0.52.
+**That gap is the target**, and it is measurable rather than hoped for.
+
+### 4. Answerability and surface non-leakage pull against each other
+
+Fixing coverage raised the surface baseline from about 0.55 to 0.63-0.67, and
+widening channel sets to remove the coverability filter did not bring it back down.
+The cause is coverage itself: once every fact of an event must appear across a
+fixed number of reports, report composition is tightly determined by the event's
+fact set, and plants always carry the same triple.
+
+This is a real tension rather than a bug, and it argues for treating the surface
+baseline as a published property of a *correct* corpus rather than a defect to
+drive to chance. A triage score is reported against it, and the ceiling on what
+counts as usable has to accommodate what answerability costs.
 
 ## Build order
 

@@ -23,7 +23,13 @@ from pharos.generate import GeneratorConfig, Report, generate
 #: meaning. Not a purity threshold: the baseline is expected to exceed chance,
 #: and what matters is that it is measured, significant against its own null, and
 #: small enough that a model has room to demonstrate something.
-MAX_SURFACE_BASELINE = 0.65
+#:
+#: Raised from 0.65 to 0.72 once coverage was guaranteed. Requiring that every
+#: fact of an event actually be rendered ties report composition to the event fact
+#: set, which lifts the baseline to 0.63-0.67 on a corpus that is now correct. The
+#: alternative was to keep a tighter ceiling and reject corpora for being
+#: answerable, which is the wrong trade.
+MAX_SURFACE_BASELINE = 0.72
 
 
 @dataclass(frozen=True, slots=True)

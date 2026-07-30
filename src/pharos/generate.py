@@ -113,6 +113,15 @@ def _draw_fact_ids(rng: random.Random, *, plant: bool) -> frozenset[str]:
     property of those three facts became a class signal and the shortcut probe
     found it however carefully the renderings were balanced.
     """
+    for _ in range(200):
+        chosen = _propose_fact_ids(rng, plant=plant)
+        if _coverable(rng, sorted(chosen)):
+            return chosen
+    raise ValueError("could not draw a coverable fact set")
+
+
+def _propose_fact_ids(rng: random.Random, *, plant: bool) -> frozenset[str]:
+    """One candidate fact set, before the coverability check."""
     triple = SIGNIFICANT_PATTERN if plant else rng.choice(DECOY_PATTERNS)
     chosen = set(triple)
     padding_pool = [fact_id for fact_id in ALL_FACT_IDS if fact_id not in chosen]
@@ -225,31 +234,81 @@ def _render(
     return " ".join([header, *body, closing])
 
 
-def _report_channels(rng: random.Random, event: Event) -> list[tuple[ReportType, list[str]]]:
-    """Channel assignments for one event: which channel reports which facts.
+def _cover(rng: random.Random, fact_ids: list[str]) -> list[tuple[ReportType, list[str]]] | None:
+    """Assign every fact to a channel that can carry it, in `REPORTS_PER_EVENT` reports.
 
-    Channels are drawn from the full set for both classes. A fact is only placed
-    on a channel that could plausibly observe it, and any shortfall is padded
-    from the event's remaining facts, so every report carries exactly
-    `FACTS_PER_REPORT` sentences regardless of class.
+    Returns None when no covering assignment exists for this draw, so the caller can
+    redraw rather than emit an event whose evidence is incomplete.
+
+    Coverage is a correctness requirement, not a nicety. An earlier version chose
+    channels first and then rendered whichever of the event's facts happened to be
+    plausible there, padding any shortfall from the whole vocabulary. The result was
+    that only 34% of significant events rendered all three of their defining facts,
+    so two thirds of the positive class was **unanswerable from its own prompt**, and
+    reports asserted facts their event did not have. A triage model measured against
+    that corpus is being scored on evidence it was never shown.
     """
-    available = sorted(event.fact_ids)
-    channels = rng.sample(sorted(ReportType), REPORTS_PER_EVENT)
+    remaining = list(fact_ids)
+    rng.shuffle(remaining)
     assignments: list[tuple[ReportType, list[str]]] = []
-    for channel in channels:
-        plausible = [f for f in available if channel in FACTS_BY_ID[f].channels]
-        chosen = rng.sample(plausible, min(FACTS_PER_REPORT, len(plausible)))
+
+    for slot in range(REPORTS_PER_EVENT):
+        slots_left = (REPORTS_PER_EVENT - slot) * FACTS_PER_REPORT
+        if len(remaining) > slots_left:
+            return None
+
+        # Prefer a channel that carries the most still-uncovered facts, so coverage
+        # completes early and later reports can take corroborating duplicates.
+        candidates = sorted(ReportType)
+        rng.shuffle(candidates)
+        best = max(
+            candidates,
+            key=lambda channel: len([f for f in remaining if channel in FACTS_BY_ID[f].channels]),
+        )
+        takeable = [f for f in remaining if best in FACTS_BY_ID[f].channels]
+        chosen = takeable[:FACTS_PER_REPORT]
+
         if len(chosen) < FACTS_PER_REPORT:
-            # Pad from any fact renderable on this channel across the whole
-            # vocabulary, keeping sentence count constant. Padding is drawn the
-            # same way for both classes.
-            pool = [
-                f for f in FACTS_BY_ID if channel in FACTS_BY_ID[f].channels and f not in chosen
-            ]
-            if pool:
-                chosen += rng.sample(pool, min(FACTS_PER_REPORT - len(chosen), len(pool)))
-        assignments.append((channel, chosen))
-    return assignments
+            # Fill from facts already covered, and only from this event, so a report
+            # never asserts something the event does not have. A repeated fact is
+            # corroboration across channels, which is what this domain looks like.
+            pool = [f for f in fact_ids if best in FACTS_BY_ID[f].channels and f not in chosen]
+            rng.shuffle(pool)
+            chosen = chosen + pool[: FACTS_PER_REPORT - len(chosen)]
+
+        if len(chosen) < FACTS_PER_REPORT:
+            return None
+
+        for fact_id in chosen:
+            if fact_id in remaining:
+                remaining.remove(fact_id)
+        assignments.append((best, chosen))
+
+    return None if remaining else assignments
+
+
+COVER_ATTEMPTS = 60
+
+
+def _coverable(rng: random.Random, fact_ids: list[str]) -> bool:
+    """Whether some shuffle admits a covering assignment.
+
+    Not every fact set is coverable. A fact whose only channels carry none of the
+    event's other facts strands a report with one slot it cannot legally fill, and
+    reports must carry a constant number of fact sentences or length becomes a class
+    signal. So coverability is a property of the drawn set, checked at draw time.
+    """
+    return any(_cover(rng, fact_ids) is not None for _ in range(COVER_ATTEMPTS))
+
+
+def _report_channels(rng: random.Random, event: Event) -> list[tuple[ReportType, list[str]]]:
+    """A covering channel assignment for `event`."""
+    fact_ids = sorted(event.fact_ids)
+    for _ in range(COVER_ATTEMPTS):
+        cover = _cover(rng, fact_ids)
+        if cover is not None:
+            return cover
+    raise ValueError(f"no covering assignment for {event.event_id}: {fact_ids}")
 
 
 def generate(config: GeneratorConfig) -> list[Report]:
