@@ -15,8 +15,9 @@ def test_surface_features_are_shape_only():
 
 
 #: The best AUC achieved so far, plus a little headroom. This is a REGRESSION
-#: BOUND, not the target. The target is `DEFAULT_BAND`, and the corpus does not
-#: meet it yet; see the xfail below and README "Known gap".
+#: BOUND, not a purity target. `DEFAULT_BAND` is retained as the strict ideal but
+#: is unreachable for content-defined ground truth; see README "The gate is a
+#: calibration instrument, not a purity test".
 REGRESSION_CEILING = 0.72
 
 

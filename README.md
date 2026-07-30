@@ -143,9 +143,12 @@ achieves.
 
 A corpus is therefore usable when its labels vary, its null has actually been
 computed, and its baseline sits under the ceiling with room above it for a model
-to demonstrate something. Current state across seven seeds: baselines 0.530 to
-0.587 against nulls near 0.50, all significant, all under the 0.65 ceiling, all
-usable.
+to demonstrate something. Current state after the coverage fix described in
+finding 3: baselines around 0.65 against nulls near 0.50, significant at z above
+4, all under the 0.72 ceiling, all usable. Measured at 400 events: seed 1 gives
+0.6547 against a null of 0.4854 +/- 0.0317, seed 7 gives 0.6588 against 0.5047
++/- 0.0361, and seed 101 gives 0.6675 against 0.4912 +/- 0.0287.
+The pre-coverage-fix range was 0.530 to 0.587; finding 4 explains why it rose.
 
 ## What was measured, and what broke
 
@@ -302,9 +305,9 @@ AUC can be queried rather than parsed back out of a message:
 OpenTelemetry is an **optional extra**, and deliberately so: Pharos has to run
 offline and deterministically, so a missing collector or a missing dependency
 degrades to silence rather than to an exception or a different number. There is a
-test for exactly that. With  and  set,
-spans and histograms export over OTLP and log lines gain  / , so
-one identifier ties a generation to its gate and its permutation null.
+test for exactly that. With the `otel` extra installed and `PHAROS_OTLP_ENDPOINT`
+set, spans and histograms export over OTLP and log lines gain `trace_id` /
+`span_id`, so one identifier ties a generation to its gate and its permutation null.
 
 ~~~bash
 export PHAROS_OTLP_ENDPOINT=http://localhost:4318
