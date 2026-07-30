@@ -249,6 +249,45 @@ baseline as a published property of a *correct* corpus rather than a defect to
 drive to chance. A triage score is reported against it, and the ceiling on what
 counts as usable has to accommodate what answerability costs.
 
+### 5. In-context learning does not close the gap, so the adapter test is on the critical path
+
+`scripts/measure_rule_learnability.py`. The design's premise is that a fleet learns
+analytic craft from an analyst's accept, revise, and reject decisions. Withholding the
+rule and supplying labelled examples instead is the cheap form of that question.
+
+Rule never stated, examples drawn from events disjoint from the evaluation set, and
+the example block class-balanced so it teaches the rule rather than the prior:
+
+| Condition | Shots | F1 |
+| --- | --- | --- |
+| Zero-shot floor | 0 | 0.720 |
+| Verdict-only examples | 2 / 4 / 8 | 0.615 / 0.640 / 0.636 |
+| Examples with the officer's stated reason | 2 / 4 / 8 | 0.522 / 0.706 / 0.556 |
+| **Rule stated, checklist prompt (ceiling)** | n/a | **1.000** |
+
+**Examples close none of the gap**, and richer examples do not rescue it. A bare
+verdict is roughly one bit, which is a poor teacher for "these three of fifteen facts
+must co-occur", so supplying the officer's reasoning was the obvious next thing to
+try. It moved nothing reliably.
+
+Three caveats, because this result is easy to over-read:
+
+- Twenty evaluation tasks per condition. Differences of about 0.1 sit inside the
+  noise, so the ordering *between* conditions is not claimed, only that none of them
+  reaches the ceiling.
+- Eight shots is roughly 3,600 words of examples before the target case, so
+  long-context dilution is an unseparated confound.
+- **In-context learning is not gradient learning.** Eight examples in a prompt and a
+  LoRA trained on thousands of tuples are different mechanisms, and the first failing
+  does not establish that the second will.
+
+The useful conclusion is about sequencing rather than viability. The cheap proxy for
+the design's central premise came back negative-to-inconclusive, which means the
+premise cannot be validated cheaply and the adapter experiment is no longer optional:
+it is the thing that decides. What the ceiling establishes is where the bottleneck
+sits. A model that reaches F1 1.000 when told the rule is not short of capability, it
+is short of the rule, so rule *acquisition* is the whole question.
+
 ## Observability
 
 Runs are analysable from their own output. Every measurement goes out as a
