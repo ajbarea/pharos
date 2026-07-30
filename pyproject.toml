@@ -23,7 +23,7 @@ dev = [
     "pytest-cov>=6.0",
     "ruff>=0.15",
     "ty>=0.0.44,<0.1",
-    "hypothesis>=6.152",
+    "hypothesis>=6.163.1",
     # Present in dev so the optional telemetry path is genuinely exercised by the
     # suite rather than pragma-excluded from it.
     "opentelemetry-api>=1.30",
