@@ -2,7 +2,7 @@
 
 from collections import Counter
 
-from pharos.generate import FACTS_PER_EVENT, GeneratorConfig, generate
+from pharos.generate import FACTS_PER_EVENT, GeneratorConfig, Report, generate
 from pharos.labels import Capacity, Compartment, Sensitivity
 from pharos.world import CHANNEL_LABELS, FACTS_BY_ID, SIGNIFICANT_PATTERN, ReportType
 
@@ -108,8 +108,8 @@ def test_voice_is_independent_of_class():
 INTEGRITY_REPORTS = generate(GeneratorConfig(seed=13, n_events=250, plant_rate=0.3))
 
 
-def _by_event(reports):
-    grouped: dict[str, list] = {}
+def _by_event(reports: list[Report]) -> dict[str, list[Report]]:
+    grouped: dict[str, list[Report]] = {}
     for report in reports:
         grouped.setdefault(report.event_id, []).append(report)
     return grouped
