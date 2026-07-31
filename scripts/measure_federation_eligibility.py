@@ -32,6 +32,7 @@ from pharos.labels import (
     Sensitivity,
     shared_eligible,
 )
+from pharos.provenance import run_provenance
 from pharos.tasks import build_tasks
 
 #: Plausible fleet aggregators. An aggregator sits at or below the enclaves that
@@ -144,6 +145,9 @@ def main() -> int:
         args.out.write_text(
             json.dumps(
                 {
+                    "provenance": run_provenance(
+                        model=args.model, endpoint=args.endpoint, seed=args.seed
+                    ),
                     "model": args.model,
                     "seed": args.seed,
                     "n_tasks": len(labels),

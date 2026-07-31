@@ -8,6 +8,10 @@ dist/
 build/
 *.egg-info/
 out/
+site/
+export/
 COMMITS.md
 
-*.json
+# Scratch JSON at the repo root only. Measurement artifacts live in results/ and
+# are tracked on purpose: a table in a paper needs a committed file behind it.
+/*.json

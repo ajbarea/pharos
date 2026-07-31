@@ -32,6 +32,7 @@ from pathlib import Path
 
 from pharos.attribute import DEFAULT_ENDPOINT, DEFAULT_MODEL, generate_text
 from pharos.generate import GeneratorConfig, generate
+from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, record
 
@@ -197,7 +198,15 @@ def main() -> int:
     if args.out:
         args.out.write_text(
             json.dumps(
-                {"model": args.model, "seed": args.seed, "n_eval": len(evaluation), "rows": rows},
+                {
+                    "provenance": run_provenance(
+                        model=args.model, endpoint=args.endpoint, seed=args.seed
+                    ),
+                    "model": args.model,
+                    "seed": args.seed,
+                    "n_eval": len(evaluation),
+                    "rows": rows,
+                },
                 indent=2,
             ),
             encoding="utf-8",

@@ -25,6 +25,7 @@ from pathlib import Path
 from pharos.attribute import DEFAULT_ENDPOINT, DEFAULT_MODEL, attribute_leave_one_out
 from pharos.detect import detector_accuracy
 from pharos.generate import GeneratorConfig, generate
+from pharos.provenance import run_provenance
 from pharos.tasks import build_tasks
 
 
@@ -109,6 +110,9 @@ def main() -> int:
         args.out.write_text(
             json.dumps(
                 {
+                    "provenance": run_provenance(
+                        model=args.model, endpoint=args.endpoint, seed=args.seed
+                    ),
                     "model": args.model,
                     "seed": args.seed,
                     "detector": accuracy.as_dict(),

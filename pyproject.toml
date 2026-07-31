@@ -18,6 +18,12 @@ otel = [
 ]
 
 [dependency-groups]
+# The official MLCommons validator. Kept out of `dev` because it pulls pandas and
+# ~24 packages, and the suite must stay fast for the common case; CI runs it as
+# its own job so the Croissant record is machine-checked rather than eyeballed.
+croissant = [
+    "mlcroissant>=1.0",
+]
 dev = [
     "pytest>=9.0",
     "pytest-cov>=6.0",

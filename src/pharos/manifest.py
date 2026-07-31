@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from pharos import __version__
 from pharos.gate import GateResult, run_gate
 from pharos.generate import GeneratorConfig, Report, generate
+from pharos.provenance import code_provenance
 
 #: Above this, shape explains too much of the task for a triage score to carry
 #: meaning. Not a purity threshold: the baseline is expected to exceed chance,
@@ -73,6 +74,7 @@ class Manifest:
     def as_dict(self) -> dict[str, object]:
         return {
             "pharos_version": self.pharos_version,
+            "code_provenance": code_provenance(),
             "config": self.config.as_dict(),
             "gate": self.gate.as_dict(),
             "n_reports": self.n_reports,

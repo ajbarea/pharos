@@ -23,6 +23,7 @@ from pharos.gate import run_gate
 from pharos.generate import GeneratorConfig, generate
 from pharos.labels import Capacity, Compartment, DeclassificationPolicy, Label, Sensitivity
 from pharos.labels import shared_eligible as is_shared_eligible
+from pharos.provenance import run_provenance
 from pharos.tasks import build_triage_tasks
 
 #: A fleet aggregator cleared below the enclaves feeding it, which is what makes
@@ -126,6 +127,9 @@ def main() -> int:
         args.out.write_text(
             json.dumps(
                 {
+                    "provenance": run_provenance(
+                        model=args.model, endpoint=args.endpoint, seed=args.seed
+                    ),
                     "model": args.model,
                     "seed": args.seed,
                     "surface_baseline": round(baseline.surface_baseline, 4),

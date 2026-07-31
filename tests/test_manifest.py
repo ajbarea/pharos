@@ -61,3 +61,16 @@ def test_label_histogram_keys_name_level_and_compartments():
 
     histogram = label_histogram(generate(GeneratorConfig(seed=3, n_events=60)))
     assert all("[" in key and key.split("[")[0].isupper() for key in histogram)
+
+
+def test_manifest_names_the_code_that_generated_it():
+    """A corpus figure is worth what its provenance is worth."""
+    payload = json.loads(build_manifest(CONFIG, null_trials=4).to_json())
+    assert set(payload["code_provenance"]) == {"pharos_version", "git_commit", "git_dirty"}
+
+
+def test_manifest_provenance_carries_no_clock():
+    """Two manifests from one seed must compare equal, so no timestamp may leak in."""
+    first = build_manifest(CONFIG, null_trials=4).to_json()
+    second = build_manifest(CONFIG, null_trials=4).to_json()
+    assert first == second

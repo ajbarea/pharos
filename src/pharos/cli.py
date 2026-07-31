@@ -6,9 +6,12 @@ integration rather than merely informing a human who may not be reading.
 
 import argparse
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
-from pharos.generate import GeneratorConfig
+from pharos.croissant import croissant_record, to_json
+from pharos.export import write_corpus
+from pharos.generate import GeneratorConfig, generate
 from pharos.manifest import build_manifest
 
 
@@ -53,15 +56,57 @@ def main(argv: list[str] | None = None) -> int:
     gate_cmd.add_argument("--events", type=int, default=400)
     gate_cmd.add_argument("--plant-rate", type=float, default=0.3)
     gate_cmd.add_argument("--out", type=Path, help="Write the manifest as JSON here")
-    args = parser.parse_args(argv)
 
+    export_cmd = sub.add_parser(
+        "export",
+        help="Write a corpus, its manifest, and its Croissant metadata to a directory",
+    )
+    export_cmd.add_argument("--seed", type=int, default=7)
+    export_cmd.add_argument("--events", type=int, default=400)
+    export_cmd.add_argument("--plant-rate", type=float, default=0.3)
+    export_cmd.add_argument("--out", type=Path, default=Path("export"))
+
+    args = parser.parse_args(argv)
     config = GeneratorConfig(seed=args.seed, n_events=args.events, plant_rate=args.plant_rate)
+
+    if args.command == "export":
+        return _export(config, args.out)
+
     manifest = build_manifest(config)
     _report(manifest)
     if args.out:
         args.out.write_text(manifest.to_json(), encoding="utf-8")
         print(f"wrote {args.out}")
     return 0 if manifest.usable else 1
+
+
+def _export(config: GeneratorConfig, out: Path) -> int:
+    """Write the corpus, the manifest, and the Croissant record as one artifact.
+
+    Refuses to write an unusable corpus. An export is what gets cited, and a
+    citable artifact whose own gate rejected it is worse than no artifact.
+    """
+    reports = generate(config)
+    manifest = build_manifest(config)
+    _report(manifest)
+    if not manifest.usable:
+        print("refusing to export: this corpus did not pass its own gate")
+        return 1
+
+    corpus_path = out / "corpus.jsonl"
+    size, digest = write_corpus(reports, corpus_path)
+    record = croissant_record(
+        manifest,
+        sha256=digest,
+        date_published=datetime.now(UTC).date().isoformat(),
+    )
+    (out / "croissant.json").write_text(to_json(record), encoding="utf-8")
+    (out / "manifest.json").write_text(manifest.to_json(), encoding="utf-8")
+
+    print(f"wrote {corpus_path}  ({size} bytes, sha256 {digest[:16]}...)")
+    print(f"wrote {out / 'croissant.json'}")
+    print(f"wrote {out / 'manifest.json'}")
+    return 0
 
 
 if __name__ == "__main__":

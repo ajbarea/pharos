@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate
+.PHONY: help setup lint test gate results ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -16,6 +16,13 @@ test:                      ## Run the test suite with coverage
 
 gate:                      ## Generate a corpus and run the shortcut gate on it
 	uv run python -m pharos.cli gate
+
+results:                   ## Regenerate every measurement artifact in results/ (needs Ollama)
+	@mkdir -p results
+	uv run python scripts/measure_label_fidelity.py --out results/label_fidelity.json
+	uv run python scripts/measure_federation_eligibility.py --out results/federation_eligibility.json
+	uv run python scripts/measure_triage_lift.py --out results/triage_lift.json
+	uv run python scripts/measure_rule_learnability.py --out results/learnability.json
 
 ci:                        ## Run every CI gate in order, exactly as the workflow does
 	uv run ruff format --check .
