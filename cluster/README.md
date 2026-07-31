@@ -1,8 +1,15 @@
 # Running Pharos on RIT Research Computing
 
-> **Status: written, not yet executed.** These scripts were derived from a working
-> session on the cluster but have not themselves been run there. Treat the first
-> execution as a test, not a deployment, and fix this file when reality disagrees.
+> **Status: executed and green, 2026-07-31.** `verify.sbatch` completed on
+> `skl-a-34` in 19m17s: 160 tests, 96.60% coverage, lint and types clean, Croissant
+> metadata validated, and the gate run on three seeds. `sweep.sbatch` has not been
+> run yet.
+
+**The gate reproduced bit-identically to a local run.** Seeds 1, 7, and 101 gave
+surface baselines of 0.6547, 0.6588, and 0.6675 on the cluster, matching a WSL
+machine with different CPU count, kernel, and libc to four decimal places. That is
+what the offline-and-deterministic constraint was for, and it is now demonstrated
+rather than claimed.
 
 Pharos runs fine on an 8 GB consumer card for everything it does today. Two things
 need the cluster:
@@ -12,12 +19,31 @@ need the cluster:
 2. **The adapter experiment.** LoRA fine-tuning a 7 B needs roughly 16-24 GB. This
    is a VRAM ceiling, not a throughput problem, so no local optimisation reaches it.
 
-## The one thing that breaks everything
+## What the older notes get wrong
 
-**The GPU nodes are ARM64** (`aarch64`, arch string `linux-rhel9-neoverse_v2` --
-NVIDIA Grace CPUs). An x86_64 download will not run and often fails in a way that
-looks like a missing library rather than a wrong architecture. Every binary below is
-the ARM build, deliberately.
+Surveyed live on 2026-07-31. Three things had changed since the notes this was
+first written from, and all three matter:
+
+- **There is no `grace` partition**, and no `gg-`/`gh-` nodes. GPUs are in
+  **`sporc-gpu`**: `a100` (2-4 per node) on `skl-a-*`, and 4x `h100` on `spr-a-02`.
+- **Those nodes are x86_64**, not aarch64. Standard CUDA wheels apply, which makes
+  the adapter experiment considerably less risky than the ARM-era notes implied.
+  Leftover aarch64 binaries in `~/bin` and `~/.local/bin` still passed
+  `command -v` and failed only when run, so `setup-env.sh` tests execution.
+- **Jobs need `--account`** (`fl-mlm`, `prdiscourse`, or `rc-onboard`).
+
+The one thing that carried over unchanged: spack's Python is 3.11.x against this
+project's `>=3.12` pin, so setup lets `uv` fetch its own interpreter.
+
+## Pin your thread pools
+
+Not optional. numpy and scikit-learn size their pools from the machine's CPU count
+while the Slurm cgroup only schedules `--cpus-per-task`. On a 96-core node with 8
+allocated that is a 12x oversubscription which does not error, does not warn, and
+simply crawls: a verify job sat at the same byte of output for twenty minutes
+before this was found. Both job scripts now export `OMP_NUM_THREADS` and friends
+from `SLURM_CPUS_PER_TASK`, and every run logs `run.context` with an
+`oversubscription_risk` flag when the numbers do not reconcile.
 
 ## Access
 
