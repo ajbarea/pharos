@@ -15,7 +15,9 @@ nav = [
       { "The shortcut gate" = "reference/gate.md" },
       { "Corpus schema" = "reference/corpus-schema.md" },
   ]},
+  { "Choosing a model" = "models.md" },
   { "Releasing a corpus" = "releasing.md" },
+  { "Running on a cluster" = "cluster.md" },
   { "Findings" = "findings.md" },
 ]
 

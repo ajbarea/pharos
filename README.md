@@ -23,8 +23,11 @@ what was coming, and reporting it to whoever needed to know.
 
 ## What is here
 
-Step 1 of the build order: the label algebra, the corpus generator, and the
-acceptance gate that decides whether a generated corpus may be used at all.
+Step 1 of the build order is complete -- the label algebra, the generator, and the
+acceptance gate -- and step 2 has begun with the triage task and the
+content-provenance detector.
+
+**The corpus path**, offline and deterministic end to end:
 
 | Module | Responsibility |
 | --- | --- |
@@ -33,12 +36,35 @@ acceptance gate that decides whether a generated corpus may be used at all.
 | `pharos.generate` | Deterministic corpus generation, reproducible from `(seed, config)` |
 | `pharos.gate` | The shortcut gate: can plant membership be predicted without reading anything? |
 | `pharos.manifest` | The citable record: version, seed, gate verdict, label histogram |
+
+**Tasks and labelling**, which is where step 2 is being built:
+
+| Module | Responsibility |
+| --- | --- |
+| `pharos.tasks` | Task instances, and the governed label a verdict inherits from its sources |
+| `pharos.detect` | Content-provenance labelling, the replacement for leave-one-out attribution |
+| `pharos.attribute` | The only module that calls a model. Everything nondeterministic lives here |
+| `pharos.models` | The model registry: what can be run, and what actually has been |
+
+**Release and inspection:**
+
+| Module | Responsibility |
+| --- | --- |
 | `pharos.provenance` | The stamp on every result: version, commit, and whether the tree was dirty |
 | `pharos.export` | Writing a corpus out as JSON Lines, and hashing exactly what was written |
 | `pharos.croissant` | Croissant metadata with the Responsible AI extension, emitted from the manifest |
+| `pharos.telemetry` | Structured logs, spans, and the execution-context snapshot |
+| `pharos.web` | The explorer: corpus, lattice, gate, and a triage run behind one page |
+| `pharos.cli` | `gate`, `export`, `models`, `serve` |
 
-Everything is offline and deterministic. There are no model calls in step 1,
-which is what makes the gate reproducible.
+**Model calls are confined to one module.** `pharos.attribute` is the only place a
+model is contacted, which is what keeps generation and gating reproducible: the
+acceptance decision cannot drift with a model version. That separation is worth
+preserving as the codebase grows.
+
+It holds in practice, not just in intention. The gate produces **bit-identical**
+surface baselines on a WSL laptop and on an RHEL 9 cluster node with a different
+CPU count, kernel, and libc: 0.6547, 0.6588, and 0.6675 on seeds 1, 7, and 101.
 
 ## Quickstart
 
@@ -450,14 +476,40 @@ Each artifact carries a provenance block naming the version, commit, whether the
 tree was dirty, the model, and the seed. A table in a paper needs a committed
 file behind it, and a committed file needs to say what produced it.
 
+## Running on a cluster
+
+Everything above runs on a consumer card. Two things do not, and
+[`cluster/`](cluster/README.md) holds the RIT Research Computing path for them:
+models above roughly 8 B, which exceed 8 GB of VRAM, and adapter training, which
+needs 16-24 GB. Both are VRAM ceilings rather than throughput problems, so no local
+optimisation reaches them.
+
+```bash
+bash cluster/setup-env.sh                        # once per account
+sbatch cluster/verify.sbatch                     # lint, types, tests, gate: no GPU
+sbatch cluster/gpu-probe.sbatch                  # does the adapter stack run here?
+PRE=$(sbatch --parsable cluster/prefetch-models.sbatch)
+sbatch --dependency=afterok:$PRE cluster/sweep.sbatch
+```
+
+Two traps are encoded there because both cost real time. Numerical libraries size
+their thread pools from the machine's CPU count while a Slurm cgroup schedules only
+`--cpus-per-task`, and a 12x oversubscription does not error, does not warn, and
+simply crawls; every run now logs `run.context` with an `oversubscription_risk`
+flag when those numbers disagree. And anything that waits -- a queued GPU
+allocation, a multi-gigabyte model pull -- belongs in `sbatch`, never in an
+interactive session that can time out from under it.
+
 ## Build order
 
-Step 1, here, is the label algebra, generator, and gate. Still ahead:
+Step 1 is done. Still ahead:
 
-2. **Tasks and scorers.** Task instances, the plant registry, and the four
-   specialist scorers, with an adversarial-input pass over each scorer.
+2. **Tasks and scorers.** Begun: `pharos.tasks` carries the triage task and
+   `pharos.detect` the labelling path. Still owed are the plant registry, the
+   remaining specialist scorers, and an adversarial-input pass over each.
 3. **Simulated analysts.** Persona-policy search, a simulator ensemble, and
-   divergence reporting.
+   divergence reporting. This is what the accept/revise/reject streams depend on,
+   and therefore what the adapter experiment's *design* premise depends on.
 
 ## License
 

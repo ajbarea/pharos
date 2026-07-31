@@ -33,9 +33,16 @@ artifact.
 | `pharos.generate` | Deterministic corpus generation, reproducible from `(seed, config)` |
 | [`pharos.gate`](reference/gate.md) | The shortcut gate: can plant membership be predicted without reading anything? |
 | `pharos.manifest` | The citable record: version, seed, gate verdict, label histogram |
+| `pharos.tasks` | Task instances, and the governed label a verdict inherits from its sources |
+| `pharos.detect` | Content-provenance labelling, the replacement for leave-one-out attribution |
+| `pharos.attribute` | The only module that calls a model |
+| [`pharos.models`](models.md) | The model registry: what can be run, and what actually has been |
 | `pharos.provenance` | The stamp on every result: version, commit, and whether the tree was dirty |
 | [`pharos.export`](reference/corpus-schema.md) | Writing a corpus out, and hashing exactly what was written |
 | [`pharos.croissant`](releasing.md) | Croissant metadata with the Responsible AI extension |
+| `pharos.telemetry` | Structured logs, spans, and the execution-context snapshot |
+| `pharos.web` | The explorer: corpus, lattice, gate, and a triage run behind one page |
+| `pharos.cli` | `gate`, `export`, `models`, `serve` |
 
 Everything in the generation and gating path is offline and deterministic. There
 are no model calls in it, which is what makes the gate reproducible. Model calls
