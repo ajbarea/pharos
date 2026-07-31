@@ -2,11 +2,14 @@
 
 Two hard constraints shape this module.
 
-**Offline and deterministic stays true.** Pharos generates corpora reproducibly from
-a seed, and an experiment must not depend on a collector being reachable. So
-OpenTelemetry is an optional extra: absent the packages, or absent configuration,
-every span becomes a no-op and logging falls back to stdlib. Nothing here can change
-a measurement, only report it.
+**Telemetry can never change a measurement.** Pharos generates corpora reproducibly
+from a seed, and an experiment must not depend on a collector being reachable. So
+absent the packages, or absent configuration, every span becomes a no-op and logging
+falls back to stdlib. Nothing here can change a measurement, only report it.
+
+This is a correctness property, not optionality: OpenTelemetry is a core dependency,
+because traceability is part of what makes a result checkable rather than a
+debugging convenience. What degrades is the *export*, never the number.
 
 **Measurements are structured, not printed.** A corpus's surface baseline or a
 sweep's per-fold AUC is data, so it goes out as log attributes and metrics rather
@@ -20,6 +23,7 @@ produced it rather than re-derived.
 
 Enable by setting `PHAROS_OTLP_ENDPOINT` (or calling `configure` directly). Without
 it you still get JSON logs, which is the useful default for a research tool.
+`docker compose up -d` brings up a collector, Jaeger, and Prometheus to point at.
 """
 
 import json

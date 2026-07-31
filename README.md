@@ -305,17 +305,34 @@ AUC can be queried rather than parsed back out of a message:
  "value": 0.5867, "n_reports": 1200, "n_folds": 4}
 ~~~
 
-OpenTelemetry is an **optional extra**, and deliberately so: Pharos has to run
-offline and deterministically, so a missing collector or a missing dependency
-degrades to silence rather than to an exception or a different number. There is a
-test for exactly that. With the `otel` extra installed and `PHAROS_OTLP_ENDPOINT`
-set, spans and histograms export over OTLP and log lines gain `trace_id` /
-`span_id`, so one identifier ties a generation to its gate and its permutation null.
+OpenTelemetry is a **core dependency**, not an extra. Traceability is a property
+of the experiment rather than a debugging convenience: a surprising number has to
+be traceable to the run that produced it, and `trace_id` ties a generation to its
+gate and its permutation null.
+
+What remains true, and is a correctness property rather than an optionality one,
+is that **telemetry can never change a measurement**. A missing or unreachable
+collector degrades to silence, never to an exception and never to a different
+number. There is a test for exactly that, and CI asserts it on every push.
+
+A full stack ships with the repo:
 
 ~~~bash
+docker compose up -d
 export PHAROS_OTLP_ENDPOINT=http://localhost:4318
-uv run --extra otel python -m pharos.cli gate
+uv run python -m pharos.cli gate
 ~~~
+
+| Service | Where | Role |
+| --- | --- | --- |
+| OpenTelemetry Collector | `localhost:4318` | Ingest. The only endpoint Pharos knows about |
+| Jaeger v2 | <http://127.0.0.1:16686> | Traces |
+| Prometheus | <http://127.0.0.1:9090> | Metrics |
+
+The collector is the ingest point rather than a backend on purpose. Pharos exports
+OTLP and knows nothing downstream, so swapping Jaeger for ClickHouse, SigNoz, or a
+hosted backend is an edit to `docker/otel-collector.yaml` and touches no Python.
+The default fan-out matches `kourai-khryseai` so the fleet reads the same way.
 
 ## Releasing a corpus
 

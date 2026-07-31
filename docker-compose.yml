@@ -1,0 +1,55 @@
+# Observability stack for Pharos experiment runs.
+#
+# The OpenTelemetry Collector is the ingest point rather than a backend, which is
+# the whole design decision here. Pharos exports OTLP to the collector and knows
+# nothing else; the collector fans out to whatever stores the signals. Swapping
+# Jaeger for ClickHouse, SigNoz, or a hosted backend is an edit to
+# docker/otel-collector.yaml and touches no Python.
+#
+# The default fan-out is Jaeger v2 for traces and Prometheus for metrics, matching
+# kourai-khryseai so the fleet reads the same way. Jaeger v2 is itself
+# collector-based; its configuration surface is not the v1 env-var one.
+#
+#   docker compose up -d
+#   Jaeger UI      http://127.0.0.1:16686
+#   Prometheus UI  http://127.0.0.1:9090
+#
+# Then point a run at the collector:
+#   export PHAROS_OTLP_ENDPOINT=http://localhost:4318
+#   uv run python -m pharos.cli gate
+
+name: pharos
+
+services:
+  # ──────────────── Ingest ────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.145.0
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./docker/otel-collector.yaml:/etc/otel/config.yaml:ro
+    ports:
+      # OTLP over HTTP, which is what pharos.telemetry exports.
+      - "127.0.0.1:4318:4318"
+      # OTLP over gRPC, for anything else pointed at this stack.
+      - "127.0.0.1:4317:4317"
+      # Prometheus scrape target exposing the collector's converted metrics.
+      - "127.0.0.1:8889:8889"
+    depends_on:
+      - jaeger
+    restart: unless-stopped
+
+  # ──────────────── Traces ────────────────
+  jaeger:
+    image: jaegertracing/jaeger:2.13.0
+    ports:
+      - "127.0.0.1:16686:16686"
+    restart: unless-stopped
+
+  # ──────────────── Metrics ────────────────
+  prometheus:
+    image: prom/prometheus:v3.11.3-distroless
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "127.0.0.1:9090:9090"
+    restart: unless-stopped

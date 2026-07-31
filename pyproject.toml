@@ -6,16 +6,20 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
     "numpy>=2.1",
     "scikit-learn>=1.6",
-]
-
-[project.optional-dependencies]
-# Optional on purpose: Pharos must stay offline and deterministic, so telemetry is
-# something a run can have, never something it needs.
-otel = [
+    # First-class, not an extra. Traceability is a property of the experiment, not
+    # a debugging convenience: a surprising number has to be traceable to the run
+    # that produced it. What stays true is that telemetry can never *change* a
+    # measurement, so a missing collector degrades to silence rather than to an
+    # exception or a different result. That is correctness, not optionality.
     "opentelemetry-api>=1.30",
     "opentelemetry-sdk>=1.30",
     "opentelemetry-exporter-otlp-proto-http>=1.30",
 ]
+
+[project.optional-dependencies]
+# Retained so `--extra otel` keeps working for anything that already used it.
+# The packages are core dependencies now, so this resolves to a no-op.
+otel = []
 
 [dependency-groups]
 # The official MLCommons validator. Kept out of `dev` because it pulls pandas and

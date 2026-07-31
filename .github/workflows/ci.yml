@@ -28,10 +28,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: uv sync --all-groups
-      # Prove the optional telemetry path imports and degrades cleanly. Pharos must
-      # run offline with no collector, so "installed but unconfigured" is a state the
-      # build has to cover rather than assume.
-      - run: uv run --extra otel python -c "from pharos import telemetry; assert telemetry.configure() is False"
+      # Telemetry is a core dependency, so this is not an "is it installed" check.
+      # It asserts the correctness property: with the SDK present but no collector
+      # configured, configure() reports inactive and the run proceeds unchanged.
+      # Telemetry may never alter a measurement, only report one.
+      - run: uv run python -c "from pharos import telemetry; assert telemetry.configure() is False"
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run ty check

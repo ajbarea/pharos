@@ -438,14 +438,10 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "numpy" },
-    { name = "scikit-learn" },
-]
-
-[package.optional-dependencies]
-otel = [
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-sdk" },
+    { name = "scikit-learn" },
 ]
 
 [package.dev-dependencies]
@@ -466,9 +462,9 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "numpy", specifier = ">=2.1" },
-    { name = "opentelemetry-api", marker = "extra == 'otel'", specifier = ">=1.30" },
-    { name = "opentelemetry-exporter-otlp-proto-http", marker = "extra == 'otel'", specifier = ">=1.30" },
-    { name = "opentelemetry-sdk", marker = "extra == 'otel'", specifier = ">=1.30" },
+    { name = "opentelemetry-api", specifier = ">=1.30" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.30" },
+    { name = "opentelemetry-sdk", specifier = ">=1.30" },
     { name = "scikit-learn", specifier = ">=1.6" },
 ]
 provides-extras = ["otel"]

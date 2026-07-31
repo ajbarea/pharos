@@ -1,0 +1,58 @@
+# OpenTelemetry Collector config for Pharos.
+#
+# The point of routing through a collector rather than exporting straight to a
+# backend is that the backend becomes a config edit. To send traces to ClickHouse,
+# SigNoz, or a hosted vendor instead of Jaeger, add the exporter here and list it
+# in the pipeline; nothing in Pharos changes.
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  # Bound memory so a long sweep cannot make the collector the thing that fails.
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+exporters:
+  # Traces to Jaeger v2, which speaks OTLP natively.
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Metrics converted for Prometheus to scrape from :8889. Pharos metric names
+  # already carry their own namespace (gate.*, generate.*), so no prefix is added.
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  # Structured logs to the collector's own stdout. Pharos also writes JSON logs
+  # locally, so this is for correlation rather than as the system of record.
+  debug:
+    verbosity: normal
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/jaeger]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
