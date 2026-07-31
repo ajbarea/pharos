@@ -78,8 +78,10 @@ pinning versions in the first place.
 bash cluster/setup-env.sh
 ```
 
-Installs `uv` and an ARM64 Ollama into `~/.local/bin` and `~/bin`, and syncs the
-project. Read it before running it; it writes to your home directory.
+Installs `uv` and a linux-amd64 Ollama into `~/.local/bin` and `~/bin`, and syncs
+the project. It clears aarch64 leftovers from the ARM era first, since those pass
+`command -v` and fail only when run. Read it before running it; it writes to your
+home directory.
 
 ## Jobs
 
@@ -92,7 +94,8 @@ is tracked, so bring them back with `scp` or `git`.
 
 ## What is deliberately not here
 
-No adapter-training job yet. PyTorch aarch64 + CUDA on Grace is unverified from
-here, and writing an `sbatch` file that asserts a working training stack would be a
-prediction rather than a script. Verify the wheel situation on a node first, then
-add it.
+No adapter-training job yet. The CUDA wheel situation on `sporc-gpu` is unverified
+from a node, and writing an `sbatch` file that asserts a working training stack
+would be a prediction rather than a script. Verify it on a node first, then add it.
+x86_64 makes this much lower-risk than the ARM-era notes implied, but lower-risk is
+not verified.
