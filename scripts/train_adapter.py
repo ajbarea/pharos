@@ -55,6 +55,7 @@ from pharos.generate import GeneratorConfig, generate
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, log_execution_context, progress, record
+from pharos.validity import check_classification
 
 LOG = get_logger()
 
@@ -149,8 +150,23 @@ def tokenize_masked(example: dict[str, str], tokenizer, max_len: int):
     return {"input_ids": input_ids, "labels": labels}
 
 
-def evaluate(model, tokenizer, tasks: list[TriageTask], *, label: str) -> EvalResult:
-    """Greedy-decode a verdict per task and score it. No sampling, so this is stable."""
+def evaluate(
+    model, tokenizer, tasks: list[TriageTask], *, label: str, max_new_tokens: int = 320
+) -> EvalResult:
+    """Greedy-decode a verdict per task and score it. No sampling, so this is stable.
+
+    `max_new_tokens` defaults high, and that is a correctness requirement rather than
+    a tuning choice. The prompt asks the model to reason briefly and *then* emit a
+    verdict line. A trained adapter learns to emit the verdict alone and fits in a
+    dozen tokens; an untrained checkpoint starts reasoning and gets truncated before
+    it ever reaches the verdict.
+
+    The first run of this experiment used 12, and the baseline came back with 57 of
+    60 answers unparsable and an F1 of 1.000 computed on the three that survived.
+    That is not a baseline, it is a token limit, and comparing a fine-tuned model
+    against it would have manufactured the entire result. 320 matches what
+    measure_rule_learnability gives its own baseline, so the two are comparable.
+    """
     import torch
 
     model.eval()
@@ -163,7 +179,7 @@ def evaluate(model, tokenizer, tasks: list[TriageTask], *, label: str) -> EvalRe
         with torch.no_grad():
             out = model.generate(
                 **inputs,
-                max_new_tokens=12,
+                max_new_tokens=max_new_tokens,
                 do_sample=False,
                 pad_token_id=tokenizer.pad_token_id,
             )
@@ -189,6 +205,14 @@ def evaluate(model, tokenizer, tasks: list[TriageTask], *, label: str) -> EvalRe
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
     total = tp + fp + tn + fn + unparsed
     prevalence = (tp + fn) / total if total else 0.0
+    validity = check_classification(
+        tp=tp, fp=fp, tn=tn, fn=fn, unparsed=unparsed, label=f"adapter:{label}"
+    )
+    if not validity.quotable:
+        print(f"\n!! {label} measurement has validity concerns:")
+        for concern in validity.concerns:
+            print(f"   - {concern}")
+
     return EvalResult(
         label=label,
         n=total,
