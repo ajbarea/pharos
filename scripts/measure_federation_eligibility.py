@@ -32,6 +32,7 @@ from pharos.labels import (
     Sensitivity,
     shared_eligible,
 )
+from pharos.models import resolve
 from pharos.provenance import run_provenance
 from pharos.tasks import build_tasks
 
@@ -69,6 +70,9 @@ def main() -> int:
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
+    # Accept a registry key, a raw tag, or anything the backend knows.
+    spec = resolve(args.model)
+    args.model = spec.tag
 
     reports = generate(GeneratorConfig(seed=args.seed, n_events=args.events))
     accuracy = detector_accuracy(reports)
@@ -146,7 +150,7 @@ def main() -> int:
             json.dumps(
                 {
                     "provenance": run_provenance(
-                        model=args.model, endpoint=args.endpoint, seed=args.seed
+                        model=args.model, model_key=spec.key, endpoint=args.endpoint, seed=args.seed
                     ),
                     "model": args.model,
                     "seed": args.seed,

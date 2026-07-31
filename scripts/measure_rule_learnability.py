@@ -32,6 +32,7 @@ from pathlib import Path
 
 from pharos.attribute import DEFAULT_ENDPOINT, DEFAULT_MODEL, generate_text
 from pharos.generate import GeneratorConfig, generate
+from pharos.models import resolve
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, record
@@ -107,6 +108,9 @@ def main() -> int:
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
+    # Accept a registry key, a raw tag, or anything the backend knows.
+    spec = resolve(args.model)
+    args.model = spec.tag
 
     reports = generate(GeneratorConfig(seed=args.seed, n_events=args.events))
     all_tasks = build_triage_tasks(reports)
@@ -200,7 +204,7 @@ def main() -> int:
             json.dumps(
                 {
                     "provenance": run_provenance(
-                        model=args.model, endpoint=args.endpoint, seed=args.seed
+                        model=args.model, model_key=spec.key, endpoint=args.endpoint, seed=args.seed
                     ),
                     "model": args.model,
                     "seed": args.seed,
