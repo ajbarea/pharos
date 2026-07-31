@@ -16,10 +16,17 @@ and seed that produced it.
 
 `scripts/measure_label_fidelity.py`
 
-Eight-source summarization turns, exact leave-one-out: **62% source recall, and a
-wrong label on half of all turns, always under-restrictive.** One turn moved from
-`RESTRICTED[LIAISON,PARTNER,SENSOR]` to `PROTECTED[LEGAL]`, not merely laxer but
-incomparable.
+Eight-source summarization turns, exact leave-one-out, 24 turns: **61.8% source
+recall at 97.6% precision, and a wrong governed label on 8 of 24 turns (33%).** Six
+of the eight leak; two creep.
+
+!!! warning "Corrected 2026-07-30"
+    First measured at n=8 on the corpus *before* the coverage fix in finding 3.
+    Three claims did not survive remeasurement. A wrong label on **half** of turns
+    is **33%** at n=24. **Always under-restrictive** is refuted: creep occurs in 2
+    of 24. And the cited move to an **incomparable** label
+    (`RESTRICTED[LIAISON,PARTNER,SENSOR]` to `PROTECTED[LEGAL]`) did not recur and
+    should not be quoted. Source recall did reproduce, 0.618 against 0.62.
 
 The cause is corroboration. Leave-one-out asks which single source is
 load-bearing, and a fact reported through several channels has none: drop any one
@@ -27,8 +34,15 @@ copy and the fact survives in the others, so no source is blamed and none of the
 labels enters the join. Corroboration is not an edge case in this domain, it is
 what channels are for.
 
+Read the precision alongside the recall. At 0.976 the ablation almost never blames
+a source that did not contribute, it simply misses most of the ones that did. That
+asymmetry is why the failure is mostly leak, and why a quarter of turns receive a
+label that under-protects their sources.
+
 Leave-one-out is also the ceiling that cheaper estimators approximate, so nothing
-faster repairs it. **This rules out the whole family.**
+faster repairs it. At 67% exactly correct it is not a **usable** labelling
+mechanism, though the original "rules out the whole family" was stated more
+strongly than 24 turns can support.
 
 The replacement costs nothing: given what the output asserts, join the labels of
 every source that *could* have asserted it. One detection pass, no ablation sweep,
@@ -38,14 +52,20 @@ and conservative by construction, so the error direction is creep rather than le
 
 `scripts/measure_federation_eligibility.py`
 
-Three aggregator ceilings, four capacities. Turns average 2.88 compartments of 4,
-and seven of eight already sit at the top of the level ladder, because a summary
-over eight sources joins nearly everything.
+Three aggregator ceilings, four capacities, 40 turns. Turns average **2.15
+compartments of 4**, and most already sit high on the level ladder, because a
+summary over eight sources joins nearly everything.
 
 | Declassification policy | FREETEXT | SPAN | SCALAR | ENUM |
 | --- | --- | --- | --- | --- |
-| keep compartments (fail-closed default) | 0-12% | 0-12% | 0-12% | 0-12% |
-| drop compartments for low capacity | 0-12% | 0-12% | **100%** | **100%** |
+| keep compartments (fail-closed default) | 0-38% | 0-38% | 0-38% | 0-38% |
+| drop compartments for low capacity | 0-38% | 0-38% | **100%** | **100%** |
+
+!!! warning "Corrected 2026-07-30"
+    Also first measured at n=8 on the pre-coverage-fix corpus: the mean was
+    reported as 2.88 (now 2.15) and the keep-compartments row as 0-12% (now
+    0-38%). The **shape** is unchanged and is the part that matters, and it now
+    rests on 40 turns rather than 8.
 
 So "may a low-capacity verdict shed the compartments of its sources?" is not a
 detail. Answer no and the fleet is a set of unconnected local learners. Answer yes

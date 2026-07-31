@@ -1,0 +1,71 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "74c7fa3aac77",
+    "git_dirty": false,
+    "generated_at": "2026-07-31T01:28:58+00:00",
+    "python": "3.13.13",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "model": "qwen2.5:7b-instruct",
+    "endpoint": "http://localhost:11434/api/generate",
+    "seed": 7
+  },
+  "model": "qwen2.5:7b-instruct",
+  "seed": 7,
+  "n_eval": 30,
+  "rows": [
+    {
+      "shots": 0,
+      "tp": 7,
+      "fp": 11,
+      "tn": 10,
+      "fn": 1,
+      "unparsed": 1,
+      "precision": 0.3889,
+      "recall": 0.875,
+      "f1": 0.5385,
+      "accuracy": 0.5862,
+      "majority": 0.7241
+    },
+    {
+      "shots": 2,
+      "tp": 7,
+      "fp": 19,
+      "tn": 3,
+      "fn": 0,
+      "unparsed": 1,
+      "precision": 0.2692,
+      "recall": 1.0,
+      "f1": 0.4242,
+      "accuracy": 0.3448,
+      "majority": 0.7586
+    },
+    {
+      "shots": 4,
+      "tp": 7,
+      "fp": 17,
+      "tn": 5,
+      "fn": 1,
+      "unparsed": 0,
+      "precision": 0.2917,
+      "recall": 0.875,
+      "f1": 0.4375,
+      "accuracy": 0.4,
+      "majority": 0.7333
+    },
+    {
+      "shots": 8,
+      "tp": 8,
+      "fp": 12,
+      "tn": 9,
+      "fn": 0,
+      "unparsed": 1,
+      "precision": 0.4,
+      "recall": 1.0,
+      "f1": 0.5714,
+      "accuracy": 0.5862,
+      "majority": 0.7241
+    }
+  ]
+}
