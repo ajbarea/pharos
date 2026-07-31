@@ -10,7 +10,15 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancel superseded runs on pull requests only, never on main.
+  #
+  # With this set to `true` unconditionally, a rapid series of pushes to main leaves
+  # every commit but the last untested: 6 of 15 recent runs were cancelled that way,
+  # and one genuine failure went unnoticed because the run that would have shown it
+  # green again was itself cancelled. On a protected branch each commit needs its own
+  # verdict; on a PR only the tip matters, and cancelling there is what makes fast
+  # iteration cheap.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint-and-test:
