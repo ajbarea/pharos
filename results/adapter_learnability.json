@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "c536f4c1f918",
-    "git_dirty": true,
-    "generated_at": "2026-07-31T21:58:53+00:00",
+    "git_commit": "f8f6dd815f75",
+    "git_dirty": false,
+    "generated_at": "2026-07-31T22:26:20+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
@@ -40,7 +40,7 @@
     },
     "events_disjoint": true
   },
-  "training_loss": 0.29902720192115306,
+  "training_loss": 0.2968755877668122,
   "base": {
     "label": "base",
     "n": 60,
@@ -62,16 +62,16 @@
     "n": 60,
     "confusion": {
       "tp": 20,
-      "fp": 1,
-      "tn": 39,
+      "fp": 0,
+      "tn": 40,
       "fn": 0
     },
     "unparsed": 0,
-    "accuracy": 0.9833,
+    "accuracy": 1.0,
     "majority_accuracy": 0.6667,
-    "precision": 0.9524,
+    "precision": 1.0,
     "recall": 1.0,
-    "f1": 0.9756
+    "f1": 1.0
   },
   "ceiling_f1": 1.0
 }

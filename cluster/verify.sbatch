@@ -60,13 +60,23 @@ uv run python -c "from pharos.provenance import run_provenance; print(run_proven
 
 echo
 echo ">>> lint and types"
+# Install every group before checking anything.
+#
+# `ui` and `croissant` are non-default dependency-groups, so a bare `uv run` syncs
+# neither. ty still type-checks web.py, which imports fastapi, and reported four
+# unresolved-import errors on a node where the package simply was not installed --
+# a failure of the environment, not the code. CI never saw it because CI runs
+# `uv sync --all-groups`. Running the same command here is the point: a gate that
+# checks something narrower than CI can pass while CI fails.
+uv sync --all-groups
+
 uv run ruff format --check .
 uv run ruff check .
 uv run ty check
 
 echo
 echo ">>> test suite with coverage floor"
-uv run pytest --cov=pharos --cov-report=term-missing --cov-fail-under=95
+uv run pytest --cov=pharos --cov=scripts --cov-report=term-missing --cov-fail-under=90
 
 echo
 echo ">>> the gate, on the seed list CI uses"

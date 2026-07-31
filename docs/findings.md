@@ -250,3 +250,43 @@ validated cheaply and **the adapter experiment is no longer optional: it is the
 thing that decides.** What the ceiling establishes is where the bottleneck sits. A
 model that reaches F1 1.000 when told the rule is not short of capability, it is
 short of the rule, so rule *acquisition* is the whole question.
+
+## 6. Gradient learning does close the gap, on clean labels
+
+`scripts/train_adapter.py`, `results/adapter_learnability.json`
+
+Finding 5 ended by saying the adapter experiment was the thing that decides. It has
+now run: a LoRA fine-tune of Qwen2.5-3B-Instruct on an A100-40GB, rank 16, three
+epochs over 1,140 training tuples, evaluated on 60 held-out tasks.
+
+| | Accuracy | Majority | Precision | Recall | F1 | Unparsed |
+| --- | --- | --- | --- | --- | --- | --- |
+| Base | 0.300 | 0.717 | 0.319 | 0.882 | 0.469 | 8 / 60 |
+| **Adapter** | **1.000** | 0.667 | 1.000 | 1.000 | **1.000** | 0 / 60 |
+| Ceiling (rule stated, checklist) | 1.000 | | 1.000 | 1.000 | 1.000 | |
+
+**The rule is gradient-learnable where in-context examples reached none of it.**
+That is the substantive result, and it is the cleanest contrast in this document:
+same withheld rule, same task, same ceiling, and the mechanism is the only thing
+that changed.
+
+Four things that keep this honest:
+
+- **The split is clean, and this was verified rather than assumed.** One task per
+  event, so an index split is an event split: zero event overlap, zero exact-text
+  overlap between evaluation and training, and zero duplicate texts corpus-wide.
+  A perfect score is the shape of a leak, so the leak was the first thing checked.
+- **The score is saturated, and saturation is not the same as certainty.** Zero
+  errors in 60 bounds the true error rate only at 5% by the rule of three, and a
+  ceiling cannot rank anything above it. `pharos.validity` now flags this
+  automatically; it did not before, and the gap was found by this run passing every
+  existing check while plainly deserving a caveat.
+- **The base row is worse than it looks and should not be quoted alone.** It sits
+  below its own majority floor and left 8 of 60 answers unparsable, both of which
+  the validity checks flagged at runtime. It is a fair starting point for a delta,
+  not a measurement of the model.
+- **Clean labels are not analyst decisions.** The training signal here is the
+  generator's ground truth. The design's actual premise is learning from accept,
+  revise, and reject -- indirect, noisier, and far less abundant. This result
+  removes the *capability* objection and leaves the *supervision* question
+  untouched, which is the next experiment rather than a conclusion of this one.

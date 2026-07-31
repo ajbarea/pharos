@@ -282,7 +282,12 @@ def main() -> int:
         eval_balance=_class_balance(evaluation),
     )
 
+    # from_pretrained can return None for a name it cannot resolve to a tokenizer.
+    # Unguarded, the next line raises AttributeError on NoneType several frames from
+    # the cause; on a GPU allocation that is a confusing way to lose the allocation.
     tokenizer = AutoTokenizer.from_pretrained(args.model)
+    if tokenizer is None:
+        raise SystemExit(f"no tokenizer for {args.model!r}: check the model name")
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
