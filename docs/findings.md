@@ -15,6 +15,33 @@ are not bit-reproducible across machines and the gate is.
     serving the model named in each script, and it is not fast: the label
     fidelity measurement alone is 72 sequential model calls.
 
+## Status: provisional
+
+**The testbed is still being built, and these numbers should be read as provisional
+rather than settled.** That is a deliberate position, not modesty, and the history
+supports it: of the first three findings, two did not reproduce when remeasured at
+larger n on a corrected corpus, and the third had to be retracted outright after a
+generator bug turned out to have made two thirds of the positive class unanswerable.
+
+What that means for a reader:
+
+- **Mechanisms are the durable part.** That leave-one-out under-attributes because
+  corroborated facts have no single load-bearing source, or that eligibility is
+  bimodal on the compartment-shedding ruling, survived remeasurement. The
+  *severities* attached to them did not.
+- **Every number carries its own verdict.** `pharos.validity` inspects each
+  measurement for the conditions that make a score misleading -- small n, a class
+  floor the score does not clear, degenerate predictions, unparsed answers -- and
+  marks the artifact `quotable: false` when it trips one. Most of the sweep results
+  are currently not quotable, and say so.
+- **Numbers below are traceable, not authoritative.** Each artifact in `results/`
+  records the version, commit, platform, model, and seed behind it, so a figure can
+  be checked rather than trusted.
+
+The gate's calibration finding is the one result here with support from outside this
+generator, having been reproduced on three public corpora. Treat the rest as the
+current state of an instrument still under construction.
+
 ## 1. Leave-one-out attribution cannot produce a correct governed label
 
 `scripts/measure_label_fidelity.py`

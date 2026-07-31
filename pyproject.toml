@@ -2,7 +2,7 @@
 name = "pharos"
 version = "0.1.0"
 description = "Labeled fleet testbed for federated personalization with a governed disclosure boundary"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12,<3.15"
 dependencies = [
     "numpy>=2.1",
     "scikit-learn>=1.6",
