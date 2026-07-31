@@ -44,7 +44,30 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run ty check
-      - run: uv run pytest --cov=pharos --cov=scripts --cov-report=term-missing --cov-fail-under=90
+      - run: >
+          uv run pytest --cov=pharos --cov=scripts --cov-branch
+          --cov-report=term-missing --cov-report=xml --cov-fail-under=90
+          --junitxml=junit.xml -o junit_family=legacy
+      # Only one matrix leg uploads. Three identical reports would be merged into the
+      # same commit for no added signal and would race each other doing it.
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.13'
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          files: coverage.xml
+          flags: unit
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          disable_search: true
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() && matrix.python-version == '3.13' }}
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          files: junit.xml
+          report_type: test_results
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          disable_search: true
       # Dependency vulnerability scan, matching the sisters. Runs last so a CVE in a
       # transitive dependency does not mask a real test failure.
       - name: Audit dependencies

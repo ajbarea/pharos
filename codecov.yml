@@ -1,0 +1,26 @@
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 2%
+        informational: true
+    patch:
+      default:
+        target: 80%
+        informational: true
+
+# The patch status is the useful signal on a PR; an inline bot comment repeating it
+# is noise. Sister convention across every repo that uses codecov here.
+comment: false
+
+ignore:
+  - "tests/**"
+  - "docs/**"
+  - "*.md"
+# scripts/ is deliberately NOT ignored. The experiment drivers live there, they are
+# the least-covered code in the repository, and hiding the weakest surface from the
+# coverage report is the opposite of what the report is for.

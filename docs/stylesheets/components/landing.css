@@ -1,0 +1,135 @@
+/* Landing page: hero, scroll hint, and the reveal-on-scroll sections.
+ *
+ * The palette is taken from the hero image rather than chosen separately, so the
+ * page and the picture agree: three beams on three bearings, amber, cyan, magenta.
+ */
+
+:root {
+  --pharos-beam-amber: #f0a020;
+  --pharos-beam-cyan: #22c8c8;
+  --pharos-beam-magenta: #d4267f;
+  --pharos-night: #0b0e14;
+}
+
+/* ---------------------------------------------------------------- hero ----- */
+
+.hero {
+  position: relative;
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+}
+
+.hero img {
+  width: min(560px, 82vw);
+  height: auto;
+  border-radius: 1rem;
+}
+
+.md-typeset .hero h1 {
+  margin: 1.25rem 0 0.35rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.hero-subtitle {
+  max-width: 40rem;
+  margin: 0 auto 1.75rem;
+  font-size: 1.05rem;
+  opacity: 0.86;
+}
+
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+/* The three beams, as a legend for what the picture is saying. */
+.hero-beams {
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.hero-beams .beam-amber {
+  color: var(--pharos-beam-amber);
+}
+.hero-beams .beam-cyan {
+  color: var(--pharos-beam-cyan);
+}
+.hero-beams .beam-magenta {
+  color: var(--pharos-beam-magenta);
+}
+
+/* --------------------------------------------------------- scroll hint ----- */
+
+.scroll-hint {
+  text-align: center;
+  padding: 0.5rem 0 2rem;
+}
+
+.scroll-chevron {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-right: 2px solid var(--pharos-beam-amber);
+  border-bottom: 2px solid var(--pharos-beam-amber);
+  transform: rotate(45deg);
+  opacity: 0.4;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-hint {
+    animation: pharos-hint-bounce 2s ease-in-out infinite;
+  }
+  @keyframes pharos-hint-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(6px);
+    }
+  }
+}
+
+/* ------------------------------------------------------------ sections ----- */
+
+/* Visible by default. JS sets .js-ready on <html> to opt into the reveal, so a
+ * reader with JavaScript off gets the whole page rather than a blank one. */
+.landing-section {
+  padding: 3.5rem 0 3rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.landing-section:first-of-type {
+  border-top: none;
+}
+
+.section-title {
+  text-align: center;
+}
+
+.section-lead {
+  max-width: 44rem;
+  margin-inline: auto;
+  text-align: center;
+  opacity: 0.88;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.js-ready .landing-section {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s ease;
+  }
+  html.js-ready .landing-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

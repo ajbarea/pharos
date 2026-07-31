@@ -26,6 +26,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A first column of identifiers must not wrap mid-token. Once the wide-screen rule
+ * above restores `white-space: normal`, names like `pharos.provenance` break across
+ * two lines at the dot, which reads as two different modules. Only the code spans
+ * are pinned, so a first column of prose still wraps normally. */
+.md-typeset table:not([class]) td:first-child code,
+.md-typeset table:not([class]) th:first-child code {
+  white-space: nowrap;
+}
+
+/* Give that column room to take the widest name it holds rather than wrapping the
+ * cell itself, while leaving the description column free to absorb the remainder.
+ * The table is pinned to full width first, because `width: 1%` on a cell otherwise
+ * collapses the whole table to shrink-to-fit and it stops filling its column. */
+.md-typeset table:not([class]) {
+  width: 100%;
+}
+
+.md-typeset table:not([class]) td:first-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
 /* The admonitions on the findings and gate pages carry corrections and caveats,
  * which are the parts a reader most needs to notice. Give warnings a little more
  * presence than the theme default without shouting. */

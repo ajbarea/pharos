@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/pharos-hero.png" width="800" alt="Pharos Hero Image">
+<a href="https://ajbarea.github.io/pharos/"><img src="docs/assets/pharos-hero.png" width="800" alt="Pharos Hero Image"></a>
 
 # 🗼 Pharos
 
