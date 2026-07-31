@@ -1,12 +1,12 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "27392b13c349",
-    "git_dirty": false,
-    "generated_at": "2026-07-31T02:26:56+00:00",
-    "python": "3.13.13",
-    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "git_commit": "e93af9fd48f9",
+    "git_dirty": true,
+    "generated_at": "2026-07-31T16:36:17+00:00",
+    "python": "3.13.14",
+    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
+    "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
     "model": "llama3.2:3b-instruct-q4_K_M",
     "model_key": "llama3.2-3b",
     "endpoint": "http://localhost:11434/api/generate",
@@ -41,8 +41,8 @@
     {
       "task_id": "TR-0001",
       "truth": false,
-      "verdict": true,
-      "raw": "SIGNIFICANT.",
+      "verdict": false,
+      "raw": "ROUTINE.",
       "label": "PROTECTED[SENSOR]"
     },
     {
@@ -83,8 +83,8 @@
     {
       "task_id": "TR-0007",
       "truth": false,
-      "verdict": false,
-      "raw": "ROUTINE.",
+      "verdict": true,
+      "raw": "SIGNIFICANT.",
       "label": "PROTECTED[LEGAL,SENSOR]"
     },
     {

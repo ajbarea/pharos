@@ -3,29 +3,29 @@
     "pharos_version": "0.1.0",
     "git_commit": "e93af9fd48f9",
     "git_dirty": true,
-    "generated_at": "2026-07-31T16:37:00+00:00",
+    "generated_at": "2026-07-31T16:39:57+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
-    "model": "mistral:7b-instruct",
-    "model_key": "mistral-7b",
+    "model": "qwen2.5:14b-instruct",
+    "model_key": "qwen2.5-14b",
     "endpoint": "http://localhost:11434/api/generate",
     "seed": 7
   },
-  "model": "mistral:7b-instruct",
+  "model": "qwen2.5:14b-instruct",
   "seed": 7,
   "surface_baseline": 0.6588,
   "confusion": {
     "tp": 15,
-    "fp": 23,
-    "tn": 2,
+    "fp": 19,
+    "tn": 6,
     "fn": 0
   },
   "unparsed": 0,
-  "precision": 0.3947,
+  "precision": 0.4412,
   "recall": 1.0,
-  "f1": 0.566,
-  "accuracy": 0.425,
+  "f1": 0.6122,
+  "accuracy": 0.525,
   "majority_accuracy": 0.625,
   "eligible_keep": 19,
   "eligible_drop": 40,
@@ -41,8 +41,8 @@
     {
       "task_id": "TR-0001",
       "truth": false,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
+      "verdict": false,
+      "raw": "ROUTINE",
       "label": "PROTECTED[SENSOR]"
     },
     {
@@ -83,8 +83,8 @@
     {
       "task_id": "TR-0007",
       "truth": false,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
+      "verdict": false,
+      "raw": "ROUTINE",
       "label": "PROTECTED[LEGAL,SENSOR]"
     },
     {
@@ -146,8 +146,8 @@
     {
       "task_id": "TR-0016",
       "truth": false,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
+      "verdict": false,
+      "raw": "ROUTINE",
       "label": "PROTECTED[SENSOR]"
     },
     {
@@ -251,8 +251,8 @@
     {
       "task_id": "TR-0031",
       "truth": false,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
+      "verdict": false,
+      "raw": "ROUTINE",
       "label": "OPEN[]"
     },
     {

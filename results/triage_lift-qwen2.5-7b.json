@@ -1,12 +1,12 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "27392b13c349",
-    "git_dirty": false,
-    "generated_at": "2026-07-31T02:28:39+00:00",
-    "python": "3.13.13",
-    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "git_commit": "e93af9fd48f9",
+    "git_dirty": true,
+    "generated_at": "2026-07-31T16:37:56+00:00",
+    "python": "3.13.14",
+    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
+    "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
     "model": "qwen2.5:7b-instruct",
     "model_key": "qwen2.5-7b",
     "endpoint": "http://localhost:11434/api/generate",

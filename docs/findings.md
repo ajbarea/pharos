@@ -3,9 +3,12 @@
 What has been measured, and the script that reproduces each number. The
 **argument** these support belongs to the manuscript; this page is the index.
 
-All model-dependent numbers below used `qwen2.5:7b-instruct` on an 8 GB RTX 3060
-Ti. Each committed artifact under `results/` carries the version, commit, model,
-and seed that produced it.
+Findings 1 to 3 and 5 were measured with `qwen2.5:7b-instruct` on an 8 GB RTX 3060
+Ti. Finding 3b sweeps six models from 3B to 14B, the largest of which needs a
+cluster A100. Each committed artifact under `results/` carries the version, commit,
+platform, model, and seed that produced it, so any number here can be traced to the
+run and the machine behind it -- which matters, because the model-dependent numbers
+are not bit-reproducible across machines and the gate is.
 
 !!! note "Regenerating"
     `make results` reruns all four scripts into `results/`. It needs Ollama
@@ -119,40 +122,62 @@ known reachable, against a base of 0.537 to 0.688 that over-escalates at recall
 `scripts/sweep_models.sh`, `scripts/compare_models.py`
 
 Finding 3 was measured on one model, so its central observation could have been a
-fact about `qwen2.5:7b-instruct` rather than about the task. Five models, three
-families, two size classes, 40 tasks each, rule withheld:
+fact about `qwen2.5:7b-instruct` rather than about the task. Six models, three
+families, 3B to 14B, 40 rule-withheld tasks each:
 
-| Model | Family | Acc | Majority | Precision | Recall | F1 |
-| --- | --- | --- | --- | --- | --- | --- |
-| **qwen2.5-3b** | Qwen | **0.650** | 0.625 | 0.517 | 1.000 | **0.682** |
-| llama3.1-8b | Llama | 0.525 | 0.625 | 0.441 | 1.000 | 0.612 |
-| llama3.2-3b | Llama | 0.475 | 0.625 | 0.417 | 1.000 | 0.588 |
-| qwen2.5-7b | Qwen | 0.450 | 0.625 | 0.405 | 1.000 | 0.577 |
-| mistral-7b | Mistral | 0.425 | 0.625 | 0.395 | 1.000 | 0.566 |
+| Model | Family | Size | Acc | Majority | Precision | Recall | F1 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| qwen2.5-3b | Qwen | 3B | 0.625 | 0.625 | 0.500 | 1.000 | **0.667** |
+| qwen2.5-14b | Qwen | 14B | 0.525 | 0.625 | 0.441 | 1.000 | 0.612 |
+| llama3.1-8b | Llama | 8B | 0.500 | 0.625 | 0.429 | 1.000 | 0.600 |
+| llama3.2-3b | Llama | 3B | 0.475 | 0.625 | 0.417 | 1.000 | 0.588 |
+| qwen2.5-7b | Qwen | 7.6B | 0.450 | 0.625 | 0.405 | 1.000 | 0.577 |
+| mistral-7b | Mistral | 7B | 0.425 | 0.625 | 0.395 | 1.000 | 0.566 |
 
-Two things hold across every model, and they are the claims:
+Three things hold across every model, and they are the claims:
 
-**Recall is 1.000 everywhere.** Not approximately, exactly. Every model escalates
-every significant event, and also escalates most routine ones, with precision
-between 0.395 and 0.517. The over-escalation reported in finding 3 is not an
-artifact of one model, it is what the task does to all of them when the rule is
-withheld.
+**Recall is 1.000 everywhere.** Not approximately, exactly, including at 14B. Every
+model escalates every significant event and also escalates most routine ones, at
+precision between 0.395 and 0.517. The over-escalation reported in finding 3 is a
+property of the task under a withheld rule, not an idiosyncrasy of one model.
 
-**Scale does not help.** The best score belongs to the *smallest* model tested, and
-8B does not beat 3B. Whatever is missing is not capacity.
+**No model beats the majority-class floor.** The best accuracy exactly ties it at
+0.625. A reader comparing any F1 here to 0.5 would badly overstate what is
+happening.
 
-Both are consistent with finding 5's conclusion, and strengthen it. A model that
-reaches F1 1.000 when handed the rule is not short of capability, and now we know
-it is not short of parameters either. It is short of the rule, so rule
-*acquisition* is the whole question.
+**Scale does not help, and this now controls for family.** Within Qwen alone, 3B
+scores 0.667 and 14B scores 0.612: a 4.7x parameter increase with no improvement.
+The 14B run required a cluster A100 because it exceeds 8 GB of VRAM, which is the
+whole reason it is here.
+
+All three are consistent with finding 5 and strengthen it. A model that reaches
+F1 1.000 when handed the rule is short of neither capability nor parameters. It is
+short of the rule, so rule *acquisition* is the whole question.
 
 !!! warning "What this does not claim"
-    40 tasks per model. Differences of roughly 0.1 sit inside the noise at this
-    size, so **the ordering between models is not claimed** and should not be
-    quoted as a ranking. What is claimed is the part that is unanimous: recall
-    1.000 for all five, and no model clearly clearing the majority floor.
+    40 tasks per model. Differences of roughly 0.1 sit inside the noise, so **the
+    ordering between models is not claimed** and should not be quoted as a ranking.
+    What is claimed is what is unanimous: recall 1.000 for all six, and no model
+    clearing the majority floor.
 
-    All five ran at 100% GPU residency, checked per model rather than assumed.
+    All six ran at 100% GPU residency, checked per model rather than assumed.
+
+### These numbers are not bit-reproducible, and the gate is
+
+Worth stating precisely, because the two halves of this repository behave
+differently and the difference is by design.
+
+Re-running the five smaller models on cluster hardware changed **2 of 200
+judgements**: `qwen2.5-3b` and `llama3.1-8b` each flipped exactly one task of forty;
+the other three were identical. Temperature is 0 and the seed is fixed, so this is
+runtime and quantization numerics moving a borderline verdict, not sampling.
+
+The [gate](reference/gate.md), by contrast, reproduces **bit-identically** across the
+same two machines. That asymmetry is the reason model calls are confined to
+`pharos.attribute`: the acceptance decision that licenses a corpus cannot drift with
+a backend, while the scores measured *on* that corpus carry roughly a
+one-percent floor on cross-platform agreement. Quote model-dependent numbers with
+the platform named.
 
 ## 4. Answerability and surface non-leakage pull against each other
 

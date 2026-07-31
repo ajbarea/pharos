@@ -1,12 +1,12 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "27392b13c349",
-    "git_dirty": false,
-    "generated_at": "2026-07-31T02:29:41+00:00",
-    "python": "3.13.13",
-    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "git_commit": "e93af9fd48f9",
+    "git_dirty": true,
+    "generated_at": "2026-07-31T16:38:48+00:00",
+    "python": "3.13.14",
+    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
+    "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
     "model": "llama3.1:8b-instruct-q4_K_M",
     "model_key": "llama3.1-8b",
     "endpoint": "http://localhost:11434/api/generate",
@@ -17,15 +17,15 @@
   "surface_baseline": 0.6588,
   "confusion": {
     "tp": 15,
-    "fp": 19,
-    "tn": 6,
+    "fp": 20,
+    "tn": 5,
     "fn": 0
   },
   "unparsed": 0,
-  "precision": 0.4412,
+  "precision": 0.4286,
   "recall": 1.0,
-  "f1": 0.6122,
-  "accuracy": 0.525,
+  "f1": 0.6,
+  "accuracy": 0.5,
   "majority_accuracy": 0.625,
   "eligible_keep": 19,
   "eligible_drop": 40,
@@ -69,8 +69,8 @@
     {
       "task_id": "TR-0005",
       "truth": false,
-      "verdict": false,
-      "raw": "ROUTINE",
+      "verdict": true,
+      "raw": "SIGNIFICANT",
       "label": "RESTRICTED[LEGAL,PARTNER]"
     },
     {
