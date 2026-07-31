@@ -132,6 +132,14 @@ why CI needs no token at all, in [`docs/cluster.md`](../docs/cluster.md).
 
 ## What the cluster has confirmed
 
+Numbers below are stamped with the job and commit that produced them, because the
+previous version of this file quoted figures whose logs no longer existed.
+
+**The full gate passes on a compute node.** Job 21441811 at commit `1b4a2d066873`:
+246 tests, 90.76% coverage against a 90% floor, ruff and ty clean, Croissant metadata
+validated, and the gate run on the seed list CI uses.
+
+
 **The gate is reproducible across platforms.** Surface baselines of 0.6547, 0.6588,
 and 0.6675 on seeds 1, 7, and 101 are bit-identical between a WSL laptop and an
 RHEL 9 cluster node with a different CPU count, kernel, and libc. Generation and

@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/assets/pharos-hero.png" width="800" alt="Pharos Hero Image">
+
 # 🗼 Pharos
 
 *A labeled fleet testbed for federated personalization with a governed disclosure boundary.*

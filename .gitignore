@@ -24,3 +24,6 @@ COMMITS.md
 !.env.example
 *.token
 secrets/
+
+# WSL writes this alternate-data-stream sidecar next to anything saved from Windows.
+*:Zone.Identifier
