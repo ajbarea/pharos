@@ -50,9 +50,12 @@ what was coming, and reporting it to whoever needed to know.
 ## Where the argument lives
 
 This site is the **reference**: how the pieces work and how to run them. The
-claims Pharos supports, the evidence for them, and the related work they sit
-against belong to the manuscript, not here. [Findings](findings.md) summarises
-what has been measured and points at the scripts that reproduce each number.
+argument Pharos supports belongs to the manuscript, not here.
+[Findings](findings.md) summarises what has been measured and points at the
+scripts that reproduce each number. `RESEARCH.md` in the repository root holds
+what is true *outside* the repo: the survey behind "no public corpus does this",
+the public corpora Pharos is meant to be used alongside, and a verified citation
+for every external claim the design leans on.
 
 Design specs live in the Federated Analyst Fleets research docs
 (`kourai-khryseai/docs/research/federated-forge/`): `pharos-testbed.md` for this

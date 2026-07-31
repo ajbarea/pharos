@@ -5,7 +5,9 @@ A labeled fleet testbed for federated personalization with a governed disclosure
 Pharos supplies the one thing no public corpus does: a body of reporting whose
 objects carry real classification levels and cross-cutting compartments, so that
 the personal/shared split in federated personalization can be **measured** rather
-than asserted.
+than asserted. [`RESEARCH.md`](RESEARCH.md) holds the corpus survey behind that
+claim, along with the public corpora Pharos should be used *with* and what each
+one is good for.
 
 Design specs live in the
 [Federated Analyst Fleets](https://github.com/ajbarea/kourai-khryseai) research
