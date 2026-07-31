@@ -94,6 +94,45 @@ Current state at 400 events: seed 1 gives 0.6547 against a null of 0.4854 +/-
 0.0317, seed 7 gives 0.6588 against 0.5047 +/- 0.0361, seed 101 gives 0.6675
 against 0.4912 +/- 0.0287. All significant, all under the ceiling, all usable.
 
+## The claim holds on corpora we did not build
+
+`scripts/validate_gate_externally.py`
+
+Everything above was measured on a corpus we wrote, which is thin evidence for a
+claim about content-defined labels *in general*. So the same probe -- same
+estimators, same worst-news-wins rule, same permutation null -- was run against
+public datasets built by others.
+
+| Corpus | Construction | n | Baseline | Null | z |
+| --- | --- | --- | --- | --- | --- |
+| `ag_news` | no filtering step | 3,800 | 0.6642 | 0.5006 | **+8.09** |
+| `imdb` | no filtering step | 12,000 | 0.5648 | 0.4996 | **+7.01** |
+| `hellaswag_endings` | **adversarially filtered** | 12,000 | 0.5358 | 0.5005 | **+3.65** |
+
+**Every corpus exceeds its own null**, so the phenomenon is not an artifact of our
+generator. The unexpected part is the ordering: leakage falls monotonically with how
+much construction effort went into removing it.
+
+The HellaSwag row carries the weight. Adversarial filtering is the standard remedy
+and was applied there specifically to remove the signal this probe looks for. It
+works -- the leak is about a third the size of the unfiltered case -- and it still
+does not reach chance. An iterative discriminator can drop the examples it can solve,
+but not the fact that positives and negatives are drawn from different content
+distributions.
+
+!!! warning "What this does not license"
+    Absolute AUCs are **not** comparable across these corpora or to Pharos: splits,
+    class balances, and text lengths all differ. Only the sign and significance of
+    baseline-minus-null are. And three datasets are not a survey.
+
+!!! note "A construction error worth avoiding"
+    The first version of this probe scored HellaSwag at chance and it was wrong. It
+    compared the *shared context* against the answer index, but the context is
+    identical whichever ending is correct, so the label had no relationship to the
+    text being measured. It now emits one row per candidate ending, labelled for the
+    true continuation, which is the property filtering actually targets. The wrong
+    version would have supported a confident and false conclusion.
+
 ## Answerability and non-leakage pull against each other
 
 The ceiling was raised from 0.65 to 0.72 once generation began guaranteeing

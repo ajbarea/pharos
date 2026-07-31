@@ -106,7 +106,19 @@ be measured, and the *worst* place to make a claim about realism. Any result tha
 depends on prose looking real, on vocabulary breadth, or on genuine user
 behavior should be replicated on one of the others before it is written down.
 
-### An external test the gate result deserves, and does not need step 3 for
+### An external test the gate result deserves -- DONE 2026-07-31
+
+**Result: the claim generalises.** Three public corpora, same probe, each compared
+against its own permutation null: `ag_news` z=+8.09, `imdb` z=+7.01, and
+adversarially filtered `hellaswag_endings` z=+3.65. All above null. Leakage falls
+monotonically with construction care but does not reach chance even under adversarial
+filtering, which is the standard remedy. Artifact:
+`results/external_gate_validation.json`; method in `scripts/validate_gate_externally.py`.
+
+The original framing of this item follows, kept because the prediction was made
+before the measurement.
+
+### The original open item
 
 The calibration-instrument finding is stated as a general property of
 content-defined ground truth, but it has only ever been measured on our own

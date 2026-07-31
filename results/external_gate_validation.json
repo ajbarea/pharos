@@ -1,0 +1,78 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "0f15864ac12f",
+    "git_dirty": true,
+    "generated_at": "2026-07-31T17:57:02+00:00",
+    "python": "3.13.13",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": "/home/ajbar/.cache/uv/builds-v0/.tmpTXcejH/bin/python",
+    "seed": 7
+  },
+  "method": {
+    "features": [
+      "char_len",
+      "word_count",
+      "sentence_count",
+      "mean_sentence_len",
+      "digit_ratio",
+      "upper_ratio",
+      "punct_ratio",
+      "has_timestamp"
+    ],
+    "folds": 4,
+    "null_trials": 40,
+    "split": "stratified k-fold (external corpora have no centre analogue)",
+    "note": "Eight features rather than Pharos's ten; the two omitted are corpus-specific identifiers. Fewer features can only understate a leak."
+  },
+  "results": [
+    {
+      "dataset": "hellaswag_endings",
+      "note": "adversarially filtered; one row per candidate ending, positive = true continuation",
+      "n": 12000,
+      "prevalence": 0.25,
+      "surface_baseline": 0.5358,
+      "per_probe_auc": {
+        "logistic": 0.5358,
+        "gradient_boosting": 0.5248
+      },
+      "null_mean": 0.5005,
+      "null_sd": 0.0097,
+      "null_p95": 0.5132,
+      "z": 3.65,
+      "exceeds_null": true
+    },
+    {
+      "dataset": "ag_news",
+      "note": "topic classification, World vs rest; no adversarial construction",
+      "n": 3800,
+      "prevalence": 0.5,
+      "surface_baseline": 0.6642,
+      "per_probe_auc": {
+        "logistic": 0.6535,
+        "gradient_boosting": 0.6642
+      },
+      "null_mean": 0.5006,
+      "null_sd": 0.0202,
+      "null_p95": 0.527,
+      "z": 8.09,
+      "exceeds_null": true
+    },
+    {
+      "dataset": "imdb",
+      "note": "sentiment; long free text, no length control",
+      "n": 12000,
+      "prevalence": 0.5,
+      "surface_baseline": 0.5648,
+      "per_probe_auc": {
+        "logistic": 0.5648,
+        "gradient_boosting": 0.5515
+      },
+      "null_mean": 0.4996,
+      "null_sd": 0.0093,
+      "null_p95": 0.5125,
+      "z": 7.01,
+      "exceeds_null": true
+    }
+  ]
+}
