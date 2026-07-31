@@ -14,10 +14,37 @@ Every entry below was checked against arXiv, a DOI, or the publisher's own page
 on the date given. Nothing is cited from memory. If an entry cannot be tied to a
 specific claim in this repo, it does not belong here.
 
-## The claim this file exists to defend
+## What Pharos is, before what it is for
+
+Pharos is a **labeled corpus generator with an acceptance gate**. The disclosure
+boundary is the application that motivated building it and the one claim no public
+corpus can substitute for, but it is not the extent of what the artifact does, and
+scoping this file to that one claim once caused a real misjudgement about which
+external data was worth looking at.
+
+Three capabilities are general, and none of them is about disclosure:
+
+- **The gate is a benchmark-validity instrument.** "Content-defined ground truth
+  cannot have a chance-level surface baseline" is a statement about planted ground
+  truth in any domain, not about compartments. It is why the paper sits against
+  Geirhos, Gururangan, and SWAG rather than only against the federated-learning
+  literature, and it is testable *outside* this generator.
+- **The task is a rule-acquisition benchmark.** Conjunctive triage with the rule
+  withheld has a measured floor and a demonstrated ceiling of F1 1.000. The
+  six-model sweep result -- recall exactly 1.000 everywhere, 3B outscoring 14B --
+  is a finding about that task, and would stand if the labels carried no lattice.
+- **The reproducibility machinery is reusable.** Provenance stamps, the staleness
+  guard, cross-platform bit-identical gating, and a retraction the artifacts caught
+  are contributions to how generated corpora are released, independent of subject.
+
+So the survey below answers a narrow question -- *which corpora could stand in for
+Pharos on the boundary claim* -- and the answer is none. It does **not** establish
+that Pharos has one use, and it should not be read that way.
+
+## The claim the survey defends
 
 The README and the docs site both open on the same claim: *Pharos supplies what
-public corpora do not.* That is the load-bearing sentence of the whole testbed, so
+public corpora do not.* That is the load-bearing sentence for the boundary work, so
 it is worth being exact about what it rests on. What follows is the survey.
 
 It read "the one thing no public corpus does" until this file existed. The
@@ -78,6 +105,20 @@ The asymmetry is the useful part. Pharos is the only place the boundary claim ca
 be measured, and the *worst* place to make a claim about realism. Any result that
 depends on prose looking real, on vocabulary breadth, or on genuine user
 behavior should be replicated on one of the others before it is written down.
+
+### An external test the gate result deserves, and does not need step 3 for
+
+The calibration-instrument finding is stated as a general property of
+content-defined ground truth, but it has only ever been measured on our own
+generator. That is thin support for a claim that broad. Running the same
+surface-only probe against a public benchmark whose positive class is *also* defined
+by content would test it where we did not build the data: if such a corpus also
+fails to reach a chance-level surface baseline, the claim generalises; if it reaches
+chance, the finding is about our vocabulary rather than about content-defined labels,
+and the paper must say so.
+
+This is worth doing **before** step 3, unlike everything else in the table above,
+because it validates a claim the resource paper already makes.
 
 ## Citations
 

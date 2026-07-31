@@ -45,6 +45,27 @@ before this was found. Both job scripts now export `OMP_NUM_THREADS` and friends
 from `SLURM_CPUS_PER_TASK`, and every run logs `run.context` with an
 `oversubscription_risk` flag when the numbers do not reconcile.
 
+## Syncing code to the cluster
+
+```bash
+rsync -az --delete \
+  --exclude='.venv/' --exclude='site/' --exclude='__pycache__/' \
+  --exclude='.pytest_cache/' --exclude='.ruff_cache/' --exclude='.coverage' \
+  --exclude='export/' --exclude='.cache/' --exclude='adapter-out/' \
+  --exclude='cluster/logs/' \
+  ./ sporc:~/ajsoftworks/pharos/
+```
+
+**`--exclude='cluster/logs/'` is not optional.** Job output lives only on the
+cluster; nothing writes it locally. Without that exclusion `--delete` reads the
+absent local directory as an instruction to remove the remote one, and every log
+from every completed job disappears. That happened once, and it destroyed the
+sweep's logs while the results themselves survived only because `results/` exists
+on both sides.
+
+The same reasoning applies to anything else that is generated remotely and never
+locally. When in doubt, drop `--delete`.
+
 ## Access
 
 ```bash
