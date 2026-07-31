@@ -1,77 +1,65 @@
 #!/usr/bin/env bash
-# One-time setup for Pharos on an RIT Research Computing node.
+# One-time setup for Pharos on RIT Research Computing (SPORC).
 #
-# NOT YET EXECUTED ON THE CLUSTER. Read before running; it writes to $HOME.
-#
-# Everything here is ARM64 on purpose. The GPU nodes are aarch64 (Grace), and an
-# x86_64 binary fails in ways that read like a missing library rather than a wrong
-# architecture.
+# Verified against the live cluster on 2026-07-31. An earlier version of this file
+# was written from older notes and was wrong in three ways that all mattered: it
+# targeted a `grace` partition that no longer exists, assumed aarch64 nodes that are
+# gone, and hand-installed an ARM64 Ollama. The GPU nodes are x86_64 Skylake and
+# Sapphire Rapids, which makes all of that unnecessary.
 set -euo pipefail
-
-OLLAMA_VERSION="${OLLAMA_VERSION:-v0.15.0}"
-BIN="$HOME/bin"
 
 log() { printf '\n>>> %s\n' "$*"; }
 
-log "Checking architecture"
+log "Architecture"
 ARCH="$(uname -m)"
-if [[ "$ARCH" != "aarch64" && "$ARCH" != "arm64" ]]; then
-  echo "This node reports '$ARCH', not aarch64." >&2
-  echo "Run this on a grace-partition node, not the submit host." >&2
+echo "$ARCH"
+if [[ "$ARCH" != "x86_64" ]]; then
+  echo "Expected x86_64. If this is an aarch64 node you are on TIGRIS, not SPORC," >&2
+  echo "and the Ollama download below is the wrong build." >&2
   exit 1
 fi
-echo "ok: $ARCH"
 
 # ---------------------------------------------------------------------------
 # uv, which brings its own Python.
 #
-# The cluster's spack Python is 3.11.7 and Pharos requires >=3.12. Rather than
-# fight the module system, let uv fetch a standalone aarch64 interpreter. This also
-# makes the environment identical to a local checkout.
+# The cluster's spack Python is 3.11.x and Pharos requires >=3.12, so rather than
+# fight the module system we let uv fetch a standalone interpreter. That also makes
+# the cluster environment identical to a local checkout, which is the point of
+# pinning the version at all.
 # ---------------------------------------------------------------------------
 if command -v uv >/dev/null 2>&1; then
-  log "uv already present: $(uv --version)"
+  log "uv present: $(uv --version)"
 else
   log "Installing uv"
   curl -LsSf https://astral.sh/uv/install.sh | sh
-  export PATH="$HOME/.local/bin:$PATH"
 fi
+export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 
 # ---------------------------------------------------------------------------
-# Ollama. No installer path here: the ARM64 tarball is unpacked by hand.
+# Ollama, unpacked into $HOME. No root here, so the official install script is not
+# usable; the release tarball is.
 # ---------------------------------------------------------------------------
-if [[ -x "$BIN/ollama" ]]; then
-  log "Ollama already present: $("$BIN/ollama" --version 2>&1 | head -1)"
+if [[ -x "$HOME/bin/ollama" ]]; then
+  log "Ollama present: $("$HOME/bin/ollama" --version 2>&1 | tail -1)"
 else
-  log "Installing Ollama $OLLAMA_VERSION (arm64)"
-  mkdir -p "$BIN"
-  TARBALL="ollama-linux-arm64.tgz"
-  URL="https://github.com/ollama/ollama/releases/download/${OLLAMA_VERSION}/${TARBALL}"
+  log "Installing Ollama (linux-amd64) into ~/bin"
+  mkdir -p "$HOME/bin"
   cd "$HOME"
-  if ! curl -fL "$URL" -o "$TARBALL"; then
-    cat >&2 <<'HINT'
-Download failed. Release asset names change between Ollama versions; the notes
-that produced this script used ollama-linux-arm64.tar.zst, which needs `zstd -d`
-before `tar -xf`. Check the release page for the current arm64 asset name and set
-OLLAMA_VERSION, or fetch it locally and scp it to ~.
-HINT
-    exit 1
-  fi
-  tar -xzf "$TARBALL" -C "$HOME"
-  rm -f "$TARBALL"
+  curl -fL https://ollama.com/download/ollama-linux-amd64.tgz -o ollama-linux-amd64.tgz
+  tar -xzf ollama-linux-amd64.tgz -C "$HOME"
+  rm -f ollama-linux-amd64.tgz
 fi
-
-export PATH="$BIN:$HOME/.local/bin:$PATH"
 
 log "Syncing the project"
 cd "$(dirname "$0")/.."
 uv sync --all-groups
 
-log "Done. Add to ~/.bashrc if it is not there already:"
+log "Add to ~/.bashrc if absent:"
 cat <<'EOF'
 
   export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+  export OLLAMA_MODELS="$HOME/.ollama/models"
   export OLLAMA_CONTEXT_LENGTH=8192
 
 EOF
-log "Verify with:  nvidia-smi && uv run python -m pharos.cli models"
+log "Verify:  uv run python -m pharos.cli models"

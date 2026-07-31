@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=pharos-sweep
-#SBATCH --partition=grace
-#SBATCH --gres=gpu:1
-#SBATCH --mem=32G
+#SBATCH --partition=sporc-gpu
+#SBATCH --account=fl-mlm
+#SBATCH --gres=gpu:a100:1
+#SBATCH --mem=48G
 #SBATCH --time=8:00:00
 #SBATCH --qos=qos_tier3
 #SBATCH --output=cluster/logs/%x-%j.out
@@ -10,13 +11,15 @@
 #
 # Multi-model triage sweep.
 #
-# NOT YET EXECUTED ON THE CLUSTER. First run is a test.
+# Partition/arch verified against the live cluster 2026-07-31: GPUs are in
+# sporc-gpu on x86_64 Skylake (a100) and Sapphire Rapids (h100) nodes. The
+# `grace` partition and the aarch64 nodes referenced in older notes are gone.
 #
 # Why this job exists: every Pharos measurement to date used one model
 # (qwen2.5:7b-instruct), so every finding is a single-model result. The local 8 GB
 # card covers up to about 8 B, which is enough to vary family but not size class.
-# The A100's 40 GB is what makes 14 B and above reachable, which is the part that
-# turns "we tried a model" into "we varied the model".
+# The A100 is what makes 14 B and above reachable, which is the part that turns
+# "we tried a model" into "we varied the model".
 set -euo pipefail
 
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
