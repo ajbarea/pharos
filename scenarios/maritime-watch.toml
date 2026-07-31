@@ -1,0 +1,287 @@
+# The maritime watch scenario: the world Pharos was built around.
+#
+# GENERATED from src/pharos/world.py at the commit that introduced scenario
+# loading, then frozen. It must reproduce the published corpus byte for byte;
+# tests/test_scenario.py asserts exactly that against every gated seed. Editing
+# this file changes what every measurement means, so copy it to a new scenario
+# and point --scenario at that instead.
+#
+# The invariant the whole file exists to protect: a significant event differs
+# from background ONLY in which facts co-occur. Not in how many facts it
+# carries, which channels report it, how long those reports run, or which voice
+# renders them. Every one of those would be a surface tell.
+#
+# NOTE ON TOML ORDER: every root-level key must precede the first [[table]].
+# A bare key after a table header belongs to THAT table, not the root, which is
+# how the first draft of this file silently attached `voices` to a channel.
+
+[scenario]
+name = "maritime-watch"
+description = "A fictional maritime watch: vessels, ports, and the officers who report on them."
+
+# Voice varies word choice, deliberately not length: a voice that ran longer
+# would become a surface feature. Voice is assigned independently of class.
+voices = ["TERSE", "FORMAL", "NARRATIVE", "CLIPPED"]
+
+[entities]
+vessel_names = [
+  "Kestrel Dawn",
+  "Northern Aster",
+  "Selene Bright",
+  "Corvid Passage",
+  "Amber Lantern",
+  "Thalia Grace",
+  "Iron Meridian",
+  "Pale Harrier",
+  "Cordera Star",
+  "Vesper Tide",
+  "Blackmoor Fen",
+  "Sable Crossing",
+]
+hull_types = ["bulk carrier", "general cargo", "product tanker", "container feeder", "refrigerated cargo"]
+flags = ["Panama", "Liberia", "Malta", "Marshall Islands", "Cyprus"]
+
+[patterns]
+# The conjunction that DEFINES a significant event.
+significant = ["course_deviation", "draft_mismatch", "unlit_contact"]
+
+# Background events draw one of these, so both classes are "one fixed triple
+# plus two fillers" and differ only in which triple. Without decoys, plants are
+# the only events with a deterministic triple and ANY per-fact property becomes
+# a class signal -- which is how an earlier draft leaked at AUC 0.74.
+decoys = [
+  ["course_deviation", "draft_mismatch", "routine_transit"],
+  ["course_deviation", "unlit_contact", "weather_note"],
+  ["cargo_declared", "draft_mismatch", "unlit_contact"],
+  ["berth_closure", "shoal_activity", "unlit_contact"],
+  ["draft_mismatch", "inspection_history", "pilot_absent"],
+  ["certificate_unresolved", "crew_substitution", "inspection_history"],
+  ["demurrage_dispute", "reflagging", "ship_transfer_claim"],
+  ["course_deviation", "routine_transit", "weather_note"],
+  ["cargo_declared", "ship_transfer_claim", "shoal_activity"],
+  ["berth_closure", "pilot_absent", "reflagging"],
+]
+
+# Channel -> the classification it confers. Two channels sit at RESTRICTED with
+# incomparable compartments (LIAISON_TIP, PARTNER_REPORT): the pair that makes
+# this a lattice rather than a ladder.
+
+[[channels]]
+name = "VESSEL_REPORT"
+sensitivity = "INTERNAL"
+compartments = ["SENSOR"]
+
+[[channels]]
+name = "SENSOR_TRACK"
+sensitivity = "PROTECTED"
+compartments = ["SENSOR"]
+
+[[channels]]
+name = "PORT_NOTICE"
+sensitivity = "OPEN"
+compartments = []
+
+[[channels]]
+name = "CREW_MANIFEST"
+sensitivity = "PROTECTED"
+compartments = ["LEGAL"]
+
+[[channels]]
+name = "PRESS_ITEM"
+sensitivity = "OPEN"
+compartments = []
+
+[[channels]]
+name = "LIAISON_TIP"
+sensitivity = "RESTRICTED"
+compartments = ["LIAISON"]
+
+[[channels]]
+name = "DETENTION_RECORD"
+sensitivity = "PROTECTED"
+compartments = ["LEGAL"]
+
+[[channels]]
+name = "PARTNER_REPORT"
+sensitivity = "RESTRICTED"
+compartments = ["PARTNER"]
+
+[[centers]]
+center_id = "MOC-1"
+name = "Northern Approaches"
+voice = "TERSE"
+
+[[centers]]
+center_id = "MOC-2"
+name = "Eastern Shoals"
+voice = "FORMAL"
+
+[[centers]]
+center_id = "MOC-3"
+name = "Southern Gate"
+voice = "NARRATIVE"
+
+[[centers]]
+center_id = "MOC-4"
+name = "Western Reach"
+voice = "CLIPPED"
+
+[[operators]]
+operator_id = "OP-01"
+name = "Halcyon Shipping Management"
+
+[[operators]]
+operator_id = "OP-02"
+name = "Meridian Lines"
+
+[[operators]]
+operator_id = "OP-03"
+name = "Calder Maritime Holdings"
+
+[[operators]]
+operator_id = "OP-04"
+name = "Tessaly Bulk Transport"
+
+[[operators]]
+operator_id = "OP-05"
+name = "Ardent Coastal Freight"
+
+# Every rendering carries exactly one timestamp and two other numerals, and
+# comparable length. Uniform numeric density is a hard invariant: the first
+# draft gave significant facts numeric slots that fillers lacked, and
+# digit_ratio alone reached AUC 0.65.
+
+[[facts]]
+fact_id = "draft_mismatch"
+channels = ["PORT_NOTICE", "SENSOR_TRACK", "VESSEL_REPORT"]
+renderings = [
+  "At {time} the reported draft read {draft} metres, below the {laden} metre laden declaration.",
+  "Draft was recorded at {draft} metres at {time}, against {laden} metres declared as laden.",
+  "By {time} the freeboard showed {draft} metres against a declared laden figure of {laden}m.",
+]
+
+[[facts]]
+fact_id = "course_deviation"
+channels = ["PARTNER_REPORT", "SENSOR_TRACK", "VESSEL_REPORT"]
+renderings = [
+  "Course altered to {bearing} degrees at {time}, running {offset} degrees off the filed routing.",
+  "Heading of {bearing} degrees at {time} sat roughly {offset} degrees off the declared routing.",
+  "At {time} the track turned {bearing} degrees, a divergence of {offset} degrees from routings.",
+]
+
+[[facts]]
+fact_id = "unlit_contact"
+channels = ["LIAISON_TIP", "PARTNER_REPORT", "SENSOR_TRACK"]
+renderings = [
+  "An unlit contact closed within {range} metres at {time} and remained for {mins} minutes.",
+  "An unlit contact came within {range} metres near {time}, tracked for {mins} more minutes.",
+  "A contact without lights reached {range} metres by {time}, observed over some {mins} minutes.",
+]
+
+[[facts]]
+fact_id = "pilot_absent"
+channels = ["PORT_NOTICE", "SENSOR_TRACK", "VESSEL_REPORT"]
+renderings = [
+  "Departure at {time} carried no pilot across {count} of {total} compulsory inbound pilotage zones.",
+  "No pilot embarked for the {time} sailing, which covered {count} of {total} compulsory zones.",
+  "The {time} departure went unpiloted through {count} of the {total} compulsory pilotage zones listed.",
+]
+
+[[facts]]
+fact_id = "crew_substitution"
+channels = ["CREW_MANIFEST", "DETENTION_RECORD", "VESSEL_REPORT"]
+renderings = [
+  "An engineering substitution filed at {time} came {hours} hours before departure, {count} in total.",
+  "The manifest logged {count} engineer changes at {time}, the last one {hours} hours prior.",
+  "A late engineering change lodged {time} was {count} of the period, {hours} hours ahead.",
+]
+
+[[facts]]
+fact_id = "certificate_unresolved"
+channels = ["CREW_MANIFEST", "DETENTION_RECORD", "PORT_NOTICE"]
+renderings = [
+  "A registry query at {time} left {count} certificate numbers unresolved out of {total} checked.",
+  "At {time} the issuing registry returned no record for {count} of the {total} certificates.",
+  "Of the {total} certificates checked at {time}, {count} failed to resolve against the registry.",
+]
+
+[[facts]]
+fact_id = "berth_closure"
+channels = ["PORT_NOTICE", "PRESS_ITEM", "VESSEL_REPORT"]
+renderings = [
+  "From {time} berths {berth} and {berth2} are closed to commercial traffic for scheduled works.",
+  "Maintenance beginning at {time} closes berths {berth} and {berth2} to all commercial vessel movements.",
+  "Commercial traffic is excluded from berths {berth} and {berth2} with immediate effect from {time}.",
+]
+
+[[facts]]
+fact_id = "demurrage_dispute"
+channels = ["CREW_MANIFEST", "DETENTION_RECORD", "PRESS_ITEM"]
+renderings = [
+  "Trade press filed at {time} reports demurrage disputes on {count} of {total} operator hulls.",
+  "Reporting timed at {time} places outstanding demurrage claims against {count} of the {total} vessels.",
+  "A {time} trade item lists {count} of the {total} operator ships in demurrage dispute.",
+]
+
+[[facts]]
+fact_id = "reflagging"
+channels = ["DETENTION_RECORD", "PRESS_ITEM", "VESSEL_REPORT"]
+renderings = [
+  "Records up to {time} show {count} of {total} operator vessels were reflagged this period.",
+  "As of {time}, {count} hulls of {total} under this operator had already changed flag.",
+  "Flag changes recorded by {time} affected {count} of the {total} vessels under this operator.",
+]
+
+[[facts]]
+fact_id = "ship_transfer_claim"
+channels = ["LIAISON_TIP", "PARTNER_REPORT", "SENSOR_TRACK"]
+renderings = [
+  "One account timed {time} places the hull at a transfer {range} metres from {count} source.",
+  "An unverified report at {time} sites a transfer {range} metres offshore from {count} source.",
+  "A single source timed {time} describes a transfer {range} metres out with {count} corroboration.",
+]
+
+[[facts]]
+fact_id = "shoal_activity"
+channels = ["LIAISON_TIP", "PARTNER_REPORT", "PORT_NOTICE"]
+renderings = [
+  "Small-craft movement in the closed shoals reached {count} of {total} recorded sightings by {time}.",
+  "By {time} the closed shoals had logged {count} small-craft sightings across {total} separate nights.",
+  "Activity in the closed shoals hit {count} sightings across {total} nights as of {time}.",
+]
+
+[[facts]]
+fact_id = "inspection_history"
+channels = ["CREW_MANIFEST", "DETENTION_RECORD", "PRESS_ITEM"]
+renderings = [
+  "Port state control logged {count} inspections across {total} of the operator hulls before {time}.",
+  "Records up to {time} list {count} port state examinations across {total} operator vessels total.",
+  "As of {time}, {count} of {total} operator vessels had drawn a port state inspection.",
+]
+
+[[facts]]
+fact_id = "routine_transit"
+channels = ["PORT_NOTICE", "SENSOR_TRACK", "VESSEL_REPORT"]
+renderings = [
+  "Outbound transit ran {speed} knots at {time} on the routing filed {hours} hours prior.",
+  "The vessel made {speed} knots by {time}, on a route filed {hours} hours earlier.",
+  "Transit held {speed} knots at {time} along the routing lodged some {hours} hours before.",
+]
+
+[[facts]]
+fact_id = "cargo_declared"
+channels = ["CREW_MANIFEST", "PORT_NOTICE", "PRESS_ITEM"]
+renderings = [
+  "Cargo declared at {time} matched {count} of {total} manifest lines lodged with the port.",
+  "At {time} the lodged manifest agreed on {count} of the {total} declared cargo lines.",
+  "Of the {total} manifest lines checked at {time}, {count} matched the cargo as declared.",
+]
+
+[[facts]]
+fact_id = "weather_note"
+channels = ["PORT_NOTICE", "PRESS_ITEM", "SENSOR_TRACK"]
+renderings = [
+  "Visibility held above {vis} nautical miles at {time} with a reported sea state {count}.",
+  "At {time} visibility stayed over {vis} nautical miles with sea state recorded at {count}.",
+  "Conditions at {time} gave over {vis} nautical miles of visibility and sea state {count}.",
+]
