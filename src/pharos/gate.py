@@ -46,6 +46,7 @@ already achieves.
 """
 
 import random
+import time
 from dataclasses import dataclass, field, replace
 from typing import NamedTuple
 
@@ -56,7 +57,7 @@ from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import StandardScaler
 
 from pharos.generate import Report
-from pharos.telemetry import record, span
+from pharos.telemetry import log_execution_context, progress, record, span
 from pharos.world import ReportType, Voice
 
 #: The features the probe is allowed. Shape only. Adding anything derived from
@@ -260,7 +261,12 @@ def permutation_null(
     rng = random.Random(seed)
     labels = [r.is_plant for r in reports]
     stats: list[float] = []
-    for _ in range(trials):
+    # Checkpoint every few trials. This loop refits every probe on every fold, so it
+    # dominates the gate's runtime; without progress output a slow run and a hung run
+    # produce byte-identical logs.
+    checkpoint = max(1, trials // 4)
+    started = time.monotonic()
+    for trial in range(trials):
         rng.shuffle(labels)
         shuffled = [replace(r, is_plant=lab) for r, lab in zip(reports, labels, strict=True)]
         try:
@@ -268,6 +274,14 @@ def permutation_null(
         except ValueError:
             continue
         stats.append(sweep.verdict)
+        if (trial + 1) % checkpoint == 0 or trial + 1 == trials:
+            progress(
+                "gate.null_progress",
+                trial=trial + 1,
+                trials=trials,
+                elapsed_s=round(time.monotonic() - started, 2),
+                mean_so_far=round(float(np.mean(stats)), 4) if stats else None,
+            )
     if not stats:
         raise ValueError("permutation null produced no usable trial")
     ordered = sorted(stats)
@@ -300,6 +314,14 @@ def run_gate(
     chance would be a gate that always passes.
     """
     center_ids = _center_ids(reports)
+    log_execution_context()
+    progress(
+        "gate.start",
+        n_reports=len(reports),
+        n_folds=len(center_ids),
+        null_trials=null_trials,
+    )
+    gate_started = time.monotonic()
     with span("gate.sweep", n_reports=len(reports), n_folds=len(center_ids)):
         sweep = _verdict_auc(reports, center_ids)
     mean_auc = sweep.mean_auc
@@ -316,6 +338,7 @@ def run_gate(
     for probe, value in mean_auc.items():
         record("gate.probe_auc", value, probe=probe, n_reports=len(reports))
     record("gate.surface_baseline", sweep.verdict, n_reports=len(reports), n_folds=len(center_ids))
+    record("gate.duration_s", round(time.monotonic() - gate_started, 2), n_reports=len(reports))
     if null_mean is not None:
         record("gate.null_mean", null_mean, trials=null_trials)
         record("gate.null_z", (sweep.verdict - null_mean) / (null_sd or 1.0), trials=null_trials)

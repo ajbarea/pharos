@@ -232,3 +232,77 @@ def record(metric: str, value: float, **attributes: object) -> None:
             for k, v in attributes.items()
         },
     )
+
+
+def progress(event: str, **attributes: object) -> None:
+    """A structured checkpoint inside a long operation.
+
+    Distinct from `record`, which reports a *result*. This reports that work is
+    still moving, which is a different question and the one that matters when a run
+    appears stuck. A gate that logs only its final AUC is indistinguishable from a
+    gate that has hung, and that ambiguity cost a debugging session on a cluster:
+    a job sat at the same byte count for twenty minutes with no way to tell whether
+    it was crawling or dead.
+    """
+    get_logger().info(event, extra={"event": event, **{str(k): v for k, v in attributes.items()}})
+
+
+def execution_context() -> dict[str, Any]:
+    """What a slow run needs explained: how much parallelism is real.
+
+    `os.cpu_count()` reports the machine's CPUs; `sched_getaffinity` reports the
+    ones this process may actually use. Under a Slurm cgroup those differ, and
+    numerical libraries size their thread pools from the former unless told
+    otherwise. The result is a process spawning many times more threads than it has
+    cores to run them on, which does not error, does not warn, and simply takes
+    forever.
+
+    So the two numbers are reported together, with the thread-limit variables that
+    would reconcile them, and `oversubscription_risk` is set when they disagree and
+    nothing has capped the pools.
+    """
+    machine_cpus = os.cpu_count() or 0
+    try:
+        usable_cpus = len(os.sched_getaffinity(0))
+    except (AttributeError, OSError):  # not available on every platform
+        usable_cpus = machine_cpus
+
+    thread_vars = {
+        name: os.environ.get(name)
+        for name in (
+            "OMP_NUM_THREADS",
+            "OPENBLAS_NUM_THREADS",
+            "MKL_NUM_THREADS",
+            "NUMEXPR_NUM_THREADS",
+        )
+    }
+    capped = any(value for value in thread_vars.values())
+    return {
+        "machine_cpus": machine_cpus,
+        "usable_cpus": usable_cpus,
+        "thread_limits": thread_vars,
+        "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
+        "slurm_cpus_per_task": os.environ.get("SLURM_CPUS_PER_TASK"),
+        "oversubscription_risk": bool(machine_cpus > usable_cpus and not capped),
+    }
+
+
+def log_execution_context() -> dict[str, Any]:
+    """Emit `execution_context`, warning when the numbers do not reconcile."""
+    context = execution_context()
+    progress("run.context", **context)
+    if context["oversubscription_risk"]:
+        get_logger().warning(
+            "run.oversubscription_risk",
+            extra={
+                "event": "run.oversubscription_risk",
+                "machine_cpus": context["machine_cpus"],
+                "usable_cpus": context["usable_cpus"],
+                "advice": (
+                    "numerical libraries will size thread pools from machine_cpus while only "
+                    "usable_cpus are schedulable. Set OMP_NUM_THREADS (and OPENBLAS/MKL) to "
+                    "usable_cpus."
+                ),
+            },
+        )
+    return context

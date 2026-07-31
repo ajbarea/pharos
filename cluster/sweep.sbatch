@@ -23,6 +23,16 @@
 set -euo pipefail
 
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+# Pin numerical thread pools to the allocation. Without this, numpy/scikit-learn
+# size their pools from the machine's CPU count while the Slurm cgroup only
+# schedules --cpus-per-task of them. On a 96-core node with 8 cores allocated that
+# is a 12x oversubscription: it does not error, does not warn, and simply crawls.
+# A verify job sat at the same byte of output for twenty minutes because of this.
+export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export OPENBLAS_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export NUMEXPR_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+
 export OLLAMA_CONTEXT_LENGTH=8192
 
 mkdir -p cluster/logs results
