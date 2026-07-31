@@ -45,6 +45,28 @@ before this was found. Both job scripts now export `OMP_NUM_THREADS` and friends
 from `SLURM_CPUS_PER_TASK`, and every run logs `run.context` with an
 `oversubscription_risk` flag when the numbers do not reconcile.
 
+## The system compiler is hidden
+
+`/tools/bin/blindfold/gcc` shadows gcc on the compute nodes and prints *"The system
+install of this program, gcc, has been hidden from view"* before exiting non-zero.
+Anything that JIT-compiles at runtime hits this. Triton does, when a fused attention
+kernel is selected, which killed the first adapter run inside `model.generate()`
+after the model had loaded and the data had been built.
+
+Two defences, both applied:
+
+- `export CC=/usr/bin/gcc` in the job. A real gcc 11.5.0 is present; only the default
+  name is shadowed.
+- Pass `attn_implementation` explicitly rather than taking the library default. A
+  diagnostic run confirmed `sdpa` and `eager` both generate without touching Triton
+  at all, which is the better fix because it removes the dependency instead of
+  satisfying it.
+
+**The GPU probe did not catch this, and that is the lesson.** It ran a bf16 matmul,
+which goes through cuBLAS; Triton only engages for the fused kernels generation uses.
+A probe exercising a different code path than the workload is necessary and not
+sufficient, and it is worth asking of any probe what it is *not* touching.
+
 ## Syncing code to the cluster
 
 ```bash
