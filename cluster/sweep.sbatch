@@ -42,6 +42,11 @@ export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export NUMEXPR_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 
 export OLLAMA_CONTEXT_LENGTH=8192
+# Ollama serves this job's models, so no HF download happens here. HF_HOME is still
+# set for consistency: every job script points at the same shared cache, and a script
+# that silently used a different one would refetch gigabytes without saying why.
+export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
+export HF_HUB_DISABLE_TELEMETRY=1
 
 mkdir -p cluster/logs results
 

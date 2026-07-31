@@ -147,3 +147,21 @@ def test_a_clean_measurement_logs_no_warning(caplog):
     with caplog.at_level(logging.WARNING, logger="pharos"):
         check_classification(tp=40, fp=8, tn=42, fn=10, label="healthy")
     assert [r for r in caplog.records if r.levelno >= logging.WARNING] == []
+
+
+def test_a_perfect_score_is_flagged_rather_than_celebrated() -> None:
+    """The adapter run scored 60/60. That is the shape of a leak and also the shape
+    of a genuinely learnable rule, and the number alone cannot tell them apart."""
+    report = check_classification(tp=20, fp=0, tn=40, fn=0, label="saturated")
+
+    assert not report.quotable
+    joined = " ".join(report.concerns)
+    assert "saturated" in joined
+    # The rule of three: zero errors in 60 still permits a 5% true error rate.
+    assert "5.0%" in joined
+
+
+def test_one_error_is_enough_to_clear_the_saturation_flag() -> None:
+    report = check_classification(tp=20, fp=1, tn=39, fn=0, label="near-perfect")
+
+    assert not any("saturated" in c for c in report.concerns)

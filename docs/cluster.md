@@ -98,6 +98,45 @@ last check matters more than it looks: `torch.cuda.is_available()` returning tru
 not the same as a kernel running, and the freeze is the mechanism the personal and
 shared adapter split depends on.
 
+## Hugging Face: tokens and the cache
+
+**Read-only, and never write.** Pharos calls `from_pretrained` for models and
+`load_dataset` for the external-validation corpora. It has no `push_to_hub` and no
+upload path anywhere, so a write-scoped token would grant an authority nothing in
+this repository exercises. Current Hub guidance is to use fine-grained tokens for
+anything automated and to create one per usage, so that revoking access to a machine
+does not revoke it everywhere:
+
+| Token | Scope | Where it lives |
+| --- | --- | --- |
+| `pharos-local` | fine-grained, **read** | workstation, via `hf auth login` |
+| `pharos-cluster` | fine-grained, **read** | cluster `~/.bashrc`, separate so it can be revoked alone |
+
+CI needs no token at all. The only Hugging Face-adjacent test is Croissant
+validation, which runs against the schema locally and touches no network.
+
+Publishing the Pharos corpus to the Hub as a dataset is a plausible future step for
+a resource paper. That would need write -- and a *third*, separate token created at
+that point, not a widening of these two.
+
+**Nothing is committed, and the tree is arranged so that stays true.** `.env`,
+`*.token`, and `secrets/` are ignored. Credentials reach a job through the
+environment: `sbatch` exports the submitting shell by default, so a token exported in
+`~/.bashrc` is present inside the allocation without ever being written to a file
+in the repository.
+
+**One cache, on the shared filesystem.** Every job script exports the same
+`HF_HOME`, pointing at the shared home rather than a node-local scratch that
+disappears with the allocation. This was previously set in two of six scripts, which
+meant some jobs quietly refetched weights another job had already downloaded. Current
+usage on the cluster is about 6 GB of Hugging Face cache plus 26 GB of Ollama models
+against a 1 TB home, so the constraint is bandwidth and queue time, not disk.
+
+Everything Pharos downloads is public, so an unauthenticated run *works*. It is
+rate limited, though, and a throttled download inside a GPU allocation spends the
+allocation rather than failing fast -- which is why `setup-env.sh` warns when no
+credential is present instead of waiting for a job to discover it.
+
 ## Etiquette
 
 Research Computing cancels jobs that hold idle GPUs. Request, run, release. Do not

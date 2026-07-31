@@ -38,9 +38,20 @@ export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 # a real compiler named explicitly, so point CC at one that exists.
 export CC="${CC:-/usr/bin/gcc}"
 export CXX="${CXX:-/usr/bin/g++}"
-# Keep model weights on the shared filesystem, not in a container-local cache that
-# vanishes with the allocation.
+
+# Hugging Face cache and credentials.
+#
+# HF_HOME points at the shared home filesystem rather than a node-local temp dir, so
+# a model downloaded by one job is reused by the next instead of being refetched. The
+# cache is already several gigabytes; refetching it per job wastes both wall-clock and
+# somebody else's bandwidth.
+#
+# HF_TOKEN is passed through from the environment and never written here. Requests
+# work without it, but unauthenticated ones are rate limited, which shows up as a job
+# that stalls rather than fails. Read-only, fine-grained, and separate from any local
+# token: see docs/cluster.md.
 export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
+export HF_HUB_DISABLE_TELEMETRY=1
 
 cd "$SLURM_SUBMIT_DIR"
 mkdir -p cluster/logs results

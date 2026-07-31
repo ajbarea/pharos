@@ -76,12 +76,25 @@ log "Syncing the project"
 cd "$REPO"
 uv sync --all-groups
 
+log "Checking Hugging Face credentials"
+# Everything Pharos fetches is public, so an unauthenticated run works. It is also
+# rate limited, and a throttled download inside a GPU allocation burns the allocation
+# rather than failing fast, so this is worth a warning and not worth a hard error.
+if [ -n "${HF_TOKEN:-}" ] || [ -f "${HF_HOME:-$HOME/.cache/huggingface}/token" ]; then
+  log "  credentials present"
+else
+  log "  none found. Downloads will work but are rate limited."
+  log "  Fix:  hf auth login   (fine-grained, READ-only -- Pharos never uploads)"
+fi
+
 log "Add to ~/.bashrc if absent:"
 cat <<'EOF'
 
   export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
   export OLLAMA_MODELS="$HOME/.ollama/models"
   export OLLAMA_CONTEXT_LENGTH=8192
+  export HF_HOME="$HOME/.cache/huggingface"
+  export HF_HUB_DISABLE_TELEMETRY=1
 
 EOF
 log "Verify:  uv run python -m pharos.cli models"

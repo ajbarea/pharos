@@ -39,6 +39,14 @@ HIGH_UNPARSED_RATE = 0.10
 #: worth beating, not chance.
 SKEWED_PREVALENCE = 0.70
 
+# A perfect score is not automatically a good one. With zero observed errors the
+# sample bounds the true error rate only loosely: the rule of three puts the
+# one-sided 95% upper bound at 3/n, so 60 flawless answers are still consistent with
+# a 5% error rate. A saturated measurement also has no headroom, which means it can
+# no longer rank anything above it -- worth saying out loud before it is reported as
+# a headline.
+SATURATED = 1.0
+
 
 @dataclass(frozen=True, slots=True)
 class ValidityReport:
@@ -145,6 +153,23 @@ def check_classification(
                     "majority_floor": round(majority, 4),
                 },
             )
+
+    if scored and tp + tn == scored and scored > 0:
+        bound = 3 / scored
+        concerns.append(
+            f"score is saturated (no errors in {scored}): the rule of three bounds "
+            f"the true error rate only at {bound:.1%}, and a ceiling cannot rank "
+            "anything above it. Report n alongside the score"
+        )
+        logger.warning(
+            "validity.saturated",
+            extra={
+                "event": "validity.saturated",
+                "label": label,
+                "n": scored,
+                "error_rate_upper_95": round(bound, 4),
+            },
+        )
 
     if scored and (tp + fp == scored or tn + fn == scored):
         predicted = "positive" if tp + fp == scored else "negative"

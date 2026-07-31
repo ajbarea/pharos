@@ -15,3 +15,12 @@ COMMITS.md
 # Scratch JSON at the repo root only. Measurement artifacts live in results/ and
 # are tracked on purpose: a table in a paper needs a committed file behind it.
 /*.json
+
+# Credentials. Nothing here has ever been committed, and this exists so that stays
+# true by construction rather than by remembering. Tokens belong in the environment
+# or in the Hugging Face CLI's own store, never in the tree.
+.env
+.env.*
+!.env.example
+*.token
+secrets/
