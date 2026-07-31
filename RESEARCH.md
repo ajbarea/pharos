@@ -265,6 +265,48 @@ Verified 2026-07-31 unless noted.
   Smith, V., & Talwalkar, A. (2018). LEAF: A Benchmark for Federated Settings.
   [arXiv:1812.01097](https://arxiv.org/abs/1812.01097) (preprint)
 
+## The LAS-cleared corpus list (received 2026-07-31)
+
+The corpus table above was assembled from a literature survey. This is the list LAS
+actually cleared, which is a different question, and it changes what is worth
+pursuing. Licences are as stated on the sheet; verify before publishing anything
+derived from one.
+
+**Directly loadable today.** `trec-ragtime/ragtime2` on the Hub is ungated,
+CC-BY-SA-4.0, and its files are `eng/rus/spa/zho`, which confirms the 2026 language
+set. Note what it is: a *document collection*, four languages of news, with no
+relevance judgements in the public repo. Those come with TREC participation, so
+RAGTIME cannot serve as an external gate corpus today -- there is no content-defined
+label to probe. It is still the right source for the triage-to-draft task once the
+qrels are in hand. `talkbank/callhome` is also public (CC-BY-NC-SA-4.0);
+`Salesforce/DiverseSumm` returned 401 and needs auth.
+
+**The three entries that matter most to Pharos are not public.** They have to be
+requested from Bo Light (jjlight@ncsu.edu):
+
+- **Synthetic Org Chart v2 and v3.** v2 adds noise, lateral edges, and email headers;
+  v3 adds email bodies and calendar invites. That is an organisational structure with
+  per-person message traffic, which is a far better fit for the non-IID fleet
+  partition than a random shard, and closer to the compartment story than anything on
+  the public list. The sheet notes v3 is expensive to generate and must be asked for.
+- **Synthetic Suspicious Activity Reports** (provided by SAS). Structurally the
+  nearest public-ish analogue to what Pharos generates: short analyst-written reports
+  about entities, with the significance judgement that matters embedded in the text.
+  If Pharos's realism is ever challenged, this is the corpus to be challenged against.
+- **LAS Zendia** (SCADS 2025). Synthetic scenario data, also via Bo.
+
+**What the list does not contain.** MIND and the Text Anonymization Benchmark are
+absent. Both are public and usable regardless, but neither is LAS-cleared, and the
+org-chart corpora are a better source of per-user behaviour for this application than
+MIND is, because they carry the organisational structure the compartment model needs
+and MIND does not.
+
+**Multilingual and adjacent, if breadth is ever needed.** TelegramDB (CC-BY-4.0;
+Russian, English, Farsi) is multi-channel messaging, which is the closest public
+analogue to Pharos's several-channels-report-one-event structure. TREC AutoJudge
+pilot data is directly relevant to calibrating a model-as-a-judge. The LDC packs are
+government-use and several are not yet released.
+
 ## Facts here that will rot
 
 Recorded because each one already caused a wrong statement somewhere.
