@@ -1,0 +1,89 @@
+[project]
+site_name = "Pharos"
+site_description = "A labeled fleet testbed for federated personalization with a governed disclosure boundary"
+site_author = "AJ Barea"
+site_url = "https://ajbarea.github.io/pharos/"
+repo_url = "https://github.com/ajbarea/pharos"
+repo_name = "ajbarea/pharos"
+copyright = "AJ Barea"
+
+nav = [
+  { "Home" = "index.md" },
+  { "Getting Started" = "getting-started.md" },
+  { "Reference" = [
+      { "Label lattice" = "reference/label-lattice.md" },
+      { "The shortcut gate" = "reference/gate.md" },
+      { "Corpus schema" = "reference/corpus-schema.md" },
+  ]},
+  { "Releasing a corpus" = "releasing.md" },
+  { "Findings" = "findings.md" },
+]
+
+# ---------------------------------------------------------------------------
+# Theme
+# ---------------------------------------------------------------------------
+[project.theme]
+name = "material"
+language = "en"
+
+features = [
+    "announce.dismiss",
+    "content.code.annotate",
+    "content.code.copy",
+    "content.code.select",
+    "content.footnote.tooltips",
+    "content.tabs.link",
+    "content.tooltips",
+    "navigation.footer",
+    "navigation.indexes",
+    "navigation.instant",
+    "navigation.instant.prefetch",
+    "navigation.instant.progress",
+    "navigation.path",
+    "navigation.sections",
+    "navigation.top",
+    "navigation.tracking",
+    "search.highlight",
+    "search.suggest",
+]
+
+# ---------------------------------------------------------------------------
+# Color palette — light/dark toggle
+# ---------------------------------------------------------------------------
+[[project.theme.palette]]
+scheme = "slate"
+primary = "indigo"
+accent = "amber"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to light mode"
+
+[[project.theme.palette]]
+scheme = "default"
+primary = "indigo"
+accent = "amber"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to dark mode"
+
+# ---------------------------------------------------------------------------
+# Fonts. Kept off the network so a build works offline, like the corpus does.
+# ---------------------------------------------------------------------------
+[project.theme.font]
+text = "Inter"
+code = "JetBrains Mono"
+
+# ---------------------------------------------------------------------------
+# Icon
+# ---------------------------------------------------------------------------
+[project.theme.icon]
+logo = "material/lighthouse"
+
+# ---------------------------------------------------------------------------
+# Social links (footer)
+# ---------------------------------------------------------------------------
+[project.extra]
+generator = false
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/ajbarea/pharos"
+name = "Pharos on GitHub"
