@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pharos explorer</title>
+<style>
+  :root {
+    --bg: #fbfbfd; --fg: #16181d; --muted: #5b6270; --line: #dcdfe6;
+    --card: #ffffff; --accent: #3949ab; --amber: #b26a00;
+    --ok: #1b6e3c; --bad: #a32b2b; --mono: ui-monospace, "JetBrains Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a; --fg: #e6e8ec; --muted: #98a0ae; --line: #2c313a;
+      --card: #1b1e24; --accent: #8c9eff; --amber: #ffb74d;
+      --ok: #6ddf9c; --bad: #ff8a80;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 system-ui, -apple-system, "Inter", sans-serif;
+  }
+  header {
+    padding: 1.4rem 1.5rem 1rem; border-bottom: 1px solid var(--line);
+  }
+  h1 { margin: 0 0 .2rem; font-size: 1.3rem; letter-spacing: -.01em; }
+  h1 span { color: var(--amber); }
+  header p { margin: 0; color: var(--muted); max-width: 62ch; }
+  main { padding: 1.25rem 1.5rem 3rem; max-width: 1100px; }
+  nav { display: flex; gap: .3rem; flex-wrap: wrap; margin: 1rem 0 1.25rem; }
+  nav button {
+    background: none; border: 1px solid var(--line); color: var(--muted);
+    padding: .4rem .8rem; border-radius: 999px; cursor: pointer; font-size: .88rem;
+  }
+  nav button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 1rem 1.1rem; margin-bottom: 1rem;
+  }
+  .row { display: flex; gap: .8rem; flex-wrap: wrap; align-items: flex-end; }
+  label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: .2rem; }
+  input, select {
+    background: var(--bg); color: var(--fg); border: 1px solid var(--line);
+    border-radius: 6px; padding: .4rem .5rem; font: inherit; font-size: .9rem;
+  }
+  input[type=number] { width: 6.5rem; }
+  button.go {
+    background: var(--accent); color: #fff; border: 0; border-radius: 6px;
+    padding: .45rem 1rem; cursor: pointer; font: inherit; font-size: .9rem;
+  }
+  button.go:disabled { opacity: .55; cursor: progress; }
+  table { border-collapse: collapse; width: 100%; font-size: .86rem; }
+  th, td { text-align: left; padding: .38rem .5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+  .scroll { overflow-x: auto; }
+  code, .mono { font-family: var(--mono); font-size: .85em; }
+  .tag { display: inline-block; padding: .06rem .4rem; border-radius: 4px; border: 1px solid var(--line); font-family: var(--mono); font-size: .76rem; }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .muted { color: var(--muted); }
+  .note { color: var(--muted); font-size: .84rem; margin-top: .6rem; }
+  .verdict { font-size: 1.05rem; font-weight: 600; }
+  pre { white-space: pre-wrap; margin: .4rem 0 0; font-family: var(--mono); font-size: .82rem; color: var(--muted); }
+  fieldset { border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; }
+  legend { font-size: .78rem; color: var(--muted); padding: 0 .3rem; }
+  .chips { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .chips label { display: flex; gap: .25rem; align-items: center; margin: 0; font-size: .85rem; color: var(--fg); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Pharos <span>explorer</span></h1>
+  <p>A labeled testbed for federated personalization with a governed disclosure
+     boundary. Everything below runs against the same Python that produces the
+     published numbers.</p>
+</header>
+
+<main>
+  <nav role="tablist">
+    <button role="tab" data-tab="corpus" aria-selected="true">Corpus</button>
+    <button role="tab" data-tab="lattice" aria-selected="false">Label lattice</button>
+    <button role="tab" data-tab="triage" aria-selected="false">Run a model</button>
+    <button role="tab" data-tab="gate" aria-selected="false">Shortcut gate</button>
+  </nav>
+
+  <!-- ── Corpus ─────────────────────────────────────────────── -->
+  <section id="tab-corpus">
+    <div class="card">
+      <div class="row">
+        <div><label for="c-seed">Seed</label><input id="c-seed" type="number" value="7"></div>
+        <div><label for="c-events">Events</label><input id="c-events" type="number" value="40"></div>
+        <button class="go" id="c-go">Generate</button>
+      </div>
+      <p class="note">A corpus is fully determined by its seed and config. The same
+        seed always produces the same bytes.</p>
+    </div>
+    <div class="card" id="c-out" hidden></div>
+  </section>
+
+  <!-- ── Lattice ────────────────────────────────────────────── -->
+  <section id="tab-lattice" hidden>
+    <div class="card">
+      <p class="note" style="margin-top:0">Sensitivity is a ladder; compartments are
+        not. Two labels at the same level with different compartments dominate in
+        neither direction, and that incomparability is the whole difficulty.</p>
+      <div class="row" style="align-items:flex-start">
+        <fieldset><legend>Holder (the reader)</legend>
+          <div class="row">
+            <div><label for="h-sens">Sensitivity</label><select id="h-sens"></select></div>
+            <div><label for="h-cap">Capacity</label><select id="h-cap"></select></div>
+          </div>
+          <div style="margin-top:.5rem"><label>Compartments</label>
+            <div class="chips" id="h-comps"></div></div>
+        </fieldset>
+        <fieldset><legend>Object (the thing read)</legend>
+          <div class="row">
+            <div><label for="i-sens">Sensitivity</label><select id="i-sens"></select></div>
+            <div><label for="i-cap">Capacity</label><select id="i-cap"></select></div>
+          </div>
+          <div style="margin-top:.5rem"><label>Compartments</label>
+            <div class="chips" id="i-comps"></div></div>
+        </fieldset>
+      </div>
+      <div class="row" style="margin-top:.8rem"><button class="go" id="l-go">Check dominance</button></div>
+    </div>
+    <div class="card" id="l-out" hidden></div>
+  </section>
+
+  <!-- ── Triage ─────────────────────────────────────────────── -->
+  <section id="tab-triage" hidden>
+    <div class="card">
+      <div class="row">
+        <div style="min-width:19rem"><label for="t-model">Model</label><select id="t-model"></select></div>
+        <div><label for="t-seed">Seed</label><input id="t-seed" type="number" value="7"></div>
+        <div><label for="t-index">Task</label><input id="t-index" type="number" value="0"></div>
+        <button class="go" id="t-go">Run</button>
+      </div>
+      <p class="note" id="t-modelnote"></p>
+    </div>
+    <div class="card" id="t-out" hidden></div>
+  </section>
+
+  <!-- ── Gate ───────────────────────────────────────────────── -->
+  <section id="tab-gate" hidden>
+    <div class="card">
+      <p class="note" style="margin-top:0">The gate asks whether plant membership is
+        predictable from shape alone, reading no words. It is expected to score above
+        chance, because ground truth is defined by content. What matters is that the
+        baseline is measured and significant against its own permutation null.</p>
+      <div class="row">
+        <div><label for="g-seed">Seed</label><input id="g-seed" type="number" value="7"></div>
+        <div><label for="g-events">Events</label><input id="g-events" type="number" value="120"></div>
+        <button class="go" id="g-go">Run gate</button>
+      </div>
+    </div>
+    <div class="card" id="g-out" hidden></div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
+    ['corpus','lattice','triage','gate'].forEach(t => { $('tab-' + t).hidden = (t !== btn.dataset.tab); });
+  };
+});
+
+async function api(path, opts) {
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    let detail = res.statusText;
+    try { detail = (await res.json()).detail || detail; } catch (e) { /* keep statusText */ }
+    throw new Error(detail);
+  }
+  return res.json();
+}
+
+function busy(btn, on) { btn.disabled = on; btn.textContent = on ? 'Working…' : btn.dataset.label; }
+
+// ── Corpus ──────────────────────────────────────────────────
+$('c-go').dataset.label = 'Generate';
+$('c-go').onclick = async () => {
+  const btn = $('c-go'); busy(btn, true);
+  try {
+    const d = await api(`/api/corpus?seed=${$('c-seed').value}&events=${$('c-events').value}`);
+    const hist = Object.entries(d.label_histogram)
+      .map(([k, v]) => `<tr><td><span class="tag">${esc(k)}</span></td><td>${v}</td></tr>`).join('');
+    const rows = d.reports.map(r => `<tr>
+        <td class="mono">${esc(r.report_id)}</td>
+        <td><span class="tag">${esc(r.label.rendered)}</span></td>
+        <td>${r.is_plant ? '<span class="ok">significant</span>' : '<span class="muted">routine</span>'}</td>
+        <td>${esc(r.text)}</td></tr>`).join('');
+    $('c-out').hidden = false;
+    $('c-out').innerHTML = `
+      <p><strong>${d.n_reports}</strong> reports over <strong>${d.n_events}</strong> events,
+         in <strong>${Object.keys(d.label_histogram).length}</strong> distinct label cells.</p>
+      <div class="scroll"><table><thead><tr><th>Label cell</th><th>Reports</th></tr></thead><tbody>${hist}</tbody></table></div>
+      <p class="note">Sample of reports:</p>
+      <div class="scroll"><table><thead><tr><th>ID</th><th>Label</th><th>Class</th><th>Text</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  } catch (e) { $('c-out').hidden = false; $('c-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+  busy(btn, false);
+};
+
+// ── Lattice ─────────────────────────────────────────────────
+let vocab = null;
+async function loadVocab() {
+  vocab = await api('/api/vocabulary');
+  for (const side of ['h', 'i']) {
+    $(side + '-sens').innerHTML = vocab.sensitivity.map(s => `<option>${esc(s)}</option>`).join('');
+    $(side + '-cap').innerHTML = vocab.capacity.map(c => `<option>${esc(c)}</option>`).join('');
+    $(side + '-comps').innerHTML = vocab.compartments
+      .map(c => `<label><input type="checkbox" value="${esc(c)}"> ${esc(c)}</label>`).join('');
+  }
+  $('h-sens').value = 'RESTRICTED'; $('i-sens').value = 'PROTECTED';
+}
+const gather = (side) => ({
+  sensitivity: $(side + '-sens').value,
+  capacity: $(side + '-cap').value,
+  compartments: [...$(side + '-comps').querySelectorAll('input:checked')].map(i => i.value),
+});
+$('l-go').dataset.label = 'Check dominance';
+$('l-go').onclick = async () => {
+  const btn = $('l-go'); busy(btn, true);
+  try {
+    const d = await api('/api/dominance', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({holder: gather('h'), item: gather('i')}),
+    });
+    const verdict = d.incomparable
+      ? '<span class="bad">Incomparable.</span> Neither may read the other.'
+      : (d.holder_may_read_item
+          ? '<span class="ok">The holder may read the object.</span>'
+          : '<span class="bad">The holder may not read the object.</span>');
+    $('l-out').hidden = false;
+    $('l-out').innerHTML = `
+      <p class="verdict">${verdict}</p>
+      <table>
+        <tr><th>Holder</th><td><span class="tag">${esc(d.holder.rendered)}</span></td></tr>
+        <tr><th>Object</th><td><span class="tag">${esc(d.item.rendered)}</span></td></tr>
+        <tr><th>Holder reads object</th><td>${d.holder_may_read_item}</td></tr>
+        <tr><th>Object reads holder</th><td>${d.item_may_read_holder}</td></tr>
+        <tr><th>Join</th><td><span class="tag">${esc(d.join.rendered)}</span></td></tr>
+      </table>
+      <p class="note">The join is what a derived output inherits from both. Capacity is
+         taken from the output rather than joined, which is what stops every derived
+         entry creeping to the top of the lattice.</p>`;
+  } catch (e) { $('l-out').hidden = false; $('l-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+  busy(btn, false);
+};
+
+// ── Triage ──────────────────────────────────────────────────
+let catalog = [];
+async function loadModels() {
+  const d = await api('/api/models');
+  catalog = d.models;
+  $('t-model').innerHTML = catalog.map(m => {
+    const marks = [m.installed ? 'installed' : 'not pulled', m.verified ? 'verified' : 'candidate'];
+    return `<option value="${esc(m.key)}"${m.key === d.default ? ' selected' : ''}>${esc(m.key)} — ${esc(m.parameters)} (${marks.join(', ')})</option>`;
+  }).join('');
+  showModelNote();
+}
+function showModelNote() {
+  const m = catalog.find(x => x.key === $('t-model').value);
+  if (!m) return;
+  const warn = m.installed ? '' : ` <span class="bad">Not pulled yet — run <code>ollama pull ${esc(m.tag)}</code>.</span>`;
+  const ver = m.verified
+    ? '<span class="ok">Verified: has answered a Pharos task.</span>'
+    : '<span class="muted">Candidate: never run against a Pharos task yet.</span>';
+  $('t-modelnote').innerHTML = `<code>${esc(m.tag)}</code> · ~${m.approx_vram_gb} GB · ${ver}${warn}`;
+}
+$('t-model').onchange = showModelNote;
+$('t-go').dataset.label = 'Run';
+$('t-go').onclick = async () => {
+  const btn = $('t-go'); busy(btn, true);
+  try {
+    const d = await api('/api/triage', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({model: $('t-model').value, seed: +$('t-seed').value, index: +$('t-index').value}),
+    });
+    const said = d.model_verdict === null ? 'unparseable' : (d.model_verdict ? 'SIGNIFICANT' : 'ROUTINE');
+    const truth = d.truth_significant ? 'SIGNIFICANT' : 'ROUTINE';
+    const mark = d.correct === null ? '<span class="muted">no verdict</span>'
+      : (d.correct ? '<span class="ok">correct</span>' : '<span class="bad">wrong</span>');
+    $('t-out').hidden = false;
+    $('t-out').innerHTML = `
+      <p class="verdict">Model said <strong>${said}</strong>, truth is <strong>${truth}</strong> — ${mark}</p>
+      <table>
+        <tr><th>Task</th><td class="mono">${esc(d.task_id)}</td></tr>
+        <tr><th>Sources</th><td>${d.n_sources} reports</td></tr>
+        <tr><th>Model</th><td class="mono">${esc(d.model.tag)}</td></tr>
+        <tr><th>Governed label of the verdict</th><td><span class="tag">${esc(d.governed_label.rendered)}</span></td></tr>
+      </table>
+      <p class="note">The governed label is the join over every source that fed the
+         turn, at ENUM capacity. It is what decides whether this verdict could train a
+         shared adapter.</p>
+      <p class="note">Raw model output:</p><pre>${esc(d.raw)}</pre>`;
+  } catch (e) { $('t-out').hidden = false; $('t-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+  busy(btn, false);
+};
+
+// ── Gate ────────────────────────────────────────────────────
+$('g-go').dataset.label = 'Run gate';
+$('g-go').onclick = async () => {
+  const btn = $('g-go'); busy(btn, true);
+  try {
+    const d = await api(`/api/gate?seed=${$('g-seed').value}&events=${$('g-events').value}`);
+    const probes = Object.entries(d.per_probe_auc)
+      .map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v}</td></tr>`).join('');
+    $('g-out').hidden = false;
+    $('g-out').innerHTML = `
+      <p class="verdict">Surface baseline <strong>${d.surface_baseline}</strong>
+         against a null of <strong>${d.null_mean}</strong> ± ${d.null_sd}</p>
+      <table>
+        <tr><th>Leak exceeds the null</th><td>${d.significant ? '<span class="ok">yes</span>' : '<span class="bad">no</span>'}</td></tr>
+        ${probes}
+      </table>
+      <p class="note">${esc(d.note)}</p>`;
+  } catch (e) { $('g-out').hidden = false; $('g-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+  busy(btn, false);
+};
+
+loadVocab().catch(() => {});
+loadModels().catch(() => {});
+</script>
+</body>
+</html>

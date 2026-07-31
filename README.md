@@ -334,6 +334,49 @@ OTLP and knows nothing downstream, so swapping Jaeger for ClickHouse, SigNoz, or
 hosted backend is an edit to `docker/otel-collector.yaml` and touches no Python.
 The default fan-out matches `kourai-khryseai` so the fleet reads the same way.
 
+## The explorer
+
+Pharos is currently only reachable through Python, which makes it hard to show
+anyone. The explorer serves the corpus, the lattice, and the gate behind one page.
+
+```bash
+uv sync --group ui
+uv run python -m pharos.cli serve      # http://127.0.0.1:8080
+```
+
+Four tabs: generate a corpus and read labelled reports, ask whether one label
+dominates another (the interesting answer is **neither**), run a triage task
+against a model you pick from a dropdown, and run the gate.
+
+The page inlines its own CSS and JavaScript and loads nothing from a CDN, because
+a testbed that promises to run offline should not have a front door that fails
+without internet. Every endpoint returns the objects the Python API produces, so
+the page is a client rather than a second implementation of the label rendering.
+
+FastAPI is an optional `ui` group; the corpus and the gate never need a web server.
+
+## Choosing a model
+
+```bash
+uv run python -m pharos.cli models
+```
+
+```text
+KEY              TAG                                SIZE    VRAM    INSTALLED  VERIFIED
+llama3.2-3b      llama3.2:3b-instruct-q4_K_M        3B      2.3     yes        candidate
+qwen2.5-7b       qwen2.5:7b-instruct                7.6B    4.7     yes        yes
+qwen2.5-14b      qwen2.5:14b-instruct               14B     9.0     no         candidate
+```
+
+**`verified` means the model has actually answered a Pharos task.** `candidate`
+means nobody has run it yet. The distinction is the point: every published Pharos
+number so far came from `qwen2.5:7b-instruct` and nothing else, so a list that
+blurred tested with untested would hide the single-model limitation rather than
+expose it. A test asserts that only smoke-tested models carry the flag.
+
+`INSTALLED` is read live from the Ollama daemon, not asserted, and any registry key
+or raw tag works wherever a model is named. An unknown tag passes straight through.
+
 ## Releasing a corpus
 
 ```bash

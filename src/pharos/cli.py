@@ -5,6 +5,7 @@ integration rather than merely informing a human who may not be reading.
 """
 
 import argparse
+import json
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
@@ -13,6 +14,7 @@ from pharos.croissant import croissant_record, to_json
 from pharos.export import write_corpus
 from pharos.generate import GeneratorConfig, generate
 from pharos.manifest import build_manifest
+from pharos.models import DEFAULT_KEY, catalog
 
 
 def _report(manifest) -> None:
@@ -66,7 +68,22 @@ def main(argv: list[str] | None = None) -> int:
     export_cmd.add_argument("--plant-rate", type=float, default=0.3)
     export_cmd.add_argument("--out", type=Path, default=Path("export"))
 
+    models_cmd = sub.add_parser("models", help="List selectable models and what is installed")
+    models_cmd.add_argument("--json", action="store_true", help="Emit the catalog as JSON")
+
+    serve_cmd = sub.add_parser("serve", help="Run the explorer web UI")
+    serve_cmd.add_argument("--host", default="127.0.0.1")
+    serve_cmd.add_argument("--port", type=int, default=8080)
+
     args = parser.parse_args(argv)
+
+    if args.command == "models":
+        return _models(as_json=args.json)
+    if args.command == "serve":
+        from pharos.web import serve
+
+        return serve(host=args.host, port=args.port)
+
     config = GeneratorConfig(seed=args.seed, n_events=args.events, plant_rate=args.plant_rate)
 
     if args.command == "export":
@@ -78,6 +95,32 @@ def main(argv: list[str] | None = None) -> int:
         args.out.write_text(manifest.to_json(), encoding="utf-8")
         print(f"wrote {args.out}")
     return 0 if manifest.usable else 1
+
+
+def _models(*, as_json: bool) -> int:
+    """List the registry, annotated with what the local backend actually has.
+
+    `verified` means the model has answered a Pharos task, not that it looks
+    suitable. The distinction is the point: every published Pharos number so far
+    came from one model, and a list that blurs tested with untested would hide that.
+    """
+    rows = catalog()
+    if as_json:
+        print(json.dumps({"default": DEFAULT_KEY, "models": rows}, indent=2))
+        return 0
+
+    print(f"{'KEY':<16} {'TAG':<34} {'SIZE':<7} {'VRAM':<7} {'INSTALLED':<10} VERIFIED")
+    for row in rows:
+        print(
+            f"{row['key']:<16} {row['tag']:<34} {row['parameters']:<7} "
+            f"{row['approx_vram_gb']:<7} {'yes' if row['installed'] else 'no':<10} "
+            f"{'yes' if row['verified'] else 'candidate'}"
+        )
+    print()
+    print("verified = has answered a Pharos triage task. candidate = never run yet.")
+    print(f"default  = {DEFAULT_KEY}")
+    print("pull a candidate with:  ollama pull <tag>")
+    return 0
 
 
 def _export(config: GeneratorConfig, out: Path) -> int:

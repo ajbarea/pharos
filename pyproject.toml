@@ -28,6 +28,14 @@ otel = []
 croissant = [
     "mlcroissant>=1.0",
 ]
+# The explorer web UI. Optional so the core install stays at numpy, scikit-learn,
+# and OpenTelemetry; the corpus and the gate never need a web server.
+ui = [
+    "fastapi>=0.115",
+    "uvicorn>=0.34",
+    # FastAPI TestClient backend. starlette deprecates plain httpx in favour of httpx2.
+    "httpx2>=0.28",
+]
 dev = [
     "pytest>=9.0",
     "pytest-cov>=6.0",
