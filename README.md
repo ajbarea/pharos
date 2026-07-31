@@ -1,8 +1,20 @@
-# Pharos
+<div align="center">
 
-A labeled fleet testbed for federated personalization with a governed disclosure boundary.
+# 🗼 Pharos
 
-**Docs: <https://ajbarea.github.io/pharos/>**
+*A labeled fleet testbed for federated personalization with a governed disclosure boundary.*
+
+[![CI](https://github.com/ajbarea/pharos/actions/workflows/ci.yml/badge.svg)](https://github.com/ajbarea/pharos/actions/workflows/ci.yml)
+[![Documentation](https://github.com/ajbarea/pharos/actions/workflows/docs.yml/badge.svg)](https://github.com/ajbarea/pharos/actions/workflows/docs.yml)
+[![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue)](pyproject.toml)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+**[Documentation](https://ajbarea.github.io/pharos/)**
+
+</div>
+
+---
 
 Pharos supplies what public corpora do not: a body of reporting whose objects
 carry real classification levels and cross-cutting compartments, so that two
