@@ -1,8 +1,10 @@
 """The model registry: what Pharos can be run against, and what it actually has been.
 
-Every published Pharos number so far came from one model. That is a real limit on
-what those numbers mean, and the fix is to make switching models trivial rather
-than to hope nobody notices. This module is the switch.
+Pharos was measured against a single model for its first several findings, which
+capped what any of them could mean. The fix was to make switching models trivial
+rather than to hope nobody noticed, and this module is that switch. Five models
+across three families have now run the triage benchmark; the sweep that did it is
+`scripts/sweep_models.sh`.
 
 Two ideas keep the registry honest.
 
@@ -65,7 +67,7 @@ REGISTRY: dict[str, ModelSpec] = {
         parameters="3B",
         quantization="Q4_K_M",
         approx_vram_gb=2.3,
-        verified=False,
+        verified=True,
         note="Smallest useful size class. Fits alongside other work on an 8 GB card.",
     ),
     "qwen2.5-3b": ModelSpec(
@@ -75,7 +77,7 @@ REGISTRY: dict[str, ModelSpec] = {
         parameters="3B",
         quantization="Q4_K_M",
         approx_vram_gb=2.0,
-        verified=False,
+        verified=True,
         note="Same family as the reference model, one size class down.",
     ),
     "qwen2.5-7b": ModelSpec(
@@ -86,7 +88,7 @@ REGISTRY: dict[str, ModelSpec] = {
         quantization="Q4_K_M",
         approx_vram_gb=4.7,
         verified=True,
-        note="The reference model. Every published Pharos measurement used this.",
+        note="The reference model. The findings sections were measured on this one.",
     ),
     "llama3.1-8b": ModelSpec(
         key="llama3.1-8b",
@@ -95,7 +97,7 @@ REGISTRY: dict[str, ModelSpec] = {
         parameters="8B",
         quantization="Q4_K_M",
         approx_vram_gb=4.9,
-        verified=False,
+        verified=True,
         note="Comparable size, different family. The natural cross-family check.",
     ),
     "mistral-7b": ModelSpec(
@@ -105,7 +107,7 @@ REGISTRY: dict[str, ModelSpec] = {
         parameters="7B",
         quantization="Q4_0",
         approx_vram_gb=4.1,
-        verified=False,
+        verified=True,
         note="Third family at the reference size class.",
     ),
     "qwen2.5-14b": ModelSpec(

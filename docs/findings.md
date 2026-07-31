@@ -114,6 +114,46 @@ Withholding the rule gives the benchmark its proper shape. A ceiling of F1 1.000
 known reachable, against a base of 0.537 to 0.688 that over-escalates at recall
 1.000 and precision 0.37 to 0.52. **That gap is the target.**
 
+## 3b. Over-escalation is universal, and scale does not fix it
+
+`scripts/sweep_models.sh`, `scripts/compare_models.py`
+
+Finding 3 was measured on one model, so its central observation could have been a
+fact about `qwen2.5:7b-instruct` rather than about the task. Five models, three
+families, two size classes, 40 tasks each, rule withheld:
+
+| Model | Family | Acc | Majority | Precision | Recall | F1 |
+| --- | --- | --- | --- | --- | --- | --- |
+| **qwen2.5-3b** | Qwen | **0.650** | 0.625 | 0.517 | 1.000 | **0.682** |
+| llama3.1-8b | Llama | 0.525 | 0.625 | 0.441 | 1.000 | 0.612 |
+| llama3.2-3b | Llama | 0.475 | 0.625 | 0.417 | 1.000 | 0.588 |
+| qwen2.5-7b | Qwen | 0.450 | 0.625 | 0.405 | 1.000 | 0.577 |
+| mistral-7b | Mistral | 0.425 | 0.625 | 0.395 | 1.000 | 0.566 |
+
+Two things hold across every model, and they are the claims:
+
+**Recall is 1.000 everywhere.** Not approximately, exactly. Every model escalates
+every significant event, and also escalates most routine ones, with precision
+between 0.395 and 0.517. The over-escalation reported in finding 3 is not an
+artifact of one model, it is what the task does to all of them when the rule is
+withheld.
+
+**Scale does not help.** The best score belongs to the *smallest* model tested, and
+8B does not beat 3B. Whatever is missing is not capacity.
+
+Both are consistent with finding 5's conclusion, and strengthen it. A model that
+reaches F1 1.000 when handed the rule is not short of capability, and now we know
+it is not short of parameters either. It is short of the rule, so rule
+*acquisition* is the whole question.
+
+!!! warning "What this does not claim"
+    40 tasks per model. Differences of roughly 0.1 sit inside the noise at this
+    size, so **the ordering between models is not claimed** and should not be
+    quoted as a ranking. What is claimed is the part that is unanimous: recall
+    1.000 for all five, and no model clearly clearing the majority floor.
+
+    All five ran at 100% GPU residency, checked per model rather than assumed.
+
 ## 4. Answerability and surface non-leakage pull against each other
 
 Fixing coverage raised the surface baseline from about 0.55 to 0.63-0.67, and

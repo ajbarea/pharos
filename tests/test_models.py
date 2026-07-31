@@ -16,7 +16,7 @@ def test_the_default_is_the_reference_model():
 def test_only_smoke_tested_models_are_marked_verified():
     """The one claim this module makes that a reader cannot check for themselves."""
     verified = {spec.key for spec in models.REGISTRY.values() if spec.verified}
-    assert verified == {"qwen2.5-7b"}, (
+    assert verified == {"qwen2.5-3b", "qwen2.5-7b", "llama3.2-3b", "llama3.1-8b", "mistral-7b"}, (
         "flip `verified` only after the model has answered a Pharos task, "
         "never on the strength of a model card"
     )
