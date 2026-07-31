@@ -1401,7 +1401,7 @@ dev = [
     { name = "pip-audit" },
     { name = "pytest", specifier = ">=9.0" },
     { name = "pytest-cov", specifier = ">=6.0" },
-    { name = "ruff", specifier = ">=0.15" },
+    { name = "ruff", specifier = ">=0.15.20" },
     { name = "ty", specifier = ">=0.0.44,<0.1" },
     { name = "zensical" },
 ]
