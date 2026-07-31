@@ -26,6 +26,7 @@ from pharos.labels import shared_eligible as is_shared_eligible
 from pharos.models import resolve
 from pharos.provenance import run_provenance
 from pharos.tasks import build_triage_tasks
+from pharos.validity import check_classification
 
 #: A fleet aggregator cleared below the enclaves feeding it, which is what makes
 #: sharing a downgrade at all.
@@ -127,6 +128,14 @@ def main() -> int:
             "\nfederating, and the labelling machinery around it is moot until this changes."
         )
 
+    validity = check_classification(
+        tp=tp, fp=fp, tn=tn, fn=fn, unparsed=unparsed, label=f"triage:{spec.key}"
+    )
+    if not validity.quotable:
+        print("\nVALIDITY CONCERNS -- quote this number only with these attached:")
+        for concern in validity.concerns:
+            print(f"  - {concern}")
+
     if args.out:
         args.out.write_text(
             json.dumps(
@@ -147,6 +156,7 @@ def main() -> int:
                     "eligible_keep": eligible_strict,
                     "eligible_drop": eligible_drop,
                     "n_tasks": len(tasks),
+                    "validity": validity.as_dict(),
                     "rows": rows,
                 },
                 indent=2,

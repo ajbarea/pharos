@@ -1,0 +1,149 @@
+"""Each check must fire on the failure it was written for, and stay quiet otherwise.
+
+A validity warning that cries wolf gets ignored, which is worse than not having it,
+so the negative cases matter as much as the positive ones.
+"""
+
+import logging
+
+import pytest
+
+from pharos.validity import (
+    HIGH_UNPARSED_RATE,
+    SMALL_N,
+    ValidityReport,
+    check_classification,
+    check_sample_size,
+)
+
+
+def concerns_of(**kwargs) -> str:
+    return " | ".join(check_classification(**kwargs).concerns)
+
+
+# --- the failure this module was written for --------------------------------
+
+
+def test_small_n_is_flagged_with_the_cost_of_one_instance():
+    """Two findings were published from n=8 and did not reproduce. The warning
+    quantifies why: at that size one flipped task moves accuracy 12.5 points."""
+    report = check_classification(tp=2, fp=2, tn=2, fn=2, label="n8")
+    assert not report.quotable
+    joined = " ".join(report.concerns)
+    assert "n=8" in joined
+    assert "12.5 points" in joined
+
+
+def test_a_healthy_measurement_is_quotable():
+    """No concern means no caveat. This is the case that must stay silent."""
+    report = check_classification(tp=40, fp=8, tn=42, fn=10, label="healthy")
+    assert report.quotable, report.concerns
+    assert report.n == 100
+
+
+# --- degenerate predictions -------------------------------------------------
+
+
+def test_predicting_one_class_for_everything_is_flagged():
+    """Precision, recall, and F1 are all computable here and all meaningless."""
+    text = concerns_of(tp=30, fp=70, tn=0, fn=0, label="all-positive")
+    assert "every prediction was positive" in text
+
+
+def test_predicting_all_negative_is_flagged():
+    text = concerns_of(tp=0, fp=0, tn=70, fn=30, label="all-negative")
+    assert "every prediction was negative" in text
+
+
+def test_over_escalation_is_named_specifically():
+    """Recall 1.000 with more false than true positives is the exact pattern the
+    six-model sweep found in every model, so it gets its own message."""
+    text = concerns_of(tp=20, fp=35, tn=5, fn=0, label="escalator")
+    assert "recall is 1.000" in text
+    assert "escalates indiscriminately" in text
+
+
+def test_perfect_recall_alone_is_not_flagged_as_over_escalation():
+    """A model that catches everything AND is precise is not over-escalating."""
+    text = concerns_of(tp=40, fp=3, tn=50, fn=0, label="good")
+    assert "escalates indiscriminately" not in text
+
+
+# --- unparsed answers -------------------------------------------------------
+
+
+def test_a_high_unparsed_rate_is_flagged():
+    text = concerns_of(tp=20, fp=10, tn=20, fn=10, unparsed=20, label="mute")
+    assert "unparsable" in text
+
+
+def test_a_few_unparsed_answers_are_tolerated():
+    below = int(100 * HIGH_UNPARSED_RATE) - 1
+    text = concerns_of(tp=25, fp=25, tn=25, fn=25, unparsed=below, label="mostly-fine")
+    assert "unparsable" not in text
+
+
+# --- class balance and the majority floor -----------------------------------
+
+
+def test_a_skewed_evaluation_set_is_flagged_with_its_floor():
+    text = concerns_of(tp=5, fp=5, tn=85, fn=5, label="skewed")
+    assert "majority floor" in text
+
+
+def test_failing_to_beat_the_majority_floor_is_flagged():
+    """The sweep's central result: no model cleared this. It should be automatic."""
+    text = concerns_of(tp=10, fp=25, tn=15, fn=0, label="below-floor")
+    assert "does not beat the majority floor" in text
+
+
+def test_beating_the_floor_is_not_flagged():
+    text = concerns_of(tp=45, fp=5, tn=45, fn=5, label="above-floor")
+    assert "majority floor" not in text
+
+
+# --- edges ------------------------------------------------------------------
+
+
+def test_an_empty_measurement_is_reported_rather_than_dividing_by_zero():
+    report = check_classification(tp=0, fp=0, tn=0, fn=0, label="empty")
+    assert report.n == 0
+    assert not report.quotable
+    assert "no instances" in " ".join(report.concerns)
+
+
+def test_check_sample_size_alone():
+    assert check_sample_size(SMALL_N + 1, label="big").quotable
+    assert not check_sample_size(5, label="small").quotable
+
+
+def test_a_report_serialises_for_an_artifact():
+    payload = check_classification(tp=2, fp=2, tn=2, fn=2).as_dict()
+    assert set(payload) == {"n", "quotable", "concerns"}
+    assert isinstance(payload["concerns"], list)
+
+
+def test_reports_are_immutable():
+    """A report describes a run that already happened; nothing should edit it after
+    the fact. The assignment below is deliberate, hence the checker pragma."""
+    report = ValidityReport(n=10, concerns=("x",))
+    with pytest.raises(AttributeError):
+        report.n = 20  # ty: ignore[invalid-assignment]
+
+
+# --- the warnings actually reach the log ------------------------------------
+
+
+def test_concerns_are_logged_not_only_returned(caplog):
+    """A caller that ignores the return value must still leave a trace in the run's
+    own output, because that is where a reader looks after the fact."""
+    with caplog.at_level(logging.WARNING, logger="pharos"):
+        check_classification(tp=1, fp=1, tn=1, fn=1, label="tiny")
+    events = [r.__dict__.get("event") for r in caplog.records]
+    assert "validity.small_n" in events
+
+
+def test_a_clean_measurement_logs_no_warning(caplog):
+    with caplog.at_level(logging.WARNING, logger="pharos"):
+        check_classification(tp=40, fp=8, tn=42, fn=10, label="healthy")
+    assert [r for r in caplog.records if r.levelno >= logging.WARNING] == []

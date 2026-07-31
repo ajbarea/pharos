@@ -36,7 +36,7 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run ty check
-      - run: uv run pytest --cov=pharos --cov-report=term-missing --cov-fail-under=95
+      - run: uv run pytest --cov=pharos --cov=scripts --cov-report=term-missing --cov-fail-under=90
 
   shortcut-gate:
     # A release condition, and blocking. A corpus whose surface baseline is

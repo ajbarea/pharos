@@ -91,13 +91,15 @@ def main() -> int:
             f"{rows[-1]['true_label']:>28} -> {rows[-1]['attributed_label']:<28} {outcome.upper()}"
         )
 
-    recalls = [r["source_recall"] for r in rows]
-    precisions = [r["source_precision"] for r in rows]
+    # float(...) is not cosmetic: rows are dict[str, object], so without it these
+    # are sequences of object and statistics.mean silently takes the untyped path.
+    recalls = [float(r["source_recall"]) for r in rows]
+    precisions = [float(r["source_precision"]) for r in rows]
     print("\n" + "=" * 78)
     print(f"tasks                    {len(rows)}")
     print(f"source recall            mean {statistics.mean(recalls):.4f}")
     print(f"source precision         mean {statistics.mean(precisions):.4f}")
-    print(f"total model calls        {sum(r['calls'] for r in rows)}")
+    print(f"total model calls        {sum(int(r['calls']) for r in rows)}")
     print("label outcomes:")
     for name in ("exact", "creep", "leak", "incomparable"):
         count = outcomes[name]

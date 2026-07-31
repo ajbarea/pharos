@@ -40,6 +40,7 @@ script evaluates the base model itself under the same prompt and reports both.
 import argparse
 import json
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -70,6 +71,43 @@ LORA_RANK = 16
 LORA_ALPHA = 32
 LORA_DROPOUT = 0.05
 TARGET_MODULES = ("q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj")
+
+
+@dataclass(frozen=True, slots=True)
+class EvalResult:
+    """One evaluation pass, typed.
+
+    This was a plain dict, which meant every downstream arithmetic on it was
+    `float - object` and passed only because the values happened to be floats. The
+    rest of the codebase reports metrics as frozen dataclasses for exactly this
+    reason; the scripts had not followed suit.
+    """
+
+    label: str
+    n: int
+    tp: int
+    fp: int
+    tn: int
+    fn: int
+    unparsed: int
+    accuracy: float
+    majority_accuracy: float
+    precision: float
+    recall: float
+    f1: float
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "label": self.label,
+            "n": self.n,
+            "confusion": {"tp": self.tp, "fp": self.fp, "tn": self.tn, "fn": self.fn},
+            "unparsed": self.unparsed,
+            "accuracy": self.accuracy,
+            "majority_accuracy": self.majority_accuracy,
+            "precision": self.precision,
+            "recall": self.recall,
+            "f1": self.f1,
+        }
 
 
 def verdict_text(significant: bool) -> str:
@@ -111,7 +149,7 @@ def tokenize_masked(example: dict[str, str], tokenizer, max_len: int):
     return {"input_ids": input_ids, "labels": labels}
 
 
-def evaluate(model, tokenizer, tasks: list[TriageTask], *, label: str) -> dict[str, object]:
+def evaluate(model, tokenizer, tasks: list[TriageTask], *, label: str) -> EvalResult:
     """Greedy-decode a verdict per task and score it. No sampling, so this is stable."""
     import torch
 
@@ -151,17 +189,20 @@ def evaluate(model, tokenizer, tasks: list[TriageTask], *, label: str) -> dict[s
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
     total = tp + fp + tn + fn + unparsed
     prevalence = (tp + fn) / total if total else 0.0
-    return {
-        "label": label,
-        "n": total,
-        "confusion": {"tp": tp, "fp": fp, "tn": tn, "fn": fn},
-        "unparsed": unparsed,
-        "accuracy": round((tp + tn) / total, 4) if total else 0.0,
-        "majority_accuracy": round(max(prevalence, 1 - prevalence), 4),
-        "precision": round(precision, 4),
-        "recall": round(recall, 4),
-        "f1": round(f1, 4),
-    }
+    return EvalResult(
+        label=label,
+        n=total,
+        tp=tp,
+        fp=fp,
+        tn=tn,
+        fn=fn,
+        unparsed=unparsed,
+        accuracy=round((tp + tn) / total, 4) if total else 0.0,
+        majority_accuracy=round(max(prevalence, 1 - prevalence), 4),
+        precision=round(precision, 4),
+        recall=round(recall, 4),
+        f1=round(f1, 4),
+    )
 
 
 def main() -> int:
@@ -224,8 +265,8 @@ def main() -> int:
     if not args.skip_base_eval:
         print("\n>>> baseline: this checkpoint, rule withheld, no training")
         base_result = evaluate(model, tokenizer, evaluation, label="base")
-        print(json.dumps(base_result, indent=2))
-        record("adapter.base_f1", base_result["f1"], model=args.model)
+        print(json.dumps(base_result.as_dict(), indent=2))
+        record("adapter.base_f1", base_result.f1, model=args.model)
 
     # ---- train --------------------------------------------------------------
     lora = LoraConfig(
@@ -290,18 +331,18 @@ def main() -> int:
     # ---- evaluate the adapter ----------------------------------------------
     print("\n>>> adapter: same prompt, same held-out events")
     tuned_result = evaluate(model, tokenizer, evaluation, label="adapter")
-    print(json.dumps(tuned_result, indent=2))
-    record("adapter.f1", tuned_result["f1"], model=args.model)
+    print(json.dumps(tuned_result.as_dict(), indent=2))
+    record("adapter.f1", tuned_result.f1, model=args.model)
 
     # ---- verdict against the two anchors -----------------------------------
     print("\n" + "=" * 72)
     if base_result:
-        print(f"base     F1 {base_result['f1']:.3f}  acc {base_result['accuracy']:.3f}")
-    print(f"adapter  F1 {tuned_result['f1']:.3f}  acc {tuned_result['accuracy']:.3f}")
+        print(f"base     F1 {base_result.f1:.3f}  acc {base_result.accuracy:.3f}")
+    print(f"adapter  F1 {tuned_result.f1:.3f}  acc {tuned_result.accuracy:.3f}")
     print(f"ceiling  F1 {CEILING_F1:.3f}  (rule stated, checklist prompt)")
     if base_result:
-        gap = CEILING_F1 - base_result["f1"]
-        closed = (tuned_result["f1"] - base_result["f1"]) / gap if gap > 0 else 0.0
+        gap = CEILING_F1 - base_result.f1
+        closed = (tuned_result.f1 - base_result.f1) / gap if gap > 0 else 0.0
         print(f"\ngap closed: {closed:+.1%} of the distance from base to ceiling")
         print(
             "Interpret against finding 5, where in-context examples closed none of it.\n"
@@ -333,8 +374,8 @@ def main() -> int:
                         "events_disjoint": True,
                     },
                     "training_loss": final_loss,
-                    "base": base_result,
-                    "adapter": tuned_result,
+                    "base": base_result.as_dict() if base_result else None,
+                    "adapter": tuned_result.as_dict(),
                     "ceiling_f1": CEILING_F1,
                 },
                 indent=2,

@@ -114,7 +114,14 @@ testpaths = ["tests"]
 addopts = "-q"
 
 [tool.ty.src]
-include = ["src", "tests"]
+include = ["src", "tests", "scripts"]
+
+# scripts/ is not a package and is imported by path at runtime, so the type checker
+# needs the directory as a module root or every `from measure_... import` is an
+# unresolved import. Including it means the measurement code that produces the
+# paper's numbers is type-checked like the library, which it was not before.
+[tool.ty.environment]
+extra-paths = ["scripts"]
 
 [tool.ty.rules]
 all = "warn"
@@ -126,6 +133,17 @@ unresolved-import = "error"
 # them, so an unresolved import there is the intended state rather than a defect.
 [[tool.ty.overrides]]
 include = ["src/pharos/telemetry.py"]
+
+[tool.ty.overrides.rules]
+unresolved-import = "ignore"
+
+# The adapter experiment's stack (torch, peft, transformers) and the external
+# validator's `datasets` live in optional extras and are deliberately absent from the
+# default environment. Both scripts import them inside the function that needs them
+# and only ever run where the extra is installed, so an unresolved import here is the
+# intended state rather than a defect.
+[[tool.ty.overrides]]
+include = ["scripts/train_adapter.py", "scripts/validate_gate_externally.py"]
 
 [tool.ty.overrides.rules]
 unresolved-import = "ignore"

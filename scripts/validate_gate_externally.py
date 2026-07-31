@@ -299,8 +299,11 @@ def main() -> int:
         )
 
     print("\n" + "=" * 74)
-    above = [r["dataset"] for r in results if r["exceeds_null"]]
-    at_chance = [r["dataset"] for r in results if not r["exceeds_null"]]
+    # str(...) because `results` rows are dict[str, object]; without it the join
+    # below is an overload the checker cannot match and a latent TypeError if a
+    # dataset name ever arrives as something other than a string.
+    above = [str(r["dataset"]) for r in results if r["exceeds_null"]]
+    at_chance = [str(r["dataset"]) for r in results if not r["exceeds_null"]]
     print(f"surface signal above the null : {', '.join(above) or 'none'}")
     print(f"indistinguishable from chance : {', '.join(at_chance) or 'none'}")
     print(
