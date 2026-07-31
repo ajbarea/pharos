@@ -8,6 +8,12 @@
 # Sapphire Rapids, which makes all of that unnecessary.
 set -euo pipefail
 
+OLLAMA_VERSION="${OLLAMA_VERSION:-v0.32.5}"
+
+# Resolved once, before anything cds. The install steps below cd to $HOME, which
+# breaks a relative $0 lookup later; that bug cost a run.
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 log() { printf '\n>>> %s\n' "$*"; }
 
 log "Architecture"
@@ -27,10 +33,17 @@ fi
 # the cluster environment identical to a local checkout, which is the point of
 # pinning the version at all.
 # ---------------------------------------------------------------------------
-if command -v uv >/dev/null 2>&1; then
-  log "uv present: $(uv --version)"
+# Presence is not the test; execution is. A previous install of this account's
+# tooling was aarch64, and after the cluster moved to x86_64 those binaries were
+# still on PATH and still passed `command -v`. They fail with "Exec format error"
+# only when actually run, so that is what gets checked.
+works() { "$1" --version >/dev/null 2>&1; }
+
+if works "$HOME/.local/bin/uv" || works uv; then
+  log "uv runs: $(uv --version 2>/dev/null || "$HOME/.local/bin/uv" --version)"
 else
-  log "Installing uv"
+  log "Installing uv (existing binary missing or wrong architecture)"
+  rm -f "$HOME/.local/bin/uv" "$HOME/.local/bin/uvx"
   curl -LsSf https://astral.sh/uv/install.sh | sh
 fi
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
@@ -39,19 +52,28 @@ export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
 # Ollama, unpacked into $HOME. No root here, so the official install script is not
 # usable; the release tarball is.
 # ---------------------------------------------------------------------------
-if [[ -x "$HOME/bin/ollama" ]]; then
-  log "Ollama present: $("$HOME/bin/ollama" --version 2>&1 | tail -1)"
+if works "$HOME/bin/ollama"; then
+  log "Ollama runs: $("$HOME/bin/ollama" --version 2>&1 | tail -1)"
 else
-  log "Installing Ollama (linux-amd64) into ~/bin"
+  log "Installing Ollama $OLLAMA_VERSION (linux-amd64) into ~/bin"
+  # Clear an aarch64 leftover, including its lib/ollama payload, or the new tarball
+  # unpacks alongside stale ARM shared objects.
+  rm -rf "$HOME/bin/ollama" "$HOME/lib/ollama"
   mkdir -p "$HOME/bin"
   cd "$HOME"
-  curl -fL https://ollama.com/download/ollama-linux-amd64.tgz -o ollama-linux-amd64.tgz
-  tar -xzf ollama-linux-amd64.tgz -C "$HOME"
-  rm -f ollama-linux-amd64.tgz
+  # Release assets are zstd-compressed tarballs on GitHub, not .tgz from ollama.com
+  # (that URL 404s). Asset names have changed across versions, so this is pinned.
+  TARBALL="ollama-linux-amd64.tar.zst"
+  curl -fL "https://github.com/ollama/ollama/releases/download/${OLLAMA_VERSION}/${TARBALL}" \
+       -o "$TARBALL"
+  zstd -d --rm "$TARBALL"
+  tar -xf "ollama-linux-amd64.tar" -C "$HOME"
+  rm -f "ollama-linux-amd64.tar"
+  works "$HOME/bin/ollama" || { echo "ollama still will not run" >&2; exit 1; }
 fi
 
 log "Syncing the project"
-cd "$(dirname "$0")/.."
+cd "$REPO"
 uv sync --all-groups
 
 log "Add to ~/.bashrc if absent:"
