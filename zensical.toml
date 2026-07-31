@@ -24,9 +24,12 @@ nav = [
 # ---------------------------------------------------------------------------
 # Theme
 # ---------------------------------------------------------------------------
+extra_css = ["stylesheets/extra.css"]
+
 [project.theme]
 name = "material"
 language = "en"
+custom_dir = "overrides"
 
 features = [
     "announce.dismiss",

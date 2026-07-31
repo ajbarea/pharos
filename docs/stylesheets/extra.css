@@ -1,0 +1,34 @@
+/* Pharos docs styling.
+ *
+ * Deliberately small. The sisters carry a larger sheet; most of it is for figures
+ * and slide embeds this site does not have, and copying rules that style nothing
+ * makes the file lie about what the site contains.
+ */
+
+/* Tables carry most of this site's content -- gate rounds, findings, model sweeps,
+ * label cells -- and several are wide enough to overflow on a narrow screen. Scroll
+ * them inside their own box rather than letting the page scroll sideways. */
+.md-typeset table:not([class]) {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+@media screen and (min-width: 60em) {
+  .md-typeset table:not([class]) {
+    display: table;
+    white-space: normal;
+  }
+}
+
+/* Measured values read better monospaced when they sit inline in prose. */
+.md-typeset table:not([class]) td:nth-child(n + 2) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The admonitions on the findings and gate pages carry corrections and caveats,
+ * which are the parts a reader most needs to notice. Give warnings a little more
+ * presence than the theme default without shouting. */
+.md-typeset .admonition.warning {
+  border-left-width: 0.3rem;
+}

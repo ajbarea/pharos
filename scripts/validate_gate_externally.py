@@ -52,6 +52,11 @@ from sklearn.preprocessing import StandardScaler
 from pharos.provenance import run_provenance
 from pharos.telemetry import log_execution_context, progress
 
+#: Below this, bag-of-words cannot predict the label either, which means the label is
+#: not a property of the text rather than that the corpus is clean. Set just above
+#: chance: any real content-defined label clears it comfortably.
+CONTENT_SANITY_FLOOR = 0.60
+
 #: The eight Pharos surface features computable from text alone. `report_type_id`
 #: and `voice_id` are corpus-specific identifiers and have no external counterpart.
 TEXT_FEATURES: tuple[str, ...] = (
@@ -133,6 +138,42 @@ def surface_baseline(x, y, *, folds: int = 4, seed: int = 0) -> tuple[float, dic
     mean = {p: float(np.mean(v)) for p, v in per_probe.items()}
     worst = max(mean, key=lambda p: abs(mean[p] - 0.5))
     return mean[worst], mean
+
+
+def content_baseline(texts: list[str], y, *, folds: int = 4, seed: int = 0) -> float:
+    """What a model that DOES read the words achieves. A positive control.
+
+    This exists because its absence nearly published a false finding. The first
+    version of the HellaSwag loader probed the shared context against the answer
+    index; the context is identical whichever ending is correct, so the label bore no
+    relationship to the text. The surface probe scored chance, and the natural
+    reading -- "adversarial filtering removes surface signal" -- was a confident,
+    publishable conclusion resting entirely on a construction bug.
+
+    Nothing in the surface pipeline could have caught that, because a surface score at
+    chance is exactly what a clean corpus is supposed to look like. What distinguishes
+    the two cases is whether the label is learnable *at all*. If bag-of-words cannot
+    beat chance either, the label is not a property of this text, and any surface
+    result about it is meaningless rather than reassuring.
+    """
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.pipeline import make_pipeline
+
+    scores: list[float] = []
+    x = np.array(texts, dtype=object)
+    splitter = StratifiedKFold(n_splits=folds, shuffle=True, random_state=seed)
+    for train_idx, test_idx in splitter.split(x, y):
+        if len(set(y[test_idx])) < 2 or len(set(y[train_idx])) < 2:
+            continue
+        model = make_pipeline(
+            TfidfVectorizer(max_features=20000, min_df=2),
+            LogisticRegression(max_iter=2000, class_weight="balanced"),
+        ).fit(list(x[train_idx]), y[train_idx])
+        proba = model.predict_proba(list(x[test_idx]))[:, 1]
+        scores.append(float(roc_auc_score(y[test_idx], proba)))
+    if not scores:
+        raise ValueError("no usable fold for the content baseline")
+    return float(np.mean(scores))
 
 
 def permutation_null(x, y, *, trials: int, folds: int, seed: int) -> tuple[float, float, float]:
@@ -274,6 +315,7 @@ def main() -> int:
         x = np.array([text_surface_features(t) for t in corpus.texts])
         y = np.array(corpus.labels)
         baseline, per_probe = surface_baseline(x, y, folds=args.folds, seed=args.seed)
+        content = content_baseline(corpus.texts, y, folds=args.folds, seed=args.seed)
         null_mean, null_sd, null_p95 = permutation_null(
             x, y, trials=args.null_trials, folds=args.folds, seed=args.seed
         )
@@ -290,6 +332,8 @@ def main() -> int:
             "null_p95": round(null_p95, 4),
             "z": round(z, 2),
             "exceeds_null": bool(baseline > null_p95),
+            "content_baseline": round(content, 4),
+            "label_is_learnable": bool(content > CONTENT_SANITY_FLOOR),
         }
         results.append(row)
         print(

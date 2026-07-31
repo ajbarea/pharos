@@ -58,6 +58,12 @@ dev = [
     "opentelemetry-api>=1.30",
     "opentelemetry-sdk>=1.30",
     "opentelemetry-exporter-otlp-proto-http>=1.30",
+    # The docs site. In `dev` rather than run via `uv tool` because the docs
+    # workflow builds with `uv run zensical`, matching the sister repositories, and a
+    # tool-run version is not pinned by uv.lock so CI and local could drift.
+    "zensical",
+    # Dependency vulnerability scan in CI, matching the sisters.
+    "pip-audit",
 ]
 
 [build-system]
