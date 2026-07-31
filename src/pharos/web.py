@@ -193,7 +193,10 @@ def create_app():
         said_routine = "ROUTINE" in upper
         verdict = None if said_significant == said_routine else said_significant
 
-        governed = join([r.label for r in task.sources], capacity=Capacity.ENUM)
+        # TriageTask.label already computes this join at ENUM capacity. Recomputing
+        # it here would be a second implementation of a governance decision, free to
+        # drift from the one every measurement uses.
+        governed = task.label
         return {
             "task_id": task.task_id,
             "model": spec.as_dict(),

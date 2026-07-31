@@ -217,3 +217,95 @@ def test_capacity_decides_whether_a_join_can_ever_be_released():
     assert not shared_eligible(prose, ceiling, DeclassificationPolicy())
     assert not shared_eligible(verdict, ceiling, DeclassificationPolicy())
     assert shared_eligible(verdict, ceiling, DeclassificationPolicy(drop_compartments=True))
+
+
+# --- Task accessors that carry governance decisions -------------------------
+# TriageTask.label is the join that decides whether a verdict may federate, so it
+# gets tested against the lattice directly rather than trusted. The web explorer
+# used to recompute this inline; it now calls this property, and these tests are
+# what keep the two from diverging again.
+
+
+def test_a_verdicts_label_is_the_join_of_its_sources_at_enum_capacity():
+    from pharos.labels import Capacity, join
+    from pharos.tasks import build_triage_tasks
+
+    reports = generate(GeneratorConfig(seed=4, n_events=60))
+    task = build_triage_tasks(reports)[0]
+    expected = join([r.label for r in task.sources], capacity=Capacity.ENUM)
+    assert task.label == expected
+    # ENUM specifically: a one-word verdict is the low-capacity case that policy may
+    # declassify. FREETEXT here would make every verdict unreleasable.
+    assert task.label.capacity is Capacity.ENUM
+
+
+def test_a_verdicts_label_dominates_every_source_label():
+    """Conservative by construction: the join must be readable by nobody less cleared."""
+    from pharos.tasks import build_triage_tasks
+
+    reports = generate(GeneratorConfig(seed=4, n_events=60))
+    for task in build_triage_tasks(reports, limit=6):
+        for report in task.sources:
+            assert task.label.sensitivity >= report.label.sensitivity
+            assert report.label.compartments <= task.label.compartments
+
+
+def test_source_labels_matches_the_sources():
+    """`source_labels` is on the summarization Task, which is what attribution uses."""
+    from pharos.tasks import build_tasks
+
+    reports = generate(GeneratorConfig(seed=4, n_events=120))
+    task = build_tasks(reports, limit=1)[0]
+    assert task.source_labels == tuple(r.label for r in task.sources)
+
+
+def test_facts_by_source_indexes_every_source():
+    from pharos.tasks import build_tasks
+
+    reports = generate(GeneratorConfig(seed=4, n_events=120))
+    task = build_tasks(reports, limit=1)[0]
+    mapping = task.facts_by_source
+    assert set(mapping) == set(range(len(task.sources)))
+    for index, facts in mapping.items():
+        assert facts == frozenset(task.sources[index].fact_ids)
+
+
+def test_label_over_a_subset_is_never_more_restrictive_than_the_whole():
+    """Monotonicity of the join: attributing fewer sources can only under-protect."""
+    from pharos.labels import Capacity
+    from pharos.tasks import build_tasks
+
+    reports = generate(GeneratorConfig(seed=4, n_events=120))
+    task = build_tasks(reports, limit=1)[0]
+    whole = frozenset(range(len(task.sources)))
+    subset = frozenset(list(whole)[:2])
+    full_label = task.label_over(whole, capacity=Capacity.ENUM)
+    part_label = task.label_over(subset, capacity=Capacity.ENUM)
+    assert full_label.sensitivity >= part_label.sensitivity
+    assert part_label.compartments <= full_label.compartments
+
+
+def test_build_triage_tasks_honours_its_limit():
+    from pharos.tasks import build_triage_tasks
+
+    reports = generate(GeneratorConfig(seed=4, n_events=120))
+    assert len(build_triage_tasks(reports, limit=3)) == 3
+    assert len(build_triage_tasks(reports)) > 3
+
+
+# --- Detector accuracy reporting -------------------------------------------
+
+
+def test_detector_f1_is_zero_rather_than_undefined_when_it_finds_nothing():
+    """A totally failed detector must report 0.0, not raise ZeroDivisionError."""
+    from pharos.detect import DetectorAccuracy
+
+    dead = DetectorAccuracy(n_reports=10, recall=0.0, precision=0.0)
+    assert dead.f1 == 0.0
+
+
+def test_detector_accuracy_serialises_with_f1():
+    from pharos.detect import DetectorAccuracy
+
+    payload = DetectorAccuracy(n_reports=8, recall=1.0, precision=0.5).as_dict()
+    assert payload == {"n_reports": 8, "recall": 1.0, "precision": 0.5, "f1": 0.6667}
