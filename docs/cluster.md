@@ -10,6 +10,33 @@ Both are VRAM ceilings rather than throughput problems, so no local optimisation
 reaches them. The scripts live in `cluster/` in the repository; this page is the
 short version and the two traps worth knowing before you submit anything.
 
+## What runs where, and why it matters
+
+Not a preference. Model-dependent numbers are **not** bit-reproducible across
+machines -- re-running five models on cluster hardware changed 2 of 200 judgements at
+temperature zero with a fixed seed -- while the corpus and the gate, which make no
+model calls, reproduce exactly. So platform is part of a measurement's identity.
+
+| Work | Where | Why |
+| --- | --- | --- |
+| Generation, gate, tests, docs | **Local** | No model calls, bit-identical anywhere, and instant |
+| Models up to ~8B | **Local** | 7B at Q4 is 4.7 GB and runs at ~16 s/call. Zero queue |
+| Models above 8B | **Cluster** | 14B at Q4 is ~9 GB and does not fit an 8 GB card |
+| Adapter training | **Cluster** | Needs 16-24 GB. A VRAM ceiling, not a throughput one |
+| Anything published as a set | **One platform, all of it** | See below |
+
+**The rule that matters: a comparison must not straddle platforms.** The six-model
+sweep was first run locally for five models, then re-run on the cluster once the 14B
+became reachable. Had the published table mixed the local five with the cluster 14B,
+part of the spread between models would have been the machine rather than the model.
+Everything in `results/` is now from one platform for that reason, and each artifact
+records the platform it came from so this is checkable rather than remembered.
+
+Local remains the right default for iteration: the GPU partition here runs fully
+allocated for hours at a time, so a two-minute job can wait ninety minutes for a
+slot. Develop locally, publish from wherever the largest member of the set has to
+run.
+
 ## The pipeline
 
 ```bash
