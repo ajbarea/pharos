@@ -237,12 +237,17 @@ Kept explicit so silence does not read as coverage.
 - **Bell-LaPadula** is the conventional citation for a levels-plus-compartments
   model and is *not verified here*, so it is deliberately absent from the citation
   list above rather than cited from memory.
-- **The capacity dimension of the lattice has no external grounding at all.**
-  Making the output's form a required argument to `join`, so that an enum verdict
-  stays an enum verdict however sensitive its inputs, may be original or may
-  duplicate existing work on declassification policy languages. Unchecked either
-  way, and it is the most novel-looking piece of the design, which is exactly why
-  it needs checking before a paper leans on it.
+- ~~**The capacity dimension of the lattice has no external grounding at all.**~~
+  **Closed 2026-07-31: it is not original.** Sabelfeld and Sands classify
+  declassification along four dimensions -- *what* is released, *who* releases it,
+  *where*, and *when* -- and constraining release by the form of the output is an
+  instance of the **what** dimension. Verified by DOI content negotiation, *Journal
+  of Computer Security* 17(5):517-548, 2009,
+  [doi:10.3233/JCS-2009-0352](https://doi.org/10.3233/JCS-2009-0352). Cited as
+  `sabelfeld2009declassification`. The manuscript now says so explicitly rather
+  than leaving a reviewer to notice. What remains ours is the *consequence* --
+  that without it a join over eight sources collapses federation -- which is
+  measured, not asserted.
 - **Finding 3b's "scale does not help"** rests on five models at n=40 here and no
   external corroboration.
 - **Accept / revise / reject as a supervision signal** has no citation yet. The
