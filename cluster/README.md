@@ -49,14 +49,16 @@ from `SLURM_CPUS_PER_TASK`, and every run logs `run.context` with an
 
 ```bash
 ssh <username>@sporcsubmit.rc.rit.edu
-sinfo -s                 # partitions; GPUs live in `grace` (gg-*, gh-*)
+sinfo -s                 # partitions; GPUs are in `sporc-gpu`
+sinfo -p sporc-gpu -o "%20n %6c %30G %8t"   # which nodes have which GPUs
 ```
 
 A GPU node interactively:
 
 ```bash
-srun --partition=grace --gres=gpu:1 --mem=32G --time=8:00:00 --qos=qos_tier3 --pty bash --login
-nvidia-smi               # gg-00 is an A100-PCIE-40GB
+srun --partition=sporc-gpu --account=fl-mlm --qos=qos_tier3 \
+     --gres=gpu:a100:1 --cpus-per-task=8 --mem=48G --time=4:00:00 --pty bash --login
+nvidia-smi               # a100 on skl-a-*, h100 on spr-a-02
 ```
 
 RC cancels jobs that hold idle GPUs. Request, run, release; do not park an
@@ -64,9 +66,9 @@ interactive session on a GPU while reading.
 
 ## Why this does not use spack's Python
 
-The cluster's spack Python is **3.11.7**. Pharos pins `requires-python = ">=3.12"`,
+The cluster's spack Python is **3.11.x**. Pharos pins `requires-python = ">=3.12"`,
 so it will not install under it. Rather than fight the module system for a newer
-interpreter, `setup-env.sh` lets `uv` fetch its own standalone aarch64 build. That
+interpreter, `setup-env.sh` lets `uv` fetch its own standalone build. That
 also makes the environment identical to a local checkout, which is the point of
 pinning versions in the first place.
 
