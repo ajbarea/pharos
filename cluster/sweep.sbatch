@@ -62,8 +62,14 @@ MODELS=(qwen2.5-3b llama3.2-3b mistral-7b qwen2.5-7b llama3.1-8b qwen2.5-14b)
 
 for key in "${MODELS[@]}"; do
   tag="$(uv run python -c "from pharos.models import resolve; print(resolve('$key').tag)")"
-  echo ">>> pulling $key ($tag)"
-  ollama pull "$tag" || { echo "!! pull failed for $tag, skipping" >&2; continue; }
+  # Normally already present via cluster/prefetch-models.sbatch, which downloads on
+  # a CPU node so no GPU idles during a multi-gigabyte fetch. Pull here only as a
+  # fallback when the sweep is run without that dependency.
+  if ! ollama list 2>/dev/null | grep -q "^${tag}[[:space:]]"; then
+    echo ">>> $tag absent, pulling (prefer running prefetch-models.sbatch first)"
+    ollama pull "$tag" || { echo "!! pull failed for $tag, skipping" >&2; continue; }
+  fi
+  echo ">>> $key ($tag)"
 
   # Confirm the model actually landed on the GPU. A silent CPU offload costs ~8x
   # and looks identical in the output, so it gets checked rather than assumed.
