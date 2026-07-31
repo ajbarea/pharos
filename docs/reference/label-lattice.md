@@ -19,9 +19,9 @@ public corpus supplies.
 from pharos.labels import Capacity, Compartment, Label, Sensitivity
 
 holder = Label(Sensitivity.RESTRICTED, frozenset({Compartment.SENSOR}), Capacity.FREETEXT)
-item   = Label(Sensitivity.INTERNAL,   frozenset({Compartment.PARTNER}), Capacity.FREETEXT)
+item = Label(Sensitivity.INTERNAL, frozenset({Compartment.PARTNER}), Capacity.FREETEXT)
 
-holder.dominates(item)   # False: outranks it, but lacks PARTNER
+holder.dominates(item)  # False: outranks it, but lacks PARTNER
 ```
 
 `dominates` requires **both** a level at least as high and a compartment set at
@@ -51,7 +51,7 @@ its inputs were.
 ```python
 from pharos.labels import DeclassificationPolicy, declassify, shared_eligible
 
-policy = DeclassificationPolicy()          # the fail-closed default
+policy = DeclassificationPolicy()  # the fail-closed default
 declassify(label, policy)
 shared_eligible(label, release_ceiling, policy)
 ```
