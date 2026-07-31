@@ -4,8 +4,8 @@
 #SBATCH --account=fl-mlm
 #SBATCH --qos=qos_tier3
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=16G
-#SBATCH --time=1:00:00
+#SBATCH --mem=8G
+#SBATCH --time=00:45:00
 #SBATCH --output=cluster/logs/%x-%j.out
 #SBATCH --error=cluster/logs/%x-%j.err
 #
@@ -15,6 +15,13 @@
 # deterministic and involve no model calls, so the whole core can be verified on a
 # CPU node. Asking for a GPU to run tests would hold a scarce resource idle, and RC
 # cancels jobs that do that.
+#
+# Resource requests are sized from `sacct` on real runs, not guessed. This matters
+# for queue time, not politeness: Slurm backfills, so a job claiming eight hours
+# needs an eight-hour hole in the schedule while a job claiming ninety minutes drops
+# into a gap that opens constantly. An early sweep asked for 8h and used 7 minutes.
+# Re-check with:
+#   sacct -j <id> --format=JobID,JobName,Elapsed,Timelimit,MaxRSS,ReqMem
 set -euo pipefail
 
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"

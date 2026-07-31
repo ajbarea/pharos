@@ -5,7 +5,7 @@
 #SBATCH --qos=qos_tier3
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --time=2:00:00
+#SBATCH --time=00:40:00
 #SBATCH --output=cluster/logs/%x-%j.out
 #SBATCH --error=cluster/logs/%x-%j.err
 #
@@ -21,6 +21,13 @@
 # It also cannot be done from the login node. `ollama pull` needs the daemon, and a
 # daemon backgrounded over ssh dies with the session -- which killed a pull at 8.4
 # of 9 GB once already.
+#
+# Resource requests are sized from `sacct` on real runs, not guessed. This matters
+# for queue time, not politeness: Slurm backfills, so a job claiming eight hours
+# needs an eight-hour hole in the schedule while a job claiming ninety minutes drops
+# into a gap that opens constantly. An early sweep asked for 8h and used 7 minutes.
+# Re-check with:
+#   sacct -j <id> --format=JobID,JobName,Elapsed,Timelimit,MaxRSS,ReqMem
 set -euo pipefail
 
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"

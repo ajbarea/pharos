@@ -5,8 +5,8 @@
 #SBATCH --qos=qos_tier3
 #SBATCH --gres=gpu:a100:1
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=64G
-#SBATCH --time=6:00:00
+#SBATCH --mem=32G
+#SBATCH --time=02:00:00
 #SBATCH --output=cluster/logs/%x-%j.out
 #SBATCH --error=cluster/logs/%x-%j.err
 #
@@ -20,6 +20,13 @@
 # accept/revise/reject streams the design actually describes, because those are build
 # step 3 and do not exist. A negative result here is therefore strong evidence
 # against the premise; a positive one is necessary but not sufficient for it.
+#
+# Resource requests are sized from `sacct` on real runs, not guessed. This matters
+# for queue time, not politeness: Slurm backfills, so a job claiming eight hours
+# needs an eight-hour hole in the schedule while a job claiming ninety minutes drops
+# into a gap that opens constantly. An early sweep asked for 8h and used 7 minutes.
+# Re-check with:
+#   sacct -j <id> --format=JobID,JobName,Elapsed,Timelimit,MaxRSS,ReqMem
 set -euo pipefail
 
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"

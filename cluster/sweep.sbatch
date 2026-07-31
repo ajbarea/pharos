@@ -3,8 +3,9 @@
 #SBATCH --partition=sporc-gpu
 #SBATCH --account=fl-mlm
 #SBATCH --gres=gpu:a100:1
-#SBATCH --mem=48G
-#SBATCH --time=8:00:00
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
+#SBATCH --time=01:30:00
 #SBATCH --qos=qos_tier3
 #SBATCH --output=cluster/logs/%x-%j.out
 #SBATCH --error=cluster/logs/%x-%j.err
@@ -20,6 +21,13 @@
 # card covers up to about 8 B, which is enough to vary family but not size class.
 # The A100 is what makes 14 B and above reachable, which is the part that turns
 # "we tried a model" into "we varied the model".
+#
+# Resource requests are sized from `sacct` on real runs, not guessed. This matters
+# for queue time, not politeness: Slurm backfills, so a job claiming eight hours
+# needs an eight-hour hole in the schedule while a job claiming ninety minutes drops
+# into a gap that opens constantly. An early sweep asked for 8h and used 7 minutes.
+# Re-check with:
+#   sacct -j <id> --format=JobID,JobName,Elapsed,Timelimit,MaxRSS,ReqMem
 set -euo pipefail
 
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"

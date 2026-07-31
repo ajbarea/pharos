@@ -5,8 +5,8 @@
 #SBATCH --qos=qos_tier3
 #SBATCH --gres=gpu:a100:1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=16G
-#SBATCH --time=00:15:00
+#SBATCH --mem=8G
+#SBATCH --time=00:10:00
 #SBATCH --output=cluster/logs/%x-%j.out
 #SBATCH --error=cluster/logs/%x-%j.err
 #
@@ -20,6 +20,13 @@
 # Deliberately sbatch and not srun. GPU partitions here are contended, so an
 # interactive srun sits in the queue, and binding a queued job to an ssh session
 # with a timeout kills it before it ever runs. That mistake cost two attempts.
+#
+# Resource requests are sized from `sacct` on real runs, not guessed. This matters
+# for queue time, not politeness: Slurm backfills, so a job claiming eight hours
+# needs an eight-hour hole in the schedule while a job claiming ninety minutes drops
+# into a gap that opens constantly. An early sweep asked for 8h and used 7 minutes.
+# Re-check with:
+#   sacct -j <id> --format=JobID,JobName,Elapsed,Timelimit,MaxRSS,ReqMem
 set -euo pipefail
 
 export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
