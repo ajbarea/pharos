@@ -289,3 +289,66 @@ def test_a_single_class_raises_rather_than_returning_chance():
     x = np.random.default_rng(4).normal(0, 1, (50, 3))
     with pytest.raises(ValueError, match="no usable fold"):
         surface_baseline(x, np.zeros(50, dtype=int), folds=4, seed=0)
+
+
+# --- the policy constants that define finding 2 -----------------------------
+# CEILINGS and POLICIES are the grid the federation-eligibility result was measured
+# over. They are data rather than logic, which is exactly why nothing was checking
+# them: a wrong compartment on a ceiling silently changes a published number and
+# raises nothing.
+
+
+def test_the_aggregator_ceiling_sits_below_the_enclaves_it_serves():
+    """Sharing has to be a downgrade, or the eligibility question is vacuous."""
+    from measure_triage_lift import CEILING
+
+    from pharos.labels import Sensitivity
+
+    assert CEILING.sensitivity < Sensitivity.RESTRICTED
+    assert CEILING.compartments, "a ceiling with no compartments admits everything"
+
+
+def test_triage_lift_parses_verdicts_the_same_way_as_the_learnability_run():
+    """Two scripts scoring the same task must agree on what counts as an answer."""
+    from measure_triage_lift import parse_verdict as triage_parse
+
+    for answer in ("VERDICT: SIGNIFICANT", "VERDICT: ROUTINE", "no idea"):
+        assert triage_parse(answer) == parse_verdict(answer), answer
+
+
+def test_the_eligibility_grid_spans_a_real_range_of_ceilings():
+    """Finding 2 is a claim about behaviour ACROSS aggregator ceilings. One ceiling,
+    or three identical ones, would make the range in the paper meaningless."""
+    from measure_federation_eligibility import CEILINGS
+
+    assert len(CEILINGS) >= 3
+    labels = [label for _, label in CEILINGS]
+    assert len({(la.sensitivity, la.compartments) for la in labels}) == len(labels)
+    assert len({la.sensitivity for la in labels}) > 1, "ceilings differ only in name"
+
+
+def test_the_policy_pair_is_exactly_the_ruling_under_test():
+    """The finding is bimodal on ONE ruling: may a low-capacity output shed its
+    sources' compartments. The grid must contain both sides of it and differ in
+    nothing else, or the comparison is confounded."""
+    from measure_federation_eligibility import POLICIES
+
+    assert len(POLICIES) == 2
+    by_name = dict(POLICIES)
+    keep = next(p for name, p in POLICIES if "keep" in name)
+    drop = next(p for name, p in POLICIES if "drop" in name)
+    assert keep.drop_compartments is False
+    assert drop.drop_compartments is True
+    # Everything else must match, or the two rows differ by more than the ruling.
+    assert keep.declassifiable == drop.declassifiable
+    assert keep.release_floor == drop.release_floor
+    assert len(by_name) == 2, "policy names collide"
+
+
+def test_compare_models_reports_nothing_when_there_is_nothing_to_report(tmp_path, monkeypatch):
+    """An empty results directory must exit non-zero rather than print an empty
+    table that reads like a finding."""
+    import compare_models
+
+    monkeypatch.setattr(compare_models, "RESULTS", tmp_path)
+    assert compare_models.main() == 1

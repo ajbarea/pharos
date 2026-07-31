@@ -147,3 +147,24 @@ include = ["scripts/train_adapter.py", "scripts/validate_gate_externally.py"]
 
 [tool.ty.overrides.rules]
 unresolved-import = "ignore"
+
+[tool.coverage.report]
+# What coverage can honestly measure here.
+#
+# The measurement scripts are orchestration over services the suite must not
+# require: Ollama for the measure_* family, a CUDA GPU for the trainer, the HF Hub
+# for the external validator. Their `main()` bodies cannot run in CI, and counting
+# them would either force the floor down until it stops enforcing anything, or
+# invite fake tests that import and monkeypatch a whole pipeline to touch lines.
+#
+# So the orchestration is excluded and the LOGIC is not. Every pure function those
+# scripts rely on -- verdict parsing, example balancing, prompt construction, loss
+# masking, the probe's features and statistics -- is covered by tests/test_scripts.py,
+# which is where a silent bug would actually live.
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "def main\\(",
+    "raise SystemExit",
+    "if TYPE_CHECKING:",
+    "@overload",
+]
