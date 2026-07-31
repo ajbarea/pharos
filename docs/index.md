@@ -3,10 +3,10 @@
 A labeled fleet testbed for federated personalization with a governed disclosure
 boundary.
 
-Pharos supplies the one thing no public corpus does: a body of reporting whose
-objects carry real classification levels **and** cross-cutting compartments, so
-that the personal/shared split in federated personalization can be measured
-rather than asserted.
+Pharos supplies what public corpora do not: a body of reporting whose objects
+carry real classification levels **and** cross-cutting compartments, so that two
+holders can be **incomparable** rather than merely ranked, and the personal/shared
+split in federated personalization can be measured rather than asserted.
 
 ## The problem it exists for
 

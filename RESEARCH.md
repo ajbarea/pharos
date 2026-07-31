@@ -16,9 +16,14 @@ specific claim in this repo, it does not belong here.
 
 ## The claim this file exists to defend
 
-The README and the docs site both open with the same sentence: *Pharos supplies
-the one thing no public corpus does.* That is the load-bearing claim of the whole
-testbed and until now nothing backed it. What follows is the survey.
+The README and the docs site both open on the same claim: *Pharos supplies what
+public corpora do not.* That is the load-bearing sentence of the whole testbed, so
+it is worth being exact about what it rests on. What follows is the survey.
+
+It read "the one thing no public corpus does" until this file existed. The
+quantifier went because an absolute claim asserts an exhaustive search that was
+never run, and the discriminator (incomparability, not merely labels) went in
+because it is the specific, checkable thing public corpora lack.
 
 ### The closest public corpora, and where each stops
 

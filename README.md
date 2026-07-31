@@ -2,11 +2,13 @@
 
 A labeled fleet testbed for federated personalization with a governed disclosure boundary.
 
-Pharos supplies the one thing no public corpus does: a body of reporting whose
-objects carry real classification levels and cross-cutting compartments, so that
-the personal/shared split in federated personalization can be **measured** rather
-than asserted. [`RESEARCH.md`](RESEARCH.md) holds the corpus survey behind that
-claim, along with the public corpora Pharos should be used *with* and what each
+Pharos supplies what public corpora do not: a body of reporting whose objects
+carry real classification levels and cross-cutting compartments, so that two
+holders can be **incomparable** rather than merely ranked, and the personal/shared
+split in federated personalization can be **measured** rather than asserted.
+
+[`RESEARCH.md`](RESEARCH.md) holds the survey behind that claim and the bound it
+licenses, along with the public corpora Pharos should be used *with* and what each
 one is good for.
 
 Design specs live in the
