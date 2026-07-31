@@ -216,6 +216,12 @@ def main() -> int:
     parser.add_argument("--grad-accum", type=int, default=4)
     parser.add_argument("--max-len", type=int, default=3072)
     parser.add_argument("--seed", type=int, default=7)
+    parser.add_argument(
+        "--attn",
+        default="sdpa",
+        choices=("sdpa", "eager"),
+        help="attention path; never the library default, which pulls in Triton",
+    )
     parser.add_argument("--skip-base-eval", action="store_true")
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
@@ -256,8 +262,17 @@ def main() -> int:
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
+    # attn_implementation is explicit, not incidental. Left to the default,
+    # transformers selects a fused attention path that JIT-compiles a CUDA shim
+    # through Triton, and on this cluster that compile cannot succeed: the system
+    # gcc is deliberately hidden behind /tools/bin/blindfold/gcc, which reports
+    # "hidden from view" and exits non-zero. A diagnostic run confirmed that both
+    # `sdpa` and `eager` generate without touching Triton at all.
     model = AutoModelForCausalLM.from_pretrained(
-        args.model, dtype=torch.bfloat16, device_map="cuda"
+        args.model,
+        dtype=torch.bfloat16,
+        device_map="cuda",
+        attn_implementation=args.attn,
     )
 
     # ---- baseline: the same checkpoint, untrained ---------------------------

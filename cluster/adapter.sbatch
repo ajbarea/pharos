@@ -33,6 +33,11 @@ export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export OPENBLAS_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+# The compute nodes hide the system gcc behind /tools/bin/blindfold/gcc, which
+# prints "hidden from view" and fails. Anything that JIT-compiles at runtime needs
+# a real compiler named explicitly, so point CC at one that exists.
+export CC="${CC:-/usr/bin/gcc}"
+export CXX="${CXX:-/usr/bin/g++}"
 # Keep model weights on the shared filesystem, not in a container-local cache that
 # vanishes with the allocation.
 export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
