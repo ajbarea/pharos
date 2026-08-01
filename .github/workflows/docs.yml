@@ -46,8 +46,16 @@ jobs:
         with:
           python-version-file: "pyproject.toml"
 
+      # The `ui` group is here for the explorer freeze below, which imports the
+      # FastAPI app to call its endpoints. Nothing serves it; the app is used as a
+      # library so the bundle and the live page cannot answer differently.
       - name: Install Dependencies
-        run: uv sync --group dev --frozen
+        run: uv sync --group dev --group ui --frozen
+
+      # Must precede the Zensical build, which copies docs/explorer verbatim into
+      # the site. The directory is gitignored and exists only inside this job.
+      - name: Freeze the explorer
+        run: uv run python scripts/build_static_explorer.py --out docs/explorer
 
       - name: Build Documentation
         run: uv run zensical build --clean

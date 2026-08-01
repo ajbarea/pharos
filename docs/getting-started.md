@@ -46,6 +46,9 @@ own sampling error.
 
 ## The explorer
 
+**[Open it in the browser](explorer/index.html){ target=_blank }** -- no install, nothing
+running behind it. Or locally, which is the only way to reach the model tab:
+
 ```bash
 uv sync --group ui
 uv run python -m pharos.cli serve     # http://127.0.0.1:8080
@@ -61,6 +64,14 @@ blocked at the aggregator ceiling and every reviewer objects, but only the one w
 sheds compartments hands back a correction that can actually leave. That is
 [finding 7](findings.md#7-review-is-abundant-what-it-costs-is-correctness) in a
 single screen.
+
+The hosted copy is **frozen, not served**. Its four model-free tabs are
+deterministic functions of a seed, so the answers are computed at build time by
+calling the same endpoints the live app serves and shipped as a bundle. That buys a
+page with nothing to keep alive: no server, no idle timeout, no certificate to
+renew, and a link that still works years from now. It costs the seeds -- the hosted
+build carries 1, 7, and 101 -- and the model tab, which is disabled there because
+no static page can call a model. Run it locally for either.
 
 Every endpoint returns the objects the Python API produces, so the page is a client
 rather than a second implementation -- a label shown in the UI came from

@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review ci
+.PHONY: help setup lint test gate results review explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -23,6 +23,9 @@ results:                   ## Regenerate every measurement artifact in results/ 
 	uv run python scripts/measure_federation_eligibility.py --out results/federation_eligibility.json
 	uv run python scripts/measure_triage_lift.py --out results/triage_lift.json
 	uv run python scripts/measure_rule_learnability.py --out results/learnability.json
+
+explorer:                  ## Freeze the explorer into docs/explorer for static hosting
+	uv run python scripts/build_static_explorer.py --out docs/explorer
 
 review:                    ## Replay the committed model verdicts past the analyst grid (no model)
 	@mkdir -p results

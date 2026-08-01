@@ -13,7 +13,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**[Documentation](https://ajbarea.github.io/pharos/)**
+**[Documentation](https://ajbarea.github.io/pharos/)** · **[Explorer](https://ajbarea.github.io/pharos/explorer/)**
 
 </div>
 
@@ -95,6 +95,7 @@ count, kernel, and libc -- 0.6547, 0.6588, and 0.6675 on seeds 1, 7, and 101.
 | Page | What it covers |
 | --- | --- |
 | [Getting started](https://ajbarea.github.io/pharos/getting-started/) | Install, the everyday commands, reading a gate verdict, the explorer, observability |
+| [Explorer](https://ajbarea.github.io/pharos/explorer/) | The corpus, the lattice, the gate, and the analyst grid, running with no backend |
 | [The label lattice](https://ajbarea.github.io/pharos/reference/label-lattice/) | Dominance, joins, and why compartments make this a lattice rather than a ladder |
 | [The shortcut gate](https://ajbarea.github.io/pharos/reference/gate/) | What the probe sees, the four rounds it rejected, and why it is a calibration instrument |
 | [Corpus schema](https://ajbarea.github.io/pharos/reference/corpus-schema/) | The shape of an exported record |

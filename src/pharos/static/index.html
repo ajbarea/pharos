@@ -35,6 +35,10 @@
     padding: .4rem .8rem; border-radius: 999px; cursor: pointer; font-size: .88rem;
   }
   nav button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  /* A tab an offline build cannot serve. It is disabled in the DOM, and this is
+     what makes that visible -- a dead control that looks live is worse than one
+     that is plainly out of reach. */
+  nav button:disabled { opacity: .45; cursor: not-allowed; text-decoration: line-through; }
   .card {
     background: var(--card); border: 1px solid var(--line); border-radius: 10px;
     padding: 1rem 1.1rem; margin-bottom: 1rem;
@@ -74,6 +78,7 @@
   <p>A labeled testbed for federated personalization with a governed disclosure
      boundary. Everything below runs against the same Python that produces the
      published numbers.</p>
+  <p class="note" id="offline-banner" hidden></p>
 </header>
 
 <main>
@@ -194,7 +199,79 @@ document.querySelectorAll('nav button').forEach(btn => {
   };
 });
 
+// ── Static mode ─────────────────────────────────────────────
+//
+// The same page serves two ways: from `pharos.cli serve`, where every tab calls a
+// live FastAPI backend, and from GitHub Pages, where there is no backend at all
+// and a build-time bundle answers instead. Only the transport differs. Every
+// render path below is shared, and the bundle holds the responses those very
+// endpoints produced, so a label shown here still came from `pharos.labels`.
+//
+// Detection is by probe, not by hostname: fetch bundle.json once, and if it is
+// there this is a static deployment. A missing bundle is the normal case when a
+// server is present, so its absence is not an error.
+let BUNDLE = null;
+
+async function loadBundle() {
+  try {
+    const res = await fetch('bundle.json', { cache: 'force-cache' });
+    if (res.ok) BUNDLE = await res.json();
+  } catch (e) { /* no bundle: a live backend is serving this page */ }
+  return BUNDLE;
+}
+
+function staticAnswer(path, opts) {
+  const [route, query] = path.split('?');
+  const q = new URLSearchParams(query || '');
+  const seed = q.get('seed') ?? String(BUNDLE.seeds[0]);
+
+  const needSeed = (table) => {
+    const hit = BUNDLE[table][seed];
+    if (!hit) throw new Error(`seed ${seed} is not in this offline build (have: ${BUNDLE.seeds.join(', ')})`);
+    return hit;
+  };
+
+  switch (route) {
+    case '/api/vocabulary': return BUNDLE.vocabulary;
+    case '/api/corpus':     return needSeed('corpus');
+    case '/api/gate':       return needSeed('gate');
+    case '/api/review': {
+      const per = needSeed('review');
+      const index = String(((+q.get('index') || 0) % BUNDLE.review_tasks + BUNDLE.review_tasks) % BUNDLE.review_tasks);
+      return per[index][q.get('verdict') === 'false' ? 'false' : 'true'];
+    }
+    case '/api/dominance': {
+      // Every field returned here was decided by pharos.labels and rendered by
+      // pharos.web. This assembles them; it does not compute any of them. The
+      // pair table says what dominates what and which cell the join lands in;
+      // the label table supplies every displayed string; `capacity_follows`
+      // names the side the join's capacity is copied from, so even that rule
+      // arrives as data rather than as a second copy of the Python.
+      const body = JSON.parse(opts.body);
+      const d = BUNDLE.dominance;
+      const cell = (l) => `${l.sensitivity}|${(l.compartments || []).slice().sort().join(',')}`;
+      const full = (l) => d.labels[`${cell(l)}|${l.capacity}`];
+      const hit = (d.pairs[cell(body.holder)] || {})[cell(body.item)];
+      const capacity = body[d.capacity_follows].capacity;
+      if (!hit || !full(body.holder) || !full(body.item)) {
+        throw new Error('that label pair is not in this offline build');
+      }
+      return {
+        holder: full(body.holder),
+        item: full(body.item),
+        holder_may_read_item: hit.holder_may_read_item,
+        item_may_read_holder: hit.item_may_read_holder,
+        incomparable: hit.incomparable,
+        join: d.labels[`${hit.join}|${capacity}`],
+      };
+    }
+    default:
+      throw new Error('This tab needs a running model, which an offline build cannot provide. Run it locally: uv run python -m pharos.cli serve');
+  }
+}
+
 async function api(path, opts) {
+  if (BUNDLE) return staticAnswer(path, opts);
   const res = await fetch(path, opts);
   if (!res.ok) {
     let detail = res.statusText;
@@ -390,8 +467,54 @@ $('r-go').onclick = async () => {
   busy(btn, false);
 };
 
-loadVocab().catch(() => {});
-loadModels().catch(() => {});
+// ── Offline build: constrain the controls to what was frozen ────────────────
+//
+// A number input that accepts any seed but only answers for three is a worse
+// experience than a dropdown of the three that work, so the inputs become
+// selects. Both expose `.value`, which is why every handler above is untouched.
+function applyStaticMode() {
+  for (const id of ['c-seed', 'g-seed', 'r-seed']) {
+    const input = $(id);
+    if (!input) continue;
+    const select = document.createElement('select');
+    select.id = id;
+    select.innerHTML = BUNDLE.seeds.map(s => `<option${s === 7 ? ' selected' : ''}>${s}</option>`).join('');
+    input.replaceWith(select);
+  }
+  for (const [id, value] of [['c-events', BUNDLE.corpus_events], ['g-events', BUNDLE.gate_events]]) {
+    const input = $(id);
+    if (!input) continue;
+    input.value = value;
+    input.disabled = true;
+    input.title = 'Fixed in an offline build. Vary it with the CLI.';
+  }
+
+  // The model tab is the one thing a static page genuinely cannot do. Disable it
+  // rather than let a click fail: a dead button that explains itself is honest,
+  // a live button that errors is not.
+  const triageTab = document.querySelector('nav button[data-tab="triage"]');
+  if (triageTab) {
+    triageTab.disabled = true;
+    triageTab.title = 'Needs a running model. Available when you run the explorer locally.';
+  }
+
+  const banner = $('offline-banner');
+  const commit = (BUNDLE.provenance && BUNDLE.provenance.git_commit) || 'unknown';
+  banner.hidden = false;
+  banner.innerHTML =
+    `<strong>Offline build.</strong> There is no server behind this page: every answer below was ` +
+    `computed by Pharos at commit <span class="mono">${esc(commit)}</span> and frozen into a bundle, ` +
+    `so seeds are limited to ${BUNDLE.seeds.join(', ')} and the model tab is off. ` +
+    `For any seed, and to run a model, install it and use ` +
+    `<span class="mono">uv run python -m pharos.cli serve</span>.`;
+}
+
+(async () => {
+  await loadBundle();
+  if (BUNDLE) applyStaticMode();
+  loadVocab().catch(() => {});
+  loadModels().catch(() => {});
+})();
 </script>
 </body>
 </html>

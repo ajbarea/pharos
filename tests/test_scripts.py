@@ -819,3 +819,126 @@ def test_measure_reports_one_row_per_reviewer_with_its_parameters():
     assert by_name["releaser"]["drop_compartments"] is True
     assert by_name["unexplained"]["names_grounds"] is False
     assert by_name["unexplained"]["located_share"] == 0.0
+
+
+# ------------------------------------------------------- static explorer -----
+
+
+@pytest.fixture(scope="module")
+def bundle():
+    import build_static_explorer as bse
+
+    from pharos.web import create_app
+
+    return bse, bse.build_bundle(create_app())
+
+
+def test_bundle_covers_every_frozen_input(bundle):
+    bse, payload = bundle
+
+    assert payload["seeds"] == list(bse.SEEDS)
+    for seed in bse.SEEDS:
+        assert str(seed) in payload["corpus"]
+        assert str(seed) in payload["gate"]
+        per_seed = payload["review"][str(seed)]
+        assert set(per_seed) == {str(i) for i in range(bse.REVIEW_TASKS)}
+        assert set(per_seed["0"]) == {"true", "false"}
+
+
+def test_every_dominance_lookup_the_page_can_make_resolves(bundle):
+    """The shim's only failure mode is a key it cannot find, so try them all.
+
+    The page composes a join key from the pair table and the capacity named by
+    `capacity_follows`. If any combination is absent the reader gets an error
+    instead of an answer, and there are tens of thousands of them -- too many to
+    trust to a spot check and cheap enough to check exhaustively.
+    """
+    from pharos.labels import Capacity
+
+    _, payload = bundle
+    dominance = payload["dominance"]
+    assert dominance["capacity_follows"] == "item"
+
+    labels, pairs = dominance["labels"], dominance["pairs"]
+    capacities = [c.name for c in Capacity]
+    assert len(pairs) == 64, "four sensitivities times sixteen compartment subsets"
+    assert len(labels) == 64 * len(capacities)
+
+    for holder_key, row in pairs.items():
+        assert len(row) == 64
+        for item_key, cell in row.items():
+            for capacity in capacities:
+                assert f"{holder_key}|{capacity}" in labels
+                assert f"{item_key}|{capacity}" in labels
+                assert f"{cell['join']}|{capacity}" in labels, (
+                    f"join {cell['join']} at {capacity} is missing; the page would error"
+                )
+
+
+def test_incomparability_survives_the_compaction(bundle):
+    """The one property the whole corpus exists to exhibit must reach the page."""
+    _, payload = bundle
+    pairs = payload["dominance"]["pairs"]
+
+    cell = pairs["INTERNAL|SENSOR"]["INTERNAL|LEGAL"]
+    assert cell["incomparable"] is True
+    assert cell["holder_may_read_item"] is False
+    assert cell["item_may_read_holder"] is False
+    assert cell["join"] == "INTERNAL|LEGAL,SENSOR"
+
+    # And a comparable pair, so the test is not satisfied by everything being False.
+    ladder = pairs["RESTRICTED|SENSOR"]["OPEN|SENSOR"]
+    assert ladder["holder_may_read_item"] is True
+    assert ladder["incomparable"] is False
+
+
+def test_the_builder_refuses_when_an_endpoint_disappears():
+    """A renamed route must fail the build, not quietly drop a tab from the page."""
+    import build_static_explorer as bse
+
+    class Stub:
+        routes = ()
+
+    with pytest.raises(RuntimeError, match="no longer serves"):
+        bse.build_bundle(Stub())
+
+
+def test_compartment_subsets_enumerate_the_whole_lattice():
+    import build_static_explorer as bse
+
+    from pharos.labels import Compartment
+
+    subsets = bse._compartment_subsets()
+    assert len(subsets) == 2 ** len(Compartment)
+    assert [] in subsets
+    assert sorted(str(c) for c in Compartment) in subsets
+    assert all(s == sorted(s) for s in subsets), "keys must be order-independent"
+
+
+def test_the_frozen_page_is_byte_identical_to_the_served_page(monkeypatch, tmp_path):
+    """One page, two transports.
+
+    The static build is only honest if it ships the same page the live app serves.
+    A copy that drifted -- a tweak applied to one and not the other -- would be a
+    second frontend wearing the first one's name, which is exactly what the shim
+    design exists to avoid.
+    """
+    import build_static_explorer as bse
+
+    from pharos.web import STATIC
+
+    out = tmp_path / "explorer"
+    monkeypatch.setattr(sys, "argv", ["build_static_explorer.py", "--out", str(out)])
+    assert bse.main() == 0
+
+    served = (STATIC / "index.html").read_text(encoding="utf-8")
+    assert (out / "index.html").read_text(encoding="utf-8") == served
+    # And the page has to carry the shim the freeze depends on, or the bundle
+    # would ship next to a page that ignores it and silently calls a dead API.
+    assert "bundle.json" in served
+    assert "capacity_follows" in served
+
+    import json as json_
+
+    frozen = json_.loads((out / "bundle.json").read_text(encoding="utf-8"))
+    assert frozen["seeds"] == list(bse.SEEDS)

@@ -27,3 +27,9 @@ secrets/
 
 # WSL writes this alternate-data-stream sidecar next to anything saved from Windows.
 *:Zone.Identifier
+
+# The frozen explorer. Generated from src/pharos/static/index.html plus a bundle
+# of endpoint responses, and rebuilt in the docs workflow before Zensical runs.
+# Committing it would put a 1.2 MB generated blob in every diff that touches the
+# page, and would let the bundle drift from the code that produced it.
+docs/explorer/
