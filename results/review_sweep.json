@@ -1,0 +1,345 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "ef2e7ed39787",
+    "git_dirty": true,
+    "generated_at": "2026-08-01T16:56:32+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "seed": 7
+  },
+  "seed": 7,
+  "n_tasks": 40,
+  "review_seeds": [
+    1,
+    7,
+    23,
+    101,
+    202
+  ],
+  "majority_floor": 0.625,
+  "validity": {
+    "n": 40,
+    "quotable": true,
+    "concerns": []
+  },
+  "cells": [
+    {
+      "threshold": 1,
+      "slip_rate": 0.0,
+      "target_accuracy_mean": 0.425,
+      "target_accuracy_sd": 0.0,
+      "per_seed": [
+        0.425,
+        0.425,
+        0.425,
+        0.425,
+        0.425
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.05,
+      "target_accuracy_mean": 0.42,
+      "target_accuracy_sd": 0.0447,
+      "per_seed": [
+        0.45,
+        0.375,
+        0.425,
+        0.375,
+        0.475
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.1,
+      "target_accuracy_mean": 0.445,
+      "target_accuracy_sd": 0.0447,
+      "per_seed": [
+        0.5,
+        0.45,
+        0.475,
+        0.4,
+        0.4
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.15,
+      "target_accuracy_mean": 0.43,
+      "target_accuracy_sd": 0.0647,
+      "per_seed": [
+        0.35,
+        0.45,
+        0.375,
+        0.5,
+        0.475
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.2,
+      "target_accuracy_mean": 0.425,
+      "target_accuracy_sd": 0.0848,
+      "per_seed": [
+        0.375,
+        0.325,
+        0.5,
+        0.4,
+        0.525
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.3,
+      "target_accuracy_mean": 0.475,
+      "target_accuracy_sd": 0.053,
+      "per_seed": [
+        0.525,
+        0.475,
+        0.45,
+        0.525,
+        0.4
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.4,
+      "target_accuracy_mean": 0.48,
+      "target_accuracy_sd": 0.0411,
+      "per_seed": [
+        0.5,
+        0.525,
+        0.425,
+        0.5,
+        0.45
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.5,
+      "target_accuracy_mean": 0.525,
+      "target_accuracy_sd": 0.0559,
+      "per_seed": [
+        0.55,
+        0.55,
+        0.55,
+        0.425,
+        0.55
+      ]
+    },
+    {
+      "threshold": 2,
+      "slip_rate": 0.0,
+      "target_accuracy_mean": 0.575,
+      "target_accuracy_sd": 0.0,
+      "per_seed": [
+        0.575,
+        0.575,
+        0.575,
+        0.575,
+        0.575
+      ]
+    },
+    {
+      "threshold": 2,
+      "slip_rate": 0.05,
+      "target_accuracy_mean": 0.575,
+      "target_accuracy_sd": 0.0177,
+      "per_seed": [
+        0.575,
+        0.6,
+        0.55,
+        0.575,
+        0.575
+      ]
+    },
+    {
+      "threshold": 2,
+      "slip_rate": 0.1,
+      "target_accuracy_mean": 0.58,
+      "target_accuracy_sd": 0.1006,
+      "per_seed": [
+        0.575,
+        0.625,
+        0.475,
+        0.5,
+        0.725
+      ]
+    },
+    {
+      "threshold": 2,
+      "slip_rate": 0.15,
+      "target_accuracy_mean": 0.54,
+      "target_accuracy_sd": 0.072,
+      "per_seed": [
+        0.625,
+        0.525,
+        0.5,
+        0.6,
+        0.45
+      ]
+    },
+    {
+      "threshold": 2,
+      "slip_rate": 0.2,
+      "target_accuracy_mean": 0.55,
+      "target_accuracy_sd": 0.0586,
+      "per_seed": [
+        0.6,
+        0.625,
+        0.5,
+        0.5,
+        0.525
+      ]
+    },
+    {
+      "threshold": 2,
+      "slip_rate": 0.3,
+      "target_accuracy_mean": 0.505,
+      "target_accuracy_sd": 0.0779,
+      "per_seed": [
+        0.45,
+        0.525,
+        0.425,
+        0.5,
+        0.625
+      ]
+    },
+    {
+      "threshold": 2,
+      "slip_rate": 0.4,
+      "target_accuracy_mean": 0.515,
+      "target_accuracy_sd": 0.0962,
+      "per_seed": [
+        0.575,
+        0.375,
+        0.625,
+        0.475,
+        0.525
+      ]
+    },
+    {
+      "threshold": 2,
+      "slip_rate": 0.5,
+      "target_accuracy_mean": 0.465,
+      "target_accuracy_sd": 0.0627,
+      "per_seed": [
+        0.525,
+        0.375,
+        0.425,
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "threshold": 3,
+      "slip_rate": 0.0,
+      "target_accuracy_mean": 1.0,
+      "target_accuracy_sd": 0.0,
+      "per_seed": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "threshold": 3,
+      "slip_rate": 0.05,
+      "target_accuracy_mean": 0.965,
+      "target_accuracy_sd": 0.0224,
+      "per_seed": [
+        0.95,
+        1.0,
+        0.975,
+        0.95,
+        0.95
+      ]
+    },
+    {
+      "threshold": 3,
+      "slip_rate": 0.1,
+      "target_accuracy_mean": 0.92,
+      "target_accuracy_sd": 0.0411,
+      "per_seed": [
+        0.875,
+        0.875,
+        0.95,
+        0.95,
+        0.95
+      ]
+    },
+    {
+      "threshold": 3,
+      "slip_rate": 0.15,
+      "target_accuracy_mean": 0.83,
+      "target_accuracy_sd": 0.0371,
+      "per_seed": [
+        0.875,
+        0.85,
+        0.825,
+        0.775,
+        0.825
+      ]
+    },
+    {
+      "threshold": 3,
+      "slip_rate": 0.2,
+      "target_accuracy_mean": 0.815,
+      "target_accuracy_sd": 0.0379,
+      "per_seed": [
+        0.875,
+        0.775,
+        0.8,
+        0.8,
+        0.825
+      ]
+    },
+    {
+      "threshold": 3,
+      "slip_rate": 0.3,
+      "target_accuracy_mean": 0.685,
+      "target_accuracy_sd": 0.0454,
+      "per_seed": [
+        0.625,
+        0.675,
+        0.7,
+        0.675,
+        0.75
+      ]
+    },
+    {
+      "threshold": 3,
+      "slip_rate": 0.4,
+      "target_accuracy_mean": 0.52,
+      "target_accuracy_sd": 0.1316,
+      "per_seed": [
+        0.5,
+        0.725,
+        0.45,
+        0.375,
+        0.55
+      ]
+    },
+    {
+      "threshold": 3,
+      "slip_rate": 0.5,
+      "target_accuracy_mean": 0.54,
+      "target_accuracy_sd": 0.0912,
+      "per_seed": [
+        0.475,
+        0.5,
+        0.7,
+        0.525,
+        0.5
+      ]
+    }
+  ],
+  "equivalent_slip": {
+    "1": null,
+    "2": 0.4
+  }
+}

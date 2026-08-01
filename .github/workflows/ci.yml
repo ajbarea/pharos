@@ -108,4 +108,10 @@ jobs:
       # Ollama-backed findings is a re-sweep and cannot run here.
       - name: Replay the committed verdicts past the analyst grid
         run: uv run python scripts/measure_analyst_review.py
+      # The reviewer sweep is pure computation over the regenerated corpus, so it
+      # is a second drift guard: if a corpus change moved the class balance, the
+      # majority floor moves with it and finding 8's claim about which cells clear
+      # it would silently stop holding.
+      - name: Sweep the reviewer grid
+        run: uv run python scripts/measure_review_sweep.py
 

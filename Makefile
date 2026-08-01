@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review explorer ci
+.PHONY: help setup lint test gate results review sweep explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -24,6 +24,10 @@ results:                   ## Regenerate every measurement artifact in results/ 
 	uv run python scripts/measure_triage_lift.py --out results/triage_lift.json
 	uv run python scripts/measure_rule_learnability.py --out results/learnability.json
 
+sweep:                     ## Target accuracy across the reviewer parameter grid (no model)
+	@mkdir -p results
+	uv run python scripts/measure_review_sweep.py --out results/review_sweep.json
+
 explorer:                  ## Freeze the explorer into docs/explorer for static hosting
 	uv run python scripts/build_static_explorer.py --out docs/explorer
 
@@ -47,3 +51,4 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run pytest --cov=pharos --cov=scripts --cov-branch --cov-report=term-missing --cov-fail-under=92
 	for seed in 1 7 11 23 101 202 303; do uv run python -m pharos.cli gate --seed $$seed --events 400; done
 	uv run python scripts/measure_analyst_review.py
+	uv run python scripts/measure_review_sweep.py

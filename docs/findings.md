@@ -5,9 +5,9 @@ What has been measured, and the script that reproduces each number. The
 
 Findings 1 to 3 and 5 were measured with `qwen2.5:7b-instruct` on an 8 GB RTX 3060
 Ti. Finding 3b sweeps six models from 3B to 14B, and finding 6 fine-tunes
-`Qwen2.5-3B-Instruct`; both need a cluster A100 for their largest runs. Finding 7
-calls no model at all: it regenerates the corpus from its seed and reviews verdicts
-already committed to `results/`, so it reproduces exactly and runs in CI.
+`Qwen2.5-3B-Instruct`; both need a cluster A100 for their largest runs. Findings 7
+and 8 call no model at all: they regenerate the corpus from its seed and review
+verdicts already committed to `results/`, so both reproduce exactly and run in CI.
 
 Every artifact in `results/` carries the version, commit, platform, model, and seed
 behind it, so any number here traces back to the run and the machine that produced
@@ -425,3 +425,64 @@ chose and should not be read as an estimate of anything.
     *mechanism* -- at this threshold, this slip rate, this feedback bandwidth, this
     much survives -- and none of them estimates what a human analyst would do. The
     corpus metadata carries the same cap under `rai:dataLimitations`.
+
+## 8. Being right and sloppy beats being wrong and careful
+
+`scripts/measure_review_sweep.py`, `results/review_sweep.json`
+
+Finding 7 reported target accuracy for eight named reviewers. Each was one point in
+a space, and a point cannot say where the edge is. This sweeps the two axes that
+move it, over 40 tasks and five review seeds per cell.
+
+The two axes differ in kind, and separating them is the whole point. A reviewer's
+**standard** is how many of the three defining facts they require; getting it wrong
+is a *systematic* error, reproducible and patterned. Their **carefulness** is how
+often they fail to apply their own standard; getting that wrong is *random* error.
+
+Target accuracy against the world, `*` marking cells that clear the 0.625 majority
+floor:
+
+| Standard | slip 0.00 | 0.05 | 0.10 | 0.15 | 0.20 | 0.30 | 0.40 | 0.50 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| needs 1 of 3 | 0.425 | 0.420 | 0.445 | 0.430 | 0.425 | 0.475 | 0.480 | 0.525 |
+| needs 2 of 3 | 0.575 | 0.575 | 0.580 | 0.540 | 0.550 | 0.505 | 0.515 | 0.465 |
+| **needs 3 of 3** | **1.000**\* | 0.965\* | 0.920\* | 0.830\* | 0.815\* | 0.685\* | 0.520 | 0.540 |
+
+**No wrong standard clears the floor at any carefulness.** Every cell in the top two
+rows sits below 0.625, including the ones where the reviewer never slips. A learner
+handed those targets would do better ignoring them and always answering ROUTINE.
+This is asserted over the whole grid in the test suite rather than spot-checked,
+because it is the claim the finding rests on.
+
+**A correct standard tolerates a great deal of carelessness.** It clears the floor
+through a 30% slip rate (0.685) and only fails at 40%. So the exchange rate is
+lopsided: **one step of standard error costs what a 40% slip rate costs**, and two
+steps cost more than any slip rate measured up to 50%.
+
+That is the quantitative form of a qualitative claim in the learning-from-noisy-
+labels literature -- that systematic annotator bias damages a model more than random
+noise, because the errors are class-dependent and get learned rather than averaged
+away. Here the ratio is roughly eight to one against the systematic error.
+
+**Noise partially rescues a wrong standard, which is the counterintuitive part.** The
+needs-1-of-3 reviewer *improves* from 0.425 to 0.525 as slip rises to 50%, and the
+correct reviewer falls to 0.540 at the same point. Both converge toward chance,
+because a reviewer flipping coins is no longer applying any rule. Confidently wrong
+is worse than random, and adding noise to a badly biased reviewer moves them toward
+the middle rather than further away.
+
+**What this means for a fleet.** Recruiting effort should go to establishing that
+reviewers hold the right standard, not to keeping them attentive. The usual
+annotation-quality apparatus -- attention checks, redundancy, inter-rater agreement
+-- measures carefulness, and every reviewer in the top two rows would pass all of it
+while agreeing perfectly with themselves. Agreement is not correctness, and here it
+is not even correlated with it.
+
+!!! warning "What this does not measure"
+    Target accuracy is a property of the review stream, not of a model trained on
+    it. Whether a learner reproduces the reviewer's standard, or is pulled toward
+    the world's rule by its own prior, is the open experiment: an adapter trained
+    on each reviewer's targets and evaluated against **both** the world and the
+    teacher. That is a GPU job and it has not been run. The reviewers here remain
+    parameterised decision procedures, so every row bounds a mechanism and
+    estimates no population.

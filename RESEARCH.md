@@ -247,6 +247,24 @@ is whether it is learnable from the decisions an analyst actually makes.
   experiment. `pharos.analyst` is therefore a parameterised decision procedure, which
   buys ground truth by construction and buys no claim about human behaviour.
 
+- Ghiasvand, S., Beliaev, M., Alizadeh, M., & Pedarsani, R. (2026). REALM: Reliable
+  Expertise-Aware Language Model Fine-Tuning from Noisy Annotations.
+  [arXiv:2604.17289](https://arxiv.org/abs/2604.17289) (v2 2026-07-01; no journal
+  reference on the record)
+  **Names the failure finding 8 measures, and points at the mitigation.** Their
+  framing is that standard aggregation "discard[s] annotator identity", which
+  "caus[es] the model to absorb the errors of unreliable annotators directly into
+  its parameters" -- which is precisely the risk when a fleet learns from an
+  over-escalating reviewer. REALM learns a scalar expertise per annotator jointly
+  with the model, unsupervised, needing nothing beyond annotator identity. Pharos
+  keeps annotator identity by construction, so this is directly applicable and is
+  the obvious arm to add once the adapter-on-review-targets experiment has a
+  baseline. Note the shape of their noise model, though: an observed label is a
+  mixture of the model's prediction and a *uniform random guess*, weighted by
+  expertise. Finding 8's damaging reviewer is not noisy at all -- they apply a
+  different rule perfectly -- so an expertise scalar fit against a
+  random-guess model may not detect them. State that limitation when citing.
+
 **State the delta narrowly.** Both edit-feedback papers learn from free-text edits to
 a prose response. A Pharos analyst decision is accept, revise, or reject over a
 *verdict and its governed label*, which is a lower-bandwidth signal on a discrete

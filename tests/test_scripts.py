@@ -942,3 +942,172 @@ def test_the_frozen_page_is_byte_identical_to_the_served_page(monkeypatch, tmp_p
 
     frozen = json_.loads((out / "bundle.json").read_text(encoding="utf-8"))
     assert frozen["seeds"] == list(bse.SEEDS)
+
+
+# --------------------------------------------------------- review sweep -----
+
+
+def _sweep_module():
+    import measure_review_sweep as mrs
+
+    return mrs
+
+
+def test_majority_floor_is_the_larger_class():
+    mrs = _sweep_module()
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(
+        generate(GeneratorConfig(seed=mrs.SEED, n_events=mrs.EVENTS)), limit=mrs.TASKS
+    )
+    floor = mrs.majority_floor(tasks)
+    share = sum(1 for t in tasks if t.significant) / len(tasks)
+    assert floor == max(share, 1 - share)
+    assert floor >= 0.5, "a majority floor below half is a counting error"
+    assert mrs.majority_floor([]) == 0.0
+
+
+def test_a_correct_standard_with_no_slip_reproduces_the_world():
+    """The control cell. If this is not 1.000 the sweep is measuring something else."""
+    mrs = _sweep_module()
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(
+        generate(GeneratorConfig(seed=mrs.SEED, n_events=mrs.EVENTS)), limit=mrs.TASKS
+    )
+    proposals = {t.task_id: mrs.Proposal(t.task_id, not t.significant, t.label) for t in tasks}
+    cells = mrs.sweep(tasks, proposals)
+    control = next(c for c in cells if c.threshold == 3 and c.slip_rate == 0.0)
+    assert control.mean == 1.0
+    assert control.sd == 0.0, "a reviewer who never slips cannot vary across review seeds"
+
+
+def test_no_wrong_standard_clears_the_floor_at_any_carefulness():
+    """The load-bearing claim of the sweep, asserted over the whole grid.
+
+    If some (wrong threshold, slip) cell cleared the majority floor, the finding
+    would need rewriting -- so the test says so rather than spot-checking a cell.
+    """
+    mrs = _sweep_module()
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(
+        generate(GeneratorConfig(seed=mrs.SEED, n_events=mrs.EVENTS)), limit=mrs.TASKS
+    )
+    floor = mrs.majority_floor(tasks)
+    proposals = {t.task_id: mrs.Proposal(t.task_id, not t.significant, t.label) for t in tasks}
+    cells = mrs.sweep(tasks, proposals)
+
+    wrong = [c for c in cells if c.threshold != max(mrs.THRESHOLDS)]
+    assert wrong, "the grid must contain wrong standards"
+    over = [(c.threshold, c.slip_rate, c.mean) for c in wrong if c.mean >= floor]
+    assert over == [], f"a wrong standard cleared the floor: {over}"
+
+
+def test_the_grid_covers_every_standard():
+    mrs = _sweep_module()
+    from pharos.world import SIGNIFICANT_PATTERN
+
+    assert set(mrs.THRESHOLDS) == set(range(1, len(SIGNIFICANT_PATTERN) + 1))
+    assert 0.0 in mrs.SLIP_RATES, "the no-slip control has to be in the grid"
+    assert len(mrs.REVIEW_SEEDS) > 1, "a spread needs more than one seed"
+
+
+def test_equivalent_slip_is_a_measured_cell_not_an_interpolation():
+    mrs = _sweep_module()
+
+    cells = [
+        mrs.Cell(3, 0.0, (1.0,)),
+        mrs.Cell(3, 0.2, (0.8,)),
+        mrs.Cell(3, 0.4, (0.5,)),
+        mrs.Cell(2, 0.0, (0.6,)),
+    ]
+    # 0.6 is first undercut by the 0.4 cell, and 0.4 is on the grid.
+    assert mrs.equivalent_slip(cells, 2, 0.625) == 0.4
+    # A standard nothing on the grid reaches reports None rather than guessing.
+    assert mrs.equivalent_slip([*cells, mrs.Cell(1, 0.0, (0.1,))], 1, 0.625) is None
+    assert mrs.equivalent_slip(cells, 99, 0.625) is None
+
+
+# --------------------------------------------------- review-taught adapter ----
+
+
+def test_review_targets_match_the_reviewers_own_verdicts():
+    """The teacher's targets must be the same calls it makes when reviewing.
+
+    Both paths key the rng on `(seed, name, task_id)`. If they diverged, a teacher
+    would slip on different tasks than the reviewer of the same name, and finding 8's
+    target accuracy would not describe the stream the adapter actually trained on.
+    """
+    import random as _random
+
+    import train_adapter as ta
+
+    from pharos.analyst import AnalystPolicy, Proposal
+    from pharos.disclosure import KEEP_COMPARTMENTS
+    from pharos.labels import declassify
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=120)), limit=20)
+    policy = AnalystPolicy("inattentive", slip_rate=0.15)
+
+    targets = ta.review_targets(tasks, policy, seed=7)
+    for task in tasks:
+        proposal = Proposal(
+            task.task_id, not task.significant, declassify(task.label, KEEP_COMPARTMENTS)
+        )
+        decision = policy.review(task, proposal, seed=7)
+        expected = policy.verdict_for(task, _random.Random(f"7:{policy.name}:{task.task_id}"))
+        assert targets[task.task_id] == expected
+        if decision.corrected_verdict is not None and decision.action.value != "accept":
+            assert targets[task.task_id] == decision.corrected_verdict
+
+
+def test_a_correct_teacher_supplies_the_worlds_own_targets():
+    import train_adapter as ta
+
+    from pharos.analyst import AnalystPolicy
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=120)), limit=20)
+    strict = ta.review_targets(tasks, AnalystPolicy("by-the-book"), seed=7)
+    assert strict == ta.world_targets(tasks)
+
+
+def test_a_wrong_standard_supplies_different_targets():
+    import train_adapter as ta
+
+    from pharos.analyst import AnalystPolicy
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=120)), limit=20)
+    world = ta.world_targets(tasks)
+    lenient = ta.review_targets(tasks, AnalystPolicy("any-one", escalation_threshold=1), seed=7)
+    disagreements = [k for k in world if world[k] != lenient[k]]
+    assert disagreements, "a one-of-three standard must differ from the world somewhere"
+    # And it differs only by escalating: a lenient standard never calls a
+    # significant event routine.
+    assert all(lenient[k] and not world[k] for k in disagreements)
+
+
+def test_build_examples_labels_from_the_target_map():
+    import train_adapter as ta
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=120)), limit=6)
+    flipped = {t.task_id: not t.significant for t in tasks}
+
+    default = ta.build_examples(tasks)
+    overridden = ta.build_examples(tasks, flipped)
+
+    assert [e["prompt"] for e in default] == [e["prompt"] for e in overridden]
+    for base, other in zip(default, overridden, strict=True):
+        assert base["completion"] != other["completion"]
+    assert default == ta.build_examples(tasks, ta.world_targets(tasks))
+
+
+def test_resolve_reviewer_rejects_an_unknown_name():
+    import train_adapter as ta
+
+    assert ta.resolve_reviewer("by-the-book").escalation_threshold == 3
+    with pytest.raises(SystemExit, match="unknown reviewer"):
+        ta.resolve_reviewer("nobody")

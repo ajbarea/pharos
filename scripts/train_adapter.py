@@ -39,6 +39,7 @@ script evaluates the base model itself under the same prompt and reports both.
 
 import argparse
 import json
+import random
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -51,6 +52,7 @@ from measure_rule_learnability import (
     parse_verdict,
 )
 
+from pharos.analyst import DEFAULT_ENSEMBLE, AnalystPolicy
 from pharos.generate import GeneratorConfig, generate
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
@@ -122,8 +124,48 @@ def prompt_for(task: TriageTask) -> str:
     return f"{_reports_block(task)}\n\n{INSTRUCTION_NO_RULE}"
 
 
-def build_examples(tasks: list[TriageTask]) -> list[dict[str, str]]:
-    return [{"prompt": prompt_for(t), "completion": verdict_text(t.significant)} for t in tasks]
+def world_targets(tasks: list[TriageTask]) -> dict[str, bool]:
+    """The generator's own ground truth. What finding 6 trained on."""
+    return {t.task_id: t.significant for t in tasks}
+
+
+def review_targets(tasks: list[TriageTask], policy: AnalystPolicy, *, seed: int) -> dict[str, bool]:
+    """The targets a reviewer's decisions would supply.
+
+    Taken from the reviewer's own verdict rather than routed through a proposal.
+    Finding 7 established that the target stream is proposal-independent -- an
+    accepted verdict is one the reviewer agreed with and a corrected one is their own
+    call, and target accuracy came out identical across all six models because of it.
+    Constructing proposals here would add a moving part that provably changes nothing.
+
+    The rng is keyed exactly as `AnalystPolicy.review` keys it, so a reviewer slips on
+    the same tasks whether they are reviewing or teaching.
+    """
+    return {
+        t.task_id: policy.verdict_for(t, random.Random(f"{seed}:{policy.name}:{t.task_id}"))
+        for t in tasks
+    }
+
+
+def resolve_reviewer(name: str) -> AnalystPolicy:
+    """A reviewer from the default grid, by name."""
+    by_name = {p.name: p for p in DEFAULT_ENSEMBLE}
+    if name not in by_name:
+        raise SystemExit(f"unknown reviewer {name!r}; have: {', '.join(sorted(by_name))}")
+    return by_name[name]
+
+
+def build_examples(
+    tasks: list[TriageTask], targets: dict[str, bool] | None = None
+) -> list[dict[str, str]]:
+    """Prompt/completion pairs, labelled by `targets` or by the world when omitted."""
+    return [
+        {
+            "prompt": prompt_for(t),
+            "completion": verdict_text(t.significant if targets is None else targets[t.task_id]),
+        }
+        for t in tasks
+    ]
 
 
 def _class_balance(tasks: list[TriageTask]) -> dict[str, int]:
@@ -151,9 +193,20 @@ def tokenize_masked(example: dict[str, str], tokenizer, max_len: int):
 
 
 def evaluate(
-    model, tokenizer, tasks: list[TriageTask], *, label: str, max_new_tokens: int = 320
+    model,
+    tokenizer,
+    tasks: list[TriageTask],
+    *,
+    label: str,
+    max_new_tokens: int = 320,
+    truth: dict[str, bool] | None = None,
 ) -> EvalResult:
     """Greedy-decode a verdict per task and score it. No sampling, so this is stable.
+
+    `truth` overrides what counts as correct. Defaults to the world's own answer;
+    pass a teacher's targets to ask whether the model reproduced its teacher rather
+    than the rule. Same decode either way, so the two scorings differ only in the
+    answer key and are directly comparable.
 
     `max_new_tokens` defaults high, and that is a correctness requirement rather than
     a tuning choice. The prompt asks the model to reason briefly and *then* emit a
@@ -170,8 +223,10 @@ def evaluate(
     import torch
 
     model.eval()
+    answers = {t.task_id: t.significant for t in tasks} if truth is None else truth
     tp = fp = tn = fn = unparsed = 0
     for index, task in enumerate(tasks):
+        expected = answers[task.task_id]
         text = prompt_for(task)
         inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=3072).to(
             model.device
@@ -188,11 +243,11 @@ def evaluate(
 
         if verdict is None:
             unparsed += 1
-        elif verdict and task.significant:
+        elif verdict and expected:
             tp += 1
-        elif verdict and not task.significant:
+        elif verdict and not expected:
             fp += 1
-        elif not verdict and task.significant:
+        elif not verdict and expected:
             fn += 1
         else:
             tn += 1
@@ -247,6 +302,15 @@ def main() -> int:
         help="attention path; never the library default, which pulls in Triton",
     )
     parser.add_argument("--skip-base-eval", action="store_true")
+    parser.add_argument(
+        "--reviewer",
+        default=None,
+        help=(
+            "train on this reviewer's targets instead of the generator's ground truth. "
+            "Names come from pharos.analyst.DEFAULT_ENSEMBLE. Omit for finding 6's "
+            "clean-label run, which is what the committed artifact reproduces."
+        ),
+    )
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
 
@@ -330,7 +394,34 @@ def main() -> int:
             "Training every parameter is not the experiment."
         )
 
-    rows = [tokenize_masked(e, tokenizer, args.max_len) for e in build_examples(training)]
+    # Whose labels the adapter learns from. With no reviewer this is the world's
+    # own truth, which is finding 6. With one, it is that reviewer's opinion, and
+    # the two evaluations below are what separate learning the rule from learning
+    # the teacher.
+    teacher = None if args.reviewer is None else resolve_reviewer(args.reviewer)
+    if teacher is None:
+        train_targets = world_targets(training)
+        eval_teacher_targets = None
+    else:
+        train_targets = review_targets(training, teacher, seed=args.seed)
+        eval_teacher_targets = review_targets(evaluation, teacher, seed=args.seed)
+        agree = sum(1 for t in training if train_targets[t.task_id] == t.significant)
+        print(
+            f"\nteacher {teacher.name}: needs {teacher.escalation_threshold} of 3, "
+            f"slip {teacher.slip_rate:.0%}"
+        )
+        print(f"training targets agreeing with the world: {agree}/{len(training)}")
+        progress(
+            "adapter.teacher",
+            reviewer=teacher.name,
+            threshold=teacher.escalation_threshold,
+            slip_rate=teacher.slip_rate,
+            target_agreement=round(agree / max(len(training), 1), 4),
+        )
+
+    rows = [
+        tokenize_masked(e, tokenizer, args.max_len) for e in build_examples(training, train_targets)
+    ]
 
     def collate(batch):
         longest = max(len(b["input_ids"]) for b in batch)
@@ -376,6 +467,23 @@ def main() -> int:
     print("\n>>> adapter: same prompt, same held-out events")
     tuned_result = evaluate(model, tokenizer, evaluation, label="adapter")
     print(json.dumps(tuned_result.as_dict(), indent=2))
+
+    # Scored a second time against the teacher's own answers rather than the
+    # world's. This is the measurement the experiment exists for: a model that
+    # matches its teacher and not the world has learned the analyst's standard,
+    # which is what the design calls personalization and what finding 8 calls the
+    # risk. Reporting only the first number would make the two indistinguishable.
+    against_teacher = None
+    if eval_teacher_targets is not None:
+        against_teacher = evaluate(
+            model,
+            tokenizer,
+            evaluation,
+            label="adapter-vs-teacher",
+            truth=eval_teacher_targets,
+        )
+        print("\n>>> adapter scored against the TEACHER's answers, not the world's")
+        print(json.dumps(against_teacher.as_dict(), indent=2))
     record("adapter.f1", tuned_result.f1, model=args.model)
 
     # ---- verdict against the two anchors -----------------------------------
@@ -420,6 +528,29 @@ def main() -> int:
                     "training_loss": final_loss,
                     "base": base_result.as_dict() if base_result else None,
                     "adapter": tuned_result.as_dict(),
+                    # Present only for a review-taught run. Absent means the targets
+                    # were the world's own, so "against the teacher" is the same
+                    # question as "against the world" and a second row would imply a
+                    # comparison that was not made.
+                    "teacher": (
+                        None
+                        if teacher is None
+                        else {
+                            "reviewer": teacher.name,
+                            "escalation_threshold": teacher.escalation_threshold,
+                            "slip_rate": teacher.slip_rate,
+                            "train_target_agreement": round(
+                                sum(
+                                    1 for t in training if train_targets[t.task_id] == t.significant
+                                )
+                                / max(len(training), 1),
+                                4,
+                            ),
+                        }
+                    ),
+                    "adapter_vs_teacher": (
+                        None if against_teacher is None else against_teacher.as_dict()
+                    ),
                     "ceiling_f1": CEILING_F1,
                 },
                 indent=2,

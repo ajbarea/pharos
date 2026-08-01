@@ -118,7 +118,7 @@ the system it serves.
 
 ## What has been measured
 
-Eight findings so far, each reproducible from a named script and each backed by a
+Nine findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, and a third was retracted outright after a generator bug.
@@ -135,6 +135,7 @@ corrections, and the caveats.
 | 5 | The rule is not learnable from examples in the prompt |
 | 6 | The rule *is* learnable by gradient descent, on clean labels |
 | 7 | Review is abundant; what it costs is correctness, and the boundary needs an authority |
+| 8 | Being right and sloppy beats being wrong and careful |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -143,6 +144,7 @@ permutation null on every one of them.
 ```bash
 make results     # regenerate the Ollama-backed measurements into results/
 make review      # replay the committed verdicts past the analyst grid (no model)
+make sweep       # target accuracy across the reviewer parameter grid (no model)
 ```
 
 ## Build order
