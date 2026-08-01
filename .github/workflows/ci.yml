@@ -101,4 +101,11 @@ jobs:
           for seed in 1 7 11 23 101 202 303; do
             uv run python -m pharos.cli gate --seed "$seed" --events 400
           done
+      # The committed triage artifacts have to still describe the corpus this commit
+      # generates. This replay refuses to join an artifact whose rows disagree with
+      # the regenerated tasks, so it is the drift guard behind every number finding 7
+      # publishes. It calls no model and takes seconds; the equivalent check on the
+      # Ollama-backed findings is a re-sweep and cannot run here.
+      - name: Replay the committed verdicts past the analyst grid
+        run: uv run python scripts/measure_analyst_review.py
 

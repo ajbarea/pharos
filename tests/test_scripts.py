@@ -732,3 +732,90 @@ def test_label_fidelity_aborts_when_the_detector_is_too_weak_to_interpret(
 
     assert mlf.main() == 1
     assert "detector too weak" in capsys.readouterr().out
+
+
+# --------------------------------------------------------------- analyst review -----
+
+
+def _triage_artifact(path, rows):
+    import json
+
+    path.write_text(json.dumps({"rows": rows}), encoding="utf-8")
+    return path
+
+
+def _seed7_tasks():
+    from measure_analyst_review import EVENTS, SEED, TASKS
+
+    reports = generate(GeneratorConfig(seed=SEED, n_events=EVENTS))
+    return build_triage_tasks(reports, limit=TASKS)
+
+
+def test_load_proposals_reads_model_verdicts_as_proposals(tmp_path):
+    import measure_analyst_review as mar
+
+    tasks = _seed7_tasks()
+    rows = [{"task_id": t.task_id, "truth": t.significant, "verdict": True} for t in tasks]
+    proposals = mar.load_proposals(_triage_artifact(tmp_path / "a.json", rows), tasks)
+
+    assert len(proposals) == len(tasks)
+    assert all(p.verdict for p in proposals.values())
+    # Proposals are released under the fail-closed default, whatever the reviewer
+    # would themselves rule.
+    assert all(p.release.sensitivity.name == "OPEN" for p in proposals.values())
+    assert any(p.release.compartments for p in proposals.values())
+
+
+def test_load_proposals_drops_an_unparsable_answer_rather_than_coercing_it(tmp_path):
+    import measure_analyst_review as mar
+
+    tasks = _seed7_tasks()
+    rows = [{"task_id": t.task_id, "truth": t.significant, "verdict": None} for t in tasks]
+    rows[0]["verdict"] = False
+    proposals = mar.load_proposals(_triage_artifact(tmp_path / "a.json", rows), tasks)
+
+    assert set(proposals) == {tasks[0].task_id}
+
+
+def test_load_proposals_refuses_an_artifact_measured_on_a_different_corpus(tmp_path):
+    """The guard that stops two worlds being joined into one table."""
+    import measure_analyst_review as mar
+
+    tasks = _seed7_tasks()
+    rows = [{"task_id": t.task_id, "truth": t.significant, "verdict": True} for t in tasks]
+    rows[0]["truth"] = not rows[0]["truth"]
+
+    with pytest.raises(mar.ArtifactMismatchError, match="Re-run the sweep"):
+        mar.load_proposals(_triage_artifact(tmp_path / "a.json", rows), tasks)
+
+
+def test_load_proposals_refuses_a_task_the_corpus_does_not_contain(tmp_path):
+    import measure_analyst_review as mar
+
+    tasks = _seed7_tasks()
+    rows = [{"task_id": "TR-9999", "truth": False, "verdict": True}]
+
+    with pytest.raises(mar.ArtifactMismatchError, match="not in the regenerated corpus"):
+        mar.load_proposals(_triage_artifact(tmp_path / "a.json", rows), tasks)
+
+
+def test_measure_reports_one_row_per_reviewer_with_its_parameters():
+    import measure_analyst_review as mar
+
+    from pharos.analyst import DEFAULT_ENSEMBLE
+
+    tasks = _seed7_tasks()
+    proposals = {t.task_id: mar.Proposal(t.task_id, not t.significant, t.label) for t in tasks}
+    review = mar.measure(tasks, proposals, DEFAULT_ENSEMBLE)
+    payload = review.as_dict()
+
+    assert payload["n_proposals"] == len(tasks)
+    assert [row.policy.name for row in review.rows] == [p.name for p in DEFAULT_ENSEMBLE]
+
+    # The parameters that produced each row travel with it into the artifact, so a
+    # table read years later still says what its reviewers were.
+    by_name = {row.policy.name: row.as_dict() for row in review.rows}
+    assert by_name["any-one"]["escalation_threshold"] == 1
+    assert by_name["releaser"]["drop_compartments"] is True
+    assert by_name["unexplained"]["names_grounds"] is False
+    assert by_name["unexplained"]["located_share"] == 0.0

@@ -52,18 +52,23 @@ belong here.
 - Coverage spans `scripts/` as well as the library, because the scripts produce
   every published number. Orchestration bodies are excluded via
   `[tool.coverage.report] exclude_also`; the pure logic is not.
-- Margin is thin: 265 tests land at 93.8% against a 92% floor, so an uncovered
+- Margin is thin: 298 tests land at 94.2% against a 92% floor, so an uncovered
   addition fails the build rather than merely lowering a number.
 
 ### Phase 5 — Gates
 
 - `make gate` → generates a corpus and exits non-zero when it is unusable
+- `make review` → replays the committed triage verdicts past the analyst grid.
+  Needs no model and no network, and refuses to run when a `results/triage_lift-*.json`
+  artifact disagrees with the corpus this commit generates. That refusal is the
+  drift guard for finding 7, and it runs in the `shortcut-gate` CI job.
 - `uv run pip-audit`
 
 ### do_not_run (interactive / long-running)
 
 - `make results` — needs Ollama serving a model; the label-fidelity pass alone is
-  216 sequential model calls.
+  216 sequential model calls. `make review` is *not* in this list: it is model-free
+  and safe to run.
 - `scripts/sweep_models.sh` — same, across every installed model.
 - `scripts/train_adapter.py` — requires a CUDA GPU; runs as a cluster job.
 - `scripts/validate_gate_externally.py` — downloads public corpora from the HF Hub.
@@ -74,7 +79,8 @@ belong here.
 - workflows: `.github/workflows/ci.yml` (lint-and-test on 3.12/3.13/3.14,
   shortcut-gate), `.github/workflows/docs.yml` (Zensical build + Pages deploy)
 - required checks on `main`: `lint-and-test (3.12)`, `lint-and-test (3.13)`,
-  `shortcut-gate`. Note 3.14 is in the matrix but not yet required, since it was
+  `shortcut-gate` (which also replays the analyst grid over the committed
+  verdicts). Note 3.14 is in the matrix but not yet required, since it was
   added after protection was configured.
 - `cancel-in-progress` is scoped to pull requests. It was unconditional once, and
   6 of 15 runs were cancelled on main; one real failure went unobserved because the
@@ -87,9 +93,11 @@ belong here.
 
 ## slop_ground_truth
 
-- `src/pharos/gate.py`, `src/pharos/scenario.py`, and `src/pharos/validity.py` carry
-  long explanatory comments **on purpose**. Each documents a leak the gate caught, an
-  attack the loader refuses, or a measurement that had to be retracted. They are the
+- `src/pharos/gate.py`, `src/pharos/scenario.py`, `src/pharos/validity.py`, and
+  `src/pharos/analyst.py` carry long explanatory comments **on purpose**. Each
+  documents a leak the gate caught, an
+  attack the loader refuses, a measurement that had to be retracted, or the reason a
+  simulated reviewer is a parameter grid rather than a prompted persona. They are the
   reason a constraint exists and must not be trimmed as verbosity.
 - `scenarios/maritime-watch.toml` is generated, not hand-written. Its header says so.
 

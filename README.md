@@ -65,6 +65,7 @@ Python 3.12 to 3.14. Generation and gating need only `numpy` and `scikit-learn`.
 | Module | Responsibility |
 | --- | --- |
 | `pharos.tasks` | Task instances, and the governed label a verdict inherits from its sources |
+| `pharos.analyst` | The reviewer as a specified policy: accept, revise, reject, and what each discloses |
 | `pharos.detect` | Content-provenance labelling, the replacement for leave-one-out attribution |
 | `pharos.attribute` | The only module that calls a model. Everything nondeterministic lives here |
 | `pharos.models` | The model registry: what can be run, and what actually has been |
@@ -114,7 +115,7 @@ the system it serves.
 
 ## What has been measured
 
-Seven findings so far, each reproducible from a named script and each backed by a
+Eight findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, and a third was retracted outright after a generator bug.
@@ -130,6 +131,7 @@ corrections, and the caveats.
 | 4 | Answerability and surface non-leakage pull against each other |
 | 5 | The rule is not learnable from examples in the prompt |
 | 6 | The rule *is* learnable by gradient descent, on clean labels |
+| 7 | Review is abundant; what it costs is correctness |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -137,6 +139,7 @@ permutation null on every one of them.
 
 ```bash
 make results     # regenerate the Ollama-backed measurements into results/
+make review      # replay the committed verdicts past the analyst grid (no model)
 ```
 
 ## Build order
@@ -146,11 +149,13 @@ make results     # regenerate the Ollama-backed measurements into results/
 2. **Tasks and scorers.** `pharos.tasks` carries the triage task and `pharos.detect`
    the labelling path. Still owed are the plant registry, the remaining specialist
    scorers, and an adversarial-input pass over each.
-3. **Simulated analysts.** Persona-policy search, a simulator ensemble, and
-   divergence reporting. Finding 6 showed the rule is learnable from clean labels;
-   what remains unanswered is whether it is learnable from an analyst's accept,
-   revise, and reject decisions, which are indirect, noisier, and far less abundant.
-   This step is what makes that measurable, and it is the critical path.
+3. **Simulated analysts.** `pharos.analyst` supplies the reviewer as a specified
+   policy and finding 7 reports what a review stream is worth: not scarce, but
+   carrying the reviewer's standard rather than the world's, and unable to move the
+   compartment ruling at all. Still owed are a learner trained on those decisions
+   rather than on clean labels, and the divergence report over a full parameter
+   sweep rather than the one-axis-at-a-time grid. This step remains the critical
+   path.
 
 ## License
 

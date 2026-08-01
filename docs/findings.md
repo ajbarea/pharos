@@ -5,7 +5,9 @@ What has been measured, and the script that reproduces each number. The
 
 Findings 1 to 3 and 5 were measured with `qwen2.5:7b-instruct` on an 8 GB RTX 3060
 Ti. Finding 3b sweeps six models from 3B to 14B, and finding 6 fine-tunes
-`Qwen2.5-3B-Instruct`; both need a cluster A100 for their largest runs.
+`Qwen2.5-3B-Instruct`; both need a cluster A100 for their largest runs. Finding 7
+calls no model at all: it regenerates the corpus from its seed and reviews verdicts
+already committed to `results/`, so it reproduces exactly and runs in CI.
 
 Every artifact in `results/` carries the version, commit, platform, model, and seed
 behind it, so any number here traces back to the run and the machine that produced
@@ -16,7 +18,8 @@ machines, while the gate is.
     `make results` reruns the four Ollama-backed measurements into `results/`. It
     needs Ollama serving the model each script names, and it is slow: the label
     fidelity pass alone is 216 sequential model calls. Findings 3b and 6 are cluster
-    jobs and are not part of this target.
+    jobs and are not part of this target. `make review` regenerates finding 7 and
+    needs neither.
 
 ## Status: provisional
 
@@ -306,3 +309,93 @@ Four things that keep this honest:
   revise, and reject -- indirect, noisier, and far less abundant. This result
   removes the *capability* objection and leaves the *supervision* question
   untouched, which is the next experiment rather than a conclusion of this one.
+
+## 7. Review is abundant; what it costs is correctness
+
+`scripts/measure_analyst_review.py`, `results/analyst_review.json`
+
+Finding 6 removed the capability objection and left the supervision question
+untouched: the rule is learnable *from clean labels*, and the design's premise is
+learning from an analyst's accept, revise, and reject decisions instead. This
+measures what that substitution costs, at the boundary rather than only on the
+verdict.
+
+Seven reviewers, each a parameter grid entry in `pharos.analyst` differing from the
+by-the-book reviewer on exactly one axis, review the 40 triage proposals each of the
+six sweep models actually produced -- 1,680 decisions in all. The proposals are
+real; the reviewers are not, and the caveat at the bottom of this section is the
+load-bearing one.
+
+| Reviewer | Differs by | Targets | Correct | Located | Release |
+| --- | --- | --- | --- | --- | --- |
+| by-the-book | (control) | 1.00 | 1.000 | 1.00 | 0.00 |
+| two-of-three | threshold 2 | 1.00 | **0.575** | 1.00 | 0.00 |
+| any-one | threshold 1 | 1.00 | **0.425** | 1.00 | 0.00 |
+| inattentive | slips 15% | 1.00 | 0.875 | 1.00 | 0.00 |
+| terse | revises 25% | 0.50-0.55 | 1.000 | 1.00 | 0.00 |
+| unexplained | names no grounds | 1.00 | 1.000 | **0.00** | 0.00 |
+| releaser | sheds compartments | 1.00 | 1.000 | 1.00 | **1.00** |
+
+*Targets*: share of decisions handing the learner a verdict to train on. *Correct*:
+share of those targets matching the world. *Located*: share of objections saying
+which of verdict or release was wrong. *Release*: share of the 21 unreleasable
+proposals whose correction clears the ceiling. The by-the-book row is a control, not
+a result: its threshold is the world's own rule and it never slips, so 1.000 is what
+it is defined to produce.
+
+**"Far less abundant" was wrong, and this project wrote it.** The README and finding
+6 both described analyst decisions as scarcer than labels. For a binary verdict they
+are not: an acceptance is a target, a revision is a target, and only a rejection
+without a correction costs anything. A reviewer who revises just a quarter of the
+time still supplies a usable target on half of all decisions. Scarcity is the wrong
+worry.
+
+**The targets are the reviewer's opinion, not the model's.** Target accuracy is
+identical across all six models -- not close, identical, because a corrected verdict
+is the reviewer's own call and an accepted one is a call the reviewer agreed with.
+Review does not import what the model knew; it exports the reviewer's standard. That
+is the mechanism behind the next row, and it is why the number is a property of the
+reviewer alone.
+
+**A reviewer with the wrong threshold teaches a rule that loses to guessing.** At
+threshold 2 the target stream matches the world on 0.575, at threshold 1 on 0.425.
+The majority floor on this evaluation set is 0.625. Both are below it, so a learner
+trained on those corrections would do worse than always answering ROUTINE -- and it
+would do so while every acceptance and revision looked like ordinary supervision.
+This is not a hypothetical reviewer. Threshold 1 is over-escalation, and finding 3b
+measured over-escalation in **every** model tested, recall 1.000 at precision 0.395
+to 0.500. A fleet learning from reviewers who fail on the axis its models already
+fail on does not get corrected; it gets confirmed.
+
+**Unnamed grounds cost nothing in volume and everything in attribution.** The
+`unexplained` reviewer accepts and revises exactly as often as by-the-book, and
+supplies exactly as many correct targets, so no yield statistic distinguishes them.
+What it withholds is which of the two assertions was wrong. A proposal is a verdict
+*and* the label it would be released under, so an objection that does not say which
+one failed asks the learner to fix an error it cannot locate. That axis exists
+because the output is governed; a preference over ungoverned text has nothing
+corresponding to it.
+
+**Review cannot unblock the disclosure boundary.** Of the 40 proposals, 21 carry a
+compartment the aggregator is not cleared for and cannot be released at all. Every
+keep-compartments reviewer objects to all 21 and **none** of their corrections clear
+the ceiling. The reviewer who sheds compartments objects to the same 21 and clears
+all of them. Same objection, incompatible corrections, and no amount of review
+resolves it -- which is finding 2's bimodality reappearing where a fleet would
+actually meet it. The compartment ruling is a policy act, and review is the wrong
+instrument for it.
+
+Ensemble agreement over the accept/revise/reject trichotomy is Fleiss' kappa 0.454
+to 0.504 across the six models. That number is a property of the grid this project
+chose and should not be read as an estimate of anything.
+
+!!! warning "The reviewers are parameters, not people"
+    A simulated analyst here is a decision procedure with named parameters, chosen so
+    the feedback-generating process has ground truth by construction. It is
+    deliberately not a persona-prompted language model: that technique explains only
+    a small share of real annotator variance and compresses disagreement rather than
+    reproducing it, which would put an unquantified error in the position of the
+    thing being measured. The consequence is that every row above bounds a
+    *mechanism* -- at this threshold, this slip rate, this feedback bandwidth, this
+    much survives -- and none of them estimates what a human analyst would do. The
+    corpus metadata carries the same cap under `rai:dataLimitations`.

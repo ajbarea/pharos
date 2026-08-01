@@ -222,11 +222,38 @@ is whether it is learnable from the decisions an analyst actually makes.
   analyst decisions" is not one question, and a negative result on one feedback type
   would not settle it.
 
-**State the delta narrowly.** Both papers learn from free-text edits to a prose
-response. A Pharos analyst decision is accept, revise, or reject over a *verdict and
-its governed label*, which is a lower-bandwidth signal on a discrete output. The
-published bounds therefore bear on the shape of step 3 and do not transfer to it
-numerically.
+- Ethayarajh, K., Xu, W., Muennighoff, N., Jurafsky, D., & Kiela, D. (2024). KTO:
+  Model Alignment as Prospect Theoretic Optimization. *ICML 2024*.
+  [arXiv:2402.01306](https://arxiv.org/abs/2402.01306) (v4 2024-11-19)
+  **Grounds** the feedback shape a bare accept or reject actually has. KTO learns
+  from unpaired binary judgements on single responses rather than from pairs, which
+  is what a review stream supplies: a reviewer says whether *this* proposal will do,
+  never which of two is better. That is why finding 7 counts accepted and rejected
+  decisions separately from revised ones rather than treating the stream as
+  preference data.
+
+- Xu, Y., & Jurgens, D. (2026). Beyond Consensus: Perspectivist Modeling and
+  Evaluation of Annotator Disagreement in NLP.
+  [arXiv:2601.09065](https://arxiv.org/abs/2601.09065) (v2 2026-01-17; survey, no
+  journal reference on the record)
+  **Grounds the decision not to simulate reviewers with a language model.** On
+  persona prompting and demographic conditioning the survey states that "persona
+  variables explain only a small fraction of variance", that such approaches are
+  "highly sensitive to prompts and model choice, and risk amplifying stereotypes",
+  and that "LLM judgments compress human disagreement and rely on opaque priors",
+  raising "concerns about reliability and epistemic validity of replacing human
+  annotation labor". Putting that in the position of the feedback-generating process
+  would make the instrument's own error the largest unmeasured term in the
+  experiment. `pharos.analyst` is therefore a parameterised decision procedure, which
+  buys ground truth by construction and buys no claim about human behaviour.
+
+**State the delta narrowly.** Both edit-feedback papers learn from free-text edits to
+a prose response. A Pharos analyst decision is accept, revise, or reject over a
+*verdict and its governed label*, which is a lower-bandwidth signal on a discrete
+output. The published bounds therefore bear on the shape of step 3 and do not
+transfer to it numerically. The same caution applies in reverse to finding 7: its
+reviewers are parameters, so its numbers bound a mechanism and estimate no
+population.
 
 ### Privacy and adversaries
 
