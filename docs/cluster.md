@@ -112,10 +112,18 @@ this repository exercises. Current Hub guidance is to use fine-grained tokens fo
 anything automated and to create one per usage, so that revoking access to a machine
 does not revoke it everywhere:
 
-| Token | Scope | Where it lives |
+| Token | Scope | Where it would live |
 | --- | --- | --- |
 | `pharos-local` | fine-grained, **read** | workstation, via `hf auth login` |
 | `pharos-cluster` | fine-grained, **read** | cluster `~/.bashrc`, separate so it can be revoked alone |
+
+**Neither exists today, and nothing currently needs one.** Verified 2026-08-01 on
+both machines: no `~/.cache/huggingface/token`, no `HF_TOKEN` in the environment.
+The adapter jobs run entirely from the model cache already on the cluster, and an
+unauthenticated run prints one warning about rate limits and then proceeds. The
+table above is therefore the shape to create *when* a token is needed -- a fresh
+download of a model not in the cache, or a gated repository -- not a description of
+current state, which is what it read as before this note.
 
 CI needs no token at all. The only Hugging Face-adjacent test is Croissant
 validation, which runs against the schema locally and touches no network.
