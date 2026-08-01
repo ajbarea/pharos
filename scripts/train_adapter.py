@@ -303,6 +303,18 @@ def main() -> int:
     )
     parser.add_argument("--skip-base-eval", action="store_true")
     parser.add_argument(
+        "--eval-seed",
+        type=int,
+        default=None,
+        help=(
+            "draw the evaluation set from a DIFFERENT corpus instantiation. Omitted, "
+            "training and evaluation split one corpus by event, which shows the rule "
+            "generalises across events. Supplied, they share no corpus at all, which "
+            "is the stronger claim and the one contamination-resistance guidance asks "
+            "for: evaluate on a seed with no instance overlap."
+        ),
+    )
+    parser.add_argument(
         "--reviewer",
         default=None,
         help=(
@@ -327,15 +339,38 @@ def main() -> int:
     # ---- data ---------------------------------------------------------------
     reports = generate(GeneratorConfig(seed=args.seed, n_events=args.events))
     all_tasks = build_triage_tasks(reports)
-    evaluation = all_tasks[: args.eval_tasks]
-    training = all_tasks[args.eval_tasks :]
+
+    if args.eval_seed is None:
+        evaluation = all_tasks[: args.eval_tasks]
+        training = all_tasks[args.eval_tasks :]
+        split = f"one corpus at seed {args.seed}, split by event"
+    else:
+        # A whole separate instantiation. Same generator, same config, different
+        # seed: different vessels, different events, different renderings of the
+        # same fact vocabulary. Nothing is shared but the rule, which is the point.
+        training = all_tasks
+        evaluation = build_triage_tasks(
+            generate(GeneratorConfig(seed=args.eval_seed, n_events=args.events))
+        )[: args.eval_tasks]
+        split = f"train seed {args.seed}, eval seed {args.eval_seed}, no shared corpus"
+
     leaked = {t.event_id for t in evaluation} & {t.event_id for t in training}
-    if leaked:
+    if leaked and args.eval_seed is None:
         raise SystemExit(
             f"{len(leaked)} events leaked between train and eval: {sorted(leaked)[:5]}"
         )
+    # Across seeds the event ids are drawn from the same namespace and collide by
+    # construction, so identity is checked on the text instead. Two corpora sharing
+    # a rendered report would mean the seeds are not independent.
+    if args.eval_seed is not None:
+        shared_text = {t.prompt for t in evaluation} & {t.prompt for t in training}
+        if shared_text:
+            raise SystemExit(
+                f"{len(shared_text)} prompts appear in both corpora; seeds "
+                f"{args.seed} and {args.eval_seed} are not independent"
+            )
 
-    print(f"train {len(training)} tasks, eval {len(evaluation)} tasks, events disjoint")
+    print(f"train {len(training)} tasks, eval {len(evaluation)} tasks -- {split}")
     print(f"train balance {_class_balance(training)}")
     print(f"eval  balance {_class_balance(evaluation)}")
     progress(
@@ -524,6 +559,8 @@ def main() -> int:
                         "train_balance": _class_balance(training),
                         "eval_balance": _class_balance(evaluation),
                         "events_disjoint": True,
+                        "eval_seed": args.eval_seed,
+                        "cross_corpus": args.eval_seed is not None,
                     },
                     "training_loss": final_loss,
                     "base": base_result.as_dict() if base_result else None,

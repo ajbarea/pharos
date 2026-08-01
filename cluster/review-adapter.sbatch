@@ -76,6 +76,19 @@ REVIEWERS="${PHAROS_REVIEWERS:-by-the-book inattentive two-of-three any-one}"
 # does.
 EVAL_TASKS="${PHAROS_EVAL_TASKS:-600}"
 EVENTS="${PHAROS_EVENTS:-$((1140 + EVAL_TASKS))}"
+
+# Optional: evaluate on a DIFFERENT corpus instantiation entirely. Unset, training
+# and evaluation split one corpus by event, which shows the rule generalises across
+# events. Set, they share no corpus at all -- different vessels, different events,
+# different renderings -- which is what contamination-resistance guidance asks of a
+# benchmark and is a strictly stronger claim about what the adapter learned.
+EVAL_SEED_ARG=""
+SUFFIX=""
+if [ -n "${PHAROS_EVAL_SEED:-}" ]; then
+  EVAL_SEED_ARG="--eval-seed ${PHAROS_EVAL_SEED}"
+  SUFFIX="-xseed${PHAROS_EVAL_SEED}"
+  echo ">>> cross-corpus: evaluating on seed ${PHAROS_EVAL_SEED}"
+fi
 echo ">>> model $MODEL"
 echo ">>> reviewers $REVIEWERS"
 echo ">>> eval tasks $EVAL_TASKS from $EVENTS events (train held at $((EVENTS - EVAL_TASKS)))"
@@ -100,11 +113,12 @@ for reviewer in $REVIEWERS; do
       --eval-tasks "$EVAL_TASKS" \
       --epochs 3 \
       --reviewer "$reviewer" \
+      $EVAL_SEED_ARG \
       $extra \
-      --out "results/review_adapter-${reviewer}.json"
+      --out "results/review_adapter-${reviewer}${SUFFIX}.json"
 done
 
 echo
 echo ">>> REVIEW-TAUGHT ADAPTER SWEEP COMPLETE"
 echo ">>> artifacts:"
-ls -la results/review_adapter-*.json
+ls -la results/review_adapter-*${SUFFIX}.json

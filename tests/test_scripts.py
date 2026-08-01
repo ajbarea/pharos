@@ -10,6 +10,7 @@ Only model-free logic is tested here. Anything needing Ollama or a GPU belongs i
 cluster job, not the suite.
 """
 
+import pathlib
 import sys
 from pathlib import Path
 
@@ -1306,3 +1307,45 @@ def cm_results():
     import compare_models as cm
 
     return cm.RESULTS
+
+
+# ----------------------------------------------------- cross-corpus eval -----
+
+
+def test_two_seeds_share_no_rendered_report():
+    """The premise of the cross-corpus evaluation, checked rather than assumed.
+
+    Training on one seed and evaluating on another is only the stronger claim if the
+    two corpora genuinely share nothing. Event ids collide across seeds by
+    construction -- they are positional -- so identity has to be checked on the
+    rendered text, which is what the trainer does before it trains.
+    """
+    a = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=200)), limit=60)
+    b = build_triage_tasks(generate(GeneratorConfig(seed=101, n_events=200)), limit=60)
+
+    assert {t.prompt for t in a} & {t.prompt for t in b} == set()
+    # Event ids DO collide, which is why the text check exists and the id check
+    # would have passed vacuously.
+    assert {t.event_id for t in a} & {t.event_id for t in b}
+
+
+def test_cross_corpus_eval_still_shares_the_rule():
+    """Different corpora, same decision rule -- otherwise the transfer test is void."""
+    from pharos.analyst import evidence_shown
+    from pharos.world import SIGNIFICANT_PATTERN
+
+    for seed in (7, 101, 202):
+        tasks = build_triage_tasks(generate(GeneratorConfig(seed=seed, n_events=200)), limit=40)
+        for task in tasks:
+            assert task.significant == (evidence_shown(task) == SIGNIFICANT_PATTERN)
+
+
+def test_trainer_exposes_the_eval_seed_flag():
+    import train_adapter as ta
+
+    assert hasattr(ta, "world_targets")
+    src = pathlib.Path(ta.__file__).read_text(encoding="utf-8")
+    assert "--eval-seed" in src
+    # And records it in the artifact, so a cross-corpus number cannot be mistaken
+    # for a within-corpus one when it is read back later.
+    assert '"cross_corpus"' in src
