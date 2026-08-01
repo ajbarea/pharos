@@ -79,7 +79,7 @@ Python 3.12 to 3.14. Generation and gating need only `numpy` and `scikit-learn`.
 | `pharos.export` | Writing a corpus out as JSON Lines, and hashing exactly what was written |
 | `pharos.croissant` | Croissant metadata with the Responsible AI extension, emitted from the manifest |
 | `pharos.telemetry` | Structured logs, spans, and the execution-context snapshot |
-| `pharos.web` | The explorer: corpus, lattice, gate, and a triage run behind one page |
+| `pharos.web` | The explorer: corpus, lattice, gate, a triage run, and analyst review behind one page |
 | `pharos.cli` | `gate`, `export`, `models`, `serve` |
 
 **Model calls are confined to one module.** `pharos.attribute` is the only place a
