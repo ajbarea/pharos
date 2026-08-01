@@ -8,6 +8,7 @@
 
 [![CI](https://github.com/ajbarea/pharos/actions/workflows/ci.yml/badge.svg)](https://github.com/ajbarea/pharos/actions/workflows/ci.yml)
 [![Documentation](https://github.com/ajbarea/pharos/actions/workflows/docs.yml/badge.svg)](https://github.com/ajbarea/pharos/actions/workflows/docs.yml)
+[![codecov](https://codecov.io/gh/ajbarea/pharos/graph/badge.svg?token=KC60fEY8dA)](https://codecov.io/gh/ajbarea/pharos)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13%20%7C%203.14-blue)](pyproject.toml)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
