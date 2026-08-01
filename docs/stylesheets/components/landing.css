@@ -206,13 +206,21 @@
   background: var(--pharos-magenta);
 }
 
+/* The lead is set apart by size and weight, not by centring.
+ *
+ * It was centred, and the body under it was not, so every section stepped from a
+ * ragged left edge to a hard one at the first body line. Centring earns its place
+ * in the hero, where the block is short and symmetrical and there is no column to
+ * break; three lines above a paragraph is long enough that the eye starts using
+ * the left edge to find the next line, and a lead that moves that edge costs more
+ * than the emphasis it buys. Hierarchy comes from the larger size and the lighter
+ * body colour instead. */
 .section-lead {
   max-width: 44rem;
   margin-inline: auto;
-  text-align: center;
-  font-size: 1.02rem;
-  line-height: 1.65;
-  opacity: 0.88;
+  font-size: 1.06rem;
+  line-height: 1.6;
+  color: var(--md-default-fg-color);
 }
 
 /* One measure for the whole section, so the column has a single pair of edges.
@@ -243,6 +251,53 @@
 .md-typeset .landing-section > :is(.md-typeset__scrollwrap, table) {
   max-width: 56rem;
   margin-inline: auto;
+}
+
+/* The module table is the only dense block on the page, so it borrows the type
+ * system the page already has rather than keeping the theme's default chrome.
+ *
+ * The header takes the same uppercase letterspaced treatment as the beam legend
+ * under the hero, which is what ties the table to the rest of the page. The box
+ * border and the vertical rules go: seventeen rows of two columns are read down a
+ * column, and a full grid draws cells the reader is not being asked to compare.
+ * Hairline horizontal rules are enough to keep the rows apart, and they match the
+ * fading rule already used between sections. */
+.md-typeset .landing-section table:not([class]) {
+  border: none;
+  border-radius: 0;
+}
+
+.md-typeset .landing-section table:not([class]) th {
+  padding: 0.6rem 1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  /* Same size and tracking as the hero beam legend. It was set two steps smaller
+   * first, which put a 10px uppercase label at a 4.76 contrast ratio on the light
+   * palette -- compliant, and still not comfortable to read. */
+  color: var(--md-default-fg-color--light);
+  background: none;
+  border-bottom: 2px solid var(--md-default-fg-color--lighter);
+}
+
+.md-typeset .landing-section table:not([class]) td {
+  padding: 0.55rem 1rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* A fixed first column so every description starts at the same x. Without it the
+ * column is sized by its longest module name and the descriptions sit wherever
+ * that leaves them. */
+.md-typeset .landing-section table:not([class]) :is(th, td):first-child {
+  width: 11rem;
+  white-space: nowrap;
+}
+
+/* The theme tints a row on hover, which reads as interactive on a table that is
+ * not. Rows here are reference, not targets. */
+.md-typeset .landing-section table:not([class]) tbody tr:hover {
+  background: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
