@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "5d07c770397b",
-    "git_dirty": true,
-    "generated_at": "2026-08-01T07:01:43+00:00",
+    "git_commit": "677af8c93dfc",
+    "git_dirty": false,
+    "generated_at": "2026-08-01T07:24:17+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
