@@ -215,6 +215,36 @@
   opacity: 0.88;
 }
 
+/* One measure for the whole section, so the column has a single pair of edges.
+ *
+ * Everything on this page is centred already, but the lead was capped at 44rem
+ * while the body prose under it ran the full 1188px content width. Each section
+ * therefore stepped 154px wider on both sides and switched from centred to
+ * ragged-right at the same moment, which reads as a break in the layout rather
+ * than as the deliberate narrowing it was meant to be. It also put body lines at
+ * roughly 150 characters, well past the point where the eye reliably finds the
+ * next line.
+ *
+ * Body text stays left-aligned. Centring is for the title and the lead, where the
+ * line count is short enough that a ragged left edge costs nothing. */
+.landing-section > :is(p, ul, ol) {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+/* The table earns more width than prose does: it is scanned by row, not read by
+ * line, and seventeen module descriptions wrap badly at 44rem.
+ *
+ * Target the scroll wrapper, not the table. The theme wraps tables at runtime in
+ * `.md-typeset__scrollwrap > .md-typeset__table`, so the table is a grandchild of
+ * the section and a `.landing-section > table` rule matches nothing on the served
+ * page. Capping the outer wrapper is also what keeps the horizontal scroll
+ * behaviour intact on narrow screens. */
+.md-typeset .landing-section > :is(.md-typeset__scrollwrap, table) {
+  max-width: 56rem;
+  margin-inline: auto;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html.js-ready .landing-section {
     opacity: 0;
