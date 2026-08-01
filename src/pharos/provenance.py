@@ -64,14 +64,24 @@ def git_commit() -> str | None:
     return _git("rev-parse", f"--short={_SHA_LENGTH}", "HEAD") or None
 
 
+# `results/` holds measurement outputs, not code. It is excluded from the dirtiness
+# check because a script that writes there would otherwise dirty the tree for
+# everything that runs after it: a six-model sweep from one clean checkout produced
+# one artifact marked clean and five marked dirty, in commit order, purely because
+# the first write landed before the second model started. That reads as five
+# measurements whose code could not be reconstructed, when the code was identical
+# and committed throughout.
+_NOT_CODE = (".", ":(exclude)results")
+
+
 def git_is_dirty() -> bool | None:
-    """Whether tracked files differ from HEAD, or None outside a git checkout.
+    """Whether tracked *code* differs from HEAD, or None outside a git checkout.
 
     Reported rather than forbidden. A dirty measurement is often the honest state
     of an experiment in progress, and the useful thing is that a reader can see it
     was dirty rather than be told a commit that does not describe the code that ran.
     """
-    status = _git("status", "--porcelain", "--untracked-files=no")
+    status = _git("status", "--porcelain", "--untracked-files=no", "--", *_NOT_CODE)
     if status is None:
         return None
     return bool(status)

@@ -1,5 +1,6 @@
 """Provenance must describe the run without ever being able to break it."""
 
+import os
 import subprocess
 
 import pytest
@@ -89,3 +90,60 @@ def test_git_helpers_degrade_to_none_when_git_is_not_installed(monkeypatch):
     assert provenance.git_commit() is None
     assert provenance.git_is_dirty() is None
     assert provenance.code_provenance()["pharos_version"]
+
+
+def _init_repo(root):
+    """A throwaway git repo with a source file and a measurement artifact."""
+
+    def git(*args):
+        subprocess.run(
+            ["git", *args],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            env={
+                "GIT_CONFIG_GLOBAL": "/dev/null",
+                "GIT_CONFIG_SYSTEM": "/dev/null",
+                "HOME": str(root),
+                "PATH": os.environ.get("PATH", ""),
+            },
+        )
+
+    (root / "src").mkdir()
+    (root / "results").mkdir()
+    (root / "src" / "code.py").write_text("x = 1\n", encoding="utf-8")
+    (root / "results" / "measurement.json").write_text('{"f1": 0.5}\n', encoding="utf-8")
+    git("init", "-q")
+    git("config", "user.email", "t@example.com")
+    git("config", "user.name", "t")
+    git("add", "-A")
+    git("commit", "-qm", "initial")
+    return git
+
+
+def test_a_rewritten_artifact_does_not_mark_the_code_dirty(tmp_path, monkeypatch):
+    """The six-model sweep bug.
+
+    A sweep writes one artifact per model into `results/`. Checking the whole tree
+    meant the first write dirtied it for every model after, so one clean checkout
+    produced one artifact marked clean and five marked dirty -- reading as five
+    measurements whose code could not be reconstructed, when it was identical and
+    committed throughout.
+    """
+    _init_repo(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    assert provenance.git_is_dirty() is False
+
+    (tmp_path / "results" / "measurement.json").write_text('{"f1": 0.9}\n', encoding="utf-8")
+
+    assert provenance.git_is_dirty() is False, "an artifact is an output, not the code"
+
+
+def test_a_modified_source_file_still_marks_the_code_dirty(tmp_path, monkeypatch):
+    """The exclusion must not hide the thing the flag exists to report."""
+    _init_repo(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    (tmp_path / "src" / "code.py").write_text("x = 2\n", encoding="utf-8")
+
+    assert provenance.git_is_dirty() is True

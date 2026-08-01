@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "e93af9fd48f9",
+    "git_commit": "5d07c770397b",
     "git_dirty": true,
-    "generated_at": "2026-07-31T16:38:48+00:00",
+    "generated_at": "2026-08-01T07:01:43+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
@@ -30,6 +30,14 @@
   "eligible_keep": 19,
   "eligible_drop": 40,
   "n_tasks": 40,
+  "validity": {
+    "n": 40,
+    "quotable": false,
+    "concerns": [
+      "accuracy 0.500 does not beat the majority floor 0.625: this is not evidence of capability",
+      "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
+    ]
+  },
   "rows": [
     {
       "task_id": "TR-0000",
