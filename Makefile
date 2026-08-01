@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep explorer ci
+.PHONY: help setup lint test gate results review sweep power explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -29,6 +29,10 @@ sweep:                     ## Target accuracy across the reviewer parameter grid
 	@mkdir -p results
 	uv run python scripts/measure_review_sweep.py --out results/review_sweep.json
 
+power:                     ## What each evaluation size can resolve (no model)
+	@mkdir -p results
+	uv run python scripts/measure_power.py --out results/power.json
+
 explorer:                  ## Freeze the explorer into docs/explorer for static hosting
 	uv run python scripts/build_static_explorer.py --out docs/explorer
 
@@ -53,3 +57,4 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	for seed in 1 7 11 23 101 202 303; do uv run python -m pharos.cli gate --seed $$seed --events 400; done
 	uv run python scripts/measure_analyst_review.py
 	uv run python scripts/measure_review_sweep.py
+	uv run python scripts/measure_power.py

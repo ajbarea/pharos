@@ -49,6 +49,60 @@ The gate's calibration finding is the one result here with support from outside 
 generator, having been reproduced on three public corpora. Treat the rest as the
 current state of an instrument still under construction.
 
+## What these sizes can resolve
+
+`scripts/measure_power.py`, `results/power.json`
+
+Every model-dependent finding below runs at 24 to 60 tasks. Whether that is too
+small has no single answer, because the effects claimed here differ by an order of
+magnitude, so this prices each size rather than arguing about it. The interval
+machinery is the same one the measurements use, and the class balance is read from
+the corpus rather than assumed.
+
+| Evaluation size | 95% half-width | Smallest resolvable difference |
+| --- | --- | --- |
+| 24 | 0.208 | 0.417 |
+| 30 | 0.183 | 0.367 |
+| 40 | 0.150 | 0.300 |
+| 60 | 0.117 | 0.233 |
+| 120 | 0.079 | 0.158 |
+| 240 | 0.065 | 0.129 |
+| 600 | 0.035 | 0.070 |
+| 2000 | 0.020 | 0.041 |
+
+The second column is the number that matters: two conditions separate only when the
+gap between them exceeds roughly one half-width on each side, which is exactly how
+`uncertainty.resolves` decides.
+
+**Every headline claim against the size it was actually run at:**
+
+| Finding | n | Gap it rests on | Verdict | Claim |
+| --- | --- | --- | --- | --- |
+| 3b | 40 | 0.000 | unresolved (needs n>2000) | qwen2.5-3b (0.625) clears the majority floor (0.625) |
+| 3b | 40 | 0.200 | unresolved (needs n≥120) | mistral-7b (0.425) is below the majority floor (0.625) |
+| 5 | 30 | 0.078 | unresolved (needs n≥600) | 8 shots (0.571) beats 0 shots (0.493) |
+| 5 | 30 | 0.507 | **resolved** | 8 shots (0.493) is below the stated-rule ceiling (1.000) |
+| 6 | 60 | 0.531 | **resolved** | adapter (1.000) beats the base model (0.469) |
+| 10 | 60 | 0.367 | **resolved** | any-one adapter matches teacher (1.000) not world (0.633) |
+| 10 | 60 | 0.083 | unresolved (needs n≥600) | inattentive adapter (0.883) beats its own teacher (0.800) |
+
+Three of seven are resolved, and the pattern is the useful part. **The claims this
+project makes strongly rest on large gaps and are comfortably resolved**; the ones
+that are not are mostly ones it already declines to make. Two deserve naming:
+
+- **"qwen2.5-3b clears the majority floor" has a gap of exactly zero.** It ties the
+  floor at 0.625. No sample size resolves a tie, so that is not a claim awaiting
+  more data -- it is permanently unresolvable as posed, and
+  [finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) states it
+  as unresolved rather than as a negative.
+- **"8 shots beats 0 shots" needs n≈600**, an order of magnitude more than the 30 it
+  was measured at. That one is worth buying, and it is cheap here: the corpus is a
+  generator, so tasks cost model calls rather than annotation.
+
+That last point is the reason this section is not a limitation. A static benchmark
+with 30 items is stuck with 30. A generator is only ever limited by compute, and
+600 is roughly two hours of local inference.
+
 ## 1. Leave-one-out attribution cannot produce a correct governed label
 
 `scripts/measure_label_fidelity.py`

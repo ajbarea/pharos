@@ -149,6 +149,7 @@ permutation null on every one of them.
 make results     # regenerate the Ollama-backed measurements into results/
 make review      # replay the committed verdicts past the analyst grid (no model)
 make sweep       # target accuracy across the reviewer parameter grid (no model)
+make power       # what each evaluation size can resolve (no model)
 ```
 
 ## Build order

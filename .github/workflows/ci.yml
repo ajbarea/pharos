@@ -114,4 +114,9 @@ jobs:
       # it would silently stop holding.
       - name: Sweep the reviewer grid
         run: uv run python scripts/measure_review_sweep.py
+      # The resolvable-effect table depends on the corpus class balance, so a
+      # corpus change moves what every published claim can support. Cheap to run,
+      # and it is the guard that would notice.
+      - name: Price what the evaluation sizes can resolve
+        run: uv run python scripts/measure_power.py
 
