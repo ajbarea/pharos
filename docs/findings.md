@@ -632,10 +632,17 @@ absorbing an unreliable annotator's errors into the parameters.
 
 **Random error is filtered; systematic error is not.** The contrast is the finding.
 The inattentive teacher slips 15% of the time and its targets match the world on
-0.859. Its adapter matches the world on **0.883** -- *better than the teacher that
-taught it* -- and matches the teacher on only 0.800. Gradient descent averaged the
-noise away and recovered the underlying rule. Given a consistent wrong rule instead,
-it fitted that rule exactly.
+0.859. Its adapter matches the world on 0.883 and its teacher on 0.800 -- it tracks
+the underlying rule more closely than the teacher that taught it. Given a consistent
+wrong rule instead, it fitted that rule exactly.
+
+The direction of that contrast is what is claimed, and the size of it is not. At 60
+tasks the minimum detectable difference is **0.233**
+([power analysis](#what-these-sizes-can-resolve)), so the 1.000-versus-0.800 gap for
+the biased teachers is resolved comfortably while the 0.883-versus-0.800 gap for the
+careless one is **not**: separating that pair would need roughly 600 tasks. Read it
+as "random error did not survive training the way systematic error did", not as a
+measured 8-point advantage.
 
 So the two error types finding 8 separated at the level of the target stream diverge
 even further after training. Carelessness is partly repaired by learning.
@@ -654,9 +661,9 @@ construction and most annotation pipelines discard.
 
 !!! note "What this does not settle"
     Four teachers, one model, one corpus, one seed, single-pass evaluation. The
-    contrast between systematic and random error is large -- 1.000 against 0.800 --
-    but the individual accuracies rest on 60 tasks and carry the sampling
-    uncertainty of that sample, roughly a tenth either way. The direction is what is
-    claimed; the exact figures are not. And the teachers remain parameterised
+    contrast between the biased teachers and the world is large -- 1.000 against
+    0.633 and 0.417 -- and resolved at this size. The careless teacher's 0.883
+    against 0.800 is not, and is reported as a direction rather than a margin. The
+    teachers remain parameterised
     decision procedures, so this bounds a mechanism and estimates nothing about
     human analysts.

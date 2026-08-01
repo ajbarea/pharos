@@ -29,6 +29,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from pharos import __version__
+from pharos.telemetry import get_logger
 
 #: Long enough to be unambiguous in this repo, short enough to read in a table.
 _SHA_LENGTH = 12
@@ -43,6 +44,7 @@ def _git(*args: str) -> str | None:
     """
     executable = shutil.which("git")
     if executable is None:
+        _degraded("git is not on PATH", args)
         return None
     try:
         completed = subprocess.run(  # noqa: S603  # fixed argv, resolved executable
@@ -52,11 +54,33 @@ def _git(*args: str) -> str | None:
             timeout=5,
             check=False,
         )
-    except (OSError, subprocess.SubprocessError):
+    except (OSError, subprocess.SubprocessError) as exc:
+        _degraded(f"git could not be run: {type(exc).__name__}", args)
         return None
     if completed.returncode != 0:
+        _degraded(f"git exited {completed.returncode}", args)
         return None
     return completed.stdout.strip()
+
+
+def _degraded(why: str, args: tuple[str, ...]) -> None:
+    """Say that provenance could not be collected, and why.
+
+    Degrading to `None` is correct -- a measurement must not die because it cannot
+    name its own commit -- but doing it *silently* is not, and this module is the
+    one place where silence is most expensive. A run that cannot identify its code
+    produces an artifact nothing downstream can verify, and the consumer that would
+    have caught it treats a missing commit as "nothing to check" rather than as
+    "cannot check". Both ends of that chain were quiet until this existed.
+    """
+    get_logger().warning(
+        "provenance.degraded",
+        extra={
+            "event": "provenance.degraded",
+            "reason": why,
+            "git_args": " ".join(args),
+        },
+    )
 
 
 def git_commit() -> str | None:
@@ -88,12 +112,30 @@ def git_is_dirty() -> bool | None:
 
 
 def code_provenance() -> dict[str, Any]:
-    """Version and commit. No clock, so a manifest carrying this stays reproducible."""
-    return {
+    """Version and commit. No clock, so a manifest carrying this stays reproducible.
+
+    Warns once more at the top level when the result is incomplete. The per-call
+    warnings above say what failed; this one says what it *cost*, because that is
+    the sentence a reader scanning a log needs: an artifact written from this cannot
+    be traced to code, and every staleness check over it is vacuous.
+    """
+    stamp: dict[str, Any] = {
         "pharos_version": __version__,
         "git_commit": git_commit(),
         "git_dirty": git_is_dirty(),
     }
+    if stamp["git_commit"] is None:
+        get_logger().warning(
+            "provenance.unidentifiable",
+            extra={
+                "event": "provenance.unidentifiable",
+                "impact": (
+                    "artifacts written from this run cannot name the code that "
+                    "produced them, and staleness checks over them cannot run"
+                ),
+            },
+        )
+    return stamp
 
 
 def run_provenance(**extra: Any) -> dict[str, Any]:

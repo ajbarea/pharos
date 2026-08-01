@@ -151,3 +151,60 @@ def test_a_modified_source_file_still_marks_the_code_dirty(tmp_path, monkeypatch
     (tmp_path / "src" / "code.py").write_text("x = 2\n", encoding="utf-8")
 
     assert provenance.git_is_dirty() is True
+
+
+# ------------------------------------------------- degradation is audible -----
+
+
+def test_a_missing_git_is_logged_not_swallowed(monkeypatch, caplog):
+    """The traceability module must not lose traceability quietly.
+
+    Degrading to None is correct -- a measurement must not die because it cannot
+    name its commit -- but silence about it is not. A run that cannot identify its
+    code writes an artifact nothing downstream can verify, and the consumer that
+    would catch it treated a missing commit as "nothing to check".
+    """
+    import logging
+
+    from pharos import provenance
+
+    monkeypatch.setattr(provenance.shutil, "which", lambda _: None)
+    with caplog.at_level(logging.WARNING, logger="pharos"):
+        stamp = provenance.code_provenance()
+
+    assert stamp["git_commit"] is None
+    events = [r.__dict__.get("event") for r in caplog.records]
+    assert "provenance.degraded" in events, "a failed git call must say so"
+    assert "provenance.unidentifiable" in events, "the cost must be stated once at the top"
+
+
+def test_a_failing_git_names_its_exit_code(monkeypatch, caplog):
+    import logging
+
+    from pharos import provenance
+
+    class Failed:
+        returncode = 128
+        stdout = ""
+
+    monkeypatch.setattr(provenance.shutil, "which", lambda _: "/usr/bin/git")
+    monkeypatch.setattr(provenance.subprocess, "run", lambda *a, **k: Failed())
+    with caplog.at_level(logging.WARNING, logger="pharos"):
+        provenance.code_provenance()
+
+    reasons = [r.__dict__.get("reason") for r in caplog.records]
+    assert any(r and "128" in r for r in reasons), "the exit code is the diagnostic"
+
+
+def test_a_healthy_checkout_logs_no_degradation_warning(caplog):
+    """The warning must be rare enough to mean something when it fires."""
+    import logging
+
+    from pharos import provenance
+
+    with caplog.at_level(logging.WARNING, logger="pharos"):
+        stamp = provenance.code_provenance()
+
+    if stamp["git_commit"] is not None:
+        events = [r.__dict__.get("event") for r in caplog.records]
+        assert "provenance.unidentifiable" not in events
