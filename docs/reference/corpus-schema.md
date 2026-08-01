@@ -59,7 +59,7 @@ The column order in `pharos.export.CORPUS_FIELDS` is fixed, and the Croissant
 record set is generated from that same tuple, so the file and its metadata cannot
 disagree about which columns exist. A test asserts that they describe the same set.
 
-## What `is_plant` means, and what it does not
+## What `is_plant` means
 
 `is_plant` marks a report belonging to a **significant** event, where significance
 is defined by the event carrying a fixed conjunction of facts. It is not an

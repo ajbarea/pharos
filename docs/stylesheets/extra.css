@@ -6,19 +6,18 @@
  */
 
 /* Tables carry most of this site's content -- gate rounds, findings, model sweeps,
- * label cells -- and several are wide enough to overflow on a narrow screen. Scroll
- * them inside their own box rather than letting the page scroll sideways. */
-.md-typeset table:not([class]) {
-  display: block;
-  overflow-x: auto;
-  white-space: nowrap;
+ * label cells. The theme already wraps each one in `.md-typeset__scrollwrap` and
+ * `.md-typeset__table` to give it horizontal scroll, so this sheet must not add a
+ * second scroll container; it only widens the wrapper. `.md-typeset__table` is
+ * inline-block, which means a table inside it shrinks to its content no matter what
+ * width the table itself is given, and a two-column table then sits in half the
+ * page with the text column crushed. */
+.md-typeset__table {
+  width: 100%;
 }
 
-@media screen and (min-width: 60em) {
-  .md-typeset table:not([class]) {
-    display: table;
-    white-space: normal;
-  }
+.md-typeset table:not([class]) {
+  width: 100%;
 }
 
 /* Measured values read better monospaced when they sit inline in prose. */
@@ -26,21 +25,13 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* A first column of identifiers must not wrap mid-token. Once the wide-screen rule
- * above restores `white-space: normal`, names like `pharos.provenance` break across
- * two lines at the dot, which reads as two different modules. Only the code spans
- * are pinned, so a first column of prose still wraps normally. */
+/* A first column of identifiers must not wrap mid-token: `pharos.provenance` broken
+ * at the dot reads as two different modules. The cell takes the width of the widest
+ * name it holds and the description column absorbs the remainder. Only the code
+ * spans are pinned, so a first column of prose still wraps normally. */
 .md-typeset table:not([class]) td:first-child code,
 .md-typeset table:not([class]) th:first-child code {
   white-space: nowrap;
-}
-
-/* Give that column room to take the widest name it holds rather than wrapping the
- * cell itself, while leaving the description column free to absorb the remainder.
- * The table is pinned to full width first, because `width: 1%` on a cell otherwise
- * collapses the whole table to shrink-to-fit and it stops filling its column. */
-.md-typeset table:not([class]) {
-  width: 100%;
 }
 
 .md-typeset table:not([class]) td:first-child {

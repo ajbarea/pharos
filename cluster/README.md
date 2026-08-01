@@ -135,9 +135,9 @@ why CI needs no token at all, in [`docs/cluster.md`](../docs/cluster.md).
 Numbers below are stamped with the job and commit that produced them, because the
 previous version of this file quoted figures whose logs no longer existed.
 
-**The full gate passes on a compute node.** Job 21441811 at commit `1b4a2d066873`:
-246 tests, 90.76% coverage against a 90% floor, ruff and ty clean, Croissant metadata
-validated, and the gate run on the seed list CI uses.
+**The full gate passes on a compute node.** Job 21441988 at commit `5d07c770397b`:
+263 tests, 94.13% branch coverage against a 92% floor, ruff and ty clean, Croissant
+metadata validated, and the gate run on the seed list CI uses.
 
 
 **The gate is reproducible across platforms.** Surface baselines of 0.6547, 0.6588,
