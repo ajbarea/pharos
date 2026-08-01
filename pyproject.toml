@@ -120,6 +120,7 @@ ignore = [
 # Reproduces a reviewer's slip draws exactly, keyed the same way `AnalystPolicy`
 # keys them, so a teacher slips on the same tasks it reviewed. Nothing security-bearing.
 "scripts/train_adapter.py" = ["S311"]
+"scripts/measure_teacher_transfer.py" = ["S311"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["pharos"]

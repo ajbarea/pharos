@@ -243,6 +243,16 @@ the distance from the zero-shot floor to the ceiling, and two of the three land
 *below* the floor they were meant to lift. No condition clears its own
 majority-class accuracy either, which sits between 0.724 and 0.759.
 
+!!! warning "Do not read the ordering between shot counts"
+    These conditions decode 320 tokens of reasoning before the verdict, and
+    [finding 9](#9-a-single-pass-score-is-not-reproducible-when-the-model-reasons)
+    measures that regime at **10% of tasks disagreeing with themselves** across
+    identical calls on one machine. At n=29 that is roughly three tasks, which is
+    the whole spread between 0.424 and 0.571. The conclusion survives, because every
+    condition sits far below the 1.000 ceiling and the gap is much larger than the
+    instability. The *ranking* of 2, 4 and 8 shots does not, and should not be
+    quoted.
+
 !!! warning "Corrected 2026-08-01"
     This table previously carried a second series -- examples annotated with the
     officer's stated reason -- and a different set of F1 values. No committed
@@ -486,3 +496,47 @@ is not even correlated with it.
     teacher. That is a GPU job and it has not been run. The reviewers here remain
     parameterised decision procedures, so every row bounds a mechanism and
     estimates no population.
+
+
+## 9. A single-pass score is not reproducible when the model reasons
+
+`scripts/measure_decode_stability.py`, `results/decode_stability.json`
+
+Every model-dependent number in this repo is a single pass: one call per task, one
+verdict, one score. That is only honest if an identical call returns an identical
+answer. It does not always, and how often depends on the decode rather than on the
+machine.
+
+Thirty tasks, three identical calls each, one machine, back to back, temperature
+0.0 and seed 7 throughout:
+
+| Decode | Used by | Tasks disagreeing with themselves |
+| --- | --- | --- |
+| Rule stated, 8 tokens | findings 3, 3b | **0 / 30** (0.0%) |
+| Rule withheld, 320 tokens of reasoning | findings 5, 6's base row | **3 / 30** (10.0%) |
+
+**Setting temperature to zero is not sufficient.** Both regimes set it, and both fix
+the seed. The long decode still moves, because the model reasons for hundreds of
+tokens before committing, and any divergence early in that reasoning has the rest of
+the generation to compound. The short decode emits one word from a prompt that
+already contains the rule, and does not move at all.
+
+**This corrects an attribution, not a number.** The manuscript reported that
+re-running five models on different hardware changed 2 of 200 judgements and read
+that as backend numerics differing across platforms. That reading required
+same-machine repeats to be stable. For the 8-token triage decode they are --
+exactly 0 of 30 -- so the cross-platform figure stands for those numbers. But it
+was being offered as a general reproducibility floor for the corpus, and for any
+score taken under the reasoning decode the floor is ten times higher and has
+nothing to do with the platform.
+
+**What it costs, and what it does not.** Nothing in findings 1, 2, 7, or 8 is
+affected: those make no model call at all. Findings 3 and 3b are unaffected, being
+8-token decodes. Finding 5's conclusion survives because its margin is large, but
+its between-condition ordering does not. Finding 6's adapter row is a saturated
+score with zero errors and is not a borderline case; its *base* row uses the long
+decode and should be read as approximate.
+
+The instrument fix is repeats, not a lower temperature. A condition measured under
+the reasoning decode needs several passes and a reported spread, the same way the
+gate reports a permutation null instead of a single number.

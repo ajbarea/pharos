@@ -1,0 +1,45 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "3b2f63ed0eb0",
+    "git_dirty": true,
+    "generated_at": "2026-08-01T17:34:52+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "model": "qwen2.5:7b-instruct",
+    "model_key": "qwen2.5-7b",
+    "endpoint": "http://localhost:11434/api/generate",
+    "seed": 7
+  },
+  "seed": 7,
+  "temperature": 0.0,
+  "regimes": [
+    {
+      "regime": "rule-stated-8",
+      "num_predict": 8,
+      "n_tasks": 30,
+      "repeats": 3,
+      "unstable_tasks": 0,
+      "unstable_share": 0.0,
+      "tasks_with_an_unparsed_call": 0
+    },
+    {
+      "regime": "rule-withheld-320",
+      "num_predict": 320,
+      "n_tasks": 30,
+      "repeats": 3,
+      "unstable_tasks": 3,
+      "unstable_share": 0.1,
+      "tasks_with_an_unparsed_call": 0
+    }
+  ],
+  "unstable_task_ids": {
+    "rule-stated-8": [],
+    "rule-withheld-320": [
+      "TR-0005",
+      "TR-0013",
+      "TR-0023"
+    ]
+  }
+}

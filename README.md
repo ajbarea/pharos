@@ -118,7 +118,7 @@ the system it serves.
 
 ## What has been measured
 
-Nine findings so far, each reproducible from a named script and each backed by a
+Ten findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, and a third was retracted outright after a generator bug.
@@ -136,6 +136,7 @@ corrections, and the caveats.
 | 6 | The rule *is* learnable by gradient descent, on clean labels |
 | 7 | Review is abundant; what it costs is correctness, and the boundary needs an authority |
 | 8 | Being right and sloppy beats being wrong and careful |
+| 9 | A single-pass score is not reproducible when the model reasons |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own

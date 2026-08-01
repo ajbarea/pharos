@@ -57,13 +57,23 @@ def _reports_block(task: TriageTask) -> str:
     return "\n\n".join(f"[{i + 1}] {r.text}" for i, r in enumerate(task.sources))
 
 
-def build_prompt(target: TriageTask, shots: list[TriageTask]) -> str:
-    """The target case, preceded by `shots` worked examples and no stated rule."""
+def build_prompt(
+    target: TriageTask, shots: list[TriageTask], labels: dict[str, bool] | None = None
+) -> str:
+    """The target case, preceded by `shots` worked examples and no stated rule.
+
+    `labels` overrides what verdict each example carries. Omitted, the examples are
+    labelled by the world, which is what finding 5 measured. Supplying a reviewer's
+    labels asks a different question -- whether the example block transmits a
+    *standard* rather than the rule -- and the two must share this function or the
+    comparison is between two prompt formats rather than between two teachers.
+    """
     parts: list[str] = []
     if shots:
         parts.append(EXAMPLE_PREAMBLE)
         for index, shot in enumerate(shots, start=1):
-            verdict = "SIGNIFICANT" if shot.significant else "ROUTINE"
+            call = shot.significant if labels is None else labels[shot.task_id]
+            verdict = "SIGNIFICANT" if call else "ROUTINE"
             parts.append(
                 f"--- CASE {index} ---\n{_reports_block(shot)}\nOFFICER'S VERDICT: {verdict}\n"
             )
@@ -83,10 +93,19 @@ def parse_verdict(text: str) -> bool | None:
     return said_significant
 
 
-def balanced_shots(pool: list[TriageTask], k: int) -> list[TriageTask]:
-    """`k` examples alternating between classes, so the block teaches the rule not the prior."""
-    positives = [t for t in pool if t.significant]
-    negatives = [t for t in pool if not t.significant]
+def balanced_shots(
+    pool: list[TriageTask], k: int, labels: dict[str, bool] | None = None
+) -> list[TriageTask]:
+    """`k` examples alternating between classes, so the block teaches the rule not the prior.
+
+    Balanced by `labels` when given, not by the world. A block balanced against the
+    world but labelled by a lenient reviewer would be lopsided *as the reviewer sees
+    it*, and the model would read the prior rather than the standard -- which is the
+    confound this whole comparison exists to avoid.
+    """
+    call = (lambda t: t.significant) if labels is None else (lambda t: labels[t.task_id])
+    positives = [t for t in pool if call(t)]
+    negatives = [t for t in pool if not call(t)]
     shots: list[TriageTask] = []
     while len(shots) < k and (positives or negatives):
         if len(shots) % 2 == 0 and positives:

@@ -23,6 +23,7 @@ results:                   ## Regenerate every measurement artifact in results/ 
 	uv run python scripts/measure_federation_eligibility.py --out results/federation_eligibility.json
 	uv run python scripts/measure_triage_lift.py --out results/triage_lift.json
 	uv run python scripts/measure_rule_learnability.py --out results/learnability.json
+	uv run python scripts/measure_decode_stability.py --out results/decode_stability.json
 
 sweep:                     ## Target accuracy across the reviewer parameter grid (no model)
 	@mkdir -p results

@@ -1111,3 +1111,136 @@ def test_resolve_reviewer_rejects_an_unknown_name():
     assert ta.resolve_reviewer("by-the-book").escalation_threshold == 3
     with pytest.raises(SystemExit, match="unknown reviewer"):
         ta.resolve_reviewer("nobody")
+
+
+# ------------------------------------------------------ decode stability -----
+
+
+def test_short_parser_refuses_an_answer_saying_both_or_neither():
+    import measure_decode_stability as mds
+
+    assert mds.parse_short("SIGNIFICANT") is True
+    assert mds.parse_short("routine") is False
+    # Saying both is not a verdict, and neither is saying nothing. Coercing either
+    # to a class would move every score built on this parser.
+    assert mds.parse_short("SIGNIFICANT or ROUTINE, unclear") is None
+    assert mds.parse_short("") is None
+
+
+def test_the_two_regimes_differ_in_the_thing_being_compared():
+    """The comparison is meaningless if both regimes decode the same length."""
+    import measure_decode_stability as mds
+
+    lengths = {r.num_predict for r in mds.REGIMES}
+    assert len(lengths) == len(mds.REGIMES), "regimes must differ in decode length"
+    assert {r.reasons for r in mds.REGIMES} == {True, False}
+    assert min(lengths) < max(lengths)
+
+
+def test_stability_reports_a_share_and_survives_an_empty_run():
+    import measure_decode_stability as mds
+
+    row = mds.Stability("r", 8, 30, 3, 3, 0)
+    assert row.unstable_share == 0.1
+    assert row.as_dict()["unstable_share"] == 0.1
+    assert mds.Stability("r", 8, 0, 3, 0, 0).unstable_share == 0.0
+
+
+def test_stability_measure_counts_only_self_disagreement(monkeypatch):
+    """A task is unstable when its own repeats differ, not when it is merely wrong."""
+    import measure_decode_stability as mds
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=120)), limit=4)
+    answers = iter(
+        [
+            "SIGNIFICANT",
+            "SIGNIFICANT",
+            "SIGNIFICANT",  # stable
+            "SIGNIFICANT",
+            "ROUTINE",
+            "ROUTINE",  # unstable
+            "ROUTINE",
+            "ROUTINE",
+            "ROUTINE",  # stable
+            "ROUTINE",
+            "ROUTINE",
+            "nothing parseable",  # unstable AND unparsed
+        ]
+    )
+    monkeypatch.setattr(mds, "generate_text", lambda *a, **k: next(answers))
+
+    stability, unstable = mds.measure(mds.REGIMES[0], tasks, repeats=3, model="m", endpoint="e")
+    assert stability.unstable == 2
+    assert len(unstable) == 2
+    assert (
+        stability.tasks_with_an_unparsed_call
+        if False
+        else stability.as_dict()["tasks_with_an_unparsed_call"] == 1
+    )
+
+
+# ------------------------------------------------------ teacher transfer -----
+
+
+def test_teacher_labels_match_the_reviewers_own_calls():
+    import measure_teacher_transfer as mtt
+
+    from pharos.analyst import AnalystPolicy
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=120)), limit=20)
+    strict = mtt.teacher_labels(tasks, AnalystPolicy("by-the-book"), seed=7)
+    assert strict == {t.task_id: t.significant for t in tasks}
+
+    lenient = mtt.teacher_labels(tasks, AnalystPolicy("any-one", escalation_threshold=1), seed=7)
+    assert lenient != strict
+
+
+def test_transfer_row_rates_exclude_unparsed_from_the_denominator():
+    """An unparsable answer is not a wrong answer, and must not be scored as one."""
+    import measure_teacher_transfer as mtt
+
+    row = mtt.Row("t", 8, n=10, unparsed=2, agree_world=4, agree_teacher=8, said_significant=6)
+    assert row.world_rate == 0.5
+    assert row.teacher_rate == 1.0
+    assert row.escalation_rate == 0.75
+    payload = row.as_dict()
+    assert payload["agreement_with_teacher"] == 1.0
+    assert payload["n"] == 10 and payload["unparsed"] == 2
+
+    assert (
+        mtt.Row(
+            "t", 0, n=0, unparsed=0, agree_world=0, agree_teacher=0, said_significant=0
+        ).world_rate
+        == 0.0
+    )
+
+
+def test_transfer_scores_the_same_decode_against_both_answer_keys(monkeypatch):
+    import measure_teacher_transfer as mtt
+
+    from pharos.analyst import AnalystPolicy
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=120)), limit=8)
+    targets, pool = tasks[:4], tasks[4:]
+    labels = mtt.teacher_labels(tasks, AnalystPolicy("any-one", escalation_threshold=1), seed=7)
+    monkeypatch.setattr(mtt, "generate_text", lambda *a, **k: "VERDICT: SIGNIFICANT")
+
+    row = mtt.run_condition(
+        targets, pool, labels, teacher="any-one", shots=0, model="m", endpoint="e"
+    )
+    assert row.n == len(targets)
+    assert row.escalation_rate == 1.0
+    # Answering SIGNIFICANT everywhere agrees with whichever key says SIGNIFICANT.
+    assert row.agree_world == sum(1 for t in targets if t.significant)
+    assert row.agree_teacher == sum(1 for t in targets if labels[t.task_id])
+
+
+def test_the_teacher_list_spans_right_and_wrong_standards():
+    import measure_teacher_transfer as mtt
+
+    from pharos.analyst import DEFAULT_ENSEMBLE
+
+    by_name = {p.name: p for p in DEFAULT_ENSEMBLE}
+    thresholds = {by_name[t].escalation_threshold for t in mtt.TEACHERS}
+    assert 3 in thresholds, "the correct standard is the control and must be present"
+    assert len(thresholds) > 1, "a transfer test needs teachers that disagree"
