@@ -32,6 +32,13 @@ train = [
     "datasets>=3.2",
 ]
 
+# External gate validation needs `datasets` to fetch public corpora and nothing else.
+# It is CPU- and network-bound, so gating it behind `train` would have made a laptop
+# install a multi-gigabyte CUDA stack to download three text datasets.
+external = [
+    "datasets>=3.2",
+]
+
 [dependency-groups]
 # The official MLCommons validator. Kept out of `dev` because it pulls pandas and
 # ~24 packages, and the suite must stay fast for the common case; CI runs it as
