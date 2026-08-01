@@ -272,16 +272,21 @@ Verified 2026-08-01. These ground finding 9 and `pharos.uncertainty`.
 - Bjarnason, B. H., Silva, A., & Monperrus, M. (2026). On Randomness in Agentic Evals.
   [arXiv:2602.07150](https://arxiv.org/abs/2602.07150) (v3 2026-03-25; no journal
   reference on the record)
-  **Independently confirms finding 9's mechanism at a scale Pharos cannot reach.**
-  60,000 agentic trajectories on SWE-Bench-Verified across three models and two
-  scaffolds. Single-run pass@1 varies by 2.2 to 6.0 percentage points depending on
-  which run is chosen, with standard deviations above 1.5 points **at temperature
-  zero**, and their token-level analysis finds that trajectories *diverge early*.
-  That is the same mechanism finding 9 infers from a 30-task comparison of an
-  8-token decode against a 320-token one, arrived at independently and from far more
-  data. Their conclusion -- that reported improvements of 2-3 points may be
-  evaluation noise -- applies directly to any Pharos condition taken under the
-  reasoning decode.
+  **Cited for what it establishes in its own setting, which is not this one.** An
+  earlier revision of this entry claimed it "independently confirms finding 9's
+  mechanism". That was wrong twice over: finding 9's original claim has since been
+  retracted, and their setting differs from Pharos in the way that matters. They
+  measure *agentic trajectories* -- multi-step tool use against a real environment,
+  where a divergence changes which command runs next and the run genuinely forks.
+  Pharos's conditions are single-turn: one prompt, one completion, no environment.
+  Measured properly, ours reproduce exactly across full sweeps.
+  **What it does establish**, and why it stays here: single-run pass@1 varying 2.2
+  to 6.0 points at temperature zero, with standard deviations above 1.5 points, is
+  strong evidence that *agentic* benchmarks need repeats and intervals, and that
+  reported 2-3 point improvements there may be noise. If Pharos ever adds a
+  tool-using agent it inherits that problem directly. It is not evidence about the
+  single-turn decodes measured here, and citing it as though it were was exactly the
+  kind of borrowed authority this file exists to prevent.
 
 - Messing, S. (2026). Hidden Measurement Error in LLM Pipelines Distorts Annotation,
   Evaluation, and Benchmarking.
@@ -298,11 +303,16 @@ Verified 2026-08-01. These ground finding 9 and `pharos.uncertainty`.
   surface benchmark-hacking exploits.
 
 **What this changed here.** Every model-dependent Pharos number was a single pass
-until finding 9. The scripts now take `--repeats`, report a cluster-bootstrap
-interval over tasks, and name the pairs their own intervals fail to separate. The
-estimand is `single_run` rather than a mean over passes, because a Pharos fleet
-answers once per task and does not vote; `consensus` is reported beside it as what
-voting would buy, and it is sometimes negative.
+with no interval. The scripts now take `--repeats`, report a cluster-bootstrap
+interval over tasks, and name the pairs their own intervals fail to separate.
+
+The reason for that changed under measurement, and the record should show it. It was
+introduced to cope with run-to-run instability; finding 9 then retracted that
+instability as an artifact of a probe that repeated one prompt into a warm cache.
+What the interval actually corrects is **sampling uncertainty over 30 tasks**, which
+was always the larger term and was never reported. The estimand is `single_run`
+rather than a mean over passes, because a Pharos fleet answers once per task and does
+not vote.
 
 **State the delta narrowly.** Both edit-feedback papers learn from free-text edits to
 a prose response. A Pharos analyst decision is accept, revise, or reject over a

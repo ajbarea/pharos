@@ -8,6 +8,7 @@ Ti. Finding 3b sweeps six models from 3B to 14B, and finding 6 fine-tunes
 `Qwen2.5-3B-Instruct`; both need a cluster A100 for their largest runs. Findings 7
 and 8 call no model at all: they regenerate the corpus from its seed and review
 verdicts already committed to `results/`, so both reproduce exactly and run in CI.
+Finding 9 is a measurement-design result and retracts an earlier version of itself.
 
 Every artifact in `results/` carries the version, commit, platform, model, and seed
 behind it, so any number here traces back to the run and the machine that produced
@@ -273,17 +274,22 @@ comparisons overlap. The curve in the table is not a curve -- 2 shots is not wor
 than 0, and 8 is not better than 4, on this data. Whatever examples do here, this
 experiment cannot resolve how it varies with how many of them there are.
 
-!!! warning "Remeasured 2026-08-01 with repeats"
-    This table was a single pass per condition until
-    [finding 9](#9-a-single-pass-score-is-not-reproducible-when-the-model-reasons)
-    showed the reasoning decode disagrees with itself on 10% of tasks. It is now
-    five passes per task, scored as the single-run estimand -- what one agent
-    answering once gets, not a vote -- with a cluster-bootstrap interval over tasks.
+!!! warning "Remeasured 2026-08-01, and why the reason changed"
+    This table was a single pass per condition with no interval. It is now five
+    passes per task with a cluster-bootstrap interval over tasks.
 
-    The conclusion held. The ordering did not, and had been reported: the previous
-    F1 column ran 0.538, 0.424, 0.438, 0.571, and the dip at 2 shots was noise.
-    Within-task variance is 2 to 7% of the total here, lower than finding 9's
-    per-task flip rate because flips partly cancel at the level of a rate.
+    The remeasurement was prompted by a claim that has since been **retracted** --
+    [finding 9](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing)
+    first reported the reasoning decode as 10% self-disagreeing, which turned out to
+    be a cache warm-up artifact of how that probe was designed. Single passes
+    reproduce exactly.
+
+    The table stays, because the interval was the point and it was missing. What
+    makes these four conditions inseparable is **sampling uncertainty over 30
+    tasks**, not run-to-run noise: the intervals span roughly 0.34, and no pair
+    separates. The previous F1 column ran 0.538, 0.424, 0.438, 0.571, and the dip at
+    2 shots was never real. Read the within-task figures (2 to 7%) as the cache
+    transition they are, not as measurement noise.
 
 !!! warning "Corrected 2026-08-01"
     This table previously carried a second series -- examples annotated with the
@@ -530,45 +536,127 @@ is not even correlated with it.
     estimates no population.
 
 
-## 9. A single-pass score is not reproducible when the model reasons
+## 9. A measurement that repeats one prompt measures the wrong thing
 
 `scripts/measure_decode_stability.py`, `results/decode_stability.json`
 
-Every model-dependent number in this repo is a single pass: one call per task, one
-verdict, one score. That is only honest if an identical call returns an identical
-answer. It does not always, and how often depends on the decode rather than on the
-machine.
+!!! danger "Retracted and replaced 2026-08-01, same day it was published"
+    This finding first claimed that **a single-pass score is not reproducible when
+    the model reasons**, on the strength of 3 of 30 tasks disagreeing across
+    identical calls. That claim is **false** and the measurement behind it was
+    designed wrong. It is left here in corrected form rather than deleted, because
+    the mistake is more useful than the original finding was.
 
-Thirty tasks, three identical calls each, one machine, back to back, temperature
-0.0 and seed 7 throughout:
+The original probe called *one prompt* several times in a row and counted
+disagreements. A real measurement calls each task *once*, in sequence. Those are
+different experiments, and only the second one is the reproducibility question.
 
-| Decode | Used by | Tasks disagreeing with themselves |
+| Design | Rule stated, 8 tokens | Rule withheld, 320 tokens |
 | --- | --- | --- |
-| Rule stated, 8 tokens | findings 3, 3b | **0 / 30** (0.0%) |
-| Rule withheld, 320 tokens of reasoning | findings 5, 6's base row | **3 / 30** (10.0%) |
+| Repeat one prompt 3x | 0 / 30 | **4 / 30 (13.3%)** |
+| Repeat the whole sweep | **0 / 30** | **0 / 30** |
 
-**Setting temperature to zero is not sufficient.** Both regimes set it, and both fix
-the seed. The long decode still moves, because the model reasons for hundreds of
-tokens before committing, and any divergence early in that reasoning has the rest of
-the generation to compound. The short decode emits one word from a prompt that
-already contains the rule, and does not move at all.
+**Single-pass measurements reproduce exactly.** Two complete sweeps, each task
+called once in the same order, agree on every task in both decode regimes, and
+produce identical accuracy.
 
-**This corrects an attribution, not a number.** The manuscript reported that
-re-running five models on different hardware changed 2 of 200 judgements and read
-that as backend numerics differing across platforms. That reading required
-same-machine repeats to be stable. For the 8-token triage decode they are --
-exactly 0 of 30 -- so the cross-platform figure stands for those numbers. But it
-was being offered as a general reproducibility floor for the corpus, and for any
-score taken under the reasoning decode the floor is ten times higher and has
-nothing to do with the platform.
+**The 13.3% is a warm-up transition, not noise.** Following it produced the
+mechanism: in every varied case the *first* call against a prompt differs and every
+call after it is byte-identical. Five repeats of a summarization prompt gave
+`[A, B, B, B, B]` on 3 of 3 varied prompts. So repeating one prompt measures the
+cold-to-warm transition of a prefix cache and reports it as irreproducibility. A
+real measurement never repeats a prompt, so every call is cold, and cold calls agree
+with each other.
 
-**What it costs, and what it does not.** Nothing in findings 1, 2, 7, or 8 is
-affected: those make no model call at all. Findings 3 and 3b are unaffected, being
-8-token decodes. Finding 5's conclusion survives because its margin is large, but
-its between-condition ordering does not. Finding 6's adapter row is a saturated
-score with zero errors and is not a borderline case; its *base* row uses the long
-decode and should be read as approximate.
+**What this cost, and what survives.** The retracted version was cited in a second
+place before it was checked: finding 5's remeasurement warning attributed its
+caution to a 10% instability that does not exist. What survives the correction is
+worth keeping:
 
-The instrument fix is repeats, not a lower temperature. A condition measured under
-the reasoning decode needs several passes and a reported spread, the same way the
-gate reports a permutation null instead of a single number.
+- **The between-task interval is real and was missing.** Thirty tasks is a small
+  sample whatever the decode does, and finding 5's conditions genuinely do not
+  separate ([see its table](#5-in-context-learning-does-not-close-the-gap)). That
+  conclusion rests on sampling uncertainty across tasks, which the cluster bootstrap
+  measures correctly and which no amount of reproducibility removes.
+- **Finding 3b's correction stands entirely.** It was computed from single-pass
+  artifacts by bootstrapping over tasks, and single-pass artifacts are now known to
+  be exactly reproducible.
+- **The cross-platform figure in the manuscript stands**, and its original reading
+  was right. Two of 200 judgements changing across machines is a platform effect,
+  measured under a decode that reproduces perfectly on one machine.
+
+**What generalises.** Not a claim about temperature or decode length, but about
+measurement design: *a probe that repeats one input is not measuring what a sweep
+over many inputs will do*, and if the backend caches anything, the two differ
+systematically rather than randomly. That is worth checking before reporting either.
+
+!!! note "Where this leaves the uncertainty layer"
+    `pharos.uncertainty` was built for the retracted claim and is kept, because the
+    thing it actually measures -- sampling uncertainty over tasks -- was missing
+    before and is still missing everywhere else. Its within-task component is now
+    known to capture a cache transition rather than noise, and
+    [its reference page](reference/uncertainty.md) says so.
+
+## 10. A fleet learns its analyst's standard, not the world's
+
+`scripts/train_adapter.py --reviewer`, `cluster/review-adapter.sbatch`,
+`results/review_adapter-*.json`
+
+Finding 6 trained an adapter on the generator's ground truth and reached F1 1.000,
+which settled capability. Finding 8 then showed a reviewer's target stream can be
+systematically wrong and that no amount of carefulness repairs it. Neither said what
+a *model* does with such targets. This does.
+
+Four LoRA adapters on Qwen2.5-3B-Instruct, A100-40GB, 1,140 training tuples each,
+identical except for who labelled them. Every adapter is scored twice on the same 60
+held-out tasks and the same decode: once against the world, once against **its own
+teacher's answers**.
+
+| Teacher | Standard | Targets matching world | Adapter vs **world** | Adapter vs **teacher** |
+| --- | --- | --- | --- | --- |
+| by-the-book | 3 of 3 | 1.000 | 0.983 | 0.983 |
+| inattentive | 3 of 3, slips 15% | 0.859 | **0.883** | 0.800 |
+| two-of-three | 2 of 3 | 0.732 | 0.633 | **1.000** |
+| any-one | 1 of 3 | 0.442 | 0.417 | **1.000** |
+
+Accuracy on 60 held-out tasks whose events are disjoint from training. The base
+model scores F1 0.469 with 8 of 60 answers unparsable, so every row is a large gain
+over not training at all.
+
+**A wrong standard is learned perfectly.** Both biased teachers are reproduced at
+accuracy **1.000** against their own answers. The adapter did not partially absorb
+the reviewer's rule or average it against its prior -- it learned "two of three" and
+"one of three" exactly, and scores 0.633 and 0.417 against the world as a direct
+consequence. This is the concrete form of what the noisy-annotation literature calls
+absorbing an unreliable annotator's errors into the parameters.
+
+**Random error is filtered; systematic error is not.** The contrast is the finding.
+The inattentive teacher slips 15% of the time and its targets match the world on
+0.859. Its adapter matches the world on **0.883** -- *better than the teacher that
+taught it* -- and matches the teacher on only 0.800. Gradient descent averaged the
+noise away and recovered the underlying rule. Given a consistent wrong rule instead,
+it fitted that rule exactly.
+
+So the two error types finding 8 separated at the level of the target stream diverge
+even further after training. Carelessness is partly repaired by learning.
+**Wrongness is amplified by it**: the reviewer applied their rule to 73% agreement
+with the world, and the adapter that learned them applies it to 63%.
+
+**What this means for the design.** The premise is that a fleet learns analytic
+tradecraft from analyst decisions. It does -- exactly, faithfully, and without any
+check on whether the tradecraft is correct. Personalization works as specified, and
+that *is* the risk: an over-escalating analyst produces an over-escalating agent, and
+over-escalation is what every model in
+[finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) already
+does. The mitigation is not more data. It is annotator-reliability weighting, which
+needs annotator identity retained through training -- something Pharos has by
+construction and most annotation pipelines discard.
+
+!!! note "What this does not settle"
+    Four teachers, one model, one corpus, one seed, single-pass evaluation. The
+    contrast between systematic and random error is large -- 1.000 against 0.800 --
+    but the individual accuracies rest on 60 tasks and carry the sampling
+    uncertainty of that sample, roughly a tenth either way. The direction is what is
+    claimed; the exact figures are not. And the teachers remain parameterised
+    decision procedures, so this bounds a mechanism and estimates nothing about
+    human analysts.

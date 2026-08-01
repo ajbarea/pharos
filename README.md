@@ -138,7 +138,8 @@ corrections, and the caveats.
 | 6 | The rule *is* learnable by gradient descent, on clean labels |
 | 7 | Review is abundant; what it costs is correctness, and the boundary needs an authority |
 | 8 | Being right and sloppy beats being wrong and careful |
-| 9 | A single-pass score is not reproducible when the model reasons |
+| 9 | A measurement that repeats one prompt measures the wrong thing |
+| 10 | A fleet learns its analyst's standard, not the world's |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -157,7 +158,10 @@ make sweep       # target accuracy across the reviewer parameter grid (no model)
 2. **Tasks and scorers.** `pharos.tasks` carries the triage task and `pharos.detect`
    the labelling path. Still owed are the plant registry, the remaining specialist
    scorers, and an adversarial-input pass over each.
-3. **Simulated analysts.** `pharos.analyst` supplies the reviewer as a specified
+3. **Simulated analysts.** Finding 10 answers the question this step existed to
+   ask: an adapter trained on a reviewer's decisions reproduces that reviewer's
+   standard exactly, so a wrong analyst yields a wrong agent while a merely careless
+   one is largely repaired by training. `pharos.analyst` supplies the reviewer as a specified
    policy and finding 7 reports what a review stream is worth: not scarce, but
    carrying the reviewer's standard rather than the world's, so a reviewer who
    over-escalates teaches targets below the majority floor. The compartment ruling

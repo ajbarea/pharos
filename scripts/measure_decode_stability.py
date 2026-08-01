@@ -1,26 +1,26 @@
 #!/usr/bin/env python3
-"""How much a score moves when nothing changes.
+"""Whether a score moves when nothing changes, measured two ways that disagree.
 
-Every model-dependent number in this repo is a single pass: one call per task, one
-verdict, one score. That is only honest if an identical call returns an identical
-answer, and this measures whether it does by asking the same question several times
-and counting how often the answer changes.
+**The measurement design decides the answer, and one of the two designs is wrong.**
+This script runs both, because getting that wrong is how this repository briefly
+published a false finding.
 
-It does change, and how much depends on the decode rather than on the machine:
+- **Repeat-one-prompt.** Call the same prompt several times in a row and count how
+  often the answer changes. Intuitive, and misleading: the first call against a
+  prompt differs from every call after it, so this design measures a warm-up
+  transition and reports it as noise.
+- **Repeat-the-whole-pass.** Run the entire measurement, each task called exactly
+  once in order, then run it again and compare. This is how a measurement actually
+  executes: every call is cold, so there is no warm call to disagree with.
 
-- **Rule stated, 8 tokens.** The triage conditions. Greedy decode of a single word
-  from a prompt that already contains the rule.
-- **Rule withheld, 320 tokens.** The in-context conditions. The model reasons first
-  and emits a verdict line at the end, so any divergence early in the reasoning has
-  hundreds of tokens to compound before it reaches the answer.
-
-The distinction matters because the manuscript previously attributed a small number
-of changed judgements to running on *different hardware*. That reading is available
-only if same-machine repeats are stable, and one of these two regimes is not.
+The second is the reproducibility number that matters, and it comes out clean.
+Finding 9 originally reported the first design's 10% as evidence that single-pass
+scores are irreproducible. They are not. The retraction is recorded in
+`docs/findings.md`; this script exists so the two designs can be compared rather
+than argued about.
 
 Temperature is 0.0 and the seed is fixed at 7 for every call, set in
-`pharos.attribute.generate_text`. Nothing here relaxes that; the point is that
-setting it is not sufficient.
+`pharos.attribute.generate_text`.
 
     uv run python scripts/measure_decode_stability.py --out results/decode_stability.json
 """
@@ -29,6 +29,7 @@ import argparse
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from measure_rule_learnability import build_prompt, parse_verdict
 
@@ -149,11 +150,42 @@ def measure(
     )
 
 
+def full_pass(
+    regime: Regime, tasks: list[TriageTask], *, model: str, endpoint: str
+) -> dict[str, bool | None]:
+    """One complete measurement sweep: every task called exactly once, in order."""
+    parse = parse_verdict if regime.reasons else parse_short
+    answers: dict[str, bool | None] = {}
+    for task in tasks:
+        prompt = build_prompt(task, []) if regime.reasons else task.prompt
+        answers[task.task_id] = parse(
+            generate_text(prompt, endpoint=endpoint, model=model, num_predict=regime.num_predict)
+        )
+    return answers
+
+
+def compare_passes(
+    regime: Regime, tasks: list[TriageTask], *, passes: int, model: str, endpoint: str
+) -> tuple[int, list[str]]:
+    """How many tasks differ across `passes` complete sweeps.
+
+    The honest reproducibility question. Each sweep visits every task once, so no
+    call is ever answering a prompt the backend has just seen -- which is exactly
+    the condition `measure` violates and the reason its number is larger.
+    """
+    runs = [full_pass(regime, tasks, model=model, endpoint=endpoint) for _ in range(passes)]
+    differing = [task.task_id for task in tasks if len({run[task.task_id] for run in runs}) > 1]
+    return len(differing), differing
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tasks", type=int, default=30)
     parser.add_argument("--events", type=int, default=400)
-    parser.add_argument("--repeats", type=int, default=3)
+    parser.add_argument(
+        "--repeats", type=int, default=3, help="calls per task, one prompt at a time"
+    )
+    parser.add_argument("--passes", type=int, default=2, help="complete sweeps to compare")
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT)
     parser.add_argument("--out", type=Path)
@@ -189,17 +221,35 @@ def main() -> int:
         )
         print()
 
-    short = next(r for r in rows if r.num_predict == min(x.num_predict for x in rows))
-    long_ = next(r for r in rows if r.num_predict == max(x.num_predict for x in rows))
+    # The design that matches how a measurement actually runs.
     print("=" * 74)
-    if long_.unstable_share > short.unstable_share:
+    print(f"Now the same question asked properly: {args.passes} complete sweeps, each task")
+    print("called once per sweep, compared against each other.\n")
+    pass_rows: list[dict[str, Any]] = []
+    worst_differing = 0
+    for regime in REGIMES:
+        n_diff, which = compare_passes(
+            regime, tasks, passes=args.passes, model=spec.tag, endpoint=args.endpoint
+        )
+        worst_differing = max(worst_differing, n_diff)
+        pass_rows.append({"regime": regime.name, "differing": n_diff, "task_ids": which})
+        print(f"  {regime.name:20} {n_diff}/{len(tasks)} tasks differ across full sweeps")
+        if which:
+            print(f"    {', '.join(which)}")
+
+    print("\n" + "=" * 74)
+    worst_repeat = max(r.unstable_share for r in rows)
+    worst_pass = worst_differing / max(len(tasks), 1)
+    if worst_repeat > worst_pass:
         print(
-            f"The long decode is {long_.unstable_share:.1%} unstable against "
-            f"{short.unstable_share:.1%} for the short one, on the same machine and the\n"
-            "same prompt. Instability is a property of decode length, not of the platform."
+            f"Repeating one prompt disagrees on up to {worst_repeat:.1%} of tasks; repeating the\n"
+            f"whole sweep disagrees on {worst_pass:.1%}. The gap is a warm-up transition, not\n"
+            "noise: the first call against a prompt differs from every call after it, so a\n"
+            "design that repeats one prompt measures cold-versus-warm and reports it as\n"
+            "irreproducibility. A real measurement is all-cold and reproduces."
         )
     else:
-        print("The two regimes are comparably stable; the earlier reading does not reproduce.")
+        print("Both designs agree; no warm-up transition is detectable at this sample size.")
     print("=" * 74)
 
     if args.out:
@@ -211,8 +261,10 @@ def main() -> int:
                     ),
                     "seed": SEED,
                     "temperature": 0.0,
-                    "regimes": [r.as_dict() for r in rows],
-                    "unstable_task_ids": flipped,
+                    "repeat_one_prompt": [r.as_dict() for r in rows],
+                    "repeat_one_prompt_task_ids": flipped,
+                    "repeat_whole_pass": pass_rows,
+                    "passes": args.passes,
                 },
                 indent=2,
             ),

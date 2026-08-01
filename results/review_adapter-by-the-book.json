@@ -1,0 +1,99 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "cec192faebf9",
+    "git_dirty": false,
+    "generated_at": "2026-08-01T20:08:03+00:00",
+    "python": "3.13.14",
+    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
+    "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
+    "model": "Qwen/Qwen2.5-3B-Instruct",
+    "seed": 7
+  },
+  "hyperparameters": {
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "epochs": 3.0,
+    "learning_rate": 0.0001,
+    "effective_batch": 16
+  },
+  "data": {
+    "n_train": 1140,
+    "n_eval": 60,
+    "train_balance": {
+      "significant": 353,
+      "routine": 787
+    },
+    "eval_balance": {
+      "significant": 20,
+      "routine": 40
+    },
+    "events_disjoint": true
+  },
+  "training_loss": 0.2970057421129982,
+  "base": {
+    "label": "base",
+    "n": 60,
+    "confusion": {
+      "tp": 15,
+      "fp": 32,
+      "tn": 3,
+      "fn": 2
+    },
+    "unparsed": 8,
+    "accuracy": 0.3,
+    "majority_accuracy": 0.7167,
+    "precision": 0.3191,
+    "recall": 0.8824,
+    "f1": 0.4688
+  },
+  "adapter": {
+    "label": "adapter",
+    "n": 60,
+    "confusion": {
+      "tp": 20,
+      "fp": 1,
+      "tn": 39,
+      "fn": 0
+    },
+    "unparsed": 0,
+    "accuracy": 0.9833,
+    "majority_accuracy": 0.6667,
+    "precision": 0.9524,
+    "recall": 1.0,
+    "f1": 0.9756
+  },
+  "teacher": {
+    "reviewer": "by-the-book",
+    "escalation_threshold": 3,
+    "slip_rate": 0.0,
+    "train_target_agreement": 1.0
+  },
+  "adapter_vs_teacher": {
+    "label": "adapter-vs-teacher",
+    "n": 60,
+    "confusion": {
+      "tp": 20,
+      "fp": 1,
+      "tn": 39,
+      "fn": 0
+    },
+    "unparsed": 0,
+    "accuracy": 0.9833,
+    "majority_accuracy": 0.6667,
+    "precision": 0.9524,
+    "recall": 1.0,
+    "f1": 0.9756
+  },
+  "ceiling_f1": 1.0
+}

@@ -2,17 +2,27 @@
 
 `pharos.uncertainty`
 
-[Finding 9](../findings.md#9-a-single-pass-score-is-not-reproducible-when-the-model-reasons)
-established that a Pharos score taken under the reasoning decode moves when nothing
-changes: 10% of tasks disagree with themselves across identical calls at temperature
-zero. This page describes what a score has to carry once that is known.
+This page describes what a model-dependent score has to carry.
+
+!!! warning "Built for a claim that was then retracted"
+    This module was written because
+    [finding 9](../findings.md#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing)
+    reported 10% run-to-run instability. That turned out to be a cache warm-up
+    artifact, and single-pass Pharos measurements reproduce exactly.
+
+    The module is kept because its **between-task** term was always the larger one
+    and was never reported: 30 tasks is a small sample however stable the decode.
+    Its **within-task** term now measures a cold-to-warm cache transition rather
+    than noise, and should be read that way -- near-zero is the expected value, and
+    a large one means the probe repeated a prompt rather than that the model is
+    unreliable.
 
 ## Two error sources, and only one of them shrinks
 
 | Source | What it is | Reduced by |
 | --- | --- | --- |
 | Between-task | Some events are harder; a different sample would score differently | more tasks |
-| Within-task | The same task answered differently on repeat calls | more runs per task |
+| Within-task | The same task answered differently on repeat calls | *not noise here -- see above* |
 
 A binomial interval over `n` tasks accounts for the first and silently assumes the
 second is zero. `variance_split` reports the share, which is the actionable number:
