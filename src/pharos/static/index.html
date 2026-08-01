@@ -50,6 +50,12 @@
     border-radius: 6px; padding: .4rem .5rem; font: inherit; font-size: .9rem;
   }
   input[type=number] { width: 6.5rem; }
+  /* Styling `input` at all overrides the browser's own disabled appearance, so a
+     frozen field came out pixel-identical to a live one: same colour, same
+     background, opacity 1. The attribute was set and said nothing. Restate it. */
+  input:disabled, select:disabled {
+    opacity: .45; cursor: not-allowed; border-style: dashed;
+  }
   button.go {
     background: var(--accent); color: #fff; border: 0; border-radius: 6px;
     padding: .45rem 1rem; cursor: pointer; font: inherit; font-size: .9rem;
