@@ -23,6 +23,13 @@
 set -euo pipefail
 
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+
+# torch sizes its intra-op pool from the machine's CPU count, not the cgroup's, so
+# this job was the one script running numerical code without a cap on it.
+export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export OPENBLAS_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export NUMEXPR_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 # Hugging Face cache and credentials.
 #
 # HF_HOME points at the shared home filesystem rather than a node-local temp dir, so

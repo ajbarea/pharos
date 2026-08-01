@@ -60,8 +60,9 @@ and simply crawls: a verify job sat at the same byte of output for twenty minute
 before this was found, and the obvious readings -- a hung network call, a deadlock,
 a machine too small -- were all wrong.
 
-Both job scripts now export `OMP_NUM_THREADS` and its siblings from
-`SLURM_CPUS_PER_TASK`. More usefully, **every Pharos run logs the mismatch itself**:
+Every job that runs numerical code exports `OMP_NUM_THREADS` and its siblings from
+`SLURM_CPUS_PER_TASK`; the model-download job is exempt because it only fetches. More
+usefully, **every Pharos run logs the mismatch itself**:
 
 ```json
 {"event": "run.context", "machine_cpus": 96, "usable_cpus": 8,
@@ -79,9 +80,9 @@ session with a timeout and the timeout kills the job before it ever starts. The 
 applies to a multi-gigabyte `ollama pull`: a daemon backgrounded over SSH dies with
 the session, in one case at 8.4 of 9 GB.
 
-Both mistakes were made here. `sbatch` exists for exactly this, and model downloads
-now run as their own **CPU-only** job so no GPU idles through a fetch, with the
-sweep chained behind it by `--dependency=afterok`.
+`sbatch` exists for exactly this. Model downloads run as their own **CPU-only** job
+so no GPU idles through a fetch, with the sweep chained behind by
+`--dependency=afterok`.
 
 ## What the cluster has confirmed
 
@@ -91,12 +92,16 @@ RHEL 9 cluster node with a different CPU count, kernel, and libc. Generation and
 gating make no model calls precisely so that this would hold; it now holds as a
 measurement rather than a design intention.
 
-**The adapter stack runs.** On an A100-PCIE-40GB, under the Python this project
-pins: torch 2.13.0+cu130, peft 0.20.0, transformers 5.14.1, a bf16 matmul executing
-on the device, and peft correctly freezing a wrapped base at 3.02% trainable. That
-last check matters more than it looks: `torch.cuda.is_available()` returning true is
-not the same as a kernel running, and the freeze is the mechanism the personal and
-shared adapter split depends on.
+**The adapter stack runs, and the rule is gradient-learnable.** On an A100-PCIE-40GB
+under this project's pins -- torch 2.13.0+cu130, peft 0.20.0, transformers 5.14.1 --
+peft freezes a wrapped base at 3.02% trainable, and a LoRA fine-tune of
+Qwen2.5-3B-Instruct moves triage F1 from 0.469 to 1.000 on a held-out split. Read the
+score with its caveat: it is saturated, and sixty flawless answers still bound the
+true error rate only at 5%. See [Findings](findings.md).
+
+The freeze check matters more than it looks. `torch.cuda.is_available()` returning
+true is not the same as a kernel running, and the freeze is the mechanism the
+personal and shared adapter split depends on.
 
 ## Hugging Face: tokens and the cache
 
@@ -136,6 +141,13 @@ Everything Pharos downloads is public, so an unauthenticated run *works*. It is
 rate limited, though, and a throttled download inside a GPU allocation spends the
 allocation rather than failing fast -- which is why `setup-env.sh` warns when no
 credential is present instead of waiting for a job to discover it.
+
+## The full job reference
+
+[`cluster/README.md`](https://github.com/ajbarea/pharos/blob/main/cluster/README.md)
+sits next to the job scripts and carries the rest: every `sbatch` file and what it is
+for, the survey of partitions and accounts, and the attested output of the last
+verify run.
 
 ## Etiquette
 
