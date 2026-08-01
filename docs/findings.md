@@ -168,7 +168,7 @@ Three things hold across every model, and they are the claims:
 
 **Recall is 1.000 everywhere.** Not approximately, exactly, including at 14B. Every
 model escalates every significant event and also escalates most routine ones, at
-precision between 0.395 and 0.517. The over-escalation reported in finding 3 is a
+precision between 0.395 and 0.500. The over-escalation reported in finding 3 is a
 property of the task under a withheld rule, not an idiosyncrasy of one model.
 
 **No model beats the majority-class floor.** The best accuracy exactly ties it at
@@ -227,25 +227,38 @@ The design's premise is that a fleet learns analytic craft from an analyst's
 accept, revise, and reject decisions. Withholding the rule and supplying labelled
 examples instead is the cheap form of that question.
 
-| Condition | Shots | F1 |
-| --- | --- | --- |
-| Zero-shot floor | 0 | 0.720 |
-| Verdict-only examples | 2 / 4 / 8 | 0.615 / 0.640 / 0.636 |
-| Examples with the officer's stated reason | 2 / 4 / 8 | 0.522 / 0.706 / 0.556 |
-| **Rule stated, checklist prompt (ceiling)** | n/a | **1.000** |
+| Condition | Shots | Precision | Recall | F1 |
+| --- | --- | --- | --- | --- |
+| Zero-shot floor | 0 | 0.389 | 0.875 | 0.538 |
+| Labelled examples | 2 | 0.269 | 1.000 | 0.424 |
+| Labelled examples | 4 | 0.292 | 0.875 | 0.438 |
+| Labelled examples | 8 | 0.400 | 1.000 | 0.571 |
+| **Rule stated, checklist prompt (ceiling)** | n/a | **1.000** | **1.000** | **1.000** |
 
-**Examples close none of the gap**, and richer examples do not rescue it.
+**Examples close almost none of the gap.** The best few-shot condition closes 7% of
+the distance from the zero-shot floor to the ceiling, and two of the three land
+*below* the floor they were meant to lift. No condition clears its own
+majority-class accuracy either, which sits between 0.724 and 0.759.
+
+!!! warning "Corrected 2026-08-01"
+    This table previously carried a second series -- examples annotated with the
+    officer's stated reason -- and a different set of F1 values. No committed
+    script produces that condition and no committed artifact holds those numbers,
+    so both are withdrawn. The values above are `results/learnability.json`, which
+    is what `scripts/measure_rule_learnability.py` writes and what the manuscript's
+    table is generated from. The conclusion is unchanged; only the evidence for it
+    is now checkable.
 
 Three caveats, because this result is easy to over-read:
 
-- Twenty evaluation tasks per condition. Differences of about 0.1 sit inside the
+- Thirty evaluation tasks per condition. Differences of about 0.1 sit inside the
   noise, so the ordering *between* conditions is not claimed, only that none
   reaches the ceiling.
-- Eight shots is roughly 3,600 words before the target case, so long-context
-  dilution is an unseparated confound.
+- Eight shots is roughly 1,300 words of examples before the target case, so
+  long-context dilution is an unseparated confound.
 - **In-context learning is not gradient learning.** Eight examples in a prompt and
-  a LoRA trained on thousands of tuples are different mechanisms, and the first
-  failing does not establish that the second will.
+  a LoRA trained on 1,140 tuples are different mechanisms, and the first failing
+  does not establish that the second will.
 
 The useful conclusion is about sequencing. The cheap proxy for the design's
 central premise came back negative-to-inconclusive, so the premise cannot be

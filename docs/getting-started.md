@@ -44,6 +44,28 @@ driven to chance.
 shuffling alone produces, so the gate is measuring something real rather than its
 own sampling error.
 
+## The explorer
+
+```bash
+uv sync --group ui
+uv run python -m pharos.cli serve     # http://127.0.0.1:8080
+```
+
+Four tabs over one page: generate a corpus and read labelled reports, ask whether
+one label dominates another, run a triage task against a model from the registry,
+and run the gate. It exists so the three ideas can be understood without reading
+Python.
+
+Every endpoint returns the objects the Python API produces, so the page is a client
+rather than a second implementation -- a label shown in the UI came from
+`pharos.labels`, not from a formatting routine written twice. It also loads nothing
+from a CDN, because a testbed that promises to run offline should not have a front
+door that needs internet.
+
+Corpus size is capped at 400 events and the gate tab runs fewer null trials than the
+published runs, so its numbers are noisier and the response says so. Reproduce
+published numbers with the CLI, not here.
+
 ## Observability
 
 OpenTelemetry is a **core dependency**, not an extra. One `trace_id` ties a

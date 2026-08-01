@@ -44,7 +44,7 @@ generator was rejected four times.
 | 1 | 0.737 | Significant facts had numeric slots, most fillers had none. `digit_ratio` alone hit 0.652 | One timestamp and two integer numerals in every rendering; no decimals |
 | 2 | 0.581 | Rendering length: pattern facts averaged 13.33 words against 12.64, and plants carry all three | Balanced word counts |
 | 3 | 0.572 | Hand-balancing oscillated. The leak was structural: plants were the only events with a deterministic triple, so **any** per-fact property became a class signal | Background draws a decoy triple, so both classes are one fixed triple plus two fillers |
-| 4 | ~0.55 | Slot widths varied, so which slots a fact used was a digit signature | Every non-time slot is a two-digit integer, so every rendering carries exactly nine digits |
+| 4 | ~0.55 | Slot widths varied, so which slots a fact used was a digit signature | Every non-time slot is a two-digit integer, so every fact rendering carries exactly eight digits |
 
 Round 3 generalizes: **tuning a leaked property just moves the leak.** Removing the
 asymmetry that produced it removes the whole class.
@@ -58,9 +58,11 @@ been met, and working out why produced the result below.
 plant is a plant *because* it carries the significant facts, so plants carry those
 facts more often than background does, so the fact mix differs by class, so any
 surface statistic of those facts carries some information. Measured after four
-rounds of normalization: every report holds exactly two fact sentences of fourteen
-words and nine digits each, and plants still average 49.29 words against 49.63.
-The residual is the mix, and the mix is the definition.
+rounds of normalization: every report holds exactly two fact sentences, each
+carrying exactly eight digits and all but a handful exactly fourteen words. What
+survives is a residue of well under a word: at seed 7 plants average 49.0 words
+against 49.3, and at seed 101 the two are level. The residual is the mix, and the
+mix is the definition.
 
 Reaching a true chance baseline would need a vocabulary whose every rendering is a
 surface twin of every other on character count, punctuation, and capitalisation as
@@ -69,9 +71,10 @@ well. That is achievable and it is not obviously worth it.
 So the gate answers two questions instead of pronouncing on purity.
 
 **Is the leak real?** Compare against a **permutation null**, where labels are
-shuffled so no relationship survives. Measured: a null mean near 0.50 with a
-standard deviation around 0.02 to 0.03. That confirms the gate is unbiased and
-gives the band an empirical basis rather than an assumed one.
+shuffled so no relationship survives. Measured at 400 events over seeds 1, 7, and
+101: a null mean between 0.485 and 0.505, with a standard deviation of 0.029 to
+0.036. That confirms the gate is unbiased and gives the band an empirical basis
+rather than an assumed one.
 
 **How large is it?** The observed AUC is the **surface baseline**: what a model
 scores while reading nothing. Every downstream triage number is reported against

@@ -92,7 +92,7 @@ count, kernel, and libc -- 0.6547, 0.6588, and 0.6675 on seeds 1, 7, and 101.
 
 | Page | What it covers |
 | --- | --- |
-| [Getting started](https://ajbarea.github.io/pharos/getting-started/) | Install, the everyday commands, reading a gate verdict, observability |
+| [Getting started](https://ajbarea.github.io/pharos/getting-started/) | Install, the everyday commands, reading a gate verdict, the explorer, observability |
 | [The label lattice](https://ajbarea.github.io/pharos/reference/label-lattice/) | Dominance, joins, and why compartments make this a lattice rather than a ladder |
 | [The shortcut gate](https://ajbarea.github.io/pharos/reference/gate/) | What the probe sees, the four rounds it rejected, and why it is a calibration instrument |
 | [Corpus schema](https://ajbarea.github.io/pharos/reference/corpus-schema/) | The shape of an exported record |
@@ -101,9 +101,10 @@ count, kernel, and libc -- 0.6547, 0.6588, and 0.6675 on seeds 1, 7, and 101.
 | [Running on a cluster](https://ajbarea.github.io/pharos/cluster/) | The RIT Research Computing path, and the traps that cost real time |
 | [Findings](https://ajbarea.github.io/pharos/findings/) | Every measurement, its caveats, and the script that reproduces it |
 
-[`RESEARCH.md`](RESEARCH.md) holds the survey behind the "no public corpus does this"
-claim, the public corpora Pharos should be used *alongside*, and a verified citation
-for every external claim the design leans on.
+[`RESEARCH.md`](RESEARCH.md) holds the survey behind that opening claim -- five
+public corpora and where each stops, argued from the nearest candidates rather than
+from an exhaustive search -- the public corpora Pharos should be used *alongside*,
+and a verified citation for every external claim the design leans on.
 
 Design specs live in the
 [Federated Analyst Fleets](https://github.com/ajbarea/kourai-khryseai) research docs:

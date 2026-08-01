@@ -19,10 +19,13 @@ belong here.
 - runner: none. Targets run directly via `make`; there is no `logs/dev-<ts>-*.log`
   archive convention here, so the audit's log-reconciliation phase is N/A.
 - has: Docker (OTel Collector + Jaeger + Prometheus, `docker-compose.yml`), a
-  minimal FastAPI explorer (`src/pharos/web.py`, optional `ui` extra), no Rust.
+  minimal FastAPI explorer (`src/pharos/web.py`, `ui` dependency group), no Rust.
   Runtime deps: numpy, scikit-learn, opentelemetry (core, deliberately not optional).
-  Extras: `ui` (fastapi), `train` (torch/peft/transformers, GPU only), `otel` (no-op,
-  retained for compatibility). Dependency groups: `dev`, `croissant`.
+  Extras (`[project.optional-dependencies]`): `train` (torch/peft/transformers, GPU
+  only), `external` (datasets, for the external gate validation), `otel` (no-op,
+  retained for compatibility). Dependency groups: `dev`, `croissant`, `ui`.
+  `train` and `external` are extras rather than groups on purpose: CI runs
+  `uv sync --all-groups`, which would otherwise pull a CUDA torch into every run.
 - cluster: RIT Research Computing. Jobs in `cluster/`; sync with
   `scripts/sync_cluster.sh`, which fetches a commit rather than copying files so
   artifacts can name the code that produced them.
@@ -45,12 +48,12 @@ belong here.
 
 ### Phase 4 — Test
 
-- `make test` → `pytest --cov=pharos --cov=scripts --cov-fail-under=90`
+- `make test` → `pytest --cov=pharos --cov=scripts --cov-branch --cov-fail-under=92`
 - Coverage spans `scripts/` as well as the library, because the scripts produce
   every published number. Orchestration bodies are excluded via
   `[tool.coverage.report] exclude_also`; the pure logic is not.
-- Margin is thin: the suite currently lands near 90%, so an uncovered addition
-  fails the build rather than merely lowering a number.
+- Margin is thin: 265 tests land at 93.8% against a 92% floor, so an uncovered
+  addition fails the build rather than merely lowering a number.
 
 ### Phase 5 — Gates
 

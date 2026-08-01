@@ -10,8 +10,8 @@ capacity     : ENUM | SCALAR | SPAN | FREETEXT             the form of a derived
 
 Sensitivity is a ladder. Compartments are not. Two officers at `RESTRICTED` with
 incomparable compartment sets dominate in neither direction, which is what makes
-this a **lattice** test rather than a ladder test, and it is the property no
-public corpus supplies.
+this a **lattice** test rather than a ladder test, and it is the property none of
+the public corpora surveyed in `RESEARCH.md` supplies.
 
 ## Dominance
 
@@ -81,14 +81,14 @@ declassifies to.
 ## Why `drop_compartments` is the load-bearing setting
 
 That default is not a detail, and measurement says so. Across three aggregator
-ceilings and four capacities, turns average 2.88 compartments of 4 and seven of
-eight sit at the top of the level ladder, because a summary over eight sources
-joins nearly everything.
+ceilings and four capacities at 40 turns, turns average 2.15 compartments of 4,
+and most already sit high on the level ladder, because a summary over eight
+sources joins nearly everything.
 
 | Declassification policy | FREETEXT | SPAN | SCALAR | ENUM |
 | --- | --- | --- | --- | --- |
-| keep compartments (fail-closed default) | 0-12% | 0-12% | 0-12% | 0-12% |
-| drop compartments for low capacity | 0-12% | 0-12% | **100%** | **100%** |
+| keep compartments (fail-closed default) | 0-38% | 0-38% | 0-38% | 0-38% |
+| drop compartments for low capacity | 0-38% | 0-38% | **100%** | **100%** |
 
 Answer "no, a low-capacity verdict may not shed its sources' compartments" and
 the fleet is a set of unconnected local learners. Answer "yes" and verdict-shaped

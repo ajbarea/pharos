@@ -74,7 +74,7 @@ artifact.
 | [`pharos.export`](reference/corpus-schema.md) | Writing a corpus out, and hashing exactly what was written |
 | [`pharos.croissant`](releasing.md) | Croissant metadata with the Responsible AI extension |
 | `pharos.telemetry` | Structured logs, spans, and the execution-context snapshot |
-| `pharos.web` | The explorer: corpus, lattice, gate, and a triage run behind one page |
+| [`pharos.web`](getting-started.md#the-explorer) | The explorer: corpus, lattice, gate, and a triage run behind one page |
 | `pharos.cli` | `gate`, `export`, `models`, `serve` |
 
 Everything in the generation and gating path is offline and deterministic. There
@@ -108,9 +108,10 @@ This site is the **reference**: how the pieces work and how to run them. The arg
 
 [Findings](findings.md) summarises what has been measured and points at the scripts
 that reproduce each number. `RESEARCH.md` in the repository root holds what is true
-*outside* the repo: the survey behind "no public corpus does this", the public
-corpora Pharos is meant to be used alongside, and a verified citation for every
-external claim the design leans on.
+*outside* the repo: the survey behind the claim above, argued from the five closest
+public corpora rather than from an exhaustive search, the corpora Pharos is meant to
+be used alongside, and a verified citation for every external claim the design leans
+on.
 
 Design specs live in the Federated Analyst Fleets research docs
 (`kourai-khryseai/docs/research/federated-forge/`): `pharos-testbed.md` for this

@@ -195,6 +195,39 @@ Verified 2026-07-31 unless noted.
   averaging error", and it is why naive FedAvg over LoRA factors is not a
   defensible baseline to ship.
 
+### Learning from analyst decisions
+
+Verified 2026-08-01. These ground build-order step 3, which is what finding 6 leaves
+open: the rule is gradient-learnable from clean labels, and what remains unmeasured
+is whether it is learnable from the decisions an analyst actually makes.
+
+- Gao, G., Taymanov, A., Salinas, E., Mineiro, P., & Misra, D. (2024). Aligning LLM
+  Agents by Learning Latent Preference from User Edits.
+  [arXiv:2404.15269](https://arxiv.org/abs/2404.15269) (v3 2024-11-23; the record
+  carries no journal reference)
+  **Grounds** that edit feedback is a studied supervision signal rather than an
+  invention of this design. Their PRELUDE setting is the same interaction shape --
+  the agent answers, the user optionally edits, and the edit carries preference
+  beyond correctness -- and their cost metric is accumulated edit distance.
+
+- Misra, D., Pacchiano, A., Chi, T.-C., & Gao, G. (2026). Principled Fine-tuning of
+  LLMs from User-Edits: A Medley of Preference, Supervision, and Reward.
+  [arXiv:2601.19055](https://arxiv.org/abs/2601.19055) (accepted at NeurIPS 2025 per
+  the arXiv comment field)
+  **Grounds** the supervision question directly, and sharpens how step 3 should be
+  framed. Their result is that user-edit data unifies three feedback types usually
+  studied apart -- preference, supervised label, and cost -- that learners built on
+  each carry *different* bounds depending on the user and data distribution, and
+  that ensembling across them beats any one alone. So "can the rule be learned from
+  analyst decisions" is not one question, and a negative result on one feedback type
+  would not settle it.
+
+**State the delta narrowly.** Both papers learn from free-text edits to a prose
+response. A Pharos analyst decision is accept, revise, or reject over a *verdict and
+its governed label*, which is a lower-bandwidth signal on a discrete output. The
+published bounds therefore bear on the shape of step 3 and do not transfer to it
+numerically.
+
 ### Privacy and adversaries
 
 - Abadi, M., Chu, A., Goodfellow, I., McMahan, H. B., Mironov, I., Talwar, K., &
@@ -343,11 +376,15 @@ Kept explicit so silence does not read as coverage.
   than leaving a reviewer to notice. What remains ours is the *consequence* --
   that without it a join over eight sources collapses federation -- which is
   measured, not asserted.
-- **Finding 3b's "scale does not help"** rests on five models at n=40 here and no
+- **Finding 3b's "scale does not help"** rests on six models at n=40 here and no
   external corroboration.
-- **Accept / revise / reject as a supervision signal** has no citation yet. The
-  nearest published framing is implicit-feedback learning from interaction logs,
-  which MIND makes available, but nothing has been read closely enough to cite.
+- ~~**Accept / revise / reject as a supervision signal** has no citation yet.~~
+  **Closed 2026-08-01.** The published framing is learning from *user edits*, and it
+  is now cited above: Gao et al. 2024 for the interaction shape, Misra et al. 2026
+  for the result that edit data unifies preference, supervision, and cost under
+  different bounds. What is still open is narrower and worth keeping separate: no
+  published work measures this signal over a **discrete governed label**, which is
+  the form a Pharos analyst decision takes.
 
 ## Adding an entry
 

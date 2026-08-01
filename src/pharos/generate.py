@@ -166,10 +166,10 @@ def _slot_values(rng: random.Random) -> dict[str, str]:
     naive features rather than under clever ones.
 
     Every non-time slot is a two-digit integer, so each rendering carries exactly
-    nine digits: five for the timestamp and two apiece for its other slots. This is
-    the third leak the shortcut gate caught. Slot widths had varied (a range in
-    hundreds of metres, a count in single digits), so which slots a fact used was a
-    digit signature, and the significant facts averaged 9.00 digits against 8.25
+    eight digits: four for the HHMM timestamp and two apiece for its other slots.
+    This is the third leak the shortcut gate caught. Slot widths had varied (a range
+    in hundreds of metres, a count in single digits), so which slots a fact used was
+    a digit signature, and the significant facts averaged 9.00 digits against 8.25
     for fillers. Uniform width removes the signature at the source.
     """
     hour = rng.randint(0, 23)

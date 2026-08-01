@@ -26,18 +26,20 @@ demanded an AUC at chance and could never have been satisfied. Ground truth here
 is defined by the presence of particular content, so plants necessarily carry the
 significant facts more often than background does, and any surface statistic of
 those facts therefore carries some information. Measured on this corpus: every
-report holds exactly two fact sentences of fourteen words and nine digits each,
-and plants still run 49.29 words against 49.63, because the fact *mix* differs by
-construction. The only way to reach a true chance AUC would be a vocabulary whose
+report holds exactly two fact sentences, each carrying exactly eight digits and all
+but a handful exactly fourteen words, and what survives is under a word of mean
+length (49.0 against 49.3 at seed 7, level at seed 101) because the fact *mix*
+differs by construction. The only way to reach a true chance AUC would be a vocabulary whose
 every rendering is a surface twin of every other on character count, punctuation,
 and capitalisation as well.
 
 So the useful questions are two, and the gate answers both.
 
 Is the leak real? Compare the observed statistic against a permutation null,
-where labels are shuffled so no relationship survives. On this corpus the null
-sits at 0.4986 with a standard deviation of 0.0216, which both confirms the gate
-is unbiased and gives the band an empirical basis rather than an assumed one.
+where labels are shuffled so no relationship survives. At 400 events the null sits
+between 0.485 and 0.505 with a standard deviation of 0.029 to 0.036 across seeds 1,
+7, and 101, which both confirms the gate is unbiased and gives the band an
+empirical basis rather than an assumed one.
 
 How large is it? The observed AUC is the **surface baseline**: the score a model
 can reach while reading nothing. Any downstream triage number has to be reported
