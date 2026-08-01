@@ -54,6 +54,7 @@ Python 3.12 to 3.14. Generation and gating need only `numpy` and `scikit-learn`.
 | Module | Responsibility |
 | --- | --- |
 | `pharos.labels` | The product lattice: sensitivity, compartments, capacity. Joins, dominance, type-based declassification |
+| `pharos.disclosure` | The release decision: release, needs-approval, or withhold, each with a reason |
 | `pharos.world` | The fictional maritime watch: channels, officer voices, and the fact vocabulary |
 | `pharos.scenario` | The world as configuration: load a different watch from TOML |
 | `pharos.generate` | Deterministic corpus generation, reproducible from `(seed, config)` |
@@ -98,6 +99,7 @@ count, kernel, and libc -- 0.6547, 0.6588, and 0.6675 on seeds 1, 7, and 101.
 | [Explorer](https://ajbarea.github.io/pharos/explorer/) | The corpus, the lattice, the gate, and the analyst grid, running with no backend |
 | [The label lattice](https://ajbarea.github.io/pharos/reference/label-lattice/) | Dominance, joins, and why compartments make this a lattice rather than a ladder |
 | [The shortcut gate](https://ajbarea.github.io/pharos/reference/gate/) | What the probe sees, the four rounds it rejected, and why it is a calibration instrument |
+| [The release decision](https://ajbarea.github.io/pharos/reference/disclosure/) | Three dispositions, reason codes, purpose limitation, and the audited case table |
 | [Corpus schema](https://ajbarea.github.io/pharos/reference/corpus-schema/) | The shape of an exported record |
 | [Choosing a model](https://ajbarea.github.io/pharos/models/) | The registry, what `verified` means, and sweeping every installed model |
 | [Releasing a corpus](https://ajbarea.github.io/pharos/releasing/) | Export, Croissant metadata, and provenance |
@@ -132,7 +134,7 @@ corrections, and the caveats.
 | 4 | Answerability and surface non-leakage pull against each other |
 | 5 | The rule is not learnable from examples in the prompt |
 | 6 | The rule *is* learnable by gradient descent, on clean labels |
-| 7 | Review is abundant; what it costs is correctness |
+| 7 | Review is abundant; what it costs is correctness, and the boundary needs an authority |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own

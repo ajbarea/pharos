@@ -47,6 +47,16 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from enum import StrEnum
 
+from pharos.disclosure import (
+    DROP_COMPARTMENTS,
+    KEEP_COMPARTMENTS,
+    ProhibitedUse,
+    Purpose,
+    Reason,
+    ReleaseDecision,
+    ReleasePolicy,
+    admit,
+)
 from pharos.labels import (
     Capacity,
     Compartment,
@@ -63,29 +73,40 @@ from pharos.world import SIGNIFICANT_PATTERN
 #: so a review runs against the boundary the triage numbers were measured at.
 DEFAULT_CEILING = Label(Sensitivity.INTERNAL, frozenset({Compartment.SENSOR}), Capacity.FREETEXT)
 
-#: The fail-closed default from finding 2: an eligible output drops to OPEN but
-#: keeps every compartment it inherited.
-KEEP_COMPARTMENTS = DeclassificationPolicy()
-
-#: The one policy ruling finding 2 showed the federation's viability turns on.
-DROP_COMPARTMENTS = DeclassificationPolicy(drop_compartments=True)
+# The two rulings are defined in `pharos.disclosure`, where release policy lives,
+# and re-exported here because configuring a reviewer needs both and importing one
+# name from each of two modules reads badly at the call site.
+__all__ = ["DROP_COMPARTMENTS", "KEEP_COMPARTMENTS"]
 
 
 class Action(StrEnum):
-    """What a reviewer did with a proposal."""
+    """What a reviewer did with a proposal.
+
+    `ESCALATE` was added after the first run of finding 7, which reported that no
+    fail-closed reviewer could make a blocked verdict releasable. That was true and
+    also an artifact: the reviewer had two doors because `shared_eligible` had two
+    values, so the option a real analyst reaches for first -- pass it to somebody
+    who can authorise it -- was not representable. `pharos.disclosure` supplies the
+    third disposition and this is its counterpart on the review side.
+    """
 
     ACCEPT = "accept"
     REVISE = "revise"
+    ESCALATE = "escalate"
     REJECT = "reject"
 
 
 class Ground(StrEnum):
-    """What a reviewer objected to.
+    """*Where* a reviewer objected: which of a proposal's two assertions failed.
 
-    Two grounds rather than one because a proposal is two assertions. A verdict can
-    be right while the label it would be released under is wrong, and the reverse,
-    and a learner that cannot tell those apart is being asked to fix an error it
-    cannot locate.
+    A verdict can be right while the label it would be released under is wrong, and
+    the reverse, and a learner that cannot tell those apart is being asked to fix an
+    error it cannot locate.
+
+    Paired with, and not replaced by, `disclosure.Reason`, which says *why*. The
+    locus and the cause are separately withholdable and cost the learner different
+    things: without the locus it cannot tell which head to update, and without the
+    cause it cannot tell a block worth escalating from one that will never lift.
     """
 
     VERDICT = "verdict"
@@ -116,8 +137,19 @@ class Decision:
     analyst: str
     action: Action
     grounds: frozenset[Ground] = frozenset()
+    reasons: frozenset[Reason] = frozenset()
     corrected_verdict: bool | None = None
     corrected_release: Label | None = None
+
+    @property
+    def is_escalation(self) -> bool:
+        """Whether this hands the release decision to an authority instead of settling it.
+
+        An escalation is not a correction and not a refusal. It is the reviewer
+        saying the block is a ruling somebody else is entitled to make, which is
+        exactly what a compartment shortfall is.
+        """
+        return self.action is Action.ESCALATE
 
     @property
     def is_supervised(self) -> bool:
@@ -137,6 +169,7 @@ class Decision:
             "analyst": self.analyst,
             "action": str(self.action),
             "grounds": sorted(str(g) for g in self.grounds),
+            "reasons": sorted(str(r) for r in self.reasons),
             "corrected_verdict": self.corrected_verdict,
             "corrected_release": _label_text(self.corrected_release),
         }
@@ -181,6 +214,14 @@ class AnalystPolicy:
     `release_ceiling` the aggregator they would release to. Finding 2 showed
     eligibility is bimodal on precisely this ruling, so two reviewers who agree on
     every verdict can still disagree on every release.
+
+    `escalates` is whether the reviewer will pass an authorizable block upward
+    rather than refuse it. It defaults to on because that is what an analyst does;
+    it is a parameter so the first run of finding 7 -- taken before this option
+    existed -- can be reproduced by turning it off.
+
+    `prohibited` and `purpose` carry the axis the lattice does not: which uses the
+    data's owners have ruled out, and which use this release is for.
     """
 
     name: str
@@ -190,6 +231,9 @@ class AnalystPolicy:
     slip_rate: float = 0.0
     revision_rate: float = 1.0
     names_grounds: bool = True
+    escalates: bool = True
+    prohibited: frozenset[ProhibitedUse] = frozenset()
+    purpose: Purpose = Purpose.FLEET_TRAINING
 
     def __post_init__(self) -> None:
         if not 1 <= self.escalation_threshold <= len(SIGNIFICANT_PATTERN):
@@ -212,13 +256,29 @@ class AnalystPolicy:
         held = len(evidence_shown(task)) >= self.escalation_threshold
         return not held if rng.random() < self.slip_rate else held
 
+    @property
+    def release_rules(self) -> ReleasePolicy:
+        """This reviewer's ruling, in the form `disclosure.decide` takes."""
+        return ReleasePolicy(declassification=self.release_policy, prohibited=self.prohibited)
+
     def release_for(self, task: TriageTask) -> Label:
         """The label this reviewer would release the verdict under."""
         return declassify(task.label, self.release_policy)
 
+    def judge_release(self, release: Label) -> ReleaseDecision:
+        """This reviewer's graded reading of an already-derived release label.
+
+        `admit`, not `decide`: the label handed to a reviewer has already been
+        through a declassification ruling, and running another one over it would
+        declassify it twice. Asking the disclosure module rather than testing
+        dominance here is what keeps the reviewer and the system on one policy, and
+        it is where the reason code comes from. `permits` is the boolean shorthand.
+        """
+        return admit(release, self.release_ceiling, self.release_rules, purpose=self.purpose)
+
     def permits(self, release: Label) -> bool:
         """Whether this reviewer would let `release` leave at their ceiling."""
-        return self.release_ceiling.dominates(release)
+        return self.judge_release(release).may_release
 
     def review(self, task: TriageTask, proposal: Proposal, *, seed: int) -> Decision:
         """Review one proposal.
@@ -227,17 +287,29 @@ class AnalystPolicy:
         reviewer who dislikes the verdict *and* the release does not silently drop
         the second objection. Whether the learner is told which is the
         `names_grounds` switch, applied last.
+
+        The order of the three outcomes matters. A reviewer who both disagrees on
+        the verdict and cannot authorise the release still revises: a correction the
+        reviewer *can* make is worth more than deferring both questions, and the
+        escalation survives in the corrected release, which the authority will see
+        anyway. Escalation is therefore reserved for the case where the release is
+        the only thing standing in the way and the reviewer is not entitled to
+        settle it.
         """
         rng = random.Random(f"{seed}:{self.name}:{task.task_id}")
 
         own_verdict = self.verdict_for(task, rng)
         own_release = self.release_for(task)
+        proposed = self.judge_release(proposal.release)
+        corrected = self.judge_release(own_release)
 
         grounds: set[Ground] = set()
+        reasons: set[Reason] = set()
         if own_verdict != proposal.verdict:
             grounds.add(Ground.VERDICT)
-        if not self.permits(proposal.release):
+        if not proposed.may_release:
             grounds.add(Ground.RELEASE)
+            reasons.add(proposed.reason)
 
         if not grounds:
             return Decision(
@@ -254,18 +326,43 @@ class AnalystPolicy:
         # or the experiment cannot attribute anything to either.
         revises = rng.random() < self.revision_rate
         disclosed = frozenset(grounds) if self.names_grounds else frozenset()
+        told = frozenset(reasons) if self.names_grounds else frozenset()
+
+        # The release is contested, the reviewer's own correction is itself blocked,
+        # and the block is one an authority is entitled to lift. Nothing this
+        # reviewer can write fixes it, so the decision goes up rather than back.
+        #
+        # Not gated on the verdict being agreed, and not on the revision draw. An
+        # escalation carries `corrected_verdict` like a revision does, so routing the
+        # release upward costs the learner no supervision -- an earlier version made
+        # revision win whenever both applied, which quietly dropped the release
+        # question for exactly the reviewer who disagreed with the model most often,
+        # and reintroduced the gap this action exists to close.
+        if self.escalates and Ground.RELEASE in grounds and corrected.is_authorizable:
+            return Decision(
+                task_id=task.task_id,
+                analyst=self.name,
+                action=Action.ESCALATE,
+                grounds=disclosed,
+                reasons=told,
+                corrected_verdict=own_verdict,
+                corrected_release=own_release,
+            )
+
         if not revises:
             return Decision(
                 task_id=task.task_id,
                 analyst=self.name,
                 action=Action.REJECT,
                 grounds=disclosed,
+                reasons=told,
             )
         return Decision(
             task_id=task.task_id,
             analyst=self.name,
             action=Action.REVISE,
             grounds=disclosed,
+            reasons=told,
             corrected_verdict=own_verdict,
             corrected_release=own_release,
         )
@@ -285,6 +382,12 @@ DEFAULT_ENSEMBLE: tuple[AnalystPolicy, ...] = (
     AnalystPolicy("inattentive", slip_rate=0.15),
     AnalystPolicy("terse", revision_rate=0.25),
     AnalystPolicy("unexplained", names_grounds=False),
+    # The reviewer finding 7 was first measured with, kept as a row rather than
+    # deleted. It is the control for the third door: everything else about it
+    # matches by-the-book, so the difference between the two lines is exactly what
+    # escalation buys, and the original claim stays checkable instead of becoming
+    # a story about a version that no longer exists.
+    AnalystPolicy("no-escalation", escalates=False),
 )
 
 
@@ -376,6 +479,7 @@ class SupervisionYield:
     n_decisions: int
     accepted: int
     revised: int
+    escalated: int
     rejected: int
     supervised: int
     located: int
@@ -386,9 +490,20 @@ class SupervisionYield:
         return self.supervised / self.n_decisions if self.n_decisions else 0.0
 
     @property
+    def escalated_share(self) -> float:
+        """Share of decisions handed to an authority rather than settled.
+
+        The cost of the third door. Every escalation is a release the reviewer
+        would not sign off alone, so this is the load a fleet puts on whoever
+        rules on compartments -- the number that decides whether the door is
+        usable in practice or merely available.
+        """
+        return self.escalated / self.n_decisions if self.n_decisions else 0.0
+
+    @property
     def located_share(self) -> float:
         """Share of objections whose grounds the learner was told."""
-        objections = self.revised + self.rejected
+        objections = self.revised + self.rejected + self.escalated
         return self.located / objections if objections else 0.0
 
     @property
@@ -406,7 +521,9 @@ class SupervisionYield:
             "n_decisions": self.n_decisions,
             "accepted": self.accepted,
             "revised": self.revised,
+            "escalated": self.escalated,
             "rejected": self.rejected,
+            "escalated_share": round(self.escalated_share, 4),
             "supervised": self.supervised,
             "supervised_share": round(self.supervised_share, 4),
             "located": self.located,
@@ -422,22 +539,28 @@ def supervision_yield(decisions: Iterable[Decision], truth: dict[str, bool]) -> 
     `truth` is the world's own significance per task, supplied by the caller rather
     than read from a decision, so a reviewer's confidence never enters its own score.
     """
-    n = accepted = revised = rejected = supervised = located = correct = 0
+    n = accepted = revised = escalated = rejected = supervised = located = correct = 0
     for decision in decisions:
         n += 1
         if decision.action is Action.ACCEPT:
             accepted += 1
         elif decision.action is Action.REVISE:
             revised += 1
+        elif decision.action is Action.ESCALATE:
+            escalated += 1
         else:
             rejected += 1
         if decision.action is not Action.ACCEPT and decision.grounds:
             located += 1
+        # An escalation carries a target like a revision does. The reviewer settled
+        # the verdict and deferred only the release, so withholding its verdict from
+        # the learner would understate the stream for a reason that has nothing to
+        # do with the verdict.
         if decision.corrected_verdict is not None:
             supervised += 1
             if decision.corrected_verdict == truth.get(decision.task_id):
                 correct += 1
-    return SupervisionYield(n, accepted, revised, rejected, supervised, located, correct)
+    return SupervisionYield(n, accepted, revised, escalated, rejected, supervised, located, correct)
 
 
 @dataclass(frozen=True, slots=True)
@@ -454,10 +577,31 @@ class ReleaseRecovery:
     objections: int
     corrections: int
     releasable_after: int
+    escalated: int
 
     @property
     def recovery_rate(self) -> float:
+        """Share of blocked proposals a reviewer's own correction sets free."""
         return self.releasable_after / self.objections if self.objections else 0.0
+
+    @property
+    def escalation_rate(self) -> float:
+        """Share of blocked proposals sent to someone entitled to rule on them."""
+        return self.escalated / self.objections if self.objections else 0.0
+
+    @property
+    def addressed_rate(self) -> float:
+        """Share of blocked proposals a review does *something* with.
+
+        The number that answers the question finding 7 first asked. Recovery alone
+        counts only what a reviewer can settle unilaterally, and reading that as
+        "review cannot move the boundary" mistakes a reviewer's authority for the
+        system's. A block routed to whoever may lift it has been addressed even
+        though the reviewer did not lift it.
+        """
+        return (
+            (self.releasable_after + self.escalated) / self.objections if self.objections else 0.0
+        )
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -465,6 +609,9 @@ class ReleaseRecovery:
             "corrections": self.corrections,
             "releasable_after": self.releasable_after,
             "recovery_rate": round(self.recovery_rate, 4),
+            "escalated": self.escalated,
+            "escalation_rate": round(self.escalation_rate, 4),
+            "addressed_rate": round(self.addressed_rate, 4),
         }
 
 
@@ -481,18 +628,20 @@ def release_recovery(
     disclose. Reading it off `grounds` instead would silently exclude every reviewer
     who does not name grounds, and those are the reviewers the comparison is about.
     """
-    objections = corrections = releasable = 0
+    objections = corrections = releasable = escalated = 0
     for decision in decisions:
         proposal = proposals.get(decision.task_id)
         if proposal is None or ceiling.dominates(proposal.release):
             continue
         objections += 1
+        if decision.is_escalation:
+            escalated += 1
         if decision.corrected_release is None:
             continue
         corrections += 1
         if ceiling.dominates(decision.corrected_release):
             releasable += 1
-    return ReleaseRecovery(objections, corrections, releasable)
+    return ReleaseRecovery(objections, corrections, releasable, escalated)
 
 
 def with_name(policy: AnalystPolicy, name: str) -> AnalystPolicy:

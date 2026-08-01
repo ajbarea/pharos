@@ -320,35 +320,36 @@ learning from an analyst's accept, revise, and reject decisions instead. This
 measures what that substitution costs, at the boundary rather than only on the
 verdict.
 
-Seven reviewers, each a parameter grid entry in `pharos.analyst` differing from the
+Eight reviewers, each a parameter grid entry in `pharos.analyst` differing from the
 by-the-book reviewer on exactly one axis, review the 40 triage proposals each of the
-six sweep models actually produced -- 1,680 decisions in all. The proposals are
+six sweep models actually produced -- 1,920 decisions in all. The proposals are
 real; the reviewers are not, and the caveat at the bottom of this section is the
 load-bearing one.
 
-| Reviewer | Differs by | Targets | Correct | Located | Release |
-| --- | --- | --- | --- | --- | --- |
-| by-the-book | (control) | 1.00 | 1.000 | 1.00 | 0.00 |
-| two-of-three | threshold 2 | 1.00 | **0.575** | 1.00 | 0.00 |
-| any-one | threshold 1 | 1.00 | **0.425** | 1.00 | 0.00 |
-| inattentive | slips 15% | 1.00 | 0.875 | 1.00 | 0.00 |
-| terse | revises 25% | 0.50-0.55 | 1.000 | 1.00 | 0.00 |
-| unexplained | names no grounds | 1.00 | 1.000 | **0.00** | 0.00 |
-| releaser | sheds compartments | 1.00 | 1.000 | 1.00 | **1.00** |
+| Reviewer | Differs by | Targets | Correct | Escalated | Recovered | Addressed |
+| --- | --- | --- | --- | --- | --- | --- |
+| by-the-book | (control) | 1.00 | 1.000 | 0.525 | 0.00 | **1.00** |
+| two-of-three | threshold 2 | 1.00 | **0.575** | 0.525 | 0.00 | 1.00 |
+| any-one | threshold 1 | 1.00 | **0.425** | 0.525 | 0.00 | 1.00 |
+| inattentive | slips 15% | 1.00 | 0.875 | 0.525 | 0.00 | 1.00 |
+| terse | revises 25% | 0.83-0.88 | 1.000 | 0.525 | 0.00 | 1.00 |
+| unexplained | names no grounds | 1.00 | 1.000 | 0.525 | 0.00 | 1.00 |
+| releaser | sheds compartments | 1.00 | 1.000 | 0.00 | **1.00** | 1.00 |
+| no-escalation | will not escalate | 1.00 | 1.000 | 0.00 | 0.00 | **0.00** |
 
 *Targets*: share of decisions handing the learner a verdict to train on. *Correct*:
-share of those targets matching the world. *Located*: share of objections saying
-which of verdict or release was wrong. *Release*: share of the 21 unreleasable
-proposals whose correction clears the ceiling. The by-the-book row is a control, not
-a result: its threshold is the world's own rule and it never slips, so 1.000 is what
-it is defined to produce.
+share of those targets matching the world. *Escalated*: share of decisions passed to
+an authority rather than settled. *Recovered*: share of the 21 unreleasable proposals
+whose correction clears the ceiling unaided. *Addressed*: share either recovered or
+escalated. The by-the-book row is a control, not a result: its threshold is the
+world's own rule and it never slips, so 1.000 is what it is defined to produce.
 
 **"Far less abundant" was wrong, and this project wrote it.** The README and finding
 6 both described analyst decisions as scarcer than labels. For a binary verdict they
-are not: an acceptance is a target, a revision is a target, and only a rejection
-without a correction costs anything. A reviewer who revises just a quarter of the
-time still supplies a usable target on half of all decisions. Scarcity is the wrong
-worry.
+are not: an acceptance is a target, a revision is a target, an escalation carries one
+too, and only a bare rejection costs anything. A reviewer who revises just a quarter
+of the time still supplies a usable target on 0.83 to 0.88 of decisions. Scarcity is
+the wrong worry.
 
 **The targets are the reviewer's opinion, not the model's.** Target accuracy is
 identical across all six models -- not close, identical, because a corrected verdict
@@ -376,18 +377,43 @@ one failed asks the learner to fix an error it cannot locate. That axis exists
 because the output is governed; a preference over ungoverned text has nothing
 corresponding to it.
 
-**Review cannot unblock the disclosure boundary.** Of the 40 proposals, 21 carry a
-compartment the aggregator is not cleared for and cannot be released at all. Every
-keep-compartments reviewer objects to all 21 and **none** of their corrections clear
-the ceiling. The reviewer who sheds compartments objects to the same 21 and clears
-all of them. Same objection, incompatible corrections, and no amount of review
-resolves it -- which is finding 2's bimodality reappearing where a fleet would
-actually meet it. The compartment ruling is a policy act, and review is the wrong
-instrument for it.
+**The disclosure boundary moves, but only by an authority, and the toll is half the
+stream.** This paragraph replaces one that was wrong, and the correction is the most
+useful thing in this finding.
 
-Ensemble agreement over the accept/revise/reject trichotomy is Fleiss' kappa 0.454
-to 0.504 across the six models. That number is a property of the grid this project
+Of the 40 proposals, 21 carry a compartment the aggregator is not cleared for. No
+keep-compartments reviewer's own correction clears the ceiling -- recovery is
+**0.00**, exactly as first measured, and that part reproduces. The first version
+concluded from it that *review cannot move the disclosure boundary*. That conclusion
+was an artifact of the instrument: `shared_eligible` returned a boolean, so a
+reviewer had two doors, and the option a real analyst reaches for first was not
+representable.
+
+Given a third disposition, all 21 are **authorizable**: the block is a compartment
+shortfall, which finding 2 had already identified as a policy act rather than an
+engineering problem, and a policy act is what an authority exists to perform. Every
+escalating reviewer addresses **1.00** of the blocked set. The `no-escalation` row
+differs from `by-the-book` on that one parameter and addresses **0.00**, so the whole
+of the original claim sits in that parameter.
+
+What replaces it is a cost rather than an impossibility. **21 of 40 decisions become
+escalations** -- 52.5% of the review stream lands on whoever rules on compartments,
+for every reviewer applying the fail-closed default. The boundary is movable; what a
+fleet has to budget for is the authority's queue. The reviewer who sheds compartments
+escalates nothing and recovers everything, which is the same bimodality finding 2
+reported, now with its price visible on both sides.
+
+Ensemble agreement over the four actions is Fleiss' kappa 0.435 to 0.450 across the
+six models. That number is a property of the grid this project
 chose and should not be read as an estimate of anything.
+
+!!! warning "Corrected 2026-08-01: the release claim"
+    First published as *review cannot unblock the disclosure boundary*, on a run
+    where `shared_eligible` returned a boolean and a reviewer therefore had two
+    doors. Recovery of 0.00 reproduces exactly; the conclusion drawn from it does
+    not. With a third disposition every blocked proposal is addressed, and the real
+    result is the 52.5% escalation load that replaces the impossibility. The
+    `no-escalation` row reproduces the original run and is kept for that purpose.
 
 !!! warning "The reviewers are parameters, not people"
     A simulated analyst here is a decision procedure with named parameters, chosen so

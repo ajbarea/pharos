@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "5c8ac6f72741",
-    "git_dirty": false,
-    "generated_at": "2026-08-01T09:40:31+00:00",
+    "git_commit": "1ebff4b36f3f",
+    "git_dirty": true,
+    "generated_at": "2026-08-01T15:37:05+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
@@ -14,7 +14,7 @@
   "n_tasks": 40,
   "ceiling": "INTERNAL[SENSOR]",
   "validity": {
-    "n": 280,
+    "n": 320,
     "quotable": true,
     "concerns": []
   },
@@ -23,10 +23,10 @@
       "n_proposals": 40,
       "agreement": {
         "n_items": 40,
-        "n_raters": 7,
-        "observed_agreement": 0.7417,
-        "expected_agreement": 0.5067,
-        "fleiss_kappa": 0.4763
+        "n_raters": 8,
+        "observed_agreement": 0.6259,
+        "expected_agreement": 0.3287,
+        "fleiss_kappa": 0.4427
       },
       "analysts": [
         {
@@ -36,10 +36,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 9,
-          "revised": 31,
+          "revised": 10,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 31,
@@ -50,7 +53,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -60,10 +66,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 17,
-          "revised": 23,
+          "revised": 2,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 23,
@@ -74,7 +83,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -84,10 +96,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 18,
-          "revised": 22,
+          "revised": 1,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 22,
@@ -98,7 +113,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -108,10 +126,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 9,
           "revised": 31,
+          "escalated": 0,
           "rejected": 0,
+          "escalated_share": 0.0,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 31,
@@ -122,7 +143,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 21,
-            "recovery_rate": 1.0
+            "recovery_rate": 1.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -132,10 +156,13 @@
           "slip_rate": 0.15,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 8,
-          "revised": 32,
+          "revised": 11,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 32,
@@ -146,7 +173,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -156,21 +186,27 @@
           "slip_rate": 0.0,
           "revision_rate": 0.25,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 9,
-          "revised": 12,
-          "rejected": 19,
-          "supervised": 21,
-          "supervised_share": 0.525,
+          "revised": 4,
+          "escalated": 21,
+          "rejected": 6,
+          "escalated_share": 0.525,
+          "supervised": 34,
+          "supervised_share": 0.85,
           "located": 31,
           "located_share": 1.0,
-          "correct_targets": 21,
+          "correct_targets": 34,
           "target_accuracy": 1.0,
           "release": {
             "objections": 21,
-            "corrections": 8,
+            "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -180,10 +216,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": false,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 9,
-          "revised": 31,
+          "revised": 10,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 0,
@@ -194,7 +233,40 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
+          }
+        },
+        {
+          "analyst": "no-escalation",
+          "escalation_threshold": 3,
+          "drop_compartments": false,
+          "slip_rate": 0.0,
+          "revision_rate": 1.0,
+          "names_grounds": true,
+          "escalates": false,
+          "n_decisions": 40,
+          "accepted": 9,
+          "revised": 31,
+          "escalated": 0,
+          "rejected": 0,
+          "escalated_share": 0.0,
+          "supervised": 40,
+          "supervised_share": 1.0,
+          "located": 31,
+          "located_share": 1.0,
+          "correct_targets": 40,
+          "target_accuracy": 1.0,
+          "release": {
+            "objections": 21,
+            "corrections": 21,
+            "releasable_after": 0,
+            "recovery_rate": 0.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 0.0
           }
         }
       ]
@@ -203,10 +275,10 @@
       "n_proposals": 40,
       "agreement": {
         "n_items": 40,
-        "n_raters": 7,
-        "observed_agreement": 0.7476,
-        "expected_agreement": 0.4983,
-        "fleiss_kappa": 0.497
+        "n_raters": 8,
+        "observed_agreement": 0.6312,
+        "expected_agreement": 0.3297,
+        "fleiss_kappa": 0.4499
       },
       "analysts": [
         {
@@ -216,10 +288,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 10,
-          "revised": 30,
+          "revised": 9,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 30,
@@ -230,7 +305,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -240,10 +318,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 18,
-          "revised": 22,
+          "revised": 1,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 22,
@@ -254,7 +335,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -264,10 +348,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 17,
-          "revised": 23,
+          "revised": 2,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 23,
@@ -278,7 +365,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -288,10 +378,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 10,
           "revised": 30,
+          "escalated": 0,
           "rejected": 0,
+          "escalated_share": 0.0,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 30,
@@ -302,7 +395,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 21,
-            "recovery_rate": 1.0
+            "recovery_rate": 1.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -312,10 +408,13 @@
           "slip_rate": 0.15,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 9,
-          "revised": 31,
+          "revised": 10,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 31,
@@ -326,7 +425,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -336,21 +438,27 @@
           "slip_rate": 0.0,
           "revision_rate": 0.25,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 10,
-          "revised": 12,
-          "rejected": 18,
-          "supervised": 22,
-          "supervised_share": 0.55,
+          "revised": 4,
+          "escalated": 21,
+          "rejected": 5,
+          "escalated_share": 0.525,
+          "supervised": 35,
+          "supervised_share": 0.875,
           "located": 30,
           "located_share": 1.0,
-          "correct_targets": 22,
+          "correct_targets": 35,
           "target_accuracy": 1.0,
           "release": {
             "objections": 21,
-            "corrections": 8,
+            "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -360,10 +468,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": false,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 10,
-          "revised": 30,
+          "revised": 9,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 0,
@@ -374,7 +485,40 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
+          }
+        },
+        {
+          "analyst": "no-escalation",
+          "escalation_threshold": 3,
+          "drop_compartments": false,
+          "slip_rate": 0.0,
+          "revision_rate": 1.0,
+          "names_grounds": true,
+          "escalates": false,
+          "n_decisions": 40,
+          "accepted": 10,
+          "revised": 30,
+          "escalated": 0,
+          "rejected": 0,
+          "escalated_share": 0.0,
+          "supervised": 40,
+          "supervised_share": 1.0,
+          "located": 30,
+          "located_share": 1.0,
+          "correct_targets": 40,
+          "target_accuracy": 1.0,
+          "release": {
+            "objections": 21,
+            "corrections": 21,
+            "releasable_after": 0,
+            "recovery_rate": 0.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 0.0
           }
         }
       ]
@@ -383,10 +527,10 @@
       "n_proposals": 40,
       "agreement": {
         "n_items": 40,
-        "n_raters": 7,
-        "observed_agreement": 0.7357,
-        "expected_agreement": 0.5162,
-        "fleiss_kappa": 0.4537
+        "n_raters": 8,
+        "observed_agreement": 0.6205,
+        "expected_agreement": 0.3288,
+        "fleiss_kappa": 0.4346
       },
       "analysts": [
         {
@@ -396,10 +540,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 8,
-          "revised": 32,
+          "revised": 11,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 32,
@@ -410,7 +557,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -420,10 +570,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 16,
-          "revised": 24,
+          "revised": 3,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 24,
@@ -434,7 +587,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -444,10 +600,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 19,
-          "revised": 21,
+          "revised": 0,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 21,
@@ -458,7 +617,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -468,10 +630,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 8,
           "revised": 32,
+          "escalated": 0,
           "rejected": 0,
+          "escalated_share": 0.0,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 32,
@@ -482,7 +647,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 21,
-            "recovery_rate": 1.0
+            "recovery_rate": 1.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -492,10 +660,13 @@
           "slip_rate": 0.15,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 7,
-          "revised": 33,
+          "revised": 12,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 33,
@@ -506,7 +677,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -516,21 +690,27 @@
           "slip_rate": 0.0,
           "revision_rate": 0.25,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 8,
-          "revised": 12,
-          "rejected": 20,
-          "supervised": 20,
-          "supervised_share": 0.5,
+          "revised": 4,
+          "escalated": 21,
+          "rejected": 7,
+          "escalated_share": 0.525,
+          "supervised": 33,
+          "supervised_share": 0.825,
           "located": 32,
           "located_share": 1.0,
-          "correct_targets": 20,
+          "correct_targets": 33,
           "target_accuracy": 1.0,
           "release": {
             "objections": 21,
-            "corrections": 8,
+            "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -540,10 +720,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": false,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 8,
-          "revised": 32,
+          "revised": 11,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 0,
@@ -554,7 +737,40 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
+          }
+        },
+        {
+          "analyst": "no-escalation",
+          "escalation_threshold": 3,
+          "drop_compartments": false,
+          "slip_rate": 0.0,
+          "revision_rate": 1.0,
+          "names_grounds": true,
+          "escalates": false,
+          "n_decisions": 40,
+          "accepted": 8,
+          "revised": 32,
+          "escalated": 0,
+          "rejected": 0,
+          "escalated_share": 0.0,
+          "supervised": 40,
+          "supervised_share": 1.0,
+          "located": 32,
+          "located_share": 1.0,
+          "correct_targets": 40,
+          "target_accuracy": 1.0,
+          "release": {
+            "objections": 21,
+            "corrections": 21,
+            "releasable_after": 0,
+            "recovery_rate": 0.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 0.0
           }
         }
       ]
@@ -563,10 +779,10 @@
       "n_proposals": 40,
       "agreement": {
         "n_items": 40,
-        "n_raters": 7,
-        "observed_agreement": 0.7476,
-        "expected_agreement": 0.4913,
-        "fleiss_kappa": 0.5039
+        "n_raters": 8,
+        "observed_agreement": 0.6312,
+        "expected_agreement": 0.3299,
+        "fleiss_kappa": 0.4497
       },
       "analysts": [
         {
@@ -576,10 +792,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 11,
-          "revised": 29,
+          "revised": 8,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 29,
@@ -590,7 +809,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -600,10 +822,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 17,
-          "revised": 23,
+          "revised": 2,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 23,
@@ -614,7 +839,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -624,10 +852,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 16,
-          "revised": 24,
+          "revised": 3,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 24,
@@ -638,7 +869,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -648,10 +882,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 11,
           "revised": 29,
+          "escalated": 0,
           "rejected": 0,
+          "escalated_share": 0.0,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 29,
@@ -662,7 +899,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 21,
-            "recovery_rate": 1.0
+            "recovery_rate": 1.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -672,10 +912,13 @@
           "slip_rate": 0.15,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 10,
-          "revised": 30,
+          "revised": 9,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 30,
@@ -686,7 +929,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -696,21 +942,27 @@
           "slip_rate": 0.0,
           "revision_rate": 0.25,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 11,
-          "revised": 11,
-          "rejected": 18,
-          "supervised": 22,
-          "supervised_share": 0.55,
+          "revised": 3,
+          "escalated": 21,
+          "rejected": 5,
+          "escalated_share": 0.525,
+          "supervised": 35,
+          "supervised_share": 0.875,
           "located": 29,
           "located_share": 1.0,
-          "correct_targets": 22,
+          "correct_targets": 35,
           "target_accuracy": 1.0,
           "release": {
             "objections": 21,
-            "corrections": 8,
+            "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -720,10 +972,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": false,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 11,
-          "revised": 29,
+          "revised": 8,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 0,
@@ -734,7 +989,40 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
+          }
+        },
+        {
+          "analyst": "no-escalation",
+          "escalation_threshold": 3,
+          "drop_compartments": false,
+          "slip_rate": 0.0,
+          "revision_rate": 1.0,
+          "names_grounds": true,
+          "escalates": false,
+          "n_decisions": 40,
+          "accepted": 11,
+          "revised": 29,
+          "escalated": 0,
+          "rejected": 0,
+          "escalated_share": 0.0,
+          "supervised": 40,
+          "supervised_share": 1.0,
+          "located": 29,
+          "located_share": 1.0,
+          "correct_targets": 40,
+          "target_accuracy": 1.0,
+          "release": {
+            "objections": 21,
+            "corrections": 21,
+            "releasable_after": 0,
+            "recovery_rate": 0.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 0.0
           }
         }
       ]
@@ -743,10 +1031,10 @@
       "n_proposals": 40,
       "agreement": {
         "n_items": 40,
-        "n_raters": 7,
-        "observed_agreement": 0.7452,
-        "expected_agreement": 0.5083,
-        "fleiss_kappa": 0.4819
+        "n_raters": 8,
+        "observed_agreement": 0.6295,
+        "expected_agreement": 0.3301,
+        "fleiss_kappa": 0.4469
       },
       "analysts": [
         {
@@ -756,10 +1044,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 10,
-          "revised": 30,
+          "revised": 9,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 30,
@@ -770,7 +1061,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -780,10 +1074,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 16,
-          "revised": 24,
+          "revised": 3,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 24,
@@ -794,7 +1091,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -804,10 +1104,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 17,
-          "revised": 23,
+          "revised": 2,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 23,
@@ -818,7 +1121,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -828,10 +1134,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 10,
           "revised": 30,
+          "escalated": 0,
           "rejected": 0,
+          "escalated_share": 0.0,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 30,
@@ -842,7 +1151,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 21,
-            "recovery_rate": 1.0
+            "recovery_rate": 1.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -852,10 +1164,13 @@
           "slip_rate": 0.15,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 7,
-          "revised": 33,
+          "revised": 12,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 33,
@@ -866,7 +1181,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -876,21 +1194,27 @@
           "slip_rate": 0.0,
           "revision_rate": 0.25,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 10,
-          "revised": 12,
-          "rejected": 18,
-          "supervised": 22,
-          "supervised_share": 0.55,
+          "revised": 4,
+          "escalated": 21,
+          "rejected": 5,
+          "escalated_share": 0.525,
+          "supervised": 35,
+          "supervised_share": 0.875,
           "located": 30,
           "located_share": 1.0,
-          "correct_targets": 22,
+          "correct_targets": 35,
           "target_accuracy": 1.0,
           "release": {
             "objections": 21,
-            "corrections": 8,
+            "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -900,10 +1224,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": false,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 10,
-          "revised": 30,
+          "revised": 9,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 0,
@@ -914,7 +1241,40 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
+          }
+        },
+        {
+          "analyst": "no-escalation",
+          "escalation_threshold": 3,
+          "drop_compartments": false,
+          "slip_rate": 0.0,
+          "revision_rate": 1.0,
+          "names_grounds": true,
+          "escalates": false,
+          "n_decisions": 40,
+          "accepted": 10,
+          "revised": 30,
+          "escalated": 0,
+          "rejected": 0,
+          "escalated_share": 0.0,
+          "supervised": 40,
+          "supervised_share": 1.0,
+          "located": 30,
+          "located_share": 1.0,
+          "correct_targets": 40,
+          "target_accuracy": 1.0,
+          "release": {
+            "objections": 21,
+            "corrections": 21,
+            "releasable_after": 0,
+            "recovery_rate": 0.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 0.0
           }
         }
       ]
@@ -923,10 +1283,10 @@
       "n_proposals": 40,
       "agreement": {
         "n_items": 40,
-        "n_raters": 7,
-        "observed_agreement": 0.7357,
-        "expected_agreement": 0.5162,
-        "fleiss_kappa": 0.4537
+        "n_raters": 8,
+        "observed_agreement": 0.6205,
+        "expected_agreement": 0.3288,
+        "fleiss_kappa": 0.4346
       },
       "analysts": [
         {
@@ -936,10 +1296,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 8,
-          "revised": 32,
+          "revised": 11,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 32,
@@ -950,7 +1313,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -960,10 +1326,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 16,
-          "revised": 24,
+          "revised": 3,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 24,
@@ -974,7 +1343,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -984,10 +1356,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 19,
-          "revised": 21,
+          "revised": 0,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 21,
@@ -998,7 +1373,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -1008,10 +1386,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 8,
           "revised": 32,
+          "escalated": 0,
           "rejected": 0,
+          "escalated_share": 0.0,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 32,
@@ -1022,7 +1403,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 21,
-            "recovery_rate": 1.0
+            "recovery_rate": 1.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -1032,10 +1416,13 @@
           "slip_rate": 0.15,
           "revision_rate": 1.0,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 7,
-          "revised": 33,
+          "revised": 12,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 33,
@@ -1046,7 +1433,10 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -1056,21 +1446,27 @@
           "slip_rate": 0.0,
           "revision_rate": 0.25,
           "names_grounds": true,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 8,
-          "revised": 12,
-          "rejected": 20,
-          "supervised": 20,
-          "supervised_share": 0.5,
+          "revised": 4,
+          "escalated": 21,
+          "rejected": 7,
+          "escalated_share": 0.525,
+          "supervised": 33,
+          "supervised_share": 0.825,
           "located": 32,
           "located_share": 1.0,
-          "correct_targets": 20,
+          "correct_targets": 33,
           "target_accuracy": 1.0,
           "release": {
             "objections": 21,
-            "corrections": 8,
+            "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
           }
         },
         {
@@ -1080,10 +1476,13 @@
           "slip_rate": 0.0,
           "revision_rate": 1.0,
           "names_grounds": false,
+          "escalates": true,
           "n_decisions": 40,
           "accepted": 8,
-          "revised": 32,
+          "revised": 11,
+          "escalated": 21,
           "rejected": 0,
+          "escalated_share": 0.525,
           "supervised": 40,
           "supervised_share": 1.0,
           "located": 0,
@@ -1094,7 +1493,40 @@
             "objections": 21,
             "corrections": 21,
             "releasable_after": 0,
-            "recovery_rate": 0.0
+            "recovery_rate": 0.0,
+            "escalated": 21,
+            "escalation_rate": 1.0,
+            "addressed_rate": 1.0
+          }
+        },
+        {
+          "analyst": "no-escalation",
+          "escalation_threshold": 3,
+          "drop_compartments": false,
+          "slip_rate": 0.0,
+          "revision_rate": 1.0,
+          "names_grounds": true,
+          "escalates": false,
+          "n_decisions": 40,
+          "accepted": 8,
+          "revised": 32,
+          "escalated": 0,
+          "rejected": 0,
+          "escalated_share": 0.0,
+          "supervised": 40,
+          "supervised_share": 1.0,
+          "located": 32,
+          "located_share": 1.0,
+          "correct_targets": 40,
+          "target_accuracy": 1.0,
+          "release": {
+            "objections": 21,
+            "corrections": 21,
+            "releasable_after": 0,
+            "recovery_rate": 0.0,
+            "escalated": 0,
+            "escalation_rate": 0.0,
+            "addressed_rate": 0.0
           }
         }
       ]

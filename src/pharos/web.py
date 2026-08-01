@@ -36,6 +36,7 @@ from pharos.analyst import (
     evidence_shown,
 )
 from pharos.attribute import DEFAULT_ENDPOINT, generate_text
+from pharos.disclosure import admit
 from pharos.gate import run_gate
 from pharos.generate import GeneratorConfig, generate
 from pharos.labels import Capacity, Compartment, Label, Sensitivity, declassify, join
@@ -242,12 +243,22 @@ def create_app():
                 {
                     "analyst": policy.name,
                     "escalation_threshold": policy.escalation_threshold,
+                    "escalates": policy.escalates,
                     "action": str(decision.action),
                     "grounds": sorted(str(g) for g in decision.grounds),
+                    "reasons": sorted(str(r) for r in decision.reasons),
                     "corrected_verdict": decision.corrected_verdict,
                     "corrected_release": None if corrected is None else _label_payload(corrected),
                     "correction_releasable": (
                         None if corrected is None else DEFAULT_CEILING.dominates(corrected)
+                    ),
+                    # What the reviewer's own correction would meet at the ceiling.
+                    # A correction that is merely blocked and one that nobody may
+                    # ever authorise look identical without this.
+                    "correction_disposition": (
+                        None
+                        if corrected is None
+                        else str(policy.judge_release(corrected).disposition)
                     ),
                 }
             )
@@ -262,6 +273,7 @@ def create_app():
             "proposed_release": _label_payload(release),
             "ceiling": _label_payload(DEFAULT_CEILING),
             "proposal_releasable": DEFAULT_CEILING.dominates(release),
+            "proposal_decision": admit(release, DEFAULT_CEILING).as_dict(),
             "reviewers": rows,
             "note": (
                 "Reviewers are decision procedures with named parameters, not "

@@ -13,6 +13,7 @@ nav = [
   { "Reference" = [
       { "Label lattice" = "reference/label-lattice.md" },
       { "The shortcut gate" = "reference/gate.md" },
+      { "The release decision" = "reference/disclosure.md" },
       { "Corpus schema" = "reference/corpus-schema.md" },
   ]},
   { "Choosing a model" = "models.md" },

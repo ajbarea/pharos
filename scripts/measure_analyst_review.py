@@ -118,6 +118,7 @@ class Row:
             "slip_rate": self.policy.slip_rate,
             "revision_rate": self.policy.revision_rate,
             "names_grounds": self.policy.names_grounds,
+            "escalates": self.policy.escalates,
             **self.yield_.as_dict(),
             "release": self.release.as_dict(),
         }
@@ -162,15 +163,15 @@ def measure(
 
 def _print_table(model_key: str, review: ModelReview) -> None:
     print(f"\n{model_key}  ({review.n_proposals} proposals)")
-    header = f"  {'analyst':14} {'acc':>4} {'rev':>4} {'rej':>4}"
-    print(f"{header} {'targets':>8} {'correct':>8} {'located':>8} {'release':>8}")
+    header = f"  {'analyst':14} {'acc':>4} {'rev':>4} {'esc':>4} {'rej':>4}"
+    print(f"{header} {'targets':>8} {'correct':>8} {'recover':>8} {'addressed':>10}")
     for row in review.rows:
         counts = row.yield_
         print(
             f"  {row.policy.name:14} {counts.accepted:>4} {counts.revised:>4} "
-            f"{counts.rejected:>4} {counts.supervised_share:>8.2f} "
-            f"{counts.target_accuracy:>8.2f} {counts.located_share:>8.2f} "
-            f"{row.release.recovery_rate:>8.2f}"
+            f"{counts.escalated:>4} {counts.rejected:>4} {counts.supervised_share:>8.2f} "
+            f"{counts.target_accuracy:>8.2f} {row.release.recovery_rate:>8.2f} "
+            f"{row.release.addressed_rate:>10.2f}"
         )
 
 
@@ -209,8 +210,8 @@ def main() -> int:
     print("\n" + "=" * 74)
     print("targets   share of decisions handing the learner a verdict to train on")
     print("correct   share of those targets that match the world")
-    print("located   share of objections that say which of verdict/release was wrong")
-    print("release   share of unreleasable proposals whose correction clears the ceiling")
+    print("recover   share of unreleasable proposals whose correction clears the ceiling")
+    print("addressed share also counting the ones escalated to an authority")
     print("=" * 74)
 
     if args.out:

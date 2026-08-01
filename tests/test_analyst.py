@@ -135,11 +135,26 @@ def test_unexplained_objections_disclose_nothing_but_decide_the_same(tasks, prop
 
 
 def test_never_revising_leaves_no_correction(tasks, proposals):
-    policy = AnalystPolicy("stonewall", revision_rate=0.0)
+    """With escalation off, a reviewer who never revises supplies nothing at all."""
+    policy = AnalystPolicy("stonewall", revision_rate=0.0, escalates=False)
     decisions = [policy.review(t, proposals[t.task_id], seed=5) for t in tasks]
     assert all(d.action is Action.REJECT for d in decisions)
     assert all(d.corrected_verdict is None for d in decisions)
     assert all(not d.is_supervised for d in decisions)
+
+
+def test_escalation_survives_a_reviewer_who_never_revises(tasks, proposals):
+    """Routing a case upward is not the same work as writing a correction.
+
+    A reviewer who cannot be bothered to revise can still say "not mine to
+    decide", so the revision rate must not gate escalation. Gating it there was
+    what made the third door look less useful than it is.
+    """
+    policy = AnalystPolicy("terse", revision_rate=0.0)
+    decisions = [policy.review(t, proposals[t.task_id], seed=5) for t in tasks]
+    escalations = [d for d in decisions if d.is_escalation]
+    assert escalations, "some proposal must be blocked and authorizable"
+    assert all(d.corrected_verdict is not None for d in escalations)
 
 
 def test_the_revision_draw_does_not_shift_the_verdict_draw(tasks, proposals):
@@ -259,8 +274,16 @@ def test_agreement_falls_when_thresholds_differ(tasks, proposals):
 
 
 def test_unanimity_reports_kappa_zero_rather_than_perfect(tasks, proposals):
-    """Every rater in one category leaves the chance term at 1 and kappa undefined."""
-    twins = (AnalystPolicy("a"), AnalystPolicy("b"))
+    """Every rater in one category leaves the chance term at 1 and kappa undefined.
+
+    Forced by giving both raters a releasable ceiling, so no proposal is contested
+    on release and every decision is the same category.
+    """
+    open_ceiling = Label(Sensitivity.RESTRICTED, frozenset(Compartment), Capacity.FREETEXT)
+    twins = (
+        AnalystPolicy("a", release_ceiling=open_ceiling),
+        AnalystPolicy("b", release_ceiling=open_ceiling),
+    )
     report = action_agreement(review_all(twins, tasks, proposals, seed=6))
     assert report.expected == 1.0
     assert report.kappa == 0.0
@@ -287,6 +310,7 @@ def test_default_ensemble_moves_one_axis_at_a_time():
         "slip_rate",
         "revision_rate",
         "names_grounds",
+        "escalates",
     )
     for policy in DEFAULT_ENSEMBLE[1:]:
         differing = [f for f in fields if getattr(policy, f) != getattr(baseline, f)]

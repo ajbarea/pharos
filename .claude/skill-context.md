@@ -93,12 +93,17 @@ belong here.
 
 ## slop_ground_truth
 
-- `src/pharos/gate.py`, `src/pharos/scenario.py`, `src/pharos/validity.py`, and
-  `src/pharos/analyst.py` carry long explanatory comments **on purpose**. Each
-  documents a leak the gate caught, an
+- `src/pharos/gate.py`, `src/pharos/scenario.py`, `src/pharos/validity.py`,
+  `src/pharos/analyst.py`, and `src/pharos/disclosure.py` carry long explanatory
+  comments **on purpose**. Each documents a leak the gate caught, an
   attack the loader refuses, a measurement that had to be retracted, or the reason a
-  simulated reviewer is a parameter grid rather than a prompted persona. They are the
+  simulated reviewer is a parameter grid rather than a prompted persona, or why a
+  compartment shortfall escalates while a level shortfall refuses. They are the
   reason a constraint exists and must not be trimmed as verbosity.
+- `src/pharos/cases/disclosure.json` is an **audit artifact**, not a fixture. Each
+  case carries a written pass criterion and a `verified` flag, and tests assert both
+  are present and that every reason code is exercised. Adding a reason code without
+  a case fails the suite.
 - `scenarios/maritime-watch.toml` is generated, not hand-written. Its header says so.
 
 ## scan_scope

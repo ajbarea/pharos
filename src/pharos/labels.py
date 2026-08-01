@@ -123,5 +123,11 @@ def shared_eligible(label: Label, release_ceiling: Label, policy: Declassificati
     This is the gradient boundary: the question is not whether the analyst could
     read the object, but whether what the object contributes may leave at the
     ceiling the shared adapter is released under.
+
+    Kept boolean, and kept here, because it is the *unattended* question: a
+    training pass has nobody to ask. `pharos.disclosure.decide` answers the richer
+    one, distinguishing an entry a cleared human could authorise from one that can
+    never leave, and this is exactly its `RELEASE` case. Anything that can consult
+    an authority should call that instead.
     """
     return release_ceiling.dominates(declassify(label, policy))

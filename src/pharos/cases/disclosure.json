@@ -1,0 +1,173 @@
+{
+  "about": "Ground-truth cases for pharos.disclosure.decide. Each case names a label, a ceiling, a ruling, and a purpose, and asserts the (disposition, reason) the decision must produce. Modelled on the Metro City Meteors governance suite built during SCADS, where the subject under test is the governed decision rather than a model, and every case carries its own pass criteria so a reader who does not run the code can still audit the policy.",
+  "ceilings": {
+    "fleet": {
+      "sensitivity": "INTERNAL",
+      "compartments": ["SENSOR"],
+      "capacity": "FREETEXT",
+      "note": "A fleet aggregator cleared below the enclaves feeding it, which is what makes sharing a downgrade at all. Same ceiling the triage measurements use."
+    },
+    "open": {
+      "sensitivity": "OPEN",
+      "compartments": [],
+      "capacity": "FREETEXT",
+      "note": "A public release surface: no level, no compartments."
+    }
+  },
+  "policies": {
+    "keep-compartments": {
+      "declassifiable": ["ENUM", "SCALAR"],
+      "release_floor": "OPEN",
+      "drop_compartments": false,
+      "prohibited": [],
+      "note": "The fail-closed default from finding 2. An eligible output drops to OPEN and keeps every compartment it inherited."
+    },
+    "drop-compartments": {
+      "declassifiable": ["ENUM", "SCALAR"],
+      "release_floor": "OPEN",
+      "drop_compartments": true,
+      "prohibited": [],
+      "note": "The one ruling finding 2 showed the federation's viability turns on."
+    },
+    "floor-protected": {
+      "declassifiable": ["ENUM", "SCALAR"],
+      "release_floor": "PROTECTED",
+      "drop_compartments": true,
+      "prohibited": [],
+      "note": "A ruling that downgrades eligible outputs only as far as PROTECTED. Realistic where a programme refuses to put anything on an open surface, and the only configuration under which the level check can fire at all: with a floor of OPEN nothing can sit above a ceiling."
+    },
+    "legal-not-for-training": {
+      "declassifiable": ["ENUM", "SCALAR"],
+      "release_floor": "OPEN",
+      "drop_compartments": true,
+      "prohibited": [{ "compartment": "LEGAL", "purpose": "fleet_training" }],
+      "note": "A data owner's veto laid over the permissive ruling, so a case can show a prohibition beating a policy that would otherwise release."
+    }
+  },
+  "cases": [
+    {
+      "id": "RELEASE-01",
+      "label": { "sensitivity": "PROTECTED", "compartments": ["SENSOR"], "capacity": "ENUM" },
+      "ceiling": "fleet",
+      "policy": "keep-compartments",
+      "purpose": "fleet_training",
+      "gate_under_test": "the ordinary shared case: low capacity, compartment the aggregator holds",
+      "expected_disposition": "release",
+      "expected_reason": "RELEASABLE",
+      "pass_criteria": "An enum verdict declassifies to OPEN[SENSOR], which INTERNAL[SENSOR] dominates. This is the entry a shared adapter may train on with nobody asked.",
+      "verified": true
+    },
+    {
+      "id": "RELEASE-02",
+      "label": { "sensitivity": "RESTRICTED", "compartments": [], "capacity": "SCALAR" },
+      "ceiling": "fleet",
+      "policy": "keep-compartments",
+      "purpose": "fleet_training",
+      "gate_under_test": "capacity carries the downgrade, not the level",
+      "expected_disposition": "release",
+      "expected_reason": "RELEASABLE",
+      "pass_criteria": "The top of the level ladder still releases, because a scalar cannot carry the instance it was derived from. This is the whole reason capacity is in the lattice.",
+      "verified": true
+    },
+    {
+      "id": "APPROVAL-01",
+      "label": { "sensitivity": "PROTECTED", "compartments": ["LEGAL"], "capacity": "ENUM" },
+      "ceiling": "fleet",
+      "policy": "keep-compartments",
+      "purpose": "fleet_training",
+      "gate_under_test": "compartment the aggregator does not hold, under the fail-closed ruling",
+      "expected_disposition": "approval",
+      "expected_reason": "COMPARTMENT_NOT_HELD",
+      "pass_criteria": "Not releasable and not refusable either. Finding 2 established that shedding a compartment is a policy act, so this is the one objection a cleared human is entitled to answer. Before the three-valued decision this was indistinguishable from a hard no, and that conflation is what made finding 7's release claim look absolute.",
+      "verified": true
+    },
+    {
+      "id": "APPROVAL-02",
+      "label": {
+        "sensitivity": "OPEN",
+        "compartments": ["LIAISON", "PARTNER"],
+        "capacity": "ENUM"
+      },
+      "ceiling": "fleet",
+      "policy": "keep-compartments",
+      "purpose": "fleet_training",
+      "gate_under_test": "incomparability with no level shortfall at all",
+      "expected_disposition": "approval",
+      "expected_reason": "COMPARTMENT_NOT_HELD",
+      "pass_criteria": "Already at the bottom of the ladder and still blocked, because compartments are a subset lattice rather than a rung. This case exists to show the block is not about level.",
+      "verified": true
+    },
+    {
+      "id": "RELEASE-03",
+      "label": { "sensitivity": "PROTECTED", "compartments": ["LEGAL"], "capacity": "ENUM" },
+      "ceiling": "fleet",
+      "policy": "drop-compartments",
+      "purpose": "fleet_training",
+      "gate_under_test": "the same entry as APPROVAL-01 under the other ruling",
+      "expected_disposition": "release",
+      "expected_reason": "RELEASABLE",
+      "pass_criteria": "Identical label, identical ceiling, opposite outcome. The pair is finding 2's bimodality reduced to two rows.",
+      "verified": true
+    },
+    {
+      "id": "WITHHOLD-01",
+      "label": { "sensitivity": "PROTECTED", "compartments": ["SENSOR"], "capacity": "FREETEXT" },
+      "ceiling": "fleet",
+      "policy": "keep-compartments",
+      "purpose": "fleet_training",
+      "gate_under_test": "a form that can reproduce a record verbatim",
+      "expected_disposition": "withhold",
+      "expected_reason": "CAPACITY_NOT_DECLASSIFIABLE",
+      "pass_criteria": "Prose is never eligible under either ruling, so no authority is offered. The objection is to the shape of the output, and the fix is to change the shape rather than to ask anyone.",
+      "verified": true
+    },
+    {
+      "id": "WITHHOLD-02",
+      "label": { "sensitivity": "RESTRICTED", "compartments": [], "capacity": "FREETEXT" },
+      "ceiling": "open",
+      "policy": "keep-compartments",
+      "purpose": "public_reporting",
+      "gate_under_test": "level shortfall on a non-declassifiable form",
+      "expected_disposition": "withhold",
+      "expected_reason": "CAPACITY_NOT_DECLASSIFIABLE",
+      "pass_criteria": "Two objections hold at once. The unauthorizable one is reported, because naming the authorizable objection would invite an escalation that must still be refused.",
+      "verified": true
+    },
+    {
+      "id": "WITHHOLD-04",
+      "label": { "sensitivity": "RESTRICTED", "compartments": [], "capacity": "ENUM" },
+      "ceiling": "fleet",
+      "policy": "floor-protected",
+      "purpose": "fleet_training",
+      "gate_under_test": "a level the ruling will not downgrade past",
+      "expected_disposition": "withhold",
+      "expected_reason": "LEVEL_ABOVE_CEILING",
+      "pass_criteria": "The form is declassifiable and the compartments are held, so neither of the other objections applies; the output still lands at PROTECTED against an INTERNAL aggregator. No authority is offered, because nobody downgrades a level by being asked.",
+      "verified": true
+    },
+    {
+      "id": "WITHHOLD-03",
+      "label": { "sensitivity": "PROTECTED", "compartments": ["LEGAL"], "capacity": "ENUM" },
+      "ceiling": "fleet",
+      "policy": "legal-not-for-training",
+      "purpose": "fleet_training",
+      "gate_under_test": "an owner's veto beating a ruling that would otherwise release",
+      "expected_disposition": "withhold",
+      "expected_reason": "PURPOSE_PROHIBITED",
+      "pass_criteria": "The same label RELEASE-03 lets out is refused here, because the ruling is permissive but the purpose is forbidden. Clearance does not answer a purpose objection, so this denies rather than escalates.",
+      "verified": true
+    },
+    {
+      "id": "RELEASE-04",
+      "label": { "sensitivity": "PROTECTED", "compartments": ["LEGAL"], "capacity": "ENUM" },
+      "ceiling": "fleet",
+      "policy": "legal-not-for-training",
+      "purpose": "incident_review",
+      "gate_under_test": "the same prohibition under a purpose it does not name",
+      "expected_disposition": "release",
+      "expected_reason": "RELEASABLE",
+      "pass_criteria": "Paired with WITHHOLD-03: identical label, identical policy, different purpose, opposite outcome. A prohibition that fired on every purpose would be a clearance rule wearing a different name.",
+      "verified": true
+    }
+  ]
+}
