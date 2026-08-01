@@ -24,6 +24,15 @@ results:                   ## Regenerate every measurement artifact in results/ 
 	uv run python scripts/measure_triage_lift.py --out results/triage_lift.json
 	uv run python scripts/measure_rule_learnability.py --out results/learnability.json
 
+external-validation:       ## Re-run the gate claim against three public corpora (downloads ~20k rows)
+	@mkdir -p results
+	# 12000 rows and 40 null trials, not the script defaults. At the 4,000-row
+	# default the HellaSwag null is wide enough that its leak reads z=+1.47 rather
+	# than +3.65, and the published claim rests on the larger sample. Encoding the
+	# invocation here is what makes that number reproducible.
+	uv run --extra external python scripts/validate_gate_externally.py \
+		--limit 12000 --null-trials 40 --out results/external_gate_validation.json
+
 ci:                        ## Run every CI gate in order, exactly as the workflow does
 	uv run ruff format --check .
 	uv run ruff check .

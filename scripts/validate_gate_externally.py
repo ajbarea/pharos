@@ -368,6 +368,12 @@ def main() -> int:
                         "features": list(TEXT_FEATURES),
                         "folds": args.folds,
                         "null_trials": args.null_trials,
+                        # Recorded because it decides the conclusion, not just the
+                        # runtime. The null narrows as n grows, so the same corpus
+                        # reads z=+1.47 at 4,000 rows and z=+3.65 at 12,000 -- one
+                        # side of significance to the other. An artifact that omits
+                        # it cannot be reproduced from its own record.
+                        "rows_per_corpus": args.limit,
                         "split": "stratified k-fold (external corpora have no centre analogue)",
                         "note": (
                             "Eight features rather than Pharos's ten; the two omitted are "
