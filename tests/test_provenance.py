@@ -1,6 +1,7 @@
 """Provenance must describe the run without ever being able to break it."""
 
 import os
+import shutil
 import subprocess
 
 import pytest
@@ -95,9 +96,12 @@ def test_git_helpers_degrade_to_none_when_git_is_not_installed(monkeypatch):
 def _init_repo(root):
     """A throwaway git repo with a source file and a measurement artifact."""
 
+    executable = shutil.which("git")
+    assert executable, "git is required for this test"
+
     def git(*args):
-        subprocess.run(
-            ["git", *args],
+        subprocess.run(  # noqa: S603  # fixed argv, executable resolved via which
+            [executable, *args],
             cwd=root,
             check=True,
             capture_output=True,
