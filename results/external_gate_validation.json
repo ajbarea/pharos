@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "2e3fd5a5d859",
+    "git_commit": "7a8212a035b0",
     "git_dirty": false,
-    "generated_at": "2026-08-01T06:57:08+00:00",
+    "generated_at": "2026-08-01T07:01:27+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
@@ -21,7 +21,8 @@
       "has_timestamp"
     ],
     "folds": 4,
-    "null_trials": 20,
+    "null_trials": 40,
+    "rows_per_corpus": 12000,
     "split": "stratified k-fold (external corpora have no centre analogue)",
     "note": "Eight features rather than Pharos's ten; the two omitted are corpus-specific identifiers. Fewer features can only understate a leak."
   },
@@ -29,19 +30,19 @@
     {
       "dataset": "hellaswag_endings",
       "note": "adversarially filtered; one row per candidate ending, positive = true continuation",
-      "n": 4000,
+      "n": 12000,
       "prevalence": 0.25,
-      "surface_baseline": 0.5381,
+      "surface_baseline": 0.5358,
       "per_probe_auc": {
-        "logistic": 0.527,
-        "gradient_boosting": 0.5381
+        "logistic": 0.5358,
+        "gradient_boosting": 0.5248
       },
-      "null_mean": 0.5023,
-      "null_sd": 0.0243,
-      "null_p95": 0.5316,
-      "z": 1.47,
+      "null_mean": 0.5005,
+      "null_sd": 0.0097,
+      "null_p95": 0.5132,
+      "z": 3.65,
       "exceeds_null": true,
-      "content_baseline": 0.5781,
+      "content_baseline": 0.5748,
       "label_is_learnable": false
     },
     {
@@ -54,10 +55,10 @@
         "logistic": 0.6535,
         "gradient_boosting": 0.6642
       },
-      "null_mean": 0.4962,
-      "null_sd": 0.021,
-      "null_p95": 0.5303,
-      "z": 7.98,
+      "null_mean": 0.5006,
+      "null_sd": 0.0202,
+      "null_p95": 0.527,
+      "z": 8.09,
       "exceeds_null": true,
       "content_baseline": 0.9609,
       "label_is_learnable": true
@@ -65,19 +66,19 @@
     {
       "dataset": "imdb",
       "note": "sentiment; long free text, no length control",
-      "n": 4000,
+      "n": 12000,
       "prevalence": 0.5,
-      "surface_baseline": 0.5656,
+      "surface_baseline": 0.5648,
       "per_probe_auc": {
-        "logistic": 0.5656,
-        "gradient_boosting": 0.5225
+        "logistic": 0.5648,
+        "gradient_boosting": 0.5515
       },
-      "null_mean": 0.4982,
-      "null_sd": 0.017,
-      "null_p95": 0.5208,
-      "z": 3.97,
+      "null_mean": 0.4996,
+      "null_sd": 0.0093,
+      "null_p95": 0.5125,
+      "z": 7.01,
       "exceeds_null": true,
-      "content_baseline": 0.9596,
+      "content_baseline": 0.9606,
       "label_is_learnable": true
     }
   ]
