@@ -32,7 +32,9 @@ from pharos.tasks import build_tasks
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--tasks", type=int, default=8)
+    # 24, not 8. The first measurement of finding 1 was taken at n=8 and had to be
+    # retracted; a default that reproduces it invites the same mistake twice.
+    parser.add_argument("--tasks", type=int, default=24)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--events", type=int, default=400)
     parser.add_argument("--model", default=DEFAULT_MODEL)

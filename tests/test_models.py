@@ -16,7 +16,17 @@ def test_the_default_is_the_reference_model():
 def test_only_smoke_tested_models_are_marked_verified():
     """The one claim this module makes that a reader cannot check for themselves."""
     verified = {spec.key for spec in models.REGISTRY.values() if spec.verified}
-    assert verified == {"qwen2.5-3b", "qwen2.5-7b", "llama3.2-3b", "llama3.1-8b", "mistral-7b"}, (
+    # qwen2.5-14b is here despite not being installable on an 8 GB card: it answered
+    # the triage sweep on a cluster A100, and `verified` records that a model has
+    # answered, not that it can run on the machine reading this.
+    assert verified == {
+        "qwen2.5-3b",
+        "qwen2.5-7b",
+        "qwen2.5-14b",
+        "llama3.2-3b",
+        "llama3.1-8b",
+        "mistral-7b",
+    }, (
         "flip `verified` only after the model has answered a Pharos task, "
         "never on the strength of a model card"
     )

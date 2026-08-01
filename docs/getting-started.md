@@ -6,19 +6,18 @@
 make setup     # uv sync --all-groups
 ```
 
-Python 3.12 or 3.13. The generation and gating path needs only `numpy` and
-`scikit-learn`; everything else is optional or development-only.
+Python 3.12 to 3.14. Generation and gating need only `numpy` and `scikit-learn`;
+everything else is optional or development-only.
 
-## The three commands you will actually use
+## Everyday commands
 
 ```bash
-make test      # the suite, with a 95% coverage floor
+make test      # the suite, with a 92% branch-coverage floor
 make gate      # generate a corpus and decide whether it is usable
 make results   # regenerate every measurement artifact (needs Ollama)
 ```
 
-`make gate` exits non-zero when a corpus is not usable, so it can gate CI rather
-than merely inform a human who may not be reading.
+`make gate` exits non-zero when a corpus is not usable, so it can block CI.
 
 ## Reading a gate verdict
 
@@ -31,27 +30,25 @@ strict band       0.45 to 0.55  (met: False)
 VERDICT           USABLE
 ```
 
-Three things are worth knowing about that output before it misleads you.
+Three parts of that output are easy to misread.
 
-**`strict band ... met: False` is not a failure.** The band is retained as an
-ideal, and for content-defined ground truth it is unreachable. The verdict line is
-what decides.
+**`strict band ... met: False` is not a failure.** The band is an ideal, and it is
+unreachable for content-defined ground truth. The verdict line decides.
 
 **The surface baseline is not noise to be removed.** It is what a model scores
 while reading nothing, and every downstream score has to be reported against it
 rather than against 0.5. See [the gate](reference/gate.md) for why it cannot be
 driven to chance.
 
-**`significant: True` is the good news, not the bad news.** It says the observed
-statistic exceeds what label shuffling alone produces, which is how you know the
-gate is measuring something rather than reporting its own sampling error.
+**`significant: True` is good news.** The observed statistic exceeds what label
+shuffling alone produces, so the gate is measuring something real rather than its
+own sampling error.
 
 ## Observability
 
-OpenTelemetry is a **core dependency**, not an extra. Traceability is part of what
-makes a result checkable: one `trace_id` ties a generation to its gate and its
-permutation null, so a surprising number leads back to the run that produced it
-rather than having to be re-derived.
+OpenTelemetry is a **core dependency**, not an extra. One `trace_id` ties a
+generation to its gate and its permutation null, so a surprising number leads back
+to the run that produced it.
 
 ```bash
 docker compose up -d
@@ -69,10 +66,9 @@ The collector is the ingest point rather than a backend, so switching to
 ClickHouse, SigNoz, or a hosted vendor is an edit to `docker/otel-collector.yaml`
 and changes no Python.
 
-What telemetry may **never** do is change a measurement. Absent the configuration
-or an unreachable collector, every span becomes a no-op and logging falls back to
-JSON on stdout; the number is identical either way. That is a correctness property
-rather than an optionality one, and CI asserts it on every push.
+Telemetry may never change a measurement. With no endpoint configured, or an
+unreachable collector, every span becomes a no-op and logging falls back to JSON on
+stdout; the number is identical either way. CI asserts this on every push.
 
 Every measurement goes out as a structured log line carrying typed fields, so a
 surface baseline or a per-fold AUC can be queried rather than parsed back out of

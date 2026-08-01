@@ -21,7 +21,7 @@ surface_features(report)
 Shape only. If any of these predicts plant membership well, the corpus is
 predictable without being read.
 
-## Two decisions that make this a real gate
+## Two design decisions
 
 **Leave-one-center-out cross-validation, not a random split.** A random split lets
 a surface feature present in both halves go unpunished. And a *single* held-out
@@ -46,13 +46,13 @@ generator was rejected four times.
 | 3 | 0.572 | Hand-balancing oscillated. The leak was structural: plants were the only events with a deterministic triple, so **any** per-fact property became a class signal | Background draws a decoy triple, so both classes are one fixed triple plus two fillers |
 | 4 | ~0.55 | Slot widths varied, so which slots a fact used was a digit signature | Every non-time slot is a two-digit integer, so every rendering carries exactly nine digits |
 
-Round 3 is the one worth internalizing: **tuning a leaked property just moves the
-leak.** Removing the asymmetry that produced it removes the whole class.
+Round 3 generalizes: **tuning a leaked property just moves the leak.** Removing the
+asymmetry that produced it removes the whole class.
 
 ## A calibration instrument, not a purity test
 
 The gate originally demanded an AUC at chance. That requirement could never have
-been met, and working out why produced the most useful result in the project.
+been met, and working out why produced the result below.
 
 **Content-defined ground truth cannot have a chance-level surface baseline.** A
 plant is a plant *because* it carries the significant facts, so plants carry those
@@ -151,8 +151,7 @@ A surface probe tests whether **shape** predicts the label. It cannot test wheth
 the label is **derivable from the content**. Those are different properties and
 the second needs its own checks.
 
-This is not hypothetical. Only 34% of significant events once rendered all three
-of their defining facts, so two thirds of the positive class was unanswerable from
+Only 34% of significant events once rendered all three of their defining facts, so two thirds of the positive class was unanswerable from
 its own prompt, and a measurement built on it produced a conclusion that had to be
 retracted. The gate passed the whole time. Semantic integrity checks now live in
 the test suite: every fact of an event is rendered by some channel that can carry

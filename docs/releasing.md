@@ -27,7 +27,7 @@ trust it.
 The export test asserts the property directly: the digest in `croissant.json`
 equals the hash of the `corpus.jsonl` written next to it.
 
-## Croissant, and what a generated dataset does to it
+## Croissant for a generated dataset
 
 [Croissant](https://docs.mlcommons.org/croissant/docs/croissant-spec.html) is the
 MLCommons JSON-LD format for describing an ML-ready dataset. As of the 2026
@@ -52,23 +52,18 @@ uv sync --group croissant
 uv run pytest tests/test_croissant_validation.py
 ```
 
-Hand-verifying JSON-LD against a prose specification does not work, and this is
-not a hypothetical.
-
-The first version of `pharos.croissant` was written straight from the
-specification page and looked correct: every property the spec names, in the
-right shapes, RAI block complete. It was **invalid**. The hand-assembled
-`@context` omitted `column`, so every field's `extract` resolved to nothing and
-the record described a file with no readable columns. Reading it could not catch
-that. One call to `mlcroissant` did, immediately.
-
-The context is now copied verbatim from the MLCommons reference datasets, and the
-validator runs in the suite.
+Do not hand-check JSON-LD against the prose specification. The first version of
+`pharos.croissant` was written from the spec page and read as correct -- every
+property present, RAI block complete -- but its hand-assembled `@context` omitted
+`column`, so every field's `extract` resolved to nothing and the record described a
+file with no readable columns. `mlcroissant` caught it immediately; reading could
+not. The context is now copied verbatim from the MLCommons reference datasets, and
+the validator runs in the suite.
 
 ## The Responsible AI block
 
-Not boilerplate, and worth reading before citing a number from this corpus. Four
-entries carry real content:
+Worth reading before citing a number from this corpus. Four entries carry real
+content:
 
 **`rai:dataBiases`** reports the measured surface baseline with its permutation
 null, because that bias is a known property of the corpus and every downstream
@@ -84,9 +79,9 @@ compartments are invented for this testbed and model no real classification
 system, programme, or organisation.
 
 **`rai:dataCollectionMissingData`** records that coverage is guaranteed by
-construction and asserted in the test suite, and that an earlier version did not
-guarantee it, which invalidated a measurement. That is in the metadata rather than
-only in a changelog because it is the kind of thing a reader of the *data* needs.
+construction and asserted in the suite, and that an earlier version did not
+guarantee it, which invalidated a measurement. It belongs in the metadata because a
+reader of the data needs it, not only a reader of the changelog.
 
 ## Provenance on every artifact
 
@@ -106,9 +101,8 @@ Every measurement result carries a `provenance` block:
 ```
 
 `git_dirty` is reported rather than forbidden. A dirty measurement is often the
-honest state of an experiment in progress, and the useful thing is that a reader
-can see it was dirty rather than be handed a commit that does not describe the
-code that ran.
+honest state of an experiment in progress, and a reader who can see the flag is
+better served than one handed a commit that does not describe the code that ran.
 
 The corpus manifest carries `code_provenance` **without** the clock, so two
 manifests built from one seed still compare equal. A timestamp there would break

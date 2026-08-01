@@ -11,7 +11,7 @@ qwen2.5-3b       qwen2.5:3b-instruct                3B      2.0     yes        y
 qwen2.5-7b       qwen2.5:7b-instruct                7.6B    4.7     yes        yes
 llama3.1-8b      llama3.1:8b-instruct-q4_K_M        8B      4.9     yes        yes
 mistral-7b       mistral:7b-instruct                7B      4.1     yes        yes
-qwen2.5-14b      qwen2.5:14b-instruct               14B     9.0     no         candidate
+qwen2.5-14b      qwen2.5:14b-instruct               14B     9.0     no         yes
 ```
 
 Any script or endpoint that takes `--model` accepts a registry key, a raw tag, or
@@ -22,37 +22,32 @@ uv run python scripts/measure_triage_lift.py --model llama3.1-8b --tasks 40
 uv run python scripts/measure_triage_lift.py --model some-model:70b   # passthrough
 ```
 
-## What `verified` means, and why it is not decoration
+## What `verified` means
 
 **`verified` means the model has answered a Pharos triage task and returned a
-parseable verdict.** `candidate` means nobody has run it. The distinction is
-enforced by a test, which fails if the flag is set on a model that has not been
-swept.
+parseable verdict.** `candidate` means nobody has run it. A test enforces the
+distinction and fails if the flag is set on a model that has not been swept.
 
-That test exists because "supported models" lists in research code are usually
-aspirational, and a reader cannot tell which entries were ever executed. Pharos has
-a specific reason to care: its first several findings were all measured on
-`qwen2.5:7b-instruct` and nothing else, so every one of them was a single-model
-result. A registry that blurred tested with untested would have hidden that
-limitation rather than exposed it.
+The flag exists because a "supported models" list cannot otherwise be told apart
+from an aspirational one. Findings 1 to 3 were measured on `qwen2.5:7b-instruct`
+alone, and the registry is what makes that visible rather than hidden.
 
 `INSTALLED` is read live from the Ollama daemon on every invocation, not asserted.
 A stopped daemon reports everything as absent rather than raising.
 
-## Why the registry cannot refuse a model
+## Unknown models still run
 
-`resolve` wraps an unrecognised name as an ad-hoc, unverified spec and passes it
-through to the backend. The registry is a convenience and an honesty record, never
-a gate on what can be run. A model Pharos has never heard of still works; it simply
-carries `family: unknown` and `verified: false` into the provenance of whatever it
-produces.
+`resolve` wraps an unrecognised name as an ad-hoc, unverified spec and passes it to
+the backend. The registry records what has been tried; it never gates what can run.
+A model Pharos has never heard of works, and carries `family: unknown` and
+`verified: false` into the provenance of whatever it produces.
 
-## The one entry that needs more than 8 GB
+## The entry that needs more than 8 GB
 
-`qwen2.5-14b` is deliberately listed and deliberately not installed. At roughly
-9 GB it exceeds a consumer card, and it is the first thing to run on a cluster
-node. Leaving it in the registry as a `candidate` records the intent without
-pretending the measurement exists.
+`qwen2.5-14b` is listed but not installed locally. At roughly 9 GB it exceeds an
+8 GB card, so it runs on a cluster A100. `INSTALLED` therefore reads `no` on a
+workstation while `VERIFIED` reads `yes`: the model has answered Pharos tasks, just
+not on this machine.
 
 ## Sweeping every installed model
 
@@ -61,11 +56,11 @@ scripts/sweep_models.sh 40        # 40 triage tasks per installed model
 uv run python scripts/compare_models.py
 ```
 
-The sweep stops each model between runs on purpose. Ollama sizes GPU offload once,
-at load time, and keeps that split for the life of the loaded model, so loading a
-second model on top of a resident one can silently push most layers to CPU at
-roughly eight times the cost with no error and no warning. The script checks the
-resident share per model rather than assuming it.
+The sweep stops each model between runs. Ollama sizes GPU offload once at load
+time and keeps that split for the life of the loaded model, so loading a second
+model on top of a resident one can push most layers to CPU with no error and no
+warning. Measured cost of that split here: roughly eight times slower. The script
+checks the resident share per model rather than assuming it.
 
 `compare_models.py` prints every score against the majority-class floor and the
 surface baseline, never against 0.5. Ground truth here is content-defined, so a

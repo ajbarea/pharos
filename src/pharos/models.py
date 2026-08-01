@@ -117,8 +117,8 @@ REGISTRY: dict[str, ModelSpec] = {
         parameters="14B",
         quantization="Q4_K_M",
         approx_vram_gb=9.0,
-        verified=False,
-        note="Exceeds 8 GB. Needs a larger card or CPU offload, which is slow.",
+        verified=True,
+        note="Exceeds 8 GB. Runs on a cluster A100; not installable on an 8 GB card.",
     ),
 }
 

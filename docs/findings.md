@@ -4,16 +4,19 @@ What has been measured, and the script that reproduces each number. The
 **argument** these support belongs to the manuscript; this page is the index.
 
 Findings 1 to 3 and 5 were measured with `qwen2.5:7b-instruct` on an 8 GB RTX 3060
-Ti. Finding 3b sweeps six models from 3B to 14B, the largest of which needs a
-cluster A100. Each committed artifact under `results/` carries the version, commit,
-platform, model, and seed that produced it, so any number here can be traced to the
-run and the machine behind it -- which matters, because the model-dependent numbers
-are not bit-reproducible across machines and the gate is.
+Ti. Finding 3b sweeps six models from 3B to 14B, and finding 6 fine-tunes
+`Qwen2.5-3B-Instruct`; both need a cluster A100 for their largest runs.
+
+Every artifact in `results/` carries the version, commit, platform, model, and seed
+behind it, so any number here traces back to the run and the machine that produced
+it. That matters because the model-dependent numbers are not bit-reproducible across
+machines, while the gate is.
 
 !!! note "Regenerating"
-    `make results` reruns all four scripts into `results/`. It needs Ollama
-    serving the model named in each script, and it is not fast: the label
-    fidelity measurement alone is 72 sequential model calls.
+    `make results` reruns the four Ollama-backed measurements into `results/`. It
+    needs Ollama serving the model each script names, and it is slow: the label
+    fidelity pass alone is 216 sequential model calls. Findings 3b and 6 are cluster
+    jobs and are not part of this target.
 
 ## Status: provisional
 

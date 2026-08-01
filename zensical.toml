@@ -27,10 +27,6 @@ nav = [
 extra_css = ["stylesheets/extra.css", "stylesheets/components/landing.css"]
 extra_javascript = ["javascripts/reveal.js"]
 
-# Landing page needs markdown inside HTML block elements, and the button/legend
-# spans need attribute lists to carry their classes.
-markdown_extensions = ["attr_list", "md_in_html", "admonition", "tables"]
-
 [project.theme]
 name = "material"
 language = "en"
