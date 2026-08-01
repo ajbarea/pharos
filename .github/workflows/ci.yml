@@ -45,13 +45,14 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ty check
       # --cov-branch changes what is being measured, not just how it is reported: a
-      # partially-taken `if` now counts against the total. The same suite reads 90%
-      # by statement and 88% by branch, so the floor tracks the stricter measure
-      # rather than keeping a number that silently meant something else. Raising it
-      # is real work on scripts/, which is where the uncovered branches are.
+      # partially-taken `if` now counts against the total. The floor tracks that
+      # stricter measure. It sat at 88 while scripts/ was largely untested; the
+      # remaining gap is load_corpora(), which downloads public datasets and cannot
+      # run here. The margin is deliberate -- an earlier floor sat 0.04 points under
+      # the measurement and any new line turned the build red.
       - run: >
           uv run pytest --cov=pharos --cov=scripts --cov-branch
-          --cov-report=term-missing --cov-report=xml --cov-fail-under=88
+          --cov-report=term-missing --cov-report=xml --cov-fail-under=92
           --junitxml=junit.xml -o junit_family=legacy
       # Only one matrix leg uploads. Three identical reports would be merged into the
       # same commit for no added signal and would race each other doing it.

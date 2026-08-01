@@ -352,3 +352,383 @@ def test_compare_models_reports_nothing_when_there_is_nothing_to_report(tmp_path
 
     monkeypatch.setattr(compare_models, "RESULTS", tmp_path)
     assert compare_models.main() == 1
+
+
+# ---------------------------------------------------------------------------
+# train_adapter: the reporting layer
+#
+# evaluate() is where a bug is most expensive and least visible. It owns the
+# confusion matrix behind every number in the adapter table, and every failure mode
+# it has is silent: a miscounted cell still produces a plausible F1. It takes the
+# model and tokenizer as arguments, so it can be driven by stubs and checked against
+# a matrix computed by hand.
+# ---------------------------------------------------------------------------
+
+
+class _GreedyTokenizer:
+    """Enough of a tokenizer for evaluate(): call, decode, pad id."""
+
+    pad_token_id = 0
+
+    def __init__(self, answers: list[str]) -> None:
+        self._answers = list(answers)
+        self._served = 0
+
+    def __call__(self, text, **kwargs):
+        class _Batch(dict[str, object]):
+            def to(self, _device):
+                return self
+
+        return _Batch(input_ids=_FakeIds())
+
+    def decode(self, _tokens, **kwargs) -> str:
+        answer = self._answers[self._served]
+        self._served += 1
+        return answer
+
+
+class _FakeIds:
+    """Stands in for a tensor of token ids; only `.shape[1]` is ever read."""
+
+    shape = (1, 0)
+
+    def __getitem__(self, _index):
+        return self
+
+
+class _FakeModel:
+    device = "cpu"
+
+    def eval(self):
+        return self
+
+    def generate(self, **kwargs):
+        return [_FakeIds()]
+
+
+@pytest.fixture
+def _fake_torch(monkeypatch):
+    """evaluate() imports torch only for `no_grad()`.
+
+    torch is a multi-gigabyte CUDA dependency that neither CI nor a laptop
+    installs, and skipping the test there would leave the confusion matrix
+    untested everywhere it actually runs. A no-op context manager is a faithful
+    stand-in: `no_grad` affects autograd bookkeeping, not the arithmetic under test.
+    """
+    import contextlib
+    import sys
+    import types
+
+    # SimpleNamespace rather than ModuleType: `import torch` returns whatever
+    # sys.modules holds, and attributes set in the constructor are typed, where
+    # assigning onto a bare module object is not.
+    fake = types.SimpleNamespace(no_grad=contextlib.nullcontext)
+    monkeypatch.setitem(sys.modules, "torch", fake)
+    return fake
+
+
+def _evaluate_with(answers, tasks, _fixture):
+    from train_adapter import evaluate
+
+    return evaluate(_FakeModel(), _GreedyTokenizer(answers), tasks, label="stub")
+
+
+def test_evaluate_builds_the_confusion_matrix_it_reports(_fake_torch):
+    """Two of each cell, hand-checked, including an unparsable answer."""
+    significant = [t for t in TASKS if t.significant][:2]
+    routine = [t for t in TASKS if not t.significant][:2]
+    tasks = significant + routine
+
+    # SIGNIFICANT on a significant task is a true positive; on a routine one a false
+    # positive. ROUTINE on a significant task is a false negative, else a true
+    # negative. The fourth answer is deliberately unreadable.
+    result = _evaluate_with(
+        ["SIGNIFICANT", "ROUTINE", "SIGNIFICANT", "not a verdict at all"], tasks, _fake_torch
+    )
+
+    assert (result.tp, result.fn) == (1, 1)
+    assert (result.fp, result.unparsed) == (1, 1)
+    assert result.n == 4
+    assert result.precision == pytest.approx(0.5)
+    assert result.recall == pytest.approx(0.5)
+    assert result.f1 == pytest.approx(0.5)
+
+
+def test_evaluate_counts_an_unparsable_answer_as_neither_class(_fake_torch):
+    """The 12-token bug: unparsed answers must not quietly become correct ones."""
+    tasks = [t for t in TASKS if t.significant][:3]
+
+    result = _evaluate_with(["garbage", "garbage", "garbage"], tasks, _fake_torch)
+
+    assert result.unparsed == 3
+    assert (result.tp, result.fp, result.tn, result.fn) == (0, 0, 0, 0)
+    # No prediction was made, so no score may be claimed from one.
+    assert result.f1 == 0.0
+    assert result.n == 3
+
+
+def test_evaluate_reports_n_including_unparsed_answers(_fake_torch):
+    """`n` is the denominator a reader divides by, so it counts every task asked."""
+    tasks = list(TASKS[:5])
+
+    result = _evaluate_with(["SIGNIFICANT", "ROUTINE", "?", "?", "?"], tasks, _fake_torch)
+
+    assert result.n == len(tasks)
+    assert result.as_dict()["n"] == len(tasks)
+
+
+def test_eval_result_serialises_every_field_it_reports(_fake_torch):
+    result = _evaluate_with(["SIGNIFICANT"], TASKS[:1], _fake_torch)
+
+    payload = result.as_dict()
+
+    assert set(payload["confusion"]) == {"tp", "fp", "tn", "fn"}
+    for key in ("label", "n", "unparsed", "accuracy", "majority_accuracy", "f1"):
+        assert key in payload
+
+
+def test_build_examples_pairs_each_prompt_with_its_verdict():
+    from train_adapter import build_examples, prompt_for, verdict_text
+
+    tasks = list(TASKS[:4])
+
+    examples = build_examples(tasks)
+
+    assert len(examples) == len(tasks)
+    for example, task in zip(examples, tasks, strict=True):
+        assert example["prompt"] == prompt_for(task)
+        assert example["completion"] == verdict_text(task.significant)
+    # The completion is the label. If prompt and completion were ever transposed the
+    # adapter would train on the inverse mapping and still report a clean loss.
+    assert all(e["completion"] != e["prompt"] for e in examples)
+
+
+def test_class_balance_counts_both_classes_and_sums_to_the_whole():
+    from train_adapter import _class_balance
+
+    tasks = list(TASKS[:20])
+
+    balance = _class_balance(tasks)
+
+    assert balance["significant"] == sum(1 for t in tasks if t.significant)
+    assert balance["routine"] == sum(1 for t in tasks if not t.significant)
+    assert balance["significant"] + balance["routine"] == len(tasks)
+
+
+def test_class_balance_of_nothing_is_zero_not_an_error():
+    from train_adapter import _class_balance
+
+    assert _class_balance([]) == {"significant": 0, "routine": 0}
+
+
+def test_evaluate_surfaces_validity_concerns_rather_than_swallowing_them(_fake_torch, capsys):
+    """A below-floor, high-unparsed baseline must announce itself.
+
+    This is the reporting path that flagged the real base model at accuracy 0.346
+    against a 0.673 majority floor. If it were silent the number would look like a
+    measurement instead of a warning.
+    """
+    tasks = [t for t in TASKS if t.significant][:4]
+
+    _evaluate_with(["ROUTINE", "ROUTINE", "junk", "junk"], tasks, _fake_torch)
+
+    printed = capsys.readouterr().out
+    assert "validity concerns" in printed
+
+
+# ---------------------------------------------------------------------------
+# validate_gate_externally: the positive control
+#
+# content_baseline exists because its absence nearly published a false finding: a
+# loader bug made the label unrelated to the text, the surface probe scored chance,
+# and "adversarial filtering removes surface signal" was the confident wrong reading.
+# The control is only useful if it can tell those two situations apart, so both are
+# constructed here rather than assumed.
+# ---------------------------------------------------------------------------
+
+
+def _separable_corpus(n: int = 40):
+    """Text whose words genuinely carry the label."""
+    texts = [
+        ("harbour patrol sighted a vessel" if i % 2 else "routine dock inspection log")
+        for i in range(n)
+    ]
+    labels = np.array([i % 2 for i in range(n)])
+    return texts, labels
+
+
+def _label_unrelated_corpus(n: int = 40):
+    """The HellaSwag bug in miniature: identical text, label assigned around it."""
+    texts = ["the same sentence every time" for _ in range(n)]
+    labels = np.array([i % 2 for i in range(n)])
+    return texts, labels
+
+
+def test_content_baseline_detects_signal_a_reader_could_use():
+    from validate_gate_externally import content_baseline
+
+    texts, labels = _separable_corpus()
+
+    auc = content_baseline(texts, labels, folds=4, seed=0)
+
+    assert auc > 0.9, "text that plainly predicts the label must score well above chance"
+
+
+def test_content_baseline_scores_chance_when_the_label_is_unrelated_to_the_text():
+    """The bug this control exists to catch, reproduced deliberately."""
+    from validate_gate_externally import content_baseline
+
+    texts, labels = _label_unrelated_corpus()
+
+    auc = content_baseline(texts, labels, folds=4, seed=0)
+
+    assert auc == pytest.approx(0.5, abs=0.15)
+
+
+def test_content_baseline_refuses_rather_than_returning_a_number_it_cannot_support():
+    from validate_gate_externally import content_baseline
+
+    texts = ["only one class here"] * 6
+    labels = np.zeros(6, dtype=int)
+
+    with pytest.raises(ValueError):
+        content_baseline(texts, labels, folds=2, seed=0)
+
+
+def test_corpus_prevalence_is_the_positive_share():
+    from validate_gate_externally import Corpus
+
+    corpus = Corpus(name="c", texts=["a", "b", "c", "d"], labels=[1, 1, 0, 0], note="")
+
+    assert corpus.prevalence == pytest.approx(0.5)
+
+
+def test_corpus_prevalence_of_nothing_does_not_divide_by_zero():
+    from validate_gate_externally import Corpus
+
+    assert Corpus(name="c", texts=[], labels=[], note="").prevalence == 0.0
+
+
+def test_permutation_null_refuses_when_no_trial_was_usable():
+    """A null with no trials behind it must raise, not return a tidy zero."""
+    from validate_gate_externally import permutation_null
+
+    # One class only: every shuffle is degenerate, so every fold is skipped.
+    x = np.random.default_rng(0).normal(size=(12, 3))
+    y = np.zeros(12, dtype=int)
+
+    with pytest.raises(ValueError, match="no usable trial"):
+        permutation_null(x, y, trials=3, folds=2, seed=0)
+
+
+# ---------------------------------------------------------------------------
+# measure_label_fidelity: the experiment driver
+#
+# This script had no coverage at all, and it is the one that produces finding 1 --
+# the negative result that leave-one-out attribution cannot yield a correct governed
+# label. Everything in it except the model call is deterministic, so the model call
+# is the only thing that needs standing in for. The Attribution it returns is a
+# plain dataclass, so the stub builds a real one rather than a mock, and the outcome
+# is then computed by the same code the experiment uses.
+# ---------------------------------------------------------------------------
+
+
+def _run_label_fidelity(monkeypatch, tmp_path, *, attribution_for, argv_extra=()):
+    """Drive main() with the model call replaced and argv controlled."""
+    import measure_label_fidelity as mlf
+
+    from pharos.attribute import Attribution
+
+    def fake_attribute(task, **_kwargs):
+        return Attribution(**attribution_for(task))
+
+    monkeypatch.setattr(mlf, "attribute_leave_one_out", fake_attribute)
+    out = tmp_path / "fidelity.json"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "measure_label_fidelity.py",
+            "--tasks",
+            "3",
+            "--events",
+            "120",
+            "--out",
+            str(out),
+            *argv_extra,
+        ],
+    )
+    return mlf.main(), out, Attribution
+
+
+def _perfect(task):
+    """Attribution that recovers exactly the sources that truly contributed."""
+    from pharos.attribute import truly_contributing
+    from pharos.detect import detect_facts
+
+    asserted = detect_facts(" ".join(s.text for s in task.sources))
+    truth = truly_contributing(task, asserted)
+    return {
+        "task_id": task.task_id,
+        "summary": " ".join(s.text for s in task.sources),
+        "asserted_facts": asserted,
+        "attributed_sources": truth,
+        "truly_contributing": truth,
+        "calls": len(task.sources) + 1,
+    }
+
+
+def _under_attributing(task):
+    """Drops a contributing source, which is the direction that leaks."""
+    payload = _perfect(task)
+    truth = payload["truly_contributing"]
+    payload["attributed_sources"] = frozenset(sorted(truth)[1:])
+    return payload
+
+
+def test_label_fidelity_runs_end_to_end_and_writes_a_provenanced_artifact(monkeypatch, tmp_path):
+    import json
+
+    code, out, _ = _run_label_fidelity(monkeypatch, tmp_path, attribution_for=_perfect)
+
+    assert code == 0
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    # An artifact with no provenance cannot be traced to the code that made it, and
+    # harvest.py in the papers repo refuses to build a table from one.
+    assert "provenance" in payload
+    assert payload["provenance"]["git_commit"]
+    assert len(payload["rows"]) == 3
+    assert set(payload["outcomes"]) <= {"exact", "creep", "leak", "incomparable"}
+    assert payload["source_recall_mean"] == pytest.approx(1.0)
+
+
+def test_label_fidelity_records_a_leak_when_attribution_misses_a_source(monkeypatch, tmp_path):
+    """Under-attribution deflates the join, which is the error that must never pass."""
+    import json
+
+    code, out, _ = _run_label_fidelity(monkeypatch, tmp_path, attribution_for=_under_attributing)
+
+    assert code == 0
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    assert payload["source_recall_mean"] < 1.0
+    # Dropping a contributing source can only lose compartments, so the outcome must
+    # never come back "exact" for every task.
+    assert payload["outcomes"].get("exact", 0) < len(payload["rows"])
+
+
+def test_label_fidelity_aborts_when_the_detector_is_too_weak_to_interpret(
+    monkeypatch, tmp_path, capsys
+):
+    """The guard that stops a meaningless number being written at all."""
+    import measure_label_fidelity as mlf
+
+    from pharos.detect import DetectorAccuracy
+
+    weak = DetectorAccuracy(n_reports=10, recall=0.1, precision=0.1)
+    monkeypatch.setattr(mlf, "detector_accuracy", lambda _reports: weak)
+    monkeypatch.setattr(
+        sys, "argv", ["measure_label_fidelity.py", "--tasks", "1", "--events", "60"]
+    )
+
+    assert mlf.main() == 1
+    assert "detector too weak" in capsys.readouterr().out
