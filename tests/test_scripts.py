@@ -1244,3 +1244,65 @@ def test_the_teacher_list_spans_right_and_wrong_standards():
     thresholds = {by_name[t].escalation_threshold for t in mtt.TEACHERS}
     assert 3 in thresholds, "the correct standard is the control and must be present"
     assert len(thresholds) > 1, "a transfer test needs teachers that disagree"
+
+
+# ------------------------------------------------------- sweep intervals -----
+
+
+def test_compare_models_builds_trials_that_drop_unparsable_verdicts():
+    """An unparsable answer is not a wrong answer, and must not enter the interval."""
+    import compare_models as cm
+
+    from pharos.uncertainty import Trial, cluster_bootstrap
+
+    rows = [
+        {"task_id": "a", "truth": True, "verdict": True},
+        {"task_id": "b", "truth": True, "verdict": False},
+        {"task_id": "c", "truth": False, "verdict": None},
+    ]
+    trials = [
+        Trial(str(r["task_id"]), None if r["verdict"] is None else r["verdict"] == r["truth"])
+        for r in rows
+    ]
+    assert [t.outcome for t in trials] == [True, False, None]
+    # And the interval is computed over the two answers, not three.
+    interval = cluster_bootstrap(trials, resamples=200)
+    assert 0.0 <= interval.low <= interval.point <= interval.high <= 1.0
+    assert cm.RESULTS.name == "results"
+
+
+def test_the_floor_claim_is_reported_as_unresolved_when_an_interval_reaches_it():
+    """The correction this analysis forced, asserted rather than described.
+
+    A point estimate below the majority floor whose interval reaches above it has
+    not shown the model fails to clear the floor. If this stops holding, finding 3b's
+    corrected wording is wrong and should fail here first.
+    """
+    import json
+
+    from pharos.uncertainty import Trial, cluster_bootstrap
+
+    reaching = []
+    for path in sorted(cm_results().glob("triage_lift-*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        rows = payload.get("rows", [])
+        if not rows:
+            continue
+        trials = [
+            Trial(r["task_id"], None if r["verdict"] is None else r["verdict"] == r["truth"])
+            for r in rows
+        ]
+        interval = cluster_bootstrap(trials, resamples=400)
+        if interval.high > payload["majority_accuracy"] >= interval.point:
+            reaching.append(payload["provenance"].get("model_key", path.stem))
+
+    assert reaching, (
+        "no model's interval reaches the majority floor; finding 3b's 'unresolved' "
+        "wording no longer matches the artifacts"
+    )
+
+
+def cm_results():
+    import compare_models as cm
+
+    return cm.RESULTS

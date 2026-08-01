@@ -174,9 +174,34 @@ model escalates every significant event and also escalates most routine ones, at
 precision between 0.395 and 0.500. The over-escalation reported in finding 3 is a
 property of the task under a withheld rule, not an idiosyncrasy of one model.
 
-**No model beats the majority-class floor.** The best accuracy exactly ties it at
-0.625. A reader comparing any F1 here to 0.5 would badly overstate what is
-happening.
+**No model beats the majority-class floor** -- but at n=40 that is partly a
+statement about the sample. The best accuracy exactly ties it at 0.625, and a reader
+comparing any F1 here to 0.5 would badly overstate what is happening. What the
+intervals add is where the claim stops:
+
+| Model | Accuracy | 95% interval | Clears 0.625? |
+| --- | --- | --- | --- |
+| qwen2.5-3b | 0.625 | [0.475, 0.775] | **unresolved** |
+| qwen2.5-14b | 0.525 | [0.375, 0.675] | **unresolved** |
+| llama3.1-8b | 0.500 | [0.325, 0.675] | **unresolved** |
+| llama3.2-3b | 0.475 | [0.325, 0.625] | no |
+| qwen2.5-7b | 0.450 | [0.300, 0.625] | no |
+| mistral-7b | 0.425 | [0.275, 0.600] | no |
+
+Cluster bootstrap over tasks, computed from the per-task rows in the committed
+artifacts by `scripts/compare_models.py`. No model was re-called.
+
+Three intervals reach above the floor. For those the honest statement is *this
+sample does not show them clearing it*, which is weaker than *they do not clear it*.
+The unanimous claims -- recall exactly 1.000, precision between 0.395 and 0.500 --
+are unaffected, because they are not close calls.
+
+!!! warning "Corrected 2026-08-01"
+    This paragraph read "no model beats the majority-class floor" without
+    qualification. That is right about the point estimates and overstates what 40
+    tasks establish. The intervals were computed post hoc from artifacts that
+    already existed; nothing was remeasured, and no number in the table above
+    changed.
 
 **Scale does not help, and this now controls for family.** Within Qwen alone, 3B
 scores 0.667 and 14B scores 0.612: a 4.7x parameter increase with no improvement.
@@ -230,28 +255,35 @@ The design's premise is that a fleet learns analytic craft from an analyst's
 accept, revise, and reject decisions. Withholding the rule and supplying labelled
 examples instead is the cheap form of that question.
 
-| Condition | Shots | Precision | Recall | F1 |
-| --- | --- | --- | --- | --- |
-| Zero-shot floor | 0 | 0.389 | 0.875 | 0.538 |
-| Labelled examples | 2 | 0.269 | 1.000 | 0.424 |
-| Labelled examples | 4 | 0.292 | 0.875 | 0.438 |
-| Labelled examples | 8 | 0.400 | 1.000 | 0.571 |
-| **Rule stated, checklist prompt (ceiling)** | n/a | **1.000** | **1.000** | **1.000** |
+| Condition | Shots | Precision | Recall | F1 | Accuracy | 95% interval |
+| --- | --- | --- | --- | --- | --- | --- |
+| Zero-shot floor | 0 | 0.312 | 0.750 | 0.441 | 0.493 | [0.327, 0.673] |
+| Labelled examples | 2 | 0.288 | 0.872 | 0.433 | 0.399 | [0.230, 0.571] |
+| Labelled examples | 4 | 0.340 | 0.900 | 0.493 | 0.475 | [0.301, 0.654] |
+| Labelled examples | 8 | 0.382 | 0.975 | 0.549 | 0.571 | [0.400, 0.740] |
+| **Rule stated, checklist prompt (ceiling)** | n/a | **1.000** | **1.000** | **1.000** | **1.000** | |
 
-**Examples close almost none of the gap.** The best few-shot condition closes 7% of
-the distance from the zero-shot floor to the ceiling, and two of the three land
-*below* the floor they were meant to lift. No condition clears its own
-majority-class accuracy either, which sits between 0.724 and 0.759.
+**Examples close almost none of the gap.** The best few-shot condition closes 19% of
+the distance from the zero-shot floor to the ceiling, and no condition clears its own
+majority-class accuracy, which sits between 0.716 and 0.737. That conclusion is what
+the wide margin supports; nothing finer is.
 
-!!! warning "Do not read the ordering between shot counts"
-    These conditions decode 320 tokens of reasoning before the verdict, and
+**No pair of shot counts is separated by its interval.** All six pairwise
+comparisons overlap. The curve in the table is not a curve -- 2 shots is not worse
+than 0, and 8 is not better than 4, on this data. Whatever examples do here, this
+experiment cannot resolve how it varies with how many of them there are.
+
+!!! warning "Remeasured 2026-08-01 with repeats"
+    This table was a single pass per condition until
     [finding 9](#9-a-single-pass-score-is-not-reproducible-when-the-model-reasons)
-    measures that regime at **10% of tasks disagreeing with themselves** across
-    identical calls on one machine. At n=29 that is roughly three tasks, which is
-    the whole spread between 0.424 and 0.571. The conclusion survives, because every
-    condition sits far below the 1.000 ceiling and the gap is much larger than the
-    instability. The *ranking* of 2, 4 and 8 shots does not, and should not be
-    quoted.
+    showed the reasoning decode disagrees with itself on 10% of tasks. It is now
+    five passes per task, scored as the single-run estimand -- what one agent
+    answering once gets, not a vote -- with a cluster-bootstrap interval over tasks.
+
+    The conclusion held. The ordering did not, and had been reported: the previous
+    F1 column ran 0.538, 0.424, 0.438, 0.571, and the dip at 2 shots was noise.
+    Within-task variance is 2 to 7% of the total here, lower than finding 9's
+    per-task flip rate because flips partly cancel at the level of a rate.
 
 !!! warning "Corrected 2026-08-01"
     This table previously carried a second series -- examples annotated with the

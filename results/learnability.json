@@ -1,13 +1,14 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "74c7fa3aac77",
-    "git_dirty": false,
-    "generated_at": "2026-07-31T01:28:58+00:00",
-    "python": "3.13.13",
+    "git_commit": "4977ea26a464",
+    "git_dirty": true,
+    "generated_at": "2026-08-01T18:24:46+00:00",
+    "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
     "model": "qwen2.5:7b-instruct",
+    "model_key": "qwen2.5-7b",
     "endpoint": "http://localhost:11434/api/generate",
     "seed": 7
   },
@@ -17,55 +18,135 @@
   "rows": [
     {
       "shots": 0,
-      "tp": 7,
-      "fp": 11,
-      "tn": 10,
-      "fn": 1,
-      "unparsed": 1,
-      "precision": 0.3889,
-      "recall": 0.875,
-      "f1": 0.5385,
-      "accuracy": 0.5862,
-      "majority": 0.7241
+      "tp": 30,
+      "fp": 66,
+      "tn": 44,
+      "fn": 10,
+      "unparsed": 0,
+      "precision": 0.3125,
+      "recall": 0.75,
+      "f1": 0.4412,
+      "accuracy": 0.4933,
+      "majority": 0.7333,
+      "accuracy_interval": {
+        "label": "0-shot",
+        "n_tasks": 30,
+        "repeats": 5,
+        "unparsed": 0,
+        "single_run": {
+          "point": 0.4933,
+          "low": 0.3267,
+          "high": 0.6733,
+          "level": 0.95,
+          "resamples": 2000
+        },
+        "consensus": 0.5,
+        "consensus_gain": 0.0067,
+        "variance": {
+          "between_task": 0.233956,
+          "within_task": 0.016,
+          "within_share": 0.064
+        }
+      }
     },
     {
       "shots": 2,
-      "tp": 7,
-      "fp": 19,
-      "tn": 3,
-      "fn": 0,
-      "unparsed": 1,
-      "precision": 0.2692,
-      "recall": 1.0,
-      "f1": 0.4242,
-      "accuracy": 0.3448,
-      "majority": 0.7586
+      "tp": 34,
+      "fp": 84,
+      "tn": 25,
+      "fn": 5,
+      "unparsed": 2,
+      "precision": 0.2881,
+      "recall": 0.8718,
+      "f1": 0.4331,
+      "accuracy": 0.3986,
+      "majority": 0.7365,
+      "accuracy_interval": {
+        "label": "2-shot",
+        "n_tasks": 30,
+        "repeats": 5,
+        "unparsed": 2,
+        "single_run": {
+          "point": 0.3986,
+          "low": 0.2297,
+          "high": 0.5705,
+          "level": 0.95,
+          "resamples": 2000
+        },
+        "consensus": 0.4,
+        "consensus_gain": 0.0014,
+        "variance": {
+          "between_task": 0.235956,
+          "within_task": 0.005333,
+          "within_share": 0.0221
+        }
+      }
     },
     {
       "shots": 4,
-      "tp": 7,
-      "fp": 17,
-      "tn": 5,
-      "fn": 1,
-      "unparsed": 0,
-      "precision": 0.2917,
-      "recall": 0.875,
-      "f1": 0.4375,
-      "accuracy": 0.4,
-      "majority": 0.7333
+      "tp": 36,
+      "fp": 70,
+      "tn": 31,
+      "fn": 4,
+      "unparsed": 9,
+      "precision": 0.3396,
+      "recall": 0.9,
+      "f1": 0.4932,
+      "accuracy": 0.4752,
+      "majority": 0.7163,
+      "accuracy_interval": {
+        "label": "4-shot",
+        "n_tasks": 30,
+        "repeats": 5,
+        "unparsed": 9,
+        "single_run": {
+          "point": 0.4752,
+          "low": 0.3014,
+          "high": 0.6544,
+          "level": 0.95,
+          "resamples": 2000
+        },
+        "consensus": 0.4667,
+        "consensus_gain": -0.0085,
+        "variance": {
+          "between_task": 0.233341,
+          "within_task": 0.016552,
+          "within_share": 0.0662
+        }
+      }
     },
     {
       "shots": 8,
-      "tp": 8,
-      "fp": 12,
-      "tn": 9,
-      "fn": 0,
+      "tp": 39,
+      "fp": 63,
+      "tn": 46,
+      "fn": 1,
       "unparsed": 1,
-      "precision": 0.4,
-      "recall": 1.0,
-      "f1": 0.5714,
-      "accuracy": 0.5862,
-      "majority": 0.7241
+      "precision": 0.3824,
+      "recall": 0.975,
+      "f1": 0.5493,
+      "accuracy": 0.5705,
+      "majority": 0.7315,
+      "accuracy_interval": {
+        "label": "8-shot",
+        "n_tasks": 30,
+        "repeats": 5,
+        "unparsed": 1,
+        "single_run": {
+          "point": 0.5705,
+          "low": 0.4,
+          "high": 0.74,
+          "level": 0.95,
+          "resamples": 2000
+        },
+        "consensus": 0.5667,
+        "consensus_gain": -0.0038,
+        "variance": {
+          "between_task": 0.228622,
+          "within_task": 0.016,
+          "within_share": 0.0654
+        }
+      }
     }
   ]
 }
