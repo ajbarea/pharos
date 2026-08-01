@@ -117,6 +117,9 @@ ignore = [
 "src/pharos/generate.py" = ["S311"]
 "src/pharos/gate.py" = ["S311"]
 "src/pharos/analyst.py" = ["S311"]
+# The cluster bootstrap must be reproducible from its seed, which is exactly what a
+# CSPRNG cannot offer. Nothing here is security-bearing.
+"src/pharos/uncertainty.py" = ["S311"]
 # Reproduces a reviewer's slip draws exactly, keyed the same way `AnalystPolicy`
 # keys them, so a teacher slips on the same tasks it reviewed. Nothing security-bearing.
 "scripts/train_adapter.py" = ["S311"]

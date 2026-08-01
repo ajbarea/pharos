@@ -71,6 +71,7 @@ Python 3.12 to 3.14. Generation and gating need only `numpy` and `scikit-learn`.
 | `pharos.attribute` | The only module that calls a model. Everything nondeterministic lives here |
 | `pharos.models` | The model registry: what can be run, and what actually has been |
 | `pharos.validity` | The conditions under which a score should not be quoted |
+| `pharos.uncertainty` | Cluster-bootstrap intervals, and which estimand a deployment actually gets |
 
 **Release and inspection:**
 
@@ -100,6 +101,7 @@ count, kernel, and libc -- 0.6547, 0.6588, and 0.6675 on seeds 1, 7, and 101.
 | [The label lattice](https://ajbarea.github.io/pharos/reference/label-lattice/) | Dominance, joins, and why compartments make this a lattice rather than a ladder |
 | [The shortcut gate](https://ajbarea.github.io/pharos/reference/gate/) | What the probe sees, the four rounds it rejected, and why it is a calibration instrument |
 | [The release decision](https://ajbarea.github.io/pharos/reference/disclosure/) | Three dispositions, reason codes, purpose limitation, and the audited case table |
+| [Reporting a noisy measurement](https://ajbarea.github.io/pharos/reference/uncertainty/) | Why a single pass is not a score, and what has to travel with one |
 | [Corpus schema](https://ajbarea.github.io/pharos/reference/corpus-schema/) | The shape of an exported record |
 | [Choosing a model](https://ajbarea.github.io/pharos/models/) | The registry, what `verified` means, and sweeping every installed model |
 | [Releasing a corpus](https://ajbarea.github.io/pharos/releasing/) | Export, Croissant metadata, and provenance |

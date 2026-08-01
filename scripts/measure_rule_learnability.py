@@ -29,6 +29,7 @@ Run from the repo root with Ollama serving:
 import argparse
 import json
 from pathlib import Path
+from typing import Any
 
 from pharos.attribute import DEFAULT_ENDPOINT, DEFAULT_MODEL, generate_text
 from pharos.generate import GeneratorConfig, generate
@@ -36,6 +37,7 @@ from pharos.models import resolve
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, record
+from pharos.uncertainty import Trial, resolves, summarize
 
 LOG = get_logger()
 
@@ -125,6 +127,16 @@ def main() -> int:
     parser.add_argument("--events", type=int, default=400)
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--endpoint", default=DEFAULT_ENDPOINT)
+    parser.add_argument(
+        "--repeats",
+        type=int,
+        default=1,
+        help=(
+            "identical passes per task. Finding 9 measured this decode at 10%% "
+            "self-disagreement, so 1 gives a point with no interval and any ordering "
+            "read off it is unsupported. 5 is the publication setting."
+        ),
+    )
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     # Accept a registry key, a raw tag, or anything the backend knows.
@@ -141,28 +153,38 @@ def main() -> int:
     print(f"{len(evaluation)} evaluation tasks, {len(shot_pool)} available as examples")
     print(f"model {args.model}; rule NEVER stated in any condition\n")
 
-    rows = []
+    rows: list[dict[str, Any]] = []
+    measurements = []
     for k in args.shots:
         shots = balanced_shots(shot_pool, k)
         tp = fp = tn = fn = unparsed = 0
+        # One Trial per (task, pass). The confusion matrix keeps counting every
+        # call, so the headline rates are the single-run estimand rather than a
+        # vote -- which is what a fleet answering once per task actually gets.
+        trials: list[Trial] = []
         for task in evaluation:
-            answer = generate_text(
-                build_prompt(task, shots),
-                endpoint=args.endpoint,
-                model=args.model,
-                num_predict=260,
-            )
-            verdict = parse_verdict(answer)
-            if verdict is None:
-                unparsed += 1
-            elif verdict and task.significant:
-                tp += 1
-            elif verdict and not task.significant:
-                fp += 1
-            elif not verdict and task.significant:
-                fn += 1
-            else:
-                tn += 1
+            for _ in range(args.repeats):
+                answer = generate_text(
+                    build_prompt(task, shots),
+                    endpoint=args.endpoint,
+                    model=args.model,
+                    num_predict=260,
+                )
+                verdict = parse_verdict(answer)
+                trials.append(
+                    Trial(task.task_id, None if verdict is None else verdict == task.significant)
+                )
+                if verdict is None:
+                    unparsed += 1
+                elif verdict and task.significant:
+                    tp += 1
+                elif verdict and not task.significant:
+                    fp += 1
+                elif not verdict and task.significant:
+                    fn += 1
+                else:
+                    tn += 1
+        measurements.append(summarize(trials, label=f"{k}-shot"))
 
         scored = tp + fp + tn + fn
         precision = tp / max(tp + fp, 1)
@@ -185,6 +207,7 @@ def main() -> int:
                 "f1": round(f1, 4),
                 "accuracy": round(accuracy, 4),
                 "majority": round(majority, 4),
+                "accuracy_interval": measurements[-1].as_dict(),
             }
         )
         record("learnability.f1", f1, shots=k, model=args.model)
@@ -217,6 +240,35 @@ def main() -> int:
                 "adapter experiment worth running rather than speculative."
             )
     print("=" * 74)
+
+    if args.repeats > 1:
+        print("\n" + "=" * 74)
+        print("Accuracy with a cluster-bootstrap 95% interval over tasks.")
+        print("single-run is what one pass gets; consensus is a majority vote over passes.")
+        print("=" * 74)
+        for k, m in zip(args.shots, measurements, strict=True):
+            i = m.single_run
+            print(
+                f"  {k:>2} shots  {i.point:.3f}  [{i.low:.3f}, {i.high:.3f}]"
+                f"   consensus {m.consensus:.3f}   within-task variance"
+                f" {m.variance.within_share:.0%}"
+            )
+
+        # Whether the ordering finding 5 reported survives its own noise. Reporting
+        # the pairs that do NOT separate is the honest direction: a reader assumes
+        # a table's ordering is real unless told otherwise.
+        unresolved = [
+            (a, b)
+            for ia, a in enumerate(args.shots)
+            for ib, b in enumerate(args.shots)
+            if ia < ib and not resolves(measurements[ia].single_run, measurements[ib].single_run)
+        ]
+        if unresolved:
+            pairs = ", ".join(f"{a} vs {b}" for a, b in unresolved)
+            print(f"\n  NOT separated by the intervals: {pairs}")
+            print("  Any ordering between those conditions is unsupported by this data.")
+        else:
+            print("\n  Every pair separates; the ordering is supported.")
 
     if args.out:
         args.out.write_text(

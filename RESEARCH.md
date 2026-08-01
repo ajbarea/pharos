@@ -265,6 +265,45 @@ is whether it is learnable from the decisions an analyst actually makes.
   different rule perfectly -- so an expertise scalar fit against a
   random-guess model may not detect them. State that limitation when citing.
 
+### Measurement error in LLM evaluation
+
+Verified 2026-08-01. These ground finding 9 and `pharos.uncertainty`.
+
+- Bjarnason, B. H., Silva, A., & Monperrus, M. (2026). On Randomness in Agentic Evals.
+  [arXiv:2602.07150](https://arxiv.org/abs/2602.07150) (v3 2026-03-25; no journal
+  reference on the record)
+  **Independently confirms finding 9's mechanism at a scale Pharos cannot reach.**
+  60,000 agentic trajectories on SWE-Bench-Verified across three models and two
+  scaffolds. Single-run pass@1 varies by 2.2 to 6.0 percentage points depending on
+  which run is chosen, with standard deviations above 1.5 points **at temperature
+  zero**, and their token-level analysis finds that trajectories *diverge early*.
+  That is the same mechanism finding 9 infers from a 30-task comparison of an
+  8-token decode against a 320-token one, arrived at independently and from far more
+  data. Their conclusion -- that reported improvements of 2-3 points may be
+  evaluation noise -- applies directly to any Pharos condition taken under the
+  reasoning decode.
+
+- Messing, S. (2026). Hidden Measurement Error in LLM Pipelines Distorts Annotation,
+  Evaluation, and Benchmarking.
+  [arXiv:2604.11581](https://arxiv.org/abs/2604.11581) (v6 2026-05-13; no journal
+  reference on the record)
+  **Bounds what `pharos.uncertainty` can honestly claim.** Standard confidence
+  intervals ignore variability from judge model choice, temperature, and prompt
+  phrasing, "producing under-coverage that worsens with more data". Pharos resamples
+  two sources -- between-task and within-task -- and neither is prompt phrasing or
+  model version, so an interval from this repo is a **floor** on the uncertainty and
+  is documented as one. The paper's other warning is the reason the measurement
+  scripts print which condition pairs are *not* separated rather than only the
+  ordering: a pipeline that fails to average over omitted variance is exactly the
+  surface benchmark-hacking exploits.
+
+**What this changed here.** Every model-dependent Pharos number was a single pass
+until finding 9. The scripts now take `--repeats`, report a cluster-bootstrap
+interval over tasks, and name the pairs their own intervals fail to separate. The
+estimand is `single_run` rather than a mean over passes, because a Pharos fleet
+answers once per task and does not vote; `consensus` is reported beside it as what
+voting would buy, and it is sometimes negative.
+
 **State the delta narrowly.** Both edit-feedback papers learn from free-text edits to
 a prose response. A Pharos analyst decision is accept, revise, or reject over a
 *verdict and its governed label*, which is a lower-bandwidth signal on a discrete
