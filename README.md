@@ -154,11 +154,13 @@ make review      # replay the committed verdicts past the analyst grid (no model
    scorers, and an adversarial-input pass over each.
 3. **Simulated analysts.** `pharos.analyst` supplies the reviewer as a specified
    policy and finding 7 reports what a review stream is worth: not scarce, but
-   carrying the reviewer's standard rather than the world's, and unable to move the
-   compartment ruling at all. Still owed are a learner trained on those decisions
-   rather than on clean labels, and the divergence report over a full parameter
-   sweep rather than the one-axis-at-a-time grid. This step remains the critical
-   path.
+   carrying the reviewer's standard rather than the world's, so a reviewer who
+   over-escalates teaches targets below the majority floor. The compartment ruling
+   *is* movable, by an authority rather than by the reviewer, at a cost of 52.5% of
+   the stream. Still owed is the experiment that decides the premise: **a learner
+   trained on those decisions rather than on clean labels.** Finding 6 used the
+   generator's ground truth; whether the rule survives a reviewer's standard is the
+   question the fleet actually turns on. This step remains the critical path.
 
 ## License
 
