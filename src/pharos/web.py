@@ -28,11 +28,19 @@ from pathlib import Path
 from typing import Any
 
 from pharos import models
+from pharos.analyst import (
+    DEFAULT_CEILING,
+    DEFAULT_ENSEMBLE,
+    KEEP_COMPARTMENTS,
+    Proposal,
+    evidence_shown,
+)
 from pharos.attribute import DEFAULT_ENDPOINT, generate_text
 from pharos.gate import run_gate
 from pharos.generate import GeneratorConfig, generate
-from pharos.labels import Capacity, Compartment, Label, Sensitivity, join
+from pharos.labels import Capacity, Compartment, Label, Sensitivity, declassify, join
 from pharos.tasks import build_triage_tasks
+from pharos.world import SIGNIFICANT_PATTERN
 
 STATIC = Path(__file__).parent / "static"
 
@@ -207,6 +215,59 @@ def create_app():
             "raw": answer.strip()[:600],
             "governed_label": _label_payload(governed),
             "prompt": task.prompt,
+        }
+
+    @app.get("/api/review")
+    def api_review(seed: int = 7, index: int = 0, verdict: bool = True) -> dict[str, Any]:
+        """What every reviewer in the default grid does with one proposed verdict.
+
+        Takes the verdict as a parameter rather than calling a model, so the page can
+        show both cases side by side without waiting on a backend. The interesting
+        cell is a reviewer who objects and whose own correction is still not
+        releasable: the objection is real, and acting on it changes nothing.
+        """
+        reports = generate(GeneratorConfig(seed=seed, n_events=40))
+        tasks = build_triage_tasks(reports)
+        if not tasks:
+            raise HTTPException(500, "no tasks generated")
+        task = tasks[index % len(tasks)]
+
+        release = declassify(task.label, KEEP_COMPARTMENTS)
+        proposal = Proposal(task.task_id, verdict, release)
+        rows = []
+        for policy in DEFAULT_ENSEMBLE:
+            decision = policy.review(task, proposal, seed=seed)
+            corrected = decision.corrected_release
+            rows.append(
+                {
+                    "analyst": policy.name,
+                    "escalation_threshold": policy.escalation_threshold,
+                    "action": str(decision.action),
+                    "grounds": sorted(str(g) for g in decision.grounds),
+                    "corrected_verdict": decision.corrected_verdict,
+                    "corrected_release": None if corrected is None else _label_payload(corrected),
+                    "correction_releasable": (
+                        None if corrected is None else DEFAULT_CEILING.dominates(corrected)
+                    ),
+                }
+            )
+
+        return {
+            "task_id": task.task_id,
+            "seed": seed,
+            "truth_significant": task.significant,
+            "proposed_verdict": verdict,
+            "evidence_shown": sorted(evidence_shown(task)),
+            "evidence_needed": len(SIGNIFICANT_PATTERN),
+            "proposed_release": _label_payload(release),
+            "ceiling": _label_payload(DEFAULT_CEILING),
+            "proposal_releasable": DEFAULT_CEILING.dominates(release),
+            "reviewers": rows,
+            "note": (
+                "Reviewers are decision procedures with named parameters, not "
+                "simulated people. Each row bounds a mechanism and estimates no "
+                "population."
+            ),
         }
 
     return app

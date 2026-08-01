@@ -115,3 +115,40 @@ def test_triage_surfaces_a_dead_backend_as_502(client):
     response = client.post("/api/triage", json=body)
     assert response.status_code == 502
     assert "model call failed" in response.json()["detail"]
+
+
+def test_review_shows_every_reviewer_and_what_it_disclosed(client):
+    payload = client.get("/api/review", params={"seed": 7, "index": 0, "verdict": True}).json()
+
+    assert payload["evidence_needed"] == 3
+    assert len(payload["evidence_shown"]) == (
+        3 if payload["truth_significant"] else len(payload["evidence_shown"])
+    )
+    names = [r["analyst"] for r in payload["reviewers"]]
+    assert "by-the-book" in names and "unexplained" in names
+
+    by_name = {r["analyst"]: r for r in payload["reviewers"]}
+    # The by-the-book reviewer applies the world's own rule, so its corrected
+    # verdict is the truth whenever it supplies one.
+    control = by_name["by-the-book"]
+    if control["corrected_verdict"] is not None:
+        assert control["corrected_verdict"] == payload["truth_significant"]
+    # An objection with no stated grounds is the whole point of that row.
+    silent = by_name["unexplained"]
+    if silent["action"] != "accept":
+        assert silent["grounds"] == []
+
+
+def test_review_reports_whether_a_correction_can_actually_leave(client):
+    """A reviewer can object correctly and hand back something still blocked."""
+    blocked = None
+    for index in range(20):
+        payload = client.get("/api/review", params={"index": index, "verdict": False}).json()
+        if not payload["proposal_releasable"]:
+            blocked = payload
+            break
+    assert blocked is not None, "no unreleasable proposal in the first 20 tasks"
+
+    by_name = {r["analyst"]: r for r in blocked["reviewers"]}
+    assert by_name["by-the-book"]["correction_releasable"] is False
+    assert by_name["releaser"]["correction_releasable"] is True

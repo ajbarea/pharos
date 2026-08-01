@@ -82,6 +82,7 @@
     <button role="tab" data-tab="lattice" aria-selected="false">Label lattice</button>
     <button role="tab" data-tab="triage" aria-selected="false">Run a model</button>
     <button role="tab" data-tab="gate" aria-selected="false">Shortcut gate</button>
+    <button role="tab" data-tab="review" aria-selected="false">Analyst review</button>
   </nav>
 
   <!-- ── Corpus ─────────────────────────────────────────────── -->
@@ -156,6 +157,30 @@
     </div>
     <div class="card" id="g-out" hidden></div>
   </section>
+
+  <!-- ── Analyst review ─────────────────────────────────────── -->
+  <section id="tab-review" hidden>
+    <div class="card">
+      <p class="note" style="margin-top:0">A proposal is two assertions: a verdict,
+        and the label it would be released under. Each reviewer below differs from
+        the by-the-book one on exactly one axis. Watch the last column: a reviewer
+        can object correctly and still hand back a correction that cannot leave.</p>
+      <p class="note"><strong>Reviewers are decision procedures with named
+        parameters, not simulated people.</strong> Each row bounds a mechanism and
+        estimates nothing about how a human analyst behaves.</p>
+      <div class="row">
+        <div><label for="r-seed">Seed</label><input id="r-seed" type="number" value="7"></div>
+        <div><label for="r-index">Task</label><input id="r-index" type="number" value="0"></div>
+        <div><label for="r-verdict">Proposed verdict</label>
+          <select id="r-verdict">
+            <option value="true">SIGNIFICANT</option>
+            <option value="false">ROUTINE</option>
+          </select></div>
+        <button class="go" id="r-go">Review</button>
+      </div>
+    </div>
+    <div class="card" id="r-out" hidden></div>
+  </section>
 </main>
 
 <script>
@@ -165,7 +190,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>
 document.querySelectorAll('nav button').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
-    ['corpus','lattice','triage','gate'].forEach(t => { $('tab-' + t).hidden = (t !== btn.dataset.tab); });
+    ['corpus','lattice','triage','gate','review'].forEach(t => { $('tab-' + t).hidden = (t !== btn.dataset.tab); });
   };
 });
 
@@ -320,6 +345,48 @@ $('g-go').onclick = async () => {
       </table>
       <p class="note">${esc(d.note)}</p>`;
   } catch (e) { $('g-out').hidden = false; $('g-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+  busy(btn, false);
+};
+
+// ── Analyst review ──────────────────────────────────────────
+$('r-go').dataset.label = 'Review';
+$('r-go').onclick = async () => {
+  const btn = $('r-go'); busy(btn, true);
+  try {
+    const d = await api(`/api/review?seed=${$('r-seed').value}&index=${$('r-index').value}&verdict=${$('r-verdict').value}`);
+    const say = (v) => v === null ? '<span class="muted">none</span>' : (v ? 'SIGNIFICANT' : 'ROUTINE');
+    const rows = d.reviewers.map(r => {
+      const grounds = r.grounds.length
+        ? r.grounds.map(g => `<span class="tag">${esc(g)}</span>`).join(' ')
+        : (r.action === 'accept' ? '<span class="muted">—</span>' : '<span class="bad">not stated</span>');
+      const fix = r.corrected_release === null
+        ? '<span class="muted">no correction</span>'
+        : `<span class="tag">${esc(r.corrected_release.rendered)}</span> ` +
+          (r.correction_releasable ? '<span class="ok">clears ceiling</span>' : '<span class="bad">still blocked</span>');
+      return `<tr>
+        <td class="mono">${esc(r.analyst)}</td>
+        <td>${esc(r.action)}</td>
+        <td>${grounds}</td>
+        <td>${say(r.corrected_verdict)}</td>
+        <td>${fix}</td></tr>`;
+    }).join('');
+    $('r-out').hidden = false;
+    $('r-out').innerHTML = `
+      <p class="verdict">Proposed <strong>${say(d.proposed_verdict)}</strong>,
+         truth is <strong>${say(d.truth_significant)}</strong></p>
+      <table>
+        <tr><th>Task</th><td class="mono">${esc(d.task_id)}</td></tr>
+        <tr><th>Defining facts shown</th><td>${d.evidence_shown.length} of ${d.evidence_needed}
+            ${d.evidence_shown.map(f => `<span class="tag">${esc(f)}</span>`).join(' ')}</td></tr>
+        <tr><th>Proposed release</th><td><span class="tag">${esc(d.proposed_release.rendered)}</span>
+            ${d.proposal_releasable ? '<span class="ok">clears ceiling</span>' : '<span class="bad">blocked at ceiling</span>'}</td></tr>
+        <tr><th>Aggregator ceiling</th><td><span class="tag">${esc(d.ceiling.rendered)}</span></td></tr>
+      </table>
+      <div class="scroll"><table><thead><tr>
+        <th>Reviewer</th><th>Action</th><th>Grounds</th><th>Corrected verdict</th><th>Corrected release</th>
+      </tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="note">${esc(d.note)}</p>`;
+  } catch (e) { $('r-out').hidden = false; $('r-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
   busy(btn, false);
 };
 

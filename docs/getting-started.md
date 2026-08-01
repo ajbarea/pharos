@@ -51,10 +51,16 @@ uv sync --group ui
 uv run python -m pharos.cli serve     # http://127.0.0.1:8080
 ```
 
-Four tabs over one page: generate a corpus and read labelled reports, ask whether
+Five tabs over one page: generate a corpus and read labelled reports, ask whether
 one label dominates another, run a triage task against a model from the registry,
-and run the gate. It exists so the three ideas can be understood without reading
-Python.
+run the gate, and put a proposed verdict in front of the analyst grid. It exists so
+the ideas can be understood without reading Python.
+
+The review tab is the one worth a minute. Pick a task whose proposed release is
+blocked at the aggregator ceiling and every reviewer objects, but only the one who
+sheds compartments hands back a correction that can actually leave. That is
+[finding 7](findings.md#7-review-is-abundant-what-it-costs-is-correctness) in a
+single screen.
 
 Every endpoint returns the objects the Python API produces, so the page is a client
 rather than a second implementation -- a label shown in the UI came from
