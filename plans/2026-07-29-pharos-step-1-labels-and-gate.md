@@ -1,5 +1,18 @@
 # Pharos Step 1: Label Lattice, Generator, and Shortcut Gate — Implementation Plan
 
+> **Superseded 2026-08-01. Historical record; do not read as current state.** Step 1
+> shipped, and the plan's central premise did not survive it. This document says the
+> probe "must score at chance before any corpus version is usable" and treats the
+> `[0.45, 0.55]` band as pass/fail. That requirement was withdrawn on principle:
+> content-defined ground truth *cannot* have a chance-level surface baseline, because
+> a plant is a plant by virtue of carrying the significant facts. The gate is now a
+> calibration instrument reporting a permutation null, the strict band is an
+> unreachable ideal that `VERDICT` does not depend on, `Manifest.usable` returns True,
+> and the CI gate job is blocking rather than advisory. The section near the end
+> titled "The one task remaining in step 1" describes work the project decided
+> deliberately not to do. Current state lives in `docs/reference/gate.md` and
+> `docs/findings.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the labeled corpus generator and the acceptance gate that makes it trustworthy: a product lattice over sensitivity, compartments, and output capacity; a configuration-driven maritime report generator; and a surface-only probe that must score at chance before any corpus version is usable.
