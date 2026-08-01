@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:a100:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --time=04:00:00
+#SBATCH --time=06:00:00
 #SBATCH --output=cluster/logs/%x-%j.out
 #SBATCH --error=cluster/logs/%x-%j.err
 #
@@ -64,8 +64,21 @@ nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 
 MODEL="${PHAROS_ADAPTER_MODEL:-Qwen/Qwen2.5-3B-Instruct}"
 REVIEWERS="${PHAROS_REVIEWERS:-by-the-book inattentive two-of-three any-one}"
+
+# Evaluation size, and the corpus size that keeps the training set fixed while it
+# grows. The trainer splits tasks into eval-first, train-rest, so holding
+# EVENTS - EVAL constant at 1140 keeps every run's training data the same size as
+# the first sweep's and makes the comparison across sizes clean.
+#
+# 600 is not arbitrary: scripts/measure_power.py puts the minimum detectable effect
+# at 60 tasks at 0.233, which does not resolve the 0.083 gap between the careless
+# teacher's adapter and that teacher. At 600 the minimum detectable is 0.070, which
+# does.
+EVAL_TASKS="${PHAROS_EVAL_TASKS:-600}"
+EVENTS="${PHAROS_EVENTS:-$((1140 + EVAL_TASKS))}"
 echo ">>> model $MODEL"
 echo ">>> reviewers $REVIEWERS"
+echo ">>> eval tasks $EVAL_TASKS from $EVENTS events (train held at $((EVENTS - EVAL_TASKS)))"
 
 for reviewer in $REVIEWERS; do
   echo
@@ -83,8 +96,8 @@ for reviewer in $REVIEWERS; do
 
   uv run --extra train python scripts/train_adapter.py \
       --model "$MODEL" \
-      --events 1200 \
-      --eval-tasks 60 \
+      --events "$EVENTS" \
+      --eval-tasks "$EVAL_TASKS" \
       --epochs 3 \
       --reviewer "$reviewer" \
       $extra \
