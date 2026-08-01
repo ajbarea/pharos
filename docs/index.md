@@ -7,7 +7,8 @@ hide:
 
 <div class="hero" markdown>
 
-![Pharos](assets/pharos-hero.png){ alt="A lighthouse casting three coloured sector beams into the dark" }
+![Pharos](assets/pharos-hero.png#only-dark){ alt="A lighthouse casting three coloured sector beams into the dark" }
+![Pharos](assets/pharos-hero-light.png#only-light){ alt="A lighthouse casting three coloured sector beams across a pale sky" }
 
 # Pharos
 

@@ -76,7 +76,7 @@ uv run ty check
 
 echo
 echo ">>> test suite with coverage floor"
-uv run pytest --cov=pharos --cov=scripts --cov-report=term-missing --cov-fail-under=90
+uv run pytest --cov=pharos --cov=scripts --cov-branch --cov-report=term-missing --cov-fail-under=88
 
 echo
 echo ">>> the gate, on the seed list CI uses"

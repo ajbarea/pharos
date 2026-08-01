@@ -1,41 +1,88 @@
-/* Landing page: hero, scroll hint, and the reveal-on-scroll sections.
+/* Landing page: hero, particle field, scroll hint, reveal-on-scroll sections.
  *
  * The palette is taken from the hero image rather than chosen separately, so the
  * page and the picture agree: three beams on three bearings, amber, cyan, magenta.
+ * Those three are also the three axes of the label lattice, which is the whole
+ * reason the image looks the way it does.
  */
 
 :root {
-  --pharos-beam-amber: #f0a020;
-  --pharos-beam-cyan: #22c8c8;
-  --pharos-beam-magenta: #d4267f;
-  --pharos-night: #0b0e14;
+  --pharos-amber: #f0a020;
+  --pharos-cyan: #22c8c8;
+  --pharos-magenta: #d4267f;
+  --pharos-glow: 24px;
 }
 
-/* ---------------------------------------------------------------- hero ----- */
+/* The light hero is pastel on white and its beams are much paler, so the same
+ * accent values read as washed out against a light page. Deepen them there. */
+[data-md-color-scheme="default"] {
+  --pharos-amber: #d98200;
+  --pharos-cyan: #0e9c9c;
+  --pharos-magenta: #b81a68;
+  --pharos-glow: 16px;
+}
+
+/* ------------------------------------------------- theme-reactive images ----- */
+
+/* The theme does not ship these rules, so they are defined here. A hero rendered
+ * for a dark page is unreadable on a light one and the reverse, which is why the
+ * sisters keep two files rather than one. */
+[data-md-color-scheme="default"] img[src$="#only-dark"],
+[data-md-color-scheme="slate"] img[src$="#only-light"] {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ hero ----- */
 
 .hero {
   position: relative;
   text-align: center;
-  padding: 2rem 1rem 1rem;
+  padding: 1.5rem 1rem 0.5rem;
+  isolation: isolate;
+}
+
+/* Canvas sits behind everything in the hero and never intercepts a click. */
+.hero-particles {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.hero p:has(img) {
+  margin: 0;
 }
 
 .hero img {
-  width: min(560px, 82vw);
+  width: min(520px, 78vw);
   height: auto;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
+  box-shadow:
+    0 0 var(--pharos-glow) color-mix(in srgb, var(--pharos-cyan) 22%, transparent),
+    0 18px 48px rgb(0 0 0 / 38%);
+}
+
+[data-md-color-scheme="default"] .hero img {
+  box-shadow:
+    0 0 var(--pharos-glow) color-mix(in srgb, var(--pharos-cyan) 16%, transparent),
+    0 14px 34px rgb(0 0 0 / 12%);
 }
 
 .md-typeset .hero h1 {
-  margin: 1.25rem 0 0.35rem;
+  margin: 1.5rem 0 0.4rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 2.6rem;
+  letter-spacing: 0.05em;
 }
 
 .hero-subtitle {
-  max-width: 40rem;
-  margin: 0 auto 1.75rem;
+  max-width: 38rem;
+  margin: 0 auto 1.9rem;
   font-size: 1.05rem;
-  opacity: 0.86;
+  line-height: 1.6;
+  opacity: 0.85;
 }
 
 .hero-buttons {
@@ -45,40 +92,54 @@
   justify-content: center;
 }
 
+.md-typeset .hero-buttons .md-button {
+  border-radius: 2rem;
+  padding: 0.5rem 1.4rem;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .md-typeset .hero-buttons .md-button:hover {
+    transform: translateY(-2px);
+  }
+}
+
 /* The three beams, as a legend for what the picture is saying. */
 .hero-beams {
-  margin-top: 2rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
+  margin-top: 2.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  opacity: 0.75;
 }
 
 .hero-beams .beam-amber {
-  color: var(--pharos-beam-amber);
+  color: var(--pharos-amber);
 }
 .hero-beams .beam-cyan {
-  color: var(--pharos-beam-cyan);
+  color: var(--pharos-cyan);
 }
 .hero-beams .beam-magenta {
-  color: var(--pharos-beam-magenta);
+  color: var(--pharos-magenta);
 }
 
-/* --------------------------------------------------------- scroll hint ----- */
+/* ----------------------------------------------------------- scroll hint ----- */
 
 .scroll-hint {
   text-align: center;
-  padding: 0.5rem 0 2rem;
+  padding: 1.5rem 0 2.5rem;
 }
 
 .scroll-chevron {
   display: inline-block;
-  width: 14px;
-  height: 14px;
-  border-right: 2px solid var(--pharos-beam-amber);
-  border-bottom: 2px solid var(--pharos-beam-amber);
+  width: 13px;
+  height: 13px;
+  border-right: 2px solid var(--pharos-amber);
+  border-bottom: 2px solid var(--pharos-amber);
   transform: rotate(45deg);
-  opacity: 0.4;
+  opacity: 0.45;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -96,34 +157,68 @@
   }
 }
 
-/* ------------------------------------------------------------ sections ----- */
+/* -------------------------------------------------------------- sections ----- */
 
 /* Visible by default. JS sets .js-ready on <html> to opt into the reveal, so a
  * reader with JavaScript off gets the whole page rather than a blank one. */
 .landing-section {
-  padding: 3.5rem 0 3rem;
-  border-top: 1px solid var(--md-default-fg-color--lightest);
+  padding: 3.25rem 0 2.75rem;
+  position: relative;
 }
 
-.landing-section:first-of-type {
-  border-top: none;
+/* A hairline rule that fades at both ends, rather than a full-width border. */
+.landing-section + .landing-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--md-default-fg-color--lightest),
+    transparent
+  );
 }
 
-.section-title {
+.md-typeset .section-title {
   text-align: center;
+  margin-bottom: 0.9rem;
+}
+
+/* A short accent bar under each section heading, cycling the three beam colours
+ * so the page keeps referring back to the lattice. */
+.md-typeset .section-title::after {
+  content: "";
+  display: block;
+  width: 46px;
+  height: 3px;
+  margin: 0.7rem auto 0;
+  border-radius: 2px;
+  background: var(--pharos-amber);
+}
+
+.landing-section:nth-of-type(2) .section-title::after {
+  background: var(--pharos-cyan);
+}
+.landing-section:nth-of-type(3) .section-title::after {
+  background: var(--pharos-magenta);
 }
 
 .section-lead {
   max-width: 44rem;
   margin-inline: auto;
   text-align: center;
+  font-size: 1.02rem;
+  line-height: 1.65;
   opacity: 0.88;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   html.js-ready .landing-section {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(26px);
     transition:
       opacity 0.7s ease,
       transform 0.7s ease;
