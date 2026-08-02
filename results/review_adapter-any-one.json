@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "cec192faebf9",
+    "git_commit": "d870f3efc0ce",
     "git_dirty": false,
-    "generated_at": "2026-08-01T20:26:57+00:00",
+    "generated_at": "2026-08-02T01:12:03+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
@@ -29,53 +29,53 @@
   },
   "data": {
     "n_train": 1140,
-    "n_eval": 60,
+    "n_eval": 600,
     "train_balance": {
-      "significant": 353,
-      "routine": 787
+      "significant": 335,
+      "routine": 805
     },
     "eval_balance": {
-      "significant": 20,
-      "routine": 40
+      "significant": 189,
+      "routine": 411
     },
     "events_disjoint": true
   },
-  "training_loss": 0.2631139309177915,
+  "training_loss": 0.2674899095541655,
   "base": null,
   "adapter": {
     "label": "adapter",
-    "n": 60,
+    "n": 600,
     "confusion": {
-      "tp": 20,
-      "fp": 35,
-      "tn": 5,
+      "tp": 189,
+      "fp": 336,
+      "tn": 75,
       "fn": 0
     },
     "unparsed": 0,
-    "accuracy": 0.4167,
-    "majority_accuracy": 0.6667,
-    "precision": 0.3636,
+    "accuracy": 0.44,
+    "majority_accuracy": 0.685,
+    "precision": 0.36,
     "recall": 1.0,
-    "f1": 0.5333
+    "f1": 0.5294
   },
   "teacher": {
     "reviewer": "any-one",
     "escalation_threshold": 1,
     "slip_rate": 0.0,
-    "train_target_agreement": 0.4421
+    "train_target_agreement": 0.4386
   },
   "adapter_vs_teacher": {
     "label": "adapter-vs-teacher",
-    "n": 60,
+    "n": 600,
     "confusion": {
-      "tp": 55,
+      "tp": 525,
       "fp": 0,
-      "tn": 5,
+      "tn": 75,
       "fn": 0
     },
     "unparsed": 0,
     "accuracy": 1.0,
-    "majority_accuracy": 0.9167,
+    "majority_accuracy": 0.875,
     "precision": 1.0,
     "recall": 1.0,
     "f1": 1.0

@@ -4,8 +4,9 @@ What has been measured, and the script that reproduces each number. The
 **argument** these support belongs to the manuscript; this page is the index.
 
 Findings 1 to 3 and 5 were measured with `qwen2.5:7b-instruct` on an 8 GB RTX 3060
-Ti. Finding 3b sweeps six models from 3B to 14B, and finding 6 fine-tunes
-`Qwen2.5-3B-Instruct`; both need a cluster A100 for their largest runs. Findings 7
+Ti, finding 5 at 600 evaluation tasks. Finding 3b sweeps six models from 3B to 14B,
+and findings 6 and 10 fine-tune `Qwen2.5-3B-Instruct`; both need a cluster A100, and
+finding 10's 600-task evaluation is a 2h39m job on one. Findings 7
 and 8 call no model at all: they regenerate the corpus from its seed and review
 verdicts already committed to `results/`, so both reproduce exactly and run in CI.
 Finding 9 is a measurement-design result and retracts an earlier version of itself.
@@ -55,11 +56,12 @@ current state of an instrument still under construction.
 
 `scripts/measure_power.py`, `results/power.json`
 
-Every model-dependent finding below runs at 24 to 60 tasks. Whether that is too
-small has no single answer, because the effects claimed here differ by an order of
-magnitude, so this prices each size rather than arguing about it. The interval
-machinery is the same one the measurements use, and the class balance is read from
-the corpus rather than assumed.
+Model-dependent findings here run anywhere from 24 to 600 tasks, and that spread is
+the point rather than an inconsistency: the effects claimed differ by an order of
+magnitude, so the size each one needs does too. This prices every claim instead of
+arguing about a single convention, and the two claims it flagged as underpowered have
+since been rerun at the size it named. The interval machinery is the same one the
+measurements use, and the class balance is read from the corpus rather than assumed.
 
 | Evaluation size | 95% half-width | Smallest resolvable difference |
 | --- | --- | --- |
@@ -90,16 +92,16 @@ earlier version of this section, and it understated two claims.
 | 3b | 40 | 0.000 | constant | unresolved (needs n>2000) | qwen2.5-3b (0.625) clears the majority floor (0.625) |
 | 3b | 40 | 0.200 | constant | **resolved** | mistral-7b (0.425) is below the majority floor (0.625) |
 | 5 | 600 | 0.009 | condition | unresolved (needs n>2000) | 8 shots (0.514) beats 0 shots (0.523) -- REFUTED at n=600 |
-| 5 | 600 | 0.055 | condition | unresolved (needs n≥2000) | 2 shots (0.468) is worse than 0 shots (0.523) |
+| 5 | 600 | 0.055 | condition | unresolved (needs n≥2000) | 2 shots (0.468) is worse than 0 shots (0.523) -- direction only |
 | 5 | 600 | 0.486 | constant | **resolved** | 8 shots (0.514) is below the stated-rule ceiling (1.000) |
 | 5 | 600 | 0.179 | constant | **resolved** | 8 shots (0.514) is below the majority floor (0.693) |
 | 6 | 60 | 0.531 | condition | **resolved** | adapter (1.000) beats the base model (0.469) |
-| 10 | 60 | 0.367 | condition | **resolved** | any-one adapter matches teacher (1.000) not world (0.633) |
-| 10 | 60 | 0.083 | condition | unresolved (needs n≥600) | inattentive adapter (0.883) beats its own teacher (0.800) |
+| 10 | 600 | 0.560 | condition | **resolved** | any-one adapter matches teacher (1.000) not world (0.440) |
+| 10 | 600 | 0.118 | condition | **resolved** | inattentive adapter (0.893) beats its own teacher (0.775) |
 | 11 | 200 | 0.100 | constant | **resolved** | linkage recovery (0.205) beats the guessing prior (0.105) |
 | 11 | 50 | 0.820 | condition | **resolved** | RESTRICTED analysts (0.820) are recovered where OPEN (0.000) are not |
 
-Seven of eleven are resolved, and the pattern is the useful part. **The claims this
+Eight of eleven are resolved, and the pattern is the useful part. **The claims this
 project makes strongly rest on large gaps and are comfortably resolved**; the ones
 that are not are mostly ones it already declines to make. Two deserve naming:
 
@@ -714,42 +716,56 @@ identical except for who labelled them. Every adapter is scored twice on the sam
 held-out tasks and the same decode: once against the world, once against **its own
 teacher's answers**.
 
-| Teacher | Standard | Targets matching world | Adapter vs **world** | Adapter vs **teacher** |
-| --- | --- | --- | --- | --- |
-| by-the-book | 3 of 3 | 1.000 | 0.983 | 0.983 |
-| inattentive | 3 of 3, slips 15% | 0.859 | **0.883** | 0.800 |
-| two-of-three | 2 of 3 | 0.732 | 0.633 | **1.000** |
-| any-one | 1 of 3 | 0.442 | 0.417 | **1.000** |
+| Teacher | Standard | Targets matching world | Adapter vs **world** | Adapter vs **teacher** | Inherited error |
+| --- | --- | --- | --- | --- | --- |
+| by-the-book | 3 of 3 | 1.000 | 0.995 | 0.995 | -0.005 |
+| inattentive | 3 of 3, slips 15% | 0.855 | **0.893** | 0.775 | **+0.038** |
+| two-of-three | 2 of 3 | 0.728 | 0.732 | **0.983** | +0.004 |
+| any-one | 1 of 3 | 0.439 | 0.440 | **1.000** | +0.001 |
 
-Accuracy on 60 held-out tasks whose events are disjoint from training. The base
-model scores F1 0.469 with 8 of 60 answers unparsable, so every row is a large gain
-over not training at all.
+Accuracy on **600** held-out tasks whose events are disjoint from training. The base
+model scores accuracy 0.317 with 74 of 600 answers unparsable, so every row is a large
+gain over not training at all. The last column is the adapter's agreement with the
+world minus its teacher's, and it is the cleanest statement of the finding.
 
-**A wrong standard is learned perfectly.** Both biased teachers are reproduced at
-accuracy **1.000** against their own answers. The adapter did not partially absorb
-the reviewer's rule or average it against its prior -- it learned "two of three" and
-"one of three" exactly, and scores 0.633 and 0.417 against the world as a direct
-consequence. This is the concrete form of what the noisy-annotation literature calls
-absorbing an unreliable annotator's errors into the parameters.
+**A wrong standard is inherited almost exactly.** The two systematically-wrong
+teachers hand over their error rate to within **0.004 and 0.001**: a teacher whose
+targets agree with the world on 0.728 produces an adapter agreeing on 0.732, and one
+at 0.439 produces 0.440. The adapter did not partially absorb the reviewer's rule or
+average it against its prior; it learned "two of three" and "one of three" and now
+agrees with the world exactly as much as that rule does. This is the concrete form of
+what the noisy-annotation literature calls absorbing an unreliable annotator's errors
+into the parameters, and at 600 tasks the correspondence is close enough to read as an
+identity rather than a tendency.
 
-**Random error is filtered; systematic error is not.** The contrast is the finding.
-The inattentive teacher slips 15% of the time and its targets match the world on
-0.859. Its adapter matches the world on 0.883 and its teacher on 0.800 -- it tracks
-the underlying rule more closely than the teacher that taught it. Given a consistent
-wrong rule instead, it fitted that rule exactly.
+**Random error is filtered; systematic error is not.** The contrast is the finding,
+and the careless teacher is the only row that breaks the inheritance pattern. It slips
+15% of the time, its targets match the world on 0.855, and its adapter matches the
+world on 0.893 while matching the teacher on only 0.775. It tracks the underlying rule
+more closely than the teacher that taught it. Given a consistent wrong rule instead,
+the adapter simply became that rule.
 
-The direction of that contrast is what is claimed, and the size of it is not. At 60
-tasks the minimum detectable difference is **0.233**
-([power analysis](#what-these-sizes-can-resolve)), so the 1.000-versus-0.800 gap for
-the biased teachers is resolved comfortably while the 0.883-versus-0.800 gap for the
-careless one is **not**: separating that pair would need roughly 600 tasks. Read it
-as "random error did not survive training the way systematic error did", not as a
-measured 8-point advantage.
+!!! success "Bought and confirmed 2026-08-01"
+    This was the one claim here the [power analysis](#what-these-sizes-can-resolve)
+    priced as unresolvable at the size it was run. At 60 tasks the gap between the
+    careless adapter and its teacher was 0.083 against a minimum detectable 0.233, and
+    this section said so and declined to claim a margin.
 
-So the two error types finding 8 separated at the level of the target stream diverge
-even further after training. Carelessness is partly repaired by learning.
-**Wrongness is amplified by it**: the reviewer applied their rule to 73% agreement
-with the world, and the adapter that learned them applies it to 63%.
+    Remeasured at 600 the gap **widened to 0.118**, against a difference half-width of
+    0.042, so it now resolves. Both figures score one decode against two references
+    over the same evaluation set, which makes the real test paired and therefore
+    tighter than the independent one quoted. The direction reported at 60 tasks was
+    right, and the margin is now measured rather than declined.
+
+    Worth stating alongside [finding 5](#5-in-context-learning-does-not-close-the-gap),
+    where the same purchase destroyed the claim. The power table is not a retraction
+    machine; it prices claims, and the prices come back both ways.
+
+So the two error types finding 8 separated at the level of the target stream stay
+separated after training. Carelessness is partly repaired by learning, by nearly four
+points. **Wrongness is preserved by it** to within half a point, which is the more
+unsettling half of the result: there is no dilution, no regression toward the model's
+prior, and nothing in the training signal that notices the rule is wrong.
 
 **What this means for the design.** The premise is that a fleet learns analytic
 tradecraft from analyst decisions. It does -- exactly, faithfully, and without any
@@ -762,13 +778,13 @@ needs annotator identity retained through training -- something Pharos has by
 construction and most annotation pipelines discard.
 
 !!! note "What this does not settle"
-    Four teachers, one model, one corpus, one seed, single-pass evaluation. The
-    contrast between the biased teachers and the world is large -- 1.000 against
-    0.633 and 0.417 -- and resolved at this size. The careless teacher's 0.883
-    against 0.800 is not, and is reported as a direction rather than a margin. The
-    teachers remain parameterised
-    decision procedures, so this bounds a mechanism and estimates nothing about
-    human analysts.
+    Four teachers, one model, one corpus, one seed, single-pass evaluation. Every
+    contrast in the table is now resolved at 600 tasks, including the careless
+    teacher's, so the caveat that remains is about generality rather than about size.
+    The teachers are parameterised decision procedures, so this bounds a mechanism and
+    estimates nothing about human analysts. One model and one corpus is the real
+    limit: that a 3B Qwen inherits a wrong rule this exactly says nothing yet about
+    whether a larger model or a different task shape would.
 
 ## 11. The gate clears every item, and the stream still names the analyst
 

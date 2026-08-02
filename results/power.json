@@ -1,12 +1,12 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "e8017447ab5b",
+    "git_commit": "e579f906d8dc",
     "git_dirty": true,
-    "generated_at": "2026-08-02T00:19:56+00:00",
+    "generated_at": "2026-08-02T01:14:17+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
     "seed": 7
   },
   "class_balance": 0.2975,
@@ -106,7 +106,7 @@
       "required_gap": 0.07,
       "resolved": false,
       "n_needed": 2000,
-      "description": "2 shots (0.468) is worse than 0 shots (0.523)"
+      "description": "2 shots (0.468) is worse than 0 shots (0.523) -- direction only"
     },
     {
       "finding": "5",
@@ -143,25 +143,25 @@
     },
     {
       "finding": "10",
-      "n": 60,
-      "effect": 0.367,
+      "n": 600,
+      "effect": 0.56,
       "against_constant": false,
       "rate": 0.2975,
-      "required_gap": 0.2333,
+      "required_gap": 0.07,
       "resolved": true,
       "n_needed": null,
-      "description": "any-one adapter matches teacher (1.000) not world (0.633)"
+      "description": "any-one adapter matches teacher (1.000) not world (0.440)"
     },
     {
       "finding": "10",
-      "n": 60,
-      "effect": 0.083,
+      "n": 600,
+      "effect": 0.118,
       "against_constant": false,
       "rate": 0.2975,
-      "required_gap": 0.2333,
-      "resolved": false,
-      "n_needed": 600,
-      "description": "inattentive adapter (0.883) beats its own teacher (0.800)"
+      "required_gap": 0.07,
+      "resolved": true,
+      "n_needed": null,
+      "description": "inattentive adapter (0.893) beats its own teacher (0.775)"
     },
     {
       "finding": "11",
