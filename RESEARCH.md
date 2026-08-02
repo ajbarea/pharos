@@ -423,10 +423,20 @@ requested from Bo Light (jjlight@ncsu.edu):
 - **LAS Zendia** (SCADS 2025). Synthetic scenario data, also via Bo.
 
 **What the list does not contain.** MIND and the Text Anonymization Benchmark are
-absent. Both are public and usable regardless, but neither is LAS-cleared, and the
-org-chart corpora are a better source of per-user behaviour for this application than
-MIND is, because they carry the organisational structure the compartment model needs
-and MIND does not.
+absent. Both are usable regardless, and the list is what LAS has vetted and can
+supply rather than a restriction on public data, but the two are not equally free and
+the difference is worth recording (verified 2026-08-02):
+
+- **Text Anonymization Benchmark**: **CC-BY 3.0**, 1,268 annotated English ECHR court
+  cases, on GitHub and the HF Hub. Open in the ordinary sense, attribution only.
+- **MIND**: free to download *for research*, under Microsoft Research License Terms,
+  **non-commercial only**. Microsoft states that "usage of the data has risks since we
+  may not own the underlying rights in the documents", which is a real caveat on a
+  corpus of news articles and worth knowing before a derived artifact is published.
+
+Independent of licence, the org-chart corpora are a better source of per-user
+behaviour for this application than MIND is, because they carry the organisational
+structure the compartment model needs and impression logs do not.
 
 **Multilingual and adjacent, if breadth is ever needed.** TelegramDB (CC-BY-4.0;
 Russian, English, Farsi) is multi-channel messaging, which is the closest public

@@ -423,6 +423,12 @@ def main() -> int:
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
     print(f"\nlora: {trainable} trainable of {total} ({100 * trainable / total:.3f}%)")
+    # Recorded in the artifact and not only printed. These two numbers are the
+    # federation payload: a fleet ships adapters rather than models, so what crosses
+    # the wire per round is `trainable` times the dtype width. Leaving them in a log
+    # meant the one edge-cost figure the design implies could not be read off any
+    # committed artifact, only recovered from a cluster job's stdout.
+    lora_size = {"trainable_params": trainable, "total_params": total}
     if not 0 < trainable < total:
         raise SystemExit(
             f"peft did not freeze the base: {trainable} trainable of {total}. "
@@ -544,6 +550,7 @@ def main() -> int:
             json.dumps(
                 {
                     "provenance": run_provenance(model=args.model, seed=args.seed),
+                    "lora": lora_size,
                     "hyperparameters": {
                         "lora_rank": LORA_RANK,
                         "lora_alpha": LORA_ALPHA,

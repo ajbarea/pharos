@@ -132,6 +132,11 @@ ignore = [
 # contributions were dropped can undo it. Simulating it here is not deploying it.
 "src/pharos/fleet.py" = ["S311"]
 "scripts/measure_fleet_linkage.py" = ["S311"]
+# Tier assignment must replay from a seed so the independent and correlated schemes
+# are comparable across runs. The draw decides which contributors share a tag, not
+# anything security-bearing: the disclosure being measured is a property of the
+# partition, and a CSPRNG would only make it unreproducible.
+"scripts/measure_tagged_aggregation.py" = ["S311"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["pharos"]

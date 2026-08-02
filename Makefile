@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power linkage consensus docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge docs-tables explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -41,6 +41,14 @@ consensus:                 ## Whether reliability survives pooling contributors 
 	@mkdir -p results
 	uv run python scripts/measure_consensus_reliability.py --out results/consensus_reliability.json
 
+tagged:                    ## Whether a reliability tag can replace identity (no model)
+	@mkdir -p results
+	uv run python scripts/measure_tagged_aggregation.py --out results/tagged_aggregation.json
+
+edge:                      ## What the agent costs on laptop-class hardware (needs Ollama)
+	@mkdir -p results
+	uv run python scripts/measure_edge_cost.py --out results/edge_cost.json
+
 docs-tables:               ## Refresh the docs tables that restate a committed artifact
 	uv run python scripts/sync_docs_tables.py
 
@@ -71,4 +79,5 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_power.py
 	uv run python scripts/measure_fleet_linkage.py
 	uv run python scripts/measure_consensus_reliability.py
+	uv run python scripts/measure_tagged_aggregation.py
 	uv run python scripts/sync_docs_tables.py --check

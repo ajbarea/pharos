@@ -1665,3 +1665,175 @@ def test_consensus_matches_the_oracle_until_the_wrong_standard_is_the_majority()
     oracle_majority, consensus_majority = score(7)
     assert oracle_majority is not None and consensus_majority is not None
     assert consensus_majority < oracle_majority
+
+
+# ------------------------------------------------- tagged aggregation -----
+
+
+def _tagged_module():
+    import measure_tagged_aggregation as mta
+
+    return mta
+
+
+def test_a_coarse_tag_never_identifies_an_individual():
+    """True, and the point is that it is not sufficient. See the aggregate test below."""
+    mta = _tagged_module()
+    from pharos.disclosure import DROP_COMPARTMENTS
+    from pharos.fleet import assign_fleet, contribute, link
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=mta.SEED, n_events=60)))
+    fleet = assign_fleet(60, seed=mta.FLEET_SEED)
+    stream = contribute(fleet, tasks, policy=DROP_COMPARTMENTS)
+
+    for scheme in mta.SCHEMES:
+        if scheme.name == "per_person":
+            continue
+        tagged = mta.tag(stream, fleet, scheme, seed=mta.SEED)
+        linkages = link(tagged, tasks, fleet, policy=DROP_COMPARTMENTS)
+        assert not any(x.exact for x in linkages), scheme.name
+
+
+def test_a_correlated_tag_leaks_clearance_that_the_per_analyst_metric_misses():
+    """The finding. Both schemes name nobody; only one of them keeps the secret."""
+    mta = _tagged_module()
+    from pharos.fleet import assign_fleet
+
+    fleet = assign_fleet(200, seed=mta.FLEET_SEED)
+    prior = mta.prior_accuracy(fleet)
+    schemes = {s.name: s for s in mta.SCHEMES}
+
+    independent, n_indep = mta.clearance_inference(
+        fleet, schemes["tier_independent"], seed=mta.SEED
+    )
+    correlated, n_corr = mta.clearance_inference(fleet, schemes["tier_correlated"], seed=mta.SEED)
+    assert n_indep == n_corr == mta.TIERS, "same partition size, different partition"
+
+    assert independent == pytest.approx(prior, abs=0.05), "independent tag must not leak"
+    assert correlated > prior + 0.2, "correlated tag must leak clearance"
+
+
+def test_pooling_gives_exactly_the_prior():
+    """One group cannot beat naming the most common level, by construction."""
+    mta = _tagged_module()
+    from pharos.fleet import assign_fleet
+
+    fleet = assign_fleet(200, seed=mta.FLEET_SEED)
+    pooled = next(s for s in mta.SCHEMES if s.name == "pooled")
+    inferred, groups = mta.clearance_inference(fleet, pooled, seed=mta.SEED)
+    assert groups == 1
+    assert inferred == pytest.approx(mta.prior_accuracy(fleet))
+
+
+def test_scheme_result_flags_the_invisible_case():
+    mta = _tagged_module()
+    invisible = mta.SchemeResult("x", "", 0.0, 0.82, 0.49, 3)
+    assert invisible.leaks_in_aggregate
+    assert invisible.invisible_to_per_analyst_metric
+
+    visible = mta.SchemeResult("y", "", 0.205, 1.0, 0.67, 200)
+    assert visible.leaks_in_aggregate
+    assert not visible.invisible_to_per_analyst_metric, "a named person is not invisible"
+
+    clean = mta.SchemeResult("z", "", 0.0, 0.33, 0.0, 3)
+    assert not clean.leaks_in_aggregate
+    assert not clean.invisible_to_per_analyst_metric
+
+
+# ------------------------------------------------------------ edge cost -----
+
+
+def _edge_module():
+    import measure_edge_cost as mec
+
+    return mec
+
+
+def test_sync_cost_refuses_to_guess_a_payload(tmp_path):
+    """No artifact and no override means no number, not an invented one."""
+    mec = _edge_module()
+    assert mec.sync_cost(tmp_path) is None
+
+
+def test_sync_cost_records_where_the_counts_came_from(tmp_path):
+    mec = _edge_module()
+    supplied = mec.sync_cost(tmp_path, trainable=29_933_568, total=3_115_872_256)
+    assert supplied is not None
+    assert supplied.trainable_share == pytest.approx(0.00961, abs=1e-4)
+    # 29.9M params at two bytes each, in MiB.
+    assert supplied.bf16_mib == pytest.approx(57.1, abs=0.2)
+    assert supplied.fp32_mib == pytest.approx(2 * supplied.bf16_mib)
+    assert "command line" in supplied.source
+
+    import json as _json
+
+    (tmp_path / "adapter_learnability.json").write_text(
+        _json.dumps({"lora": {"trainable_params": 1_000_000, "total_params": 100_000_000}}),
+        encoding="utf-8",
+    )
+    from_artifact = mec.sync_cost(tmp_path)
+    assert from_artifact is not None
+    assert from_artifact.source.endswith("adapter_learnability.json")
+    assert from_artifact.trainable_share == pytest.approx(0.01)
+
+
+def test_cold_start_is_kept_apart_from_warm_steady_state():
+    """Folding them together hides the largest cost and inflates p95 into nonsense."""
+    mec = _edge_module()
+    # One slow first call, then a tight warm cluster.
+    latency = mec.split_latency([29.75, 0.34, 0.33, 0.35, 0.32, 0.36])
+    assert latency.cold_start_s == pytest.approx(29.75)
+    assert latency.warm_median_s == pytest.approx(0.34, abs=0.02)
+    assert latency.warm_p95_s < 1.0, "the cold call must not leak into the warm p95"
+    assert latency.n_warm == 5
+    assert latency.decisions_per_hour == pytest.approx(3600 / latency.warm_median_s, rel=1e-6)
+    # The wake-up cost expressed in the unit that makes it comparable.
+    assert latency.cold_start_ratio > 50
+
+
+def test_split_latency_needs_more_than_one_call():
+    mec = _edge_module()
+    with pytest.raises(SystemExit):
+        mec.split_latency([1.0])
+
+
+def test_footprint_is_empty_without_a_server():
+    """No server is a missing measurement, not a fleet of zero-byte models."""
+    mec = _edge_module()
+    assert mec.footprint("http://127.0.0.1:1/api/tags") == []
+
+
+def test_edge_cost_dicts_round_trip_to_json():
+    """Both artifact rows must serialize; a NaN or a stray object here kills the run."""
+    mec = _edge_module()
+    import json as _json
+
+    sync = mec.sync_cost(pathlib.Path("/nonexistent"), trainable=29_933_568, total=3_115_872_256)
+    assert sync is not None
+    encoded = _json.loads(_json.dumps(sync.as_dict()))
+    assert encoded["trainable_params"] == 29_933_568
+    assert encoded["source"]
+
+    latency = mec.split_latency([4.8, 0.34, 0.33, 0.35])
+    row = _json.loads(_json.dumps(latency.as_dict()))
+    assert row["cold_start_s"] == pytest.approx(4.8)
+    assert row["decisions_per_hour"] > 0
+    assert row["cold_start_in_warm_decisions"] == pytest.approx(
+        4.8 / row["warm_median_s"], rel=0.01
+    )
+
+
+def test_evicting_a_missing_server_is_reported_not_raised():
+    """A failed eviction must warn rather than silently produce a warm 'cold start'."""
+    mec = _edge_module()
+    assert mec.evict("qwen2.5:7b-instruct", endpoint="http://127.0.0.1:1/api/generate") is False
+
+
+def test_sync_cost_with_zero_total_does_not_divide_by_zero():
+    mec = _edge_module()
+    degenerate = mec.SyncCost(
+        trainable_params=0, total_params=0, bf16_mib=0, fp32_mib=0, source="x"
+    )
+    assert degenerate.trainable_share == 0.0

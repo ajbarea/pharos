@@ -141,6 +141,9 @@ corrections, and the caveats.
 | 9 | A measurement that repeats one prompt measures the wrong thing |
 | 10 | A fleet learns its analyst's standard, not the world's |
 | 11 | The gate clears every item, and the stream still names the analyst |
+| 12 | Reliability cannot be estimated without identity where it matters |
+| 13 | A reliability tag can replace identity, and the leak metric cannot tell you when |
+| 14 | What the agent costs on the hardware it is meant to run on |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -152,6 +155,9 @@ make review      # replay the committed verdicts past the analyst grid (no model
 make sweep       # target accuracy across the reviewer parameter grid (no model)
 make power       # what each evaluation size can resolve (no model)
 make linkage     # what the fleet's contribution stream leaks about analysts (no model)
+make consensus   # whether reliability survives pooling contributors (no model)
+make tagged      # whether a reliability tag can replace identity (no model)
+make edge        # what the agent costs on laptop-class hardware (needs Ollama)
 ```
 
 ## Build order
@@ -172,14 +178,26 @@ make linkage     # what the fleet's contribution stream leaks about analysts (no
    compartment ruling *is* movable, by an authority rather than by the reviewer, at a
    cost of 52.5% of the stream.
 
-4. **Fleet-level disclosure.** Finding 11 moves the question from the item to the
-   stream, and it is the current critical path. A per-item gate does not compose:
-   an attack reading no content recovers an analyst's compartment set from a stream
-   of individually-approved items, concentrated entirely on the most highly cleared
-   contributors. Still owed is the piece the finding names and does not settle --
-   an annotator-reliability estimate computed *under* the aggregation that hides
-   contributor identity, since finding 10's mitigation needs that identity and
-   finding 11 shows it is what makes the leak attributable.
+4. **Fleet-level disclosure.** Done, and it produced the result the testbed exists
+   for. A per-item gate does not compose: an attack reading no content recovers an
+   analyst's compartment set from a stream of individually-approved items, at 0.820
+   for the most highly cleared and 0.000 for everyone else (finding 11). Two escapes
+   from the conflict that creates are now measured and closed. Estimating reliability
+   from agreement needs no identity but fails once a wrong standard holds the majority
+   (finding 12); a coarser reliability tag works, but only when tier is independent of
+   clearance, and when it is not it discloses clearance on every record while the
+   per-analyst metric reports zero (finding 13).
+
+5. **Edge cost.** Done: finding 14 prices the agent on the 8 GB card the earlier
+   findings already used. 57.1 MiB per personalization round, 4.8 s to wake a node,
+   0.335 s per warm decision, 1.8 GB resident for the 3B model.
+
+**The open problem, stated as precisely as the measurements allow.** A reliability
+estimate computed *under* secure aggregation rather than recovered from pooled
+outputs. Finding 10 needs contributor identity, finding 11 shows identity is the leak,
+and findings 12 and 13 rule out the two ways of recovering the first from the second
+after the fact. That is the next thing worth building, and it is a cryptographic
+question rather than a measurement one.
 
 ## License
 

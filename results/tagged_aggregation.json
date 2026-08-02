@@ -1,0 +1,58 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "324950652e64",
+    "git_dirty": true,
+    "generated_at": "2026-08-02T10:01:50+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
+    "seed": 7
+  },
+  "fleet": 200,
+  "events": 200,
+  "tiers": 3,
+  "prior": 0.33,
+  "schemes": [
+    {
+      "scheme": "per_person",
+      "describe": "contributor identity retained (finding 11 baseline)",
+      "identifies_individuals": 0.205,
+      "clearance_inference": 1.0,
+      "lift_over_prior": 0.67,
+      "groups": 200
+    },
+    {
+      "scheme": "pooled",
+      "describe": "no tag at all (finding 11's free control)",
+      "identifies_individuals": 0.0,
+      "clearance_inference": 0.33,
+      "lift_over_prior": 0.0,
+      "groups": 1
+    },
+    {
+      "scheme": "tier_independent",
+      "describe": "reliability tier, independent of clearance",
+      "identifies_individuals": 0.0,
+      "clearance_inference": 0.33,
+      "lift_over_prior": 0.0,
+      "groups": 3
+    },
+    {
+      "scheme": "tier_correlated",
+      "describe": "reliability tier, correlated with clearance",
+      "identifies_individuals": 0.0,
+      "clearance_inference": 0.82,
+      "lift_over_prior": 0.49,
+      "groups": 3
+    }
+  ],
+  "aggregate_leak_invisible_to_finding_11": [
+    "tier_correlated"
+  ],
+  "validity": {
+    "n": 200,
+    "quotable": true,
+    "concerns": []
+  }
+}

@@ -145,6 +145,12 @@ jobs:
       # shift without anyone touching the script.
       - name: Sweep whether reliability survives pooling
         run: uv run python scripts/measure_consensus_reliability.py
+      # Tag schemes are a property of the fleet draw and the clearance distribution,
+      # so a generator change moves them. No model needed. The edge-cost measurement
+      # is deliberately absent: it needs a live model server and a GPU, and a runner
+      # without one would report a cold start that is really a connection error.
+      - name: Sweep what a reliability tag discloses
+        run: uv run python scripts/measure_tagged_aggregation.py
       - name: Check the docs tables against their artifacts
         run: uv run python scripts/sync_docs_tables.py --check
 

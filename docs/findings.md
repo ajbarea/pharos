@@ -1041,3 +1041,124 @@ and this measurement closes the cheapest escape from it rather than opening one.
     signal agrees on. What would genuinely resolve the conflict is a reliability
     estimate computed *under* secure aggregation rather than one recovered from
     pooled outputs, and that is not measured here.
+
+## 13. A reliability tag can replace identity, and the leak metric cannot tell you when
+
+`scripts/measure_tagged_aggregation.py`, `results/tagged_aggregation.json`
+
+Three findings box each other in. A learner acquires its teacher's standard exactly,
+so reliability weighting needs contributor identity
+([finding 10](#10-a-fleet-learns-its-analysts-standard-not-the-worlds)). Identity is
+what makes contributions attributable to a person, and pooling is the only free
+control ([finding 11](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst)).
+Consensus cannot recover reliability from pooled outputs
+([finding 12](#12-reliability-cannot-be-estimated-without-identity-where-it-matters)).
+Identity is also what an audit trail needs, and auditability is not optional here: the
+application this testbed serves is specified in terms of **auditable** training
+signals, and provenance documentation for high-risk systems became an EU AI Act
+obligation in August 2026.
+
+The move left is a tag coarser than a person. Label each contribution with the
+contributor's *reliability tier* rather than their identity: the aggregator can weight,
+and nobody is named.
+
+| Tagging scheme | Identifies an individual | Infers clearance | Groups |
+| --- | --- | --- | --- |
+| per-person (finding 11 baseline) | 0.205 | 1.000 | 200 |
+| pooled, no tag | 0.000 | 0.330 | 1 |
+| **tier, independent of clearance** | **0.000** | **0.330** | 3 |
+| **tier, correlated with clearance** | **0.000** | **0.820** | 3 |
+
+Naming the fleet's most common clearance level scores 0.330, so that is the floor a
+tag has to beat to be leaking anything.
+
+**The two tier rows are indistinguishable on the metric finding 11 uses and opposite
+on the one that matters.** Both name nobody. The independent tag infers clearance at
+0.330, exactly the prior, and discloses nothing. The correlated tag infers it at
+**0.820**, because its three groups turn out to be *tier0 = 100% OPEN*, *tier1 = 100%
+INTERNAL*, and *tier2 = the two highest levels*. It is a clearance label wearing a
+reliability name, and every contribution carries it.
+
+**This is a limitation of finding 11's instrument, and it is worth stating plainly.**
+That measurement scores an analyst as recovered only when the inference is unique
+*and* attributable to them, which is the right question for "was someone named" and
+the wrong one for "was a group characterised." Any tag coarser than a person scores
+0.000 there by construction. Reading that zero as a privacy property would have let
+this repository's own instrument certify a scheme that discloses clearance on every
+record.
+
+**What this means for the design.** The tag threads all three needles, but only under
+an assumption the mechanism does not enforce and cannot check for itself: that
+reliability tier is independent of clearance. On a real watch floor that assumption is
+doubtful, since seniority plausibly drives both how much someone is read into and how
+reliable their judgement is. So the deployable version of this is not "tag by tier",
+it is "tag by tier **and measure the association between tier and clearance before
+shipping**, and treat a non-trivial association as a disclosure." The measurement is
+cheap; the assumption is the expensive part.
+
+!!! note "What this does not settle"
+    Three tiers, one fleet, one correlation structure, and clearance *level* rather
+    than compartment set as the attribute inferred. The correlated case here is close
+    to worst-case by construction, since tier is defined directly from level; a real
+    association would be weaker and the leak proportionally smaller, though not zero.
+    The independent case is best-case for the same reason. What the pair establishes
+    is that the two ends differ enormously while looking identical to a per-analyst
+    metric, not where a particular deployment would land between them.
+
+## 14. What the agent costs on the hardware it is meant to run on
+
+`scripts/measure_edge_cost.py`, `results/edge_cost.json`
+
+Every finding above asks whether the triage agent is *correct*. None asks whether it
+fits. The application is edge triage on nodes "operating on the scale of a laptop",
+and a correct agent that does not fit is not a result.
+
+The gap turned out to be half-closed already and never reported. Findings 1 to 3 and 5
+were all measured on an 8 GB consumer GPU, which is laptop-class hardware, so those
+accuracy numbers were edge numbers the whole time. What was missing was a cost attached
+to them.
+
+Three costs, because they bind at different moments.
+
+| Cost | Measured | What it governs |
+| --- | --- | --- |
+| **Sync**, per node per round | **57.1 MiB** (bf16) | Bandwidth to personalize |
+| **Footprint**, resident | 4,466 MiB (7B) / 1,841 MiB (3B) | Whether the node can answer at all |
+| **Cold start** | **4.8 s** | Waking a node that slept |
+| **Warm decision** | **0.335 s** median, 0.351 s p95 | Throughput once resident |
+
+**A round costs the adapter, not the model.** The adapter is 29,933,568 of
+3,115,872,256 parameters, 0.961%, so a personalization round puts **57.1 MiB** on the
+wire at bf16 and the base never moves. Doubling that to 114 MiB is the cost of saving
+a checkpoint in fp32 without noticing, which is worth stating because it is invisible
+until someone measures the file.
+
+**One resident node sustains about 10,700 triage decisions per hour** at 0.335 s
+median. Waking a node costs 4.8 s, or what **14 warm decisions** cost, which is the
+number that matters for a duty cycle: a node that sleeps between watches pays it every
+time, and one held resident pays it once.
+
+!!! warning "The cold start is forced, and it has to be"
+    An earlier run of this measurement reported a 0.6 s cold start and labelled it
+    "the weights reaching VRAM". They had never left: the server keeps a model resident
+    for minutes after a request, so the figure silently depended on whether anything
+    had touched the model recently. The script now evicts the model before timing, so
+    the label is true by construction rather than by luck. Run twice back to back it
+    reports 4.2 s and 3.6 s where the unforced version reported 0.6 s.
+
+    This is [finding 9](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing)
+    wearing different clothes. There a repeated prompt measured a warm cache and was
+    reported as irreproducibility; here a repeated *run* measured a warm model and was
+    nearly reported as a cold start. Both come from the same place: a first call is not
+    like the calls after it, and a measurement that does not say which kind it took is
+    not saying what it measured.
+
+!!! note "What this does not settle"
+    One machine, one server, one quantization, `num_predict` of 8 because a triage
+    answer is one word. Nineteen warm calls is below this project's own small-sample
+    threshold and the artifact is marked unquotable for that reason: the spread is
+    tight (0.321 s to 0.351 s) but tightness on one machine is not generality. Nothing
+    here measures energy or thermal throttling, which current on-device guidance treats
+    as the binding constraint on sustained mobile inference and which an 8 GB desktop
+    card will not reproduce. The sync figure is arithmetic on parameter counts rather
+    than a file on a wire, so it omits protocol overhead and any compression.
