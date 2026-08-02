@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "fe9eb67e3ed5",
-    "git_dirty": false,
-    "generated_at": "2026-08-02T01:35:45+00:00",
+    "git_commit": "b63deaafa95d",
+    "git_dirty": true,
+    "generated_at": "2026-08-02T11:22:58+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
@@ -20,6 +20,7 @@
       "unweighted": 1.0,
       "oracle": 1.0,
       "consensus": 1.0,
+      "dawid_skene": 1.0,
       "consensus_interval": {
         "point": 1.0,
         "low": 1.0,
@@ -30,7 +31,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 891,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     },
     {
@@ -39,6 +41,7 @@
       "unweighted": 0.9686,
       "oracle": 1.0,
       "consensus": 1.0,
+      "dawid_skene": 1.0,
       "consensus_interval": {
         "point": 1.0,
         "low": 1.0,
@@ -49,7 +52,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 792,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     },
     {
@@ -58,6 +62,7 @@
       "unweighted": 0.9371,
       "oracle": 1.0,
       "consensus": 1.0,
+      "dawid_skene": 1.0,
       "consensus_interval": {
         "point": 1.0,
         "low": 1.0,
@@ -68,7 +73,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 693,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     },
     {
@@ -77,6 +83,7 @@
       "unweighted": 0.9057,
       "oracle": 1.0,
       "consensus": 1.0,
+      "dawid_skene": 1.0,
       "consensus_interval": {
         "point": 1.0,
         "low": 1.0,
@@ -87,7 +94,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 594,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     },
     {
@@ -96,6 +104,7 @@
       "unweighted": 0.8743,
       "oracle": 1.0,
       "consensus": 1.0,
+      "dawid_skene": 1.0,
       "consensus_interval": {
         "point": 1.0,
         "low": 1.0,
@@ -106,7 +115,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 495,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     },
     {
@@ -115,6 +125,7 @@
       "unweighted": 0.8429,
       "oracle": 1.0,
       "consensus": 0.7172,
+      "dawid_skene": 0.7172,
       "consensus_interval": {
         "point": 0.7172,
         "low": 0.6263,
@@ -125,7 +136,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 396,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     },
     {
@@ -134,6 +146,7 @@
       "unweighted": 0.8114,
       "oracle": 1.0,
       "consensus": 0.7172,
+      "dawid_skene": 0.7172,
       "consensus_interval": {
         "point": 0.7172,
         "low": 0.6263,
@@ -144,7 +157,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 297,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     },
     {
@@ -153,6 +167,7 @@
       "unweighted": 0.78,
       "oracle": 1.0,
       "consensus": 0.7172,
+      "dawid_skene": 0.7172,
       "consensus_interval": {
         "point": 0.7172,
         "low": 0.6263,
@@ -163,7 +178,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 198,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     },
     {
@@ -172,6 +188,7 @@
       "unweighted": 0.7486,
       "oracle": 1.0,
       "consensus": 0.7172,
+      "dawid_skene": 0.7172,
       "consensus_interval": {
         "point": 0.7172,
         "low": 0.6263,
@@ -182,7 +199,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 99,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     },
     {
@@ -191,6 +209,7 @@
       "unweighted": 0.7172,
       "oracle": null,
       "consensus": 0.7172,
+      "dawid_skene": 0.7172,
       "consensus_interval": {
         "point": 0.7172,
         "low": 0.6263,
@@ -201,7 +220,8 @@
       "targets": {
         "unweighted": 891,
         "oracle": 0,
-        "consensus": 99
+        "consensus": 99,
+        "dawid_skene": 99
       }
     }
   ],

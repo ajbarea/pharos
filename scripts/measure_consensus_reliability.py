@@ -46,6 +46,7 @@ from pathlib import Path
 from pharos.analyst import Action, AnalystPolicy, Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.inference import dawid_skene
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
@@ -148,10 +149,19 @@ def conditions(
         (tid, "consensus", Counter(v for _, v in rows).most_common(1)[0][0])
         for tid, rows in grouped.items()
     ]
+    # The canonical estimator, and the one that decides whether the headline claim
+    # means anything. Dawid-Skene infers per-contributor error rates and the true
+    # labels jointly, with no ground truth, so unlike the oracle it is a method rather
+    # than a bound. An earlier version of this measurement compared only against
+    # majority vote, which made "reliability cannot be estimated" a claim about the
+    # weakest available estimator instead of about the strongest.
+    estimate = dawid_skene(flat)
+    inferred = [(tid, "dawid-skene", label) for tid, label in estimate.labels().items()]
     return {
         "unweighted": flat,
         "oracle": [r for r in flat if reliability[r[1]] >= ORACLE_FLOOR],
         "consensus": consensus,
+        "dawid_skene": inferred,
     }
 
 
@@ -169,6 +179,7 @@ class Row:
     unweighted: float | None
     oracle: float | None
     consensus: float | None
+    dawid_skene: float | None
     consensus_interval: dict[str, object]
     targets: dict[str, int]
 
@@ -190,6 +201,7 @@ class Row:
             "unweighted": self.unweighted,
             "oracle": self.oracle,
             "consensus": self.consensus,
+            "dawid_skene": self.dawid_skene,
             "consensus_interval": self.consensus_interval,
             "targets": self.targets,
         }
@@ -210,8 +222,11 @@ def main() -> int:
     truth = {t.task_id: t.significant for t in tasks}
 
     print(f"{len(tasks)} tasks, fleet of {args.fleet}, wrong standard = {WRONG_THRESHOLD} of 3")
-    print(f"  {'wrong':>6} {'unweighted':>12} {'oracle (id)':>13} {'consensus':>12}")
-    print("  " + "-" * 46)
+    print(
+        f"  {'wrong':>6} {'unweighted':>12} {'oracle (id)':>13} "
+        f"{'consensus':>12} {'Dawid-Skene':>13}"
+    )
+    print("  " + "-" * 60)
 
     rows: list[Row] = []
     for n_wrong in range(args.fleet + 1):
@@ -229,13 +244,15 @@ def main() -> int:
                 unweighted=_round(scored["unweighted"]),
                 oracle=_round(scored["oracle"]),
                 consensus=_round(scored["consensus"]),
+                dawid_skene=_round(scored["dawid_skene"]),
                 consensus_interval=measured.single_run.as_dict(),
                 targets={k: len(v) for k, v in streams.items()},
             )
         )
         print(
             f"  {n_wrong:>6} {_show(scored['unweighted']):>12} "
-            f"{_show(scored['oracle']):>13} {_show(scored['consensus']):>12}"
+            f"{_show(scored['oracle']):>13} {_show(scored['consensus']):>12} "
+            f"{_show(scored['dawid_skene']):>13}"
         )
 
     # The cliff: the first fleet composition at which consensus stops matching the

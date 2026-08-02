@@ -998,20 +998,35 @@ low (**needs identity**, and is an oracle rather than a method, since it is hand
 answer it would have to estimate); or take each task's majority verdict (**needs no
 identity**).
 
-| Wrong standard | Unweighted | Oracle (needs identity) | Consensus (no identity) |
-| --- | --- | --- | --- |
-| 0 of 9 | 1.000 | 1.000 | 1.000 |
-| 2 of 9 | 0.937 | 1.000 | 1.000 |
-| 4 of 9 | 0.874 | 1.000 | 1.000 |
-| **5 of 9** | 0.843 | **1.000** | **0.717** |
-| 7 of 9 | 0.780 | 1.000 | 0.717 |
-| 9 of 9 | 0.717 | none | 0.717 |
+| Wrong standard | Unweighted | Oracle (identity + truth) | Consensus | **Dawid-Skene** |
+| --- | --- | --- | --- | --- |
+| 0 of 9 | 1.000 | 1.000 | 1.000 | 1.000 |
+| 2 of 9 | 0.937 | 1.000 | 1.000 | 1.000 |
+| 4 of 9 | 0.874 | 1.000 | 1.000 | 1.000 |
+| **5 of 9** | 0.843 | **1.000** | **0.717** | **0.717** |
+| 7 of 9 | 0.780 | 1.000 | 0.717 | 0.717 |
+| 9 of 9 | 0.717 | none | 0.717 | 0.717 |
 
 **It is a cliff, not a curve, and it sits exactly at the majority crossing.** Up to 4
 of 9, consensus is worth precisely as much as knowing who everyone is. At 5 of 9 it
 collapses to 0.717, which is not a degraded score but *the wrong standard's own
 agreement with the world*: past the crossing, consensus returns the wrong rule intact
 and with full confidence.
+
+**The canonical estimator falls off the same cliff, to the same value.** Dawid and
+Skene (1979) infer per-contributor error rates and true labels jointly by EM, using no
+ground truth, and surveys of truth inference report it beating majority voting. Here it
+matches majority voting exactly at every composition, collapse included. The mechanism
+is pinned in `tests/test_inference.py`: EM started from the majority vote is drawn
+toward whatever the majority believes, so once most contributors hold the wrong
+standard it concludes the correct minority *are* the unreliable ones. It rates them
+below the wrong majority, inverts the labels, and emits no signal that anything went
+wrong.
+
+That row matters more than the majority-vote one. An earlier version of this finding
+compared only against a plain vote, which made "reliability cannot be estimated" a claim
+about the weakest available estimator. It is now a claim about the strongest one in
+standard use.
 
 The 9-of-9 row reports the oracle as **none** rather than 0.000. With every
 contributor below the floor it drops all of them, and an empty stream is an absence of
@@ -1035,10 +1050,11 @@ and this measurement closes the cheapest escape from it rather than opening one.
 !!! note "What this does not settle"
     One wrong standard (needing 2 of 3 rather than 3 of 3), one fleet size, one
     corpus. The oracle is a bound and not a candidate method: a real reliability
-    estimator has to infer what this one is told. A weighted scheme might degrade
-    more gracefully than the hard majority tested here, though it cannot escape the
-    same crossing, since past it the wrong standard is what any agreement-based
-    signal agrees on. What would genuinely resolve the conflict is a reliability
+    estimator has to infer what this one is told. Dawid-Skene is canonical but not the only
+    estimator; LFC and BCC lead on nominal data in Zheng et al.'s survey and neither is
+    tested here. What no agreement-based method escapes is the crossing itself, since
+    past it the wrong standard is what the agreement is *about*, and that argument
+    covers the untested ones. What would genuinely resolve the conflict is a reliability
     estimate computed *under* secure aggregation rather than one recovered from
     pooled outputs, and that is not measured here.
 
@@ -1162,3 +1178,73 @@ time, and one held resident pays it once.
     as the binding constraint on sustained mobile inference and which an 8 GB desktop
     card will not reproduce. The sync figure is arithmetic on parameter counts rather
     than a file on a wire, so it omits protocol overhead and any compression.
+
+## 15. The standard privacy mechanism spends the budget on the wrong variable
+
+`scripts/measure_privacy_budget.py`, `src/pharos/budget.py`, `results/privacy_budget.json`
+
+Finding 11's control ladder was k-anonymity, rarity suppression, subsampling, and
+pooling. Every one of those we invented. **Differential privacy, the field's default
+control and the mechanism this work's motivating abstract promises, was simply absent**,
+and stayed absent across three findings, because a self-generated list carries no signal
+that it is incomplete.
+
+Closing the omission turned out to matter more than adding a row.
+
+**Value noise cannot help, at any epsilon.** The attack reads the map from pseudonym to
+task-identifier set. It never inspects a verdict, a released label, or a word of text.
+Any mechanism acting on contribution *values* is therefore the identity function as far
+as the attack is concerned, which is a proposition rather than a measurement. Measured
+anyway, because a claim that a standard defence is useless should be demonstrated:
+
+| Verdict flip rate | 0.0 | 0.1 | 0.25 | **0.5** |
+| --- | --- | --- | --- | --- |
+| Recovery | 0.205 | 0.205 | 0.205 | **0.205** |
+
+At a flip rate of 0.5 the verdict carries no information whatsoever and recovery has
+not moved. This is the shape of the mistake the finding exists to prevent: noise added
+to what a system *reports* while the leak is in what it *touches*.
+
+**Participation noise works, and the composed budget is what it costs.** The variable
+that leaks is whether a contribution about task T exists under pseudonym P at all, so
+the mechanism is randomized response over that indicator: keep an eligible contribution
+with probability `keep`, and fabricate one on an unreachable task with probability
+`fabricate`. The second half is what buys deniability and is exactly what subsampling
+lacks.
+
+| keep | fabricate | Recovery | ε per indicator | **ε composed** | Label noise |
+| --- | --- | --- | --- | --- | --- |
+| 0.9 | 0.0 | 0.205 | ∞ | ∞ | 0.000 |
+| 0.9 | 0.1 | 0.220 | 2.20 | 428.5 | 0.341 |
+| 0.8 | 0.2 | 0.120 | 1.39 | 270.3 | 0.537 |
+| 0.7 | 0.3 | 0.100 | 0.85 | 165.2 | 0.668 |
+| **0.6** | **0.4** | **0.065** | **0.41** | **66.7** | **0.756** |
+
+**The two epsilon columns are the finding.** Randomized response bounds the likelihood
+ratio for *one* indicator, and the attack observes all of them: two clearances in this
+fleet are separated by as many as **195 tasks**, so the guarantee against an adversary
+telling one from the other is the budget composed over that set. At the strongest
+setting tested, a per-indicator ε of **0.41** looks excellent and the composed ε is
+**66.7**, which is not a privacy guarantee in any usual sense. It costs **75.6% label
+noise** to get there.
+
+Quoting the per-indicator figure alone would describe a mechanism far stronger than the
+one deployed. That is not a hypothetical failure; it is the number a deployment would
+naturally report.
+
+Two smaller results in the table. **Subsampling has infinite epsilon**, which is why it
+sat in finding 11's ladder as a cost with no protection beside it: dropping
+contributions makes a stream sparser without making any surviving contribution
+deniable. And recovery at `keep=0.9, fabricate=0.1` is *higher* than the baseline,
+0.220 against 0.205, which at 200 analysts is three people and is read as noise rather
+than as noise-helping-the-attack.
+
+!!! note "What this does not settle"
+    One mechanism family, one fleet, and epsilon computed for an adversary
+    distinguishing two clearances rather than for the full recovery task the attack
+    actually performs, which would need a different accounting. The composed bound uses
+    the widest separation in the fleet, so it is the worst case rather than the typical
+    one. A mechanism designed for set-valued participation, rather than randomized
+    response applied per indicator, might compose far better and is not tested here.
+    Nothing about the arithmetic says DP is the wrong tool; it says this application of
+    it does not deliver a usable guarantee at any utility worth having.

@@ -462,6 +462,22 @@ the paper.** The CMU page for the 2015-05-07 version states "about 150 users" an
 The ECML paper describes an earlier state of the corpus, so any count more precise
 than these needs the release version named alongside it.
 
+### Truth inference from disagreeing analysts, and finding 12
+
+Verified 2026-08-02 by DOI content negotiation.
+
+- Dawid, A. P., & Skene, A. M. (1979). Maximum Likelihood Estimation of Observer
+  Error-Rates Using the EM Algorithm. *Applied Statistics* 28(1), 20-28.
+  [doi:10.2307/2346806](https://doi.org/10.2307/2346806)
+  **Grounds** finding 12's central comparison, and is implemented in
+  `pharos.inference` rather than cited past. The claim that reliability cannot be
+  estimated without identity is only worth making against the strongest estimator in
+  standard use, and this is it: per-annotator error rates and true labels inferred
+  jointly by EM with no ground truth. Finding 12 previously compared against majority
+  voting alone, which made the claim one about the weakest option. Dawid-Skene matches
+  majority voting exactly here, collapse included, because EM initialised from the
+  vote converges to the majority's standard.
+
 ### Fleet-level disclosure, and finding 11
 
 Verified 2026-08-01.

@@ -151,6 +151,10 @@ jobs:
       # without one would report a cold start that is really a connection error.
       - name: Sweep what a reliability tag discloses
         run: uv run python scripts/measure_tagged_aggregation.py
+      # The privacy-budget arithmetic depends on the corpus's clearance structure via
+      # the widest-separation count, so a generator change moves the composed epsilon.
+      - name: Price what a privacy budget buys
+        run: uv run python scripts/measure_privacy_budget.py
       - name: Check the docs tables against their artifacts
         run: uv run python scripts/sync_docs_tables.py --check
 

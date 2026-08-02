@@ -137,6 +137,12 @@ ignore = [
 # anything security-bearing: the disclosure being measured is a property of the
 # partition, and a CSPRNG would only make it unreproducible.
 "scripts/measure_tagged_aggregation.py" = ["S311"]
+# The participation mechanism must replay from a seed so a privacy/utility curve is
+# checkable. Note the caveat, which is sharper here than elsewhere: a DEPLOYED
+# randomized-response mechanism needs a CSPRNG, because an adversary who can predict
+# which contributions were fabricated strips the deniability the epsilon is paying for.
+# Simulating the mechanism to measure what it buys is not deploying it.
+"src/pharos/budget.py" = ["S311"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["pharos"]

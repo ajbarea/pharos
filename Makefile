@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget docs-tables explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -49,6 +49,10 @@ edge:                      ## What the agent costs on laptop-class hardware (nee
 	@mkdir -p results
 	uv run python scripts/measure_edge_cost.py --out results/edge_cost.json
 
+budget:                    ## What a privacy budget buys against the linkage channel (no model)
+	@mkdir -p results
+	uv run python scripts/measure_privacy_budget.py --out results/privacy_budget.json
+
 docs-tables:               ## Refresh the docs tables that restate a committed artifact
 	uv run python scripts/sync_docs_tables.py
 
@@ -80,4 +84,5 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_fleet_linkage.py
 	uv run python scripts/measure_consensus_reliability.py
 	uv run python scripts/measure_tagged_aggregation.py
+	uv run python scripts/measure_privacy_budget.py
 	uv run python scripts/sync_docs_tables.py --check

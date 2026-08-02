@@ -1,0 +1,158 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "b63deaafa95d",
+    "git_dirty": true,
+    "generated_at": "2026-08-02T11:34:37+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
+    "seed": 7
+  },
+  "fleet": 200,
+  "events": 200,
+  "baseline_recovery": 0.205,
+  "widest_separation": 195,
+  "value_noise_is_inert": true,
+  "rows": [
+    {
+      "mechanism": "value",
+      "setting": "flip=0.0",
+      "recovery": 0.205,
+      "contributions": 7053,
+      "label_noise": 0.0,
+      "budget": null
+    },
+    {
+      "mechanism": "value",
+      "setting": "flip=0.1",
+      "recovery": 0.205,
+      "contributions": 7053,
+      "label_noise": 0.0,
+      "budget": null
+    },
+    {
+      "mechanism": "value",
+      "setting": "flip=0.25",
+      "recovery": 0.205,
+      "contributions": 7053,
+      "label_noise": 0.0,
+      "budget": null
+    },
+    {
+      "mechanism": "value",
+      "setting": "flip=0.5",
+      "recovery": 0.205,
+      "contributions": 7053,
+      "label_noise": 0.0,
+      "budget": null
+    },
+    {
+      "mechanism": "participation",
+      "setting": "keep=1.0,fab=0.0",
+      "recovery": 0.205,
+      "contributions": 7053,
+      "label_noise": 0.0,
+      "budget": {
+        "keep": 1.0,
+        "fabricate": 0.0,
+        "epsilon_per_indicator": null,
+        "indicators": 195,
+        "epsilon_basic": null,
+        "epsilon_advanced": null,
+        "epsilon_effective": null,
+        "delta": 1e-05
+      }
+    },
+    {
+      "mechanism": "participation",
+      "setting": "keep=0.9,fab=0.0",
+      "recovery": 0.205,
+      "contributions": 6365,
+      "label_noise": 0.0,
+      "budget": {
+        "keep": 0.9,
+        "fabricate": 0.0,
+        "epsilon_per_indicator": null,
+        "indicators": 195,
+        "epsilon_basic": null,
+        "epsilon_advanced": null,
+        "epsilon_effective": null,
+        "delta": 1e-05
+      }
+    },
+    {
+      "mechanism": "participation",
+      "setting": "keep=0.9,fab=0.1",
+      "recovery": 0.22,
+      "contributions": 9617,
+      "label_noise": 0.3413,
+      "budget": {
+        "keep": 0.9,
+        "fabricate": 0.1,
+        "epsilon_per_indicator": 2.1972,
+        "indicators": 195,
+        "epsilon_basic": 428.4588,
+        "epsilon_advanced": 3574.9015,
+        "epsilon_effective": 428.4588,
+        "delta": 1e-05
+      }
+    },
+    {
+      "mechanism": "participation",
+      "setting": "keep=0.8,fab=0.2",
+      "recovery": 0.12,
+      "contributions": 12260,
+      "label_noise": 0.5371,
+      "budget": {
+        "keep": 0.8,
+        "fabricate": 0.2,
+        "epsilon_per_indicator": 1.3863,
+        "indicators": 195,
+        "epsilon_basic": 270.3274,
+        "epsilon_advanced": 903.8747,
+        "epsilon_effective": 270.3274,
+        "delta": 1e-05
+      }
+    },
+    {
+      "mechanism": "participation",
+      "setting": "keep=0.7,fab=0.3",
+      "recovery": 0.1,
+      "contributions": 14916,
+      "label_noise": 0.6675,
+      "budget": {
+        "keep": 0.7,
+        "fabricate": 0.3,
+        "epsilon_per_indicator": 0.8473,
+        "indicators": 195,
+        "epsilon_basic": 165.2231,
+        "epsilon_advanced": 277.073,
+        "epsilon_effective": 165.2231,
+        "delta": 1e-05
+      }
+    },
+    {
+      "mechanism": "participation",
+      "setting": "keep=0.6,fab=0.4",
+      "recovery": 0.065,
+      "contributions": 17581,
+      "label_noise": 0.7564,
+      "budget": {
+        "keep": 0.6,
+        "fabricate": 0.4,
+        "epsilon_per_indicator": 0.4055,
+        "indicators": 195,
+        "epsilon_basic": 79.0657,
+        "epsilon_advanced": 66.7022,
+        "epsilon_effective": 66.7022,
+        "delta": 1e-05
+      }
+    }
+  ],
+  "validity": {
+    "n": 200,
+    "quotable": true,
+    "concerns": []
+  }
+}
