@@ -9,15 +9,25 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
-  # Cancel superseded runs on pull requests only, never on main.
+  # Group by COMMIT on main and by REF on pull requests, which are different problems.
   #
-  # With this set to `true` unconditionally, a rapid series of pushes to main leaves
-  # every commit but the last untested: 6 of 15 recent runs were cancelled that way,
-  # and one genuine failure went unnoticed because the run that would have shown it
-  # green again was itself cancelled. On a protected branch each commit needs its own
-  # verdict; on a PR only the tip matters, and cancelling there is what makes fast
-  # iteration cheap.
+  # On a protected branch every commit needs its own verdict, and `cancel-in-progress:
+  # false` alone does not deliver that. A concurrency group holds at most one running
+  # and one pending run, and a newer arrival evicts the pending one unconditionally;
+  # the flag governs the running job only. So a shared group plus a rapid series of
+  # pushes still drops the middle commits, which is what happened to 7915765 on
+  # 2026-08-01 after four pushes in quick succession. Grouping by SHA gives each commit
+  # its own group, so nothing queues behind anything and nothing is evicted.
+  #
+  # This is the second form of the same bug. The first was `cancel-in-progress: true`
+  # unconditionally, which cancelled 6 of 15 runs on main and hid a genuine failure
+  # because the run that would have shown it fixed was itself cancelled. That fix
+  # addressed cancellation of *running* jobs; this one addresses eviction of *queued*
+  # ones.
+  #
+  # Pull requests keep the ref-scoped group and the cancellation, because there only
+  # the tip matters and cancelling superseded runs is what makes iteration cheap.
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
