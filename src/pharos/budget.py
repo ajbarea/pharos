@@ -42,6 +42,7 @@ from random import Random
 from pharos.fleet import Clearance, Contribution
 from pharos.labels import Capacity, DeclassificationPolicy, Label, join, shared_eligible
 from pharos.tasks import TriageTask
+from pharos.telemetry import get_logger, record
 
 #: Failure probability for the advanced-composition bound. The usual convention is
 #: delta well below 1/n for a population of n; 1e-5 is comfortably under that for the
@@ -163,6 +164,19 @@ def randomized_participation(
     federate something the disclosure gate refused, which would be a leak rather than a
     control.
     """
+    if math.isinf(budget.epsilon):
+        # Worth a warning rather than a silent pass. A mechanism running with no
+        # fabrication still drops contributions and still looks like a privacy
+        # control from the outside, while offering no finite guarantee at all.
+        get_logger().warning(
+            "budget.no_finite_guarantee",
+            extra={
+                "event": "budget.no_finite_guarantee",
+                "keep": budget.keep,
+                "fabricate": budget.fabricate,
+                "why": "fabricate=0 makes every observed contribution proof of reachability",
+            },
+        )
     rng = Random(seed)
     out: list[Contribution] = []
     for clearance in fleet:
@@ -183,6 +197,13 @@ def randomized_participation(
                     verdict=task.significant if reachable else rng.random() < 0.5,
                 )
             )
+    record(
+        "budget.participation",
+        len(out),
+        keep=budget.keep,
+        fabricate=budget.fabricate,
+        epsilon=None if math.isinf(budget.epsilon) else round(budget.epsilon, 4),
+    )
     return tuple(out)
 
 

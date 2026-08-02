@@ -41,6 +41,7 @@ from pharos.labels import (
     shared_eligible,
 )
 from pharos.tasks import TriageTask
+from pharos.telemetry import record_routine
 
 #: The ceiling a shared adapter is released under. OPEN with no compartments is the
 #: only ceiling under which federation means anything: a shared model released into a
@@ -284,6 +285,25 @@ def link(
                 silent=False,
             )
         )
+    exact = sum(1 for r in results if r.exact)
+    live = [r for r in results if not r.silent]
+    # The attack's own outcome. Without it a change to the tie-breaking rule, or to
+    # what counts as an identification, moves every published recovery figure with
+    # nothing in a run's output to show that it did.
+    # Routine: a control ladder calls this once per control, and an unlabelled row per
+    # call is unreadable. The caller knows which control it is running and logs the
+    # labelled outcome at INFO; this stays available at DEBUG for a single direct call.
+    record_routine(
+        "fleet.linkage",
+        exact / len(results) if results else 0.0,
+        analysts=len(results),
+        exact=exact,
+        silent=sum(1 for r in results if r.silent),
+        pseudonyms=len(observed),
+        mean_anonymity_set=(
+            round(sum(r.anonymity_set for r in live) / len(live), 3) if live else 0.0
+        ),
+    )
     return tuple(results)
 
 

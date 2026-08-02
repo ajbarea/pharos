@@ -1837,3 +1837,68 @@ def test_sync_cost_with_zero_total_does_not_divide_by_zero():
         trainable_params=0, total_params=0, bf16_mib=0, fp32_mib=0, source="x"
     )
     assert degenerate.trainable_share == 0.0
+
+
+# -------------------------------------------------------- privacy budget -----
+
+
+def _privacy_module():
+    import measure_privacy_budget as mpb
+
+    return mpb
+
+
+def test_privacy_budget_row_serializes():
+    mpb = _privacy_module()
+    import json as _json
+
+    row = mpb.Row("participation", "keep=0.6,fab=0.4", 0.065, 1200, 0.756, {"epsilon": 0.41})
+    encoded = _json.loads(_json.dumps(row.as_dict()))
+    assert encoded["mechanism"] == "participation"
+    assert encoded["recovery"] == pytest.approx(0.065)
+    assert encoded["budget"]["epsilon"] == pytest.approx(0.41)
+
+    # A value-noise row carries no budget, and that must survive the round trip.
+    bare = mpb.Row("value", "flip=0.5", 0.205, 1200, 0.0, None)
+    assert _json.loads(_json.dumps(bare.as_dict()))["budget"] is None
+
+
+def test_privacy_budget_grid_is_ordered_and_covers_the_degenerate_case():
+    """fabricate=0 must be present: it is subsampling, and its epsilon is infinite."""
+    mpb = _privacy_module()
+    assert (1.0, 0.0) in mpb.PARTICIPATION
+    assert any(fab == 0.0 for _, fab in mpb.PARTICIPATION)
+    # A flip of 0.5 destroys the verdict; if the attack survives that it survives all.
+    assert 0.5 in mpb.VALUE_FLIPS
+    assert 0.0 in mpb.VALUE_FLIPS, "a no-noise control is needed to read the rest against"
+
+
+def test_correlated_score_fleet_reports_the_majority_flag():
+    """The flag drives the exact/measured composition, so it has to be right."""
+    import measure_correlated_fleets as mcf
+
+    from pharos.analyst import Proposal
+    from pharos.disclosure import KEEP_COMPARTMENTS
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.labels import declassify
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=mcf.SEED, n_events=30)))
+    proposals = {
+        t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
+        for t in tasks
+    }
+    truth = {t.task_id: t.significant for t in tasks}
+
+    from random import Random
+
+    all_right = mcf.draw_fleet(0.0, schools=3, rng=Random(1))
+    consensus, ds, crossed = mcf.score_fleet(all_right, tasks, proposals, truth, seed=mcf.SEED)
+    assert not crossed
+    assert consensus == pytest.approx(1.0)
+    assert ds == pytest.approx(1.0)
+
+    all_wrong = mcf.draw_fleet(1.0, schools=3, rng=Random(1))
+    consensus_w, _, crossed_w = mcf.score_fleet(all_wrong, tasks, proposals, truth, seed=mcf.SEED)
+    assert crossed_w
+    assert consensus_w < 1.0

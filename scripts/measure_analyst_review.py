@@ -43,7 +43,7 @@ from pharos.generate import GeneratorConfig, generate
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
-from pharos.telemetry import get_logger
+from pharos.telemetry import get_logger, record
 from pharos.validity import check_sample_size
 
 LOG = get_logger()
@@ -202,8 +202,24 @@ def main() -> int:
         model_key = path.stem.removeprefix("triage_lift-")
         proposals = load_proposals(path, tasks)
         review = measure(tasks, proposals, DEFAULT_ENSEMBLE)
-        blocks[model_key] = review.as_dict()
+        summary = review.as_dict()
+        blocks[model_key] = summary
         _print_table(model_key, review)
+        # Finding 7's headline, per model whose verdicts were replayed. This is also
+        # the drift guard's own output: the replay refuses artifacts disagreeing with
+        # the regenerated corpus, and a run that reviewed fewer models than expected
+        # is visible here rather than only in the printed table.
+        record(
+            "review.replayed",
+            float(len(tasks)),
+            model=model_key,
+            reviewers=len(DEFAULT_ENSEMBLE),
+            **{
+                k: v
+                for k, v in summary.items()
+                if isinstance(v, int | float) and not isinstance(v, bool)
+            },
+        )
 
     validity = check_sample_size(len(tasks) * len(DEFAULT_ENSEMBLE), label="analyst_review")
 

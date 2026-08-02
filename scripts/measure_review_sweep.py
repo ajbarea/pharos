@@ -37,6 +37,7 @@ from pharos.generate import GeneratorConfig, generate
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
+from pharos.telemetry import record
 from pharos.validity import check_sample_size
 from pharos.world import SIGNIFICANT_PATTERN
 
@@ -156,6 +157,15 @@ def main() -> int:
     }
 
     cells = sweep(tasks, proposals)
+    clearing = [c for c in cells if c.mean > floor]
+    record(
+        "review_sweep.cells_clearing_floor",
+        len(clearing) / len(cells) if cells else 0.0,
+        clearing=len(clearing),
+        cells=len(cells),
+        majority_floor=round(floor, 4),
+    )
+
     validity = check_sample_size(len(tasks), label="review_sweep")
 
     print(f"{len(tasks)} tasks at seed {SEED}, {len(REVIEW_SEEDS)} review seeds per cell")

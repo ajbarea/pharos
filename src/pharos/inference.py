@@ -22,6 +22,8 @@ that without running it would be exactly the shortcut this module exists to clos
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
+from pharos.telemetry import get_logger, record_routine
+
 #: Laplace smoothing on the confusion counts. Without it a contributor who is right on
 #: every task they touched gets a zero-probability cell, and one disagreement later
 #: drives the posterior to a hard 0 or 1 that no further evidence can move.
@@ -142,6 +144,32 @@ def dawid_skene(
             converged = True
             break
 
+    if not converged:
+        # A silent quality failure otherwise. EM that hits the cap has not found a
+        # fixed point, so the error rates and labels below are wherever the last
+        # iteration happened to leave them, and nothing in the returned object's
+        # numbers looks different from a converged run.
+        get_logger().warning(
+            "inference.em_did_not_converge",
+            extra={
+                "event": "inference.em_did_not_converge",
+                "iterations": iterations_run,
+                "max_iters": max_iters,
+                "tasks": len(tasks),
+                "workers": len(workers),
+            },
+        )
+    # Routine: a fleet sweep runs EM once per drawn fleet, which was 900 identical
+    # lines in one script and drowned that script's own result. Non-convergence above
+    # stays at WARNING, because that one is never routine.
+    record_routine(
+        "inference.dawid_skene",
+        prevalence,
+        converged=converged,
+        iterations=iterations_run,
+        tasks=len(tasks),
+        workers=len(workers),
+    )
     return DawidSkene(posterior, error_rates, prevalence, iterations_run, converged)
 
 

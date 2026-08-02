@@ -52,6 +52,7 @@ from pharos.generate import GeneratorConfig, generate
 from pharos.labels import DeclassificationPolicy
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
+from pharos.telemetry import record
 from pharos.uncertainty import Trial, summarize
 from pharos.validity import check_sample_size
 
@@ -253,8 +254,19 @@ def main() -> int:
     ]
 
     for name, controlled in ladder:
+        linkages = link(controlled, tasks, fleet, policy=DROP_COMPARTMENTS)
         row = evaluate(fleet, tasks, controlled, policy=DROP_COMPARTMENTS, baseline_volume=baseline)
         controls[name] = row
+        # Labelled, so a reader can tell which control produced which outcome. The
+        # library emits the same numbers at DEBUG without knowing the control's name.
+        record(
+            "linkage.control",
+            recovery_rate(linkages),
+            control=name,
+            retained_volume=len(controlled) / baseline if baseline else 0.0,
+            mean_anonymity_set=round(mean_anonymity(linkages), 2),
+            silenced=sum(1 for x in linkages if x.silent),
+        )
         print(
             f"  {name:<30} recovery={row['recovery']:.3f}  "
             f"anonymity={row['mean_anonymity_set']:>6.1f}  "

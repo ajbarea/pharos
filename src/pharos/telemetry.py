@@ -135,6 +135,21 @@ def configure(
     global _CONFIGURED, _TRACING_ACTIVE, _tracer, _meter
     logger = logging.getLogger(_LOGGER_NAME)
 
+    # An environment override so routine DEBUG metrics can be turned on without
+    # editing a call site. `record_routine` is invisible at the default level by
+    # design, and a developer chasing a corpus-generation question needs a way to see
+    # it that does not involve changing code.
+    requested = os.environ.get("PHAROS_LOG_LEVEL")
+    if requested:
+        resolved = logging.getLevelNamesMapping().get(requested.upper())
+        if resolved is None:
+            logger.warning(
+                "telemetry.bad_log_level",
+                extra={"event": "telemetry.bad_log_level", "requested": requested},
+            )
+        else:
+            level = resolved
+
     if not _CONFIGURED:
         handler = logging.StreamHandler()
         handler.setFormatter(JsonFormatter() if json_logs else logging.Formatter())
@@ -214,8 +229,28 @@ def record(metric: str, value: float, **attributes: object) -> None:
     The log happens whether or not a collector is configured, so a run is analysable
     from its own output alone. That matters for a research tool whose results often
     outlive the collector that watched them.
+
+    Emitted at INFO. Use `record_routine` for an inner operation a caller repeats,
+    which is the difference between a log a human reads and one they filter out.
     """
-    get_logger().info(
+    _emit_metric(metric, value, logging.INFO, attributes)
+
+
+def record_routine(metric: str, value: float, **attributes: object) -> None:
+    """The same measurement, at DEBUG, for an operation a caller performs in bulk.
+
+    The distinction is about volume rather than importance. Generating one corpus is
+    worth an INFO line; generating thirty inside a sweep buries every decision the
+    sweep made underneath them. This project's fleet-linkage script emitted thirty
+    identical corpus lines and nothing at all about the attack it ran, which is how a
+    log stops being read.
+    """
+    _emit_metric(metric, value, logging.DEBUG, attributes)
+
+
+def _emit_metric(metric: str, value: float, level: int, attributes: dict[str, object]) -> None:
+    get_logger().log(
+        level,
         metric,
         extra={"metric": metric, "value": value, **{str(k): v for k, v in attributes.items()}},
     )

@@ -21,7 +21,7 @@ import random
 from dataclasses import dataclass, field, replace
 
 from pharos.labels import Capacity, Label
-from pharos.telemetry import record, span
+from pharos.telemetry import record_routine, span
 from pharos.world import (
     ALL_FACT_IDS,
     CENTERS,
@@ -346,5 +346,9 @@ def generate(config: GeneratorConfig) -> list[Report]:
                         fact_ids=tuple(fact_ids),
                     )
                 )
-    record("generate.reports", len(reports), seed=config.seed, n_events=config.n_events)
+    # Routine rather than headline: a sweep generates dozens of corpora, and at INFO
+    # those lines were the entire log output of scripts whose actual results went
+    # unlogged. Visible with `PHAROS_LOG_LEVEL=DEBUG` when a single corpus is the
+    # subject rather than the input.
+    record_routine("generate.reports", len(reports), seed=config.seed, n_events=config.n_events)
     return reports

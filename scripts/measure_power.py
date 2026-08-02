@@ -30,6 +30,7 @@ from pathlib import Path
 from pharos.generate import GeneratorConfig, generate
 from pharos.provenance import run_provenance
 from pharos.tasks import build_triage_tasks
+from pharos.telemetry import get_logger, record
 from pharos.uncertainty import Trial, cluster_bootstrap
 
 SEED = 7
@@ -203,6 +204,27 @@ def main() -> int:
         print(f"              {claim.description}")
 
     unresolved = [v for v in verdicts if not v["resolved"]]
+    # The headline: how many published claims their own samples support. A silent
+    # change here moves what this project is allowed to say, and nothing else in a
+    # run's output would show it.
+    record(
+        "power.claims_resolved",
+        (len(verdicts) - len(unresolved)) / len(verdicts) if verdicts else 0.0,
+        resolved=len(verdicts) - len(unresolved),
+        total=len(verdicts),
+        class_balance=round(rate, 4),
+    )
+    for v in unresolved:
+        get_logger().warning(
+            "power.claim_unresolved",
+            extra={
+                "event": "power.claim_unresolved",
+                "finding": v["finding"],
+                "n": v["n"],
+                "effect": v["effect"],
+                "n_needed": v["n_needed"],
+            },
+        )
     print("\n" + "=" * 74)
     print(
         f"{len(verdicts) - len(unresolved)}/{len(verdicts)} headline claims are resolved at the size they were run."

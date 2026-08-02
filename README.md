@@ -145,6 +145,7 @@ corrections, and the caveats.
 | 13 | A reliability tag can replace identity, and the leak metric cannot tell you when |
 | 14 | What the agent costs on the hardware it is meant to run on |
 | 15 | The standard privacy mechanism spends the budget on the wrong variable |
+| 16 | The cliff is safe only because the fleets were drawn independently |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -160,6 +161,7 @@ make consensus   # whether reliability survives pooling contributors (no model)
 make tagged      # whether a reliability tag can replace identity (no model)
 make edge        # what the agent costs on laptop-class hardware (needs Ollama)
 make budget      # what a privacy budget buys against the linkage channel (no model)
+make correlated  # what the cliff costs when analysts are not independent (no model)
 ```
 
 ## Build order

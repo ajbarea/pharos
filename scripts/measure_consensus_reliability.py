@@ -50,6 +50,7 @@ from pharos.inference import dawid_skene
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
+from pharos.telemetry import get_logger, record
 from pharos.uncertainty import Trial, summarize
 from pharos.validity import check_sample_size
 
@@ -258,6 +259,29 @@ def main() -> int:
     # The cliff: the first fleet composition at which consensus stops matching the
     # oracle. Computed rather than eyeballed, because the whole claim is where it sits.
     cliff = next((r.n_wrong for r in rows if r.consensus_lags_oracle), None)
+    for r in rows:
+        record(
+            "consensus.composition",
+            r.consensus if r.consensus is not None else 0.0,
+            n_wrong=r.n_wrong,
+            oracle=r.oracle,
+            dawid_skene=r.dawid_skene,
+            unweighted=r.unweighted,
+        )
+    if cliff is not None:
+        # The finding, as an event rather than only as stdout. A corpus change moves
+        # the wrong standard's agreement and would move this without touching a line
+        # of the script.
+        get_logger().warning(
+            "consensus.cliff",
+            extra={
+                "event": "consensus.cliff",
+                "n_wrong": cliff,
+                "fleet": args.fleet,
+                "before": rows[cliff - 1].consensus,
+                "after": rows[cliff].consensus,
+            },
+        )
     print()
     if cliff is None:
         print("consensus matched the oracle at every composition tested")

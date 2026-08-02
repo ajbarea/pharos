@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated logcheck docs-tables explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -52,6 +52,13 @@ edge:                      ## What the agent costs on laptop-class hardware (nee
 budget:                    ## What a privacy budget buys against the linkage channel (no model)
 	@mkdir -p results
 	uv run python scripts/measure_privacy_budget.py --out results/privacy_budget.json
+
+correlated:                ## What finding 12's cliff costs when analysts correlate (no model)
+	@mkdir -p results
+	uv run python scripts/measure_correlated_fleets.py --out results/correlated_fleets.json
+
+logcheck:                  ## Run the model-free measurements and summarise what they logged
+	uv run python scripts/logcheck.py
 
 docs-tables:               ## Refresh the docs tables that restate a committed artifact
 	uv run python scripts/sync_docs_tables.py

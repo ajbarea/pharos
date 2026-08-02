@@ -143,6 +143,10 @@ ignore = [
 # which contributions were fabricated strips the deniability the epsilon is paying for.
 # Simulating the mechanism to measure what it buys is not deploying it.
 "src/pharos/budget.py" = ["S311"]
+# Fleet composition draws must replay from a seed so a probability over draws is
+# checkable. Nothing security-bearing: the draw decides which analysts share a
+# standard, which is the variable under study.
+"scripts/measure_correlated_fleets.py" = ["S311"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["pharos"]

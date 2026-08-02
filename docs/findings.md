@@ -1274,3 +1274,61 @@ than as noise-helping-the-attack.
     response applied per indicator, might compose far better and is not tested here.
     Nothing about the arithmetic says DP is the wrong tool; it says this application of
     it does not deliver a usable guarantee at any utility worth having.
+
+## 16. The cliff is safe only because the fleets were drawn independently
+
+`scripts/measure_correlated_fleets.py`, `results/correlated_fleets.json`
+
+[Finding 12](#12-reliability-cannot-be-estimated-without-identity-where-it-matters)
+swept the number of wrong analysts as a free parameter and found a cliff at the
+majority crossing. That answers "what happens at 5 of 9" and leaves the question a
+deployment actually faces untouched: **how often does a fleet end up there?**
+
+Every fleet measured in this repository has been drawn i.i.d. Nothing enforces that,
+and it is the most favourable assumption available. Analysts share a training pipeline,
+inherit a house style, and are corrected by the same supervisors, so a wrong standard
+propagates through a cohort rather than appearing independently in each person.
+
+Three structures, all with the *same* expected error rate, differing only in how it is
+distributed. P(wrong majority) is exact, from a binomial over schools rather than over
+people. Expected agreement composes that exact probability with agreements measured on
+real fleets through the real pipeline.
+
+| Population error rate | Independent | Three schools | One culture | Understatement |
+| --- | --- | --- | --- | --- |
+| **0.1** | **0.001** | 0.028 | **0.100** | **112×** |
+| 0.2 | 0.020 | 0.104 | 0.200 | 10.2× |
+| 0.3 | 0.099 | 0.216 | 0.300 | 3.0× |
+| 0.4 | 0.267 | 0.352 | 0.400 | 1.5× |
+| 0.5 | 0.500 | 0.500 | 0.500 | 1.0× |
+
+**The understatement is largest exactly where a deployment would cite it for
+reassurance.** At a 10% population error rate, independence says one fleet in a
+thousand crosses the majority; a single shared training culture says one in ten. That
+is the regime where a designer would say "a wrong majority essentially cannot happen",
+and it is the regime where the assumption is off by two orders of magnitude. By the
+time the rates converge, at 0.5, the reassurance was worthless anyway.
+
+Expected agreement follows: 1.000 against 0.964 at a 10% error rate, 0.993 against
+0.927 at 20%. Dawid-Skene tracks consensus exactly in every cell, which independently
+reproduces finding 12's central result on a different fleet distribution.
+
+!!! warning "The first version of this measurement was noise, and it is worth saying why"
+    P(wrong majority) was initially *estimated* from 40 drawn fleets. Its standard
+    error near 0.1 is about 0.05, and the result duly showed clustered cells **below**
+    independent ones at two rates, an ordering the mathematics forbids. The quantity has
+    a closed form; sampling it invented noise and then reported the noise as a reversal.
+
+    The rewrite computes it exactly and samples only the conditional agreements, which
+    is cheaper as well as correct. The lesson generalises past this script: **before
+    estimating anything, check whether it can be derived.** A simulated quantity and a
+    computed one look identical in a results table.
+
+!!! note "What this does not settle"
+    Equal-sized schools, a single wrong standard, and correlation modelled as
+    all-or-nothing per school. Real cohorts overlap, partially agree, and drift, and
+    every one of those sits between the two extremes bracketed here rather than outside
+    them. The conditional agreements rest on 30 draws per cell, which is thin for the
+    conditionals though it does not touch the exact probabilities. What the pair of
+    columns establishes is that the i.i.d. assumption is load-bearing and unstated, not
+    where a particular organisation would land between them.

@@ -47,6 +47,7 @@ from pharos.fleet import Clearance, Contribution, assign_fleet, contribute, link
 from pharos.generate import GeneratorConfig, generate
 from pharos.provenance import run_provenance
 from pharos.tasks import build_triage_tasks
+from pharos.telemetry import get_logger, record
 from pharos.validity import check_sample_size
 
 SEED = 7
@@ -194,6 +195,27 @@ def main() -> int:
         print(f"  {scheme.name:<20} {recovery:>11.3f} {inferred:>11.3f} {groups:>7}")
 
     invisible = [r for r in rows if r.invisible_to_per_analyst_metric]
+    for r in rows:
+        record(
+            "tagging.scheme",
+            r.clearance_inference,
+            scheme=r.scheme,
+            identifies_individuals=r.identifies_individuals,
+            lift_over_prior=round(r.lift_over_prior, 4),
+            groups=r.groups,
+        )
+    for r in invisible:
+        # The case the per-analyst metric scores as clean. Warned rather than merely
+        # tabulated, because a reader trusting that metric would ship this.
+        get_logger().warning(
+            "tagging.aggregate_leak_invisible",
+            extra={
+                "event": "tagging.aggregate_leak_invisible",
+                "scheme": r.scheme,
+                "clearance_inference": r.clearance_inference,
+                "identifies_individuals": r.identifies_individuals,
+            },
+        )
 
     print()
     print("Schemes that disclose clearance in aggregate while identifying nobody:")
