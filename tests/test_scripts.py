@@ -1533,3 +1533,58 @@ def test_small_corpora_understate_rather_than_overstate():
     smallest = grid[mfl.SATURATION_EVENTS[0]]["recoveries"]
     # No small corpus reports MORE leakage than the saturated structure carries.
     assert max(smallest) <= saturated
+
+
+# --------------------------------------------------------- docs tables -----
+
+
+def _docs_module():
+    import sync_docs_tables as sdt
+
+    return sdt
+
+
+def test_power_claims_block_matches_the_artifact():
+    sdt = _docs_module()
+    import json as _json
+
+    table = sdt.power_claims()
+    payload = _json.loads((sdt.RESULTS / "power.json").read_text(encoding="utf-8"))
+    claims = payload["claims"]
+    # One row per claim, plus a header, a separator, a blank and a tally line.
+    assert table.count("\n| ") >= len(claims)
+    resolved = sum(1 for c in claims if c["resolved"])
+    assert f"**{resolved} of {len(claims)}**" in table
+    for claim in claims:
+        assert claim["description"] in table
+
+
+def test_render_rewrites_only_marked_blocks():
+    sdt = _docs_module()
+    text = (
+        "keep me\n\n<!-- BEGIN GENERATED: power-claims -->\nSTALE\n"
+        "<!-- END GENERATED: power-claims -->\n\nkeep me too\n"
+    )
+    updated, names = sdt.render(text)
+    assert names == ["power-claims"]
+    assert "STALE" not in updated
+    assert updated.startswith("keep me\n")
+    assert updated.endswith("keep me too\n")
+    # Idempotent: rendering an already-current document changes nothing.
+    assert sdt.render(updated)[0] == updated
+
+
+def test_an_unregistered_block_is_an_error_not_a_no_op():
+    """A marker with no builder is how a table quietly stops updating."""
+    sdt = _docs_module()
+    text = "<!-- BEGIN GENERATED: not-a-real-block -->\nx\n<!-- END GENERATED: not-a-real-block -->"
+    with pytest.raises(SystemExit):
+        sdt.render(text)
+
+
+def test_unmarked_text_is_left_alone():
+    sdt = _docs_module()
+    text = "| Finding | n |\n| --- | --- |\n| 5 | 600 |\n"
+    updated, names = sdt.render(text)
+    assert names == []
+    assert updated == text

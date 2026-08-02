@@ -87,6 +87,7 @@ from a generated corpus, so they carry no sampling noise of their own and the ga
 to clear one half-width rather than two. Charging them double was an error in an
 earlier version of this section, and it understated two claims.
 
+<!-- BEGIN GENERATED: power-claims -->
 | Finding | n | Gap it rests on | vs | Verdict | Claim |
 | --- | --- | --- | --- | --- | --- |
 | 3b | 40 | 0.000 | constant | unresolved (needs n>2000) | qwen2.5-3b (0.625) clears the majority floor (0.625) |
@@ -101,7 +102,10 @@ earlier version of this section, and it understated two claims.
 | 11 | 200 | 0.100 | constant | **resolved** | linkage recovery (0.205) beats the guessing prior (0.105) |
 | 11 | 50 | 0.820 | condition | **resolved** | RESTRICTED analysts (0.820) are recovered where OPEN (0.000) are not |
 
-Eight of eleven are resolved, and the pattern is the useful part. **The claims this
+**8 of 11** resolve at the size they were run.
+<!-- END GENERATED: power-claims -->
+
+The pattern is the useful part. **The claims this
 project makes strongly rest on large gaps and are comfortably resolved**; the ones
 that are not are mostly ones it already declines to make. Two deserve naming:
 

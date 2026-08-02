@@ -125,4 +125,10 @@ jobs:
       # a corpus edit quietly making the fleet more or less identifiable.
       - name: Measure what the fleet's contribution stream discloses
         run: uv run python scripts/measure_fleet_linkage.py
+      # The claim table on the docs site restates results/power.json row for row, and
+      # it went stale twice in one day while being maintained by hand. This fails the
+      # build when the page and the artifact disagree, and also when it finds no
+      # generated blocks at all, since a guard that verifies nothing must not pass.
+      - name: Check the docs tables against their artifacts
+        run: uv run python scripts/sync_docs_tables.py --check
 
