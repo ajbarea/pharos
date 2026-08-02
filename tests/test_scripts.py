@@ -1588,3 +1588,80 @@ def test_unmarked_text_is_left_alone():
     updated, names = sdt.render(text)
     assert names == []
     assert updated == text
+
+
+# ------------------------------------------------- consensus reliability -----
+
+
+def _consensus_module():
+    import measure_consensus_reliability as mcr
+
+    return mcr
+
+
+def test_agreement_reports_an_empty_stream_as_no_evidence():
+    """None, not 0.0. A condition that kept nothing has not scored zero."""
+    mcr = _consensus_module()
+    assert mcr._agreement([], {}) is None
+    truth = {"T-1": True, "T-2": False}
+    assert mcr._agreement([("T-1", "a", True)], truth) == 1.0
+    assert mcr._agreement([("T-1", "a", False)], truth) == 0.0
+    assert mcr._show(None) == "none"
+    assert mcr._show(0.0) == "0.0000"
+
+
+def test_fleet_of_splits_right_and_wrong():
+    mcr = _consensus_module()
+    fleet = mcr.fleet_of(4, size=9)
+    assert len(fleet) == 9
+    wrong = [p for p in fleet if p.escalation_threshold == mcr.WRONG_THRESHOLD]
+    assert len(wrong) == 4
+    assert len(mcr.fleet_of(0, size=9)) == 9
+    assert all(p.escalation_threshold != mcr.WRONG_THRESHOLD for p in mcr.fleet_of(0, size=9))
+
+
+def test_an_absent_stream_is_not_scored_as_a_lag():
+    """The far end of the sweep has an oracle that refused everything, not one that lost."""
+    mcr = _consensus_module()
+    empty_oracle = mcr.Row(9, 1.0, 0.7, None, 0.7, {}, {})
+    assert not empty_oracle.consensus_lags_oracle
+
+    lagging = mcr.Row(5, 0.556, 0.84, 1.0, 0.717, {}, {})
+    assert lagging.consensus_lags_oracle
+
+    matching = mcr.Row(4, 0.444, 0.87, 1.0, 1.0, {}, {})
+    assert not matching.consensus_lags_oracle
+
+
+def test_consensus_matches_the_oracle_until_the_wrong_standard_is_the_majority():
+    """The finding, at a small size: a cliff at the majority crossing, not a slope."""
+    mcr = _consensus_module()
+    from pharos.analyst import Proposal
+    from pharos.disclosure import KEEP_COMPARTMENTS
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.labels import declassify
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=mcr.SEED, n_events=60)))
+    proposals = {
+        t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
+        for t in tasks
+    }
+    truth = {t.task_id: t.significant for t in tasks}
+
+    def score(n_wrong: int) -> tuple[float | None, float | None]:
+        grouped = mcr.targets_by_task(mcr.fleet_of(n_wrong, 9), tasks, proposals, seed=mcr.SEED)
+        streams = mcr.conditions(grouped, truth)
+        return (
+            mcr._agreement(streams["oracle"], truth),
+            mcr._agreement(streams["consensus"], truth),
+        )
+
+    # A clear minority of wrong standards: consensus is as good as knowing who is who.
+    oracle_minority, consensus_minority = score(2)
+    assert consensus_minority == pytest.approx(oracle_minority)
+
+    # A clear majority: consensus ratifies the wrong rule while the oracle does not.
+    oracle_majority, consensus_majority = score(7)
+    assert oracle_majority is not None and consensus_majority is not None
+    assert consensus_majority < oracle_majority

@@ -129,6 +129,12 @@ jobs:
       # it went stale twice in one day while being maintained by hand. This fails the
       # build when the page and the artifact disagree, and also when it finds no
       # generated blocks at all, since a guard that verifies nothing must not pass.
+      # The consensus sweep is pure computation over the regenerated corpus and the
+      # analyst policies. If a corpus change moved the class balance, the wrong
+      # standard's agreement moves with it and the cliff this finding reports would
+      # shift without anyone touching the script.
+      - name: Sweep whether reliability survives pooling
+        run: uv run python scripts/measure_consensus_reliability.py
       - name: Check the docs tables against their artifacts
         run: uv run python scripts/sync_docs_tables.py --check
 

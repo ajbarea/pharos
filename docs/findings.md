@@ -944,3 +944,71 @@ is the knob finding 2 already identified as the design's hinge.
     established federated-inference attacks target that gradient channel instead. So
     this result does not transfer to gradient-only federation, and the gradient-channel
     attacks do not transfer here. Naming the channel is the whole of the claim.
+
+## 12. Reliability cannot be estimated without identity where it matters
+
+`scripts/measure_consensus_reliability.py`, `results/consensus_reliability.json`
+
+[Finding 10](#10-a-fleet-learns-its-analysts-standard-not-the-worlds) and
+[finding 11](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst)
+point in opposite directions, and the conflict is not rhetorical. A learner acquires
+its teacher's standard exactly, so the mitigation is annotator-reliability weighting,
+which needs contributor identity retained through training. But contributor identity
+is what makes a fleet's contributions attributable to a person, and pooling
+contributors is the only control that removes that leak at no cost in volume. One
+wants identity; the other wants none.
+
+The obvious reconciliation is to estimate reliability from **agreement among
+contributions on the same task**, which needs no identity at all. Several analysts
+reach the same task, so a contribution that disagrees with its task's consensus could
+be discounted without anyone knowing who sent it. This measures whether that works.
+
+Nine analysts, 200 tasks, sweeping how many hold a wrong standard. Three aggregation
+strategies: pool everything; drop contributors whose own agreement with the world is
+low (**needs identity**, and is an oracle rather than a method, since it is handed the
+answer it would have to estimate); or take each task's majority verdict (**needs no
+identity**).
+
+| Wrong standard | Unweighted | Oracle (needs identity) | Consensus (no identity) |
+| --- | --- | --- | --- |
+| 0 of 9 | 1.000 | 1.000 | 1.000 |
+| 2 of 9 | 0.937 | 1.000 | 1.000 |
+| 4 of 9 | 0.874 | 1.000 | 1.000 |
+| **5 of 9** | 0.843 | **1.000** | **0.717** |
+| 7 of 9 | 0.780 | 1.000 | 0.717 |
+| 9 of 9 | 0.717 | none | 0.717 |
+
+**It is a cliff, not a curve, and it sits exactly at the majority crossing.** Up to 4
+of 9, consensus is worth precisely as much as knowing who everyone is. At 5 of 9 it
+collapses to 0.717, which is not a degraded score but *the wrong standard's own
+agreement with the world*: past the crossing, consensus returns the wrong rule intact
+and with full confidence.
+
+The 9-of-9 row reports the oracle as **none** rather than 0.000. With every
+contributor below the floor it drops all of them, and an empty stream is an absence of
+evidence rather than a perfectly wrong answer. Scoring it 0.000 would say the
+identity-based control failed, where what it did was correctly refuse everything.
+
+**Why this is a negative result and not a reassurance.** The identity-free method
+works exactly in the regime where you do not need it, and fails exactly in the regime
+where you do. Two findings here say that regime is the realistic one:
+[finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) found
+over-escalation in **every** model tested, and
+[finding 8](#8-being-right-and-sloppy-beats-being-wrong-and-careful) found that
+agreement is not correctness and that a careful, self-consistent, mutually-agreeing
+set of reviewers can be uniformly wrong. A fleet of model-assisted analysts is
+precisely the population in which a wrong standard can hold the majority. There,
+consensus does not merely fail to help; it certifies the error.
+
+So the conflict between findings 10 and 11 stands. It is not resolvable by pooling,
+and this measurement closes the cheapest escape from it rather than opening one.
+
+!!! note "What this does not settle"
+    One wrong standard (needing 2 of 3 rather than 3 of 3), one fleet size, one
+    corpus. The oracle is a bound and not a candidate method: a real reliability
+    estimator has to infer what this one is told. A weighted scheme might degrade
+    more gracefully than the hard majority tested here, though it cannot escape the
+    same crossing, since past it the wrong standard is what any agreement-based
+    signal agrees on. What would genuinely resolve the conflict is a reliability
+    estimate computed *under* secure aggregation rather than one recovered from
+    pooled outputs, and that is not measured here.

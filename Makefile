@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power linkage docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus docs-tables explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -37,6 +37,10 @@ linkage:                   ## What the fleet's contribution stream leaks about a
 	@mkdir -p results
 	uv run python scripts/measure_fleet_linkage.py --out results/fleet_linkage.json
 
+consensus:                 ## Whether reliability survives pooling contributors (no model)
+	@mkdir -p results
+	uv run python scripts/measure_consensus_reliability.py --out results/consensus_reliability.json
+
 docs-tables:               ## Refresh the docs tables that restate a committed artifact
 	uv run python scripts/sync_docs_tables.py
 
@@ -66,4 +70,5 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_review_sweep.py
 	uv run python scripts/measure_power.py
 	uv run python scripts/measure_fleet_linkage.py
+	uv run python scripts/measure_consensus_reliability.py
 	uv run python scripts/sync_docs_tables.py --check
