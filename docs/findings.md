@@ -781,14 +781,43 @@ does. The mitigation is not more data. It is annotator-reliability weighting, wh
 needs annotator identity retained through training -- something Pharos has by
 construction and most annotation pipelines discard.
 
+**It survives a corpus the adapter has never seen any part of.** The result above
+evaluates on held-out *events* from the same corpus. A stronger test evaluates on a
+different corpus instantiation entirely, sharing no events, no vessels and no
+renderings, which is what contamination-resistance guidance asks of a benchmark.
+Repeating the sweep with the evaluation drawn from seed 101 (2h54m, same A100):
+
+| Teacher | Targets vs world | Adapter vs world | Adapter vs teacher | Inherited |
+| --- | --- | --- | --- | --- |
+| by-the-book | 1.000 | 0.988 | 0.988 | -0.012 |
+| inattentive | 0.858 | **0.943** | 0.835 | **+0.086** |
+| two-of-three | 0.728 | 0.708 | 0.997 | -0.020 |
+| any-one | 0.439 | 0.447 | 1.000 | +0.008 |
+
+Both conclusions hold on a corpus with zero overlap. The systematically wrong teachers
+are still tracked closely, now within about two points rather than half a point, and
+the careless teacher is still the only one improved upon: 0.943 against its teacher's
+0.835, a gap of 0.108 against a difference half-width of 0.035, resolved on its own
+terms.
+
+!!! warning "Do not read the two tables as a controlled comparison"
+    The cross-corpus run trained on **1,740** tuples where the same-corpus run trained
+    on **1,140**. That is not an oversight in either run but a consequence of the
+    design: when evaluation comes from a different corpus, nothing has to be held out
+    of the training one. So the differences *between* the tables, the filtering effect
+    growing from +0.038 to +0.086 and the inheritance loosening from half a point to
+    two, are confounded with 53% more training data and cannot be attributed to
+    cross-corpus evaluation. What each table supports on its own is the same pair of
+    conclusions, which is the claim being made.
+
 !!! note "What this does not settle"
-    Four teachers, one model, one corpus, one seed, single-pass evaluation. Every
-    contrast in the table is now resolved at 600 tasks, including the careless
-    teacher's, so the caveat that remains is about generality rather than about size.
+    Four teachers, one model, single-pass evaluation. Every contrast is resolved at 600
+    tasks, and both conclusions now survive a corpus with no shared events, so the
+    caveat that remains is about generality rather than about size or contamination.
     The teachers are parameterised decision procedures, so this bounds a mechanism and
-    estimates nothing about human analysts. One model and one corpus is the real
-    limit: that a 3B Qwen inherits a wrong rule this exactly says nothing yet about
-    whether a larger model or a different task shape would.
+    estimates nothing about human analysts. One model is the real limit: that a 3B Qwen
+    inherits a wrong rule this exactly says nothing yet about whether a larger model or
+    a different task shape would.
 
 ## 11. The gate clears every item, and the stream still names the analyst
 
