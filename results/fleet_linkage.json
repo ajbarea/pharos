@@ -168,16 +168,84 @@
     "uniquely_identifying_sets": 12,
     "largest_anonymity_class": 16
   },
+  "saturation": {
+    "seeds": [
+      1,
+      7,
+      11,
+      23,
+      101
+    ],
+    "grid": [
+      {
+        "events": 20,
+        "distinct_structures": 5,
+        "invariant": false,
+        "recoveries": [
+          0.0,
+          0.05,
+          0.095,
+          0.205
+        ]
+      },
+      {
+        "events": 40,
+        "distinct_structures": 5,
+        "invariant": false,
+        "recoveries": [
+          0.075,
+          0.095,
+          0.125,
+          0.17,
+          0.205
+        ]
+      },
+      {
+        "events": 80,
+        "distinct_structures": 2,
+        "invariant": false,
+        "recoveries": [
+          0.17,
+          0.205
+        ]
+      },
+      {
+        "events": 150,
+        "distinct_structures": 1,
+        "invariant": true,
+        "recoveries": [
+          0.205
+        ]
+      },
+      {
+        "events": 200,
+        "distinct_structures": 1,
+        "invariant": true,
+        "recoveries": [
+          0.205
+        ]
+      },
+      {
+        "events": 400,
+        "distinct_structures": 1,
+        "invariant": true,
+        "recoveries": [
+          0.205
+        ]
+      }
+    ],
+    "saturates_at": 150
+  },
   "prior": 0.105,
   "candidate_compartment_sets": 16,
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "e8017447ab5b",
+    "git_commit": "4b9b2b0c9b28",
     "git_dirty": true,
-    "generated_at": "2026-08-01T23:29:48+00:00",
+    "generated_at": "2026-08-02T00:59:18+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
     "seed": 7
   },
   "fleet_seed": 11,

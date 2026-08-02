@@ -816,6 +816,29 @@ is hidden in the whole candidate space. The pattern holds across five fleet draw
 (RESTRICTED 0.720 to 0.820, every other level exactly 0.000), so it is not an artifact
 of one sample.
 
+**Nor of one corpus.** Across five corpus seeds the reachable-set *sizes* differ
+substantially, yet the collapse structure and the recovery rate are identical to three
+decimals. That is not a coincidence and not a bug: which compartment sets are mutually
+distinguishable is a property of the label lattice and the channel-to-compartment
+mapping, not of which events happened to be generated. It becomes so once the corpus
+is large enough to populate every compartment cell, which the saturation grid puts at
+**150 events**:
+
+| Events | Structures across 5 corpus seeds | Recovery |
+| --- | --- | --- |
+| 20 | 5 distinct | 0.000 to 0.205 |
+| 40 | 5 distinct | 0.075 to 0.205 |
+| 80 | 2 distinct | 0.170 to 0.205 |
+| **150** | **1** | **0.205** |
+| 200 | 1 | 0.205 |
+| 400 | 1 | 0.205 |
+
+Two consequences. The headline runs at 200 events, above saturation, so it measures
+the lattice rather than a draw. And every small corpus **understates** the leak rather
+than overstating it, which is the safe direction but means a short run cannot be
+quoted as reassurance. It also settles which uncertainty belongs on the number: the
+interval is over the fleet, because the fleet is the only thing being sampled.
+
 A tie is scored as a failure to identify, never as a hit. That is why three of the
 four rows are exactly zero: an adversary left choosing among seven candidates has not
 named anyone, and crediting the tie-break for a coin flip would report a convention as

@@ -1496,3 +1496,40 @@ def test_class_balance_is_read_from_the_corpus_not_assumed():
     rate = mp.class_balance(tasks)
     assert rate == pytest.approx(sum(1 for t in tasks if t.significant) / len(tasks))
     assert mp.class_balance([]) == 0.5
+
+
+def test_saturation_reports_both_regimes():
+    """Small corpora disagree about the structure; large ones do not.
+
+    The claim finding 11 rests on is that its headline is a property of the label
+    lattice rather than of one corpus draw. That is only true above a size, and the
+    grid has to show the size to establish it rather than assert it.
+    """
+    mfl = _linkage_module()
+    from pharos.disclosure import DROP_COMPARTMENTS
+
+    report = mfl.saturation(policy=DROP_COMPARTMENTS, seeds=(1, 7, 101))
+    grid = report["grid"]
+    assert [r["events"] for r in grid] == list(mfl.SATURATION_EVENTS)
+
+    # The largest size tested must agree across seeds, or the headline is a draw.
+    assert grid[-1]["invariant"]
+    assert grid[-1]["distinct_structures"] == 1
+    assert report["saturates_at"] is not None
+    assert report["saturates_at"] <= mfl.SATURATION_EVENTS[-1]
+
+    # Everything at or above the saturation point agrees; that is what the field means.
+    assert all(r["invariant"] for r in grid if r["events"] >= report["saturates_at"])
+
+
+def test_small_corpora_understate_rather_than_overstate():
+    """The direction of the small-sample error, which is the part worth trusting."""
+    mfl = _linkage_module()
+    from pharos.disclosure import DROP_COMPARTMENTS
+
+    report = mfl.saturation(policy=DROP_COMPARTMENTS, seeds=(1, 7, 101))
+    grid = {r["events"]: r for r in report["grid"]}
+    saturated = max(grid[e]["recoveries"][-1] for e in grid if grid[e]["invariant"])
+    smallest = grid[mfl.SATURATION_EVENTS[0]]["recoveries"]
+    # No small corpus reports MORE leakage than the saturated structure carries.
+    assert max(smallest) <= saturated

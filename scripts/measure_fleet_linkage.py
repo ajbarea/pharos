@@ -87,6 +87,74 @@ def trials(linkages: tuple[Linkage, ...]) -> list[Trial]:
     return [Trial(link_.analyst_id, link_.exact) for link_ in linkages]
 
 
+#: Corpus sizes to test the structure at, and the seeds to test it across. The
+#: structure saturates well inside this grid, so the grid shows both regimes.
+SATURATION_EVENTS = (20, 40, 80, 150, 200, 400)
+SATURATION_SEEDS = (1, 7, 11, 23, 101)
+
+
+def saturation(
+    *, policy: DeclassificationPolicy, seeds: Sequence[int] = SATURATION_SEEDS
+) -> dict[str, object]:
+    """Whether the identifiability structure depends on which corpus was drawn.
+
+    It does not, above a size. The reachable-set *sizes* differ from corpus to
+    corpus, but which compartment sets are mutually distinguishable does not, once
+    the corpus is large enough that every compartment cell is populated. Below that
+    the structure varies by seed and consistently understates the leak, which is the
+    safe direction to be wrong in but worth knowing about before quoting a small run.
+
+    Reported because it decides what the headline number is a property *of*. If the
+    structure were corpus-dependent, the interval over analysts would be the wrong
+    uncertainty and a corpus resample would be needed too.
+    """
+    # Kept as parallel typed lists rather than read back out of the JSON rows, so the
+    # saturation point is computed from ints instead of from `object`.
+    measured: list[tuple[int, int, list[float]]] = []
+    for events in SATURATION_EVENTS:
+        shapes: set[tuple[int, int, int]] = set()
+        recoveries: set[float] = set()
+        for seed in seeds:
+            tasks = build_triage_tasks(generate(GeneratorConfig(seed=seed, n_events=events)))
+            ceiling = identifiability_ceiling(tasks, policy=policy)
+            shapes.add(
+                (
+                    ceiling["distinct_reachable_sets"],
+                    ceiling["uniquely_identifying_sets"],
+                    ceiling["largest_anonymity_class"],
+                )
+            )
+            fleet = assign_fleet(FLEET_SIZE, seed=FLEET_SEED)
+            linkages = link(contribute(fleet, tasks, policy=policy), tasks, fleet, policy=policy)
+            recoveries.add(round(recovery_rate(linkages), 4))
+        measured.append((events, len(shapes), sorted(recoveries)))
+
+    # Smallest tested size at which every seed agrees and every larger one does too.
+    # "And every larger one" matters: a single agreeing size below a disagreeing one
+    # is a coincidence, not saturation.
+    saturates_at = next(
+        (
+            events
+            for events, distinct, _ in measured
+            if distinct == 1 and all(d == 1 for e, d, _ in measured if e >= events)
+        ),
+        None,
+    )
+    return {
+        "seeds": list(seeds),
+        "grid": [
+            {
+                "events": events,
+                "distinct_structures": distinct,
+                "invariant": distinct == 1,
+                "recoveries": recoveries,
+            }
+            for events, distinct, recoveries in measured
+        ],
+        "saturates_at": saturates_at,
+    }
+
+
 def evaluate(
     fleet: tuple[Clearance, ...],
     tasks: Sequence[TriageTask],
@@ -197,6 +265,8 @@ def main() -> int:
     validity = check_sample_size(len(fleet), label="fleet linkage")
     report["validity"] = validity.as_dict()
     report["structure"] = identifiability_ceiling(tasks, policy=DROP_COMPARTMENTS)
+    saturation_report = saturation(policy=DROP_COMPARTMENTS)
+    report["saturation"] = saturation_report
     print(
         "\nidentifiability ceiling, independent of which fleet was drawn:\n"
         f"  {report['structure']['candidate_clearances']} candidate clearances collapse to "
@@ -204,6 +274,11 @@ def main() -> int:
         f"  {report['structure']['uniquely_identifying_sets']} of those identify a single "
         f"compartment set outright; the largest hides "
         f"{report['structure']['largest_anonymity_class']}"
+    )
+    print(
+        f"  structure is invariant across {len(SATURATION_SEEDS)} corpus seeds at "
+        f">= {saturation_report['saturates_at']} events; "
+        "below that a corpus understates the leak"
     )
     report["prior"] = round(prior, 4)
     report["candidate_compartment_sets"] = N_COMPARTMENT_SETS
