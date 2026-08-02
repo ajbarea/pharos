@@ -80,9 +80,125 @@ def power_claims() -> str:
     return "\n".join(lines)
 
 
+#: Artifacts with no sampling-validity question to answer, and why. Listing these as
+#: gaps would overstate the problem by more than half: a deterministic computation over
+#: the lattice has no sample to be too small, and a tool that prices hypothetical sizes
+#: has no measurement of its own to assess. An exemption is a claim, so each carries its
+#: reason and is visible on the page rather than filtered out silently.
+#: Artifacts whose *script* now computes validity but whose committed artifact predates
+#: that change. These need a rerun rather than a code change, and the two are different
+#: kinds of work: one is minutes of editing, the other is hours of GPU or model time.
+#: Listing them together would make the backlog unreadable.
+AWAITING_RERUN = {
+    "learnability": "measure_rule_learnability.py now records it per shot count",
+    "label_fidelity": "measure_label_fidelity.py now records it over the scored turns",
+    "decode_stability": "measure_decode_stability.py now records it over the repeated passes",
+    "adapter_learnability": "train_adapter.py now records it per evaluation pass",
+    **{
+        f"review_adapter-{t}{x}": "train_adapter.py now records it per evaluation pass"
+        for t in ("by-the-book", "inattentive", "two-of-three", "any-one")
+        for x in ("", "-xseed101")
+    },
+}
+
+NO_SAMPLING_QUESTION = {
+    "power": "prices hypothetical evaluation sizes; simulates outcomes rather than measuring any",
+    "federation_eligibility": "deterministic over the label lattice; nothing is sampled",
+    "external_gate_validation": "carries its own permutation-null statistics per corpus",
+    "triage_lift": "superseded by the per-model triage_lift-* artifacts, which are assessed",
+}
+
+
+def measurement_health() -> str:
+    """Every artifact's validity assessment, published rather than left in a field.
+
+    `pharos.validity` marks a measurement unquotable when it trips a condition that
+    makes a score misleading: too few samples, a class floor the score does not clear,
+    degenerate predictions, unparsed answers. The flag was computed, warned about on
+    the console, written into some artifacts, and then read by nothing. A guard that
+    refuses to let prose quote a flagged number would be wrong, because quoting one as
+    evidence of *failure* is exactly what the flag licenses and is what finding 3b
+    correctly does. So the enforcement is publication instead: the caveats appear on
+    the page, generated from the artifacts, and cannot drift away from them.
+
+    Artifacts with no validity block are listed too. An unassessed measurement is a
+    different problem from a flagged one and the two should not look alike.
+    """
+    rows: list[tuple[str, str, str]] = []
+    unassessed: list[str] = []
+    for path in sorted(RESULTS.glob("*.json")):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        validity = payload.get("validity")
+        if not isinstance(validity, dict):
+            # Adapter artifacts carry the assessment per evaluation pass rather than
+            # at the top level, so look one level down before calling it unassessed.
+            nested = [
+                v.get("validity")
+                for v in payload.values()
+                if isinstance(v, dict) and isinstance(v.get("validity"), dict)
+            ]
+            if not nested:
+                if path.stem not in NO_SAMPLING_QUESTION and path.stem not in AWAITING_RERUN:
+                    unassessed.append(path.stem)
+                continue
+            validity = min(nested, key=lambda v: bool(v.get("quotable", True)))
+        concerns = validity.get("concerns") or []
+        mark = "yes" if validity.get("quotable") else "**no**"
+        note = "; ".join(str(c) for c in concerns) if concerns else "-"
+        rows.append((path.stem, f"{validity.get('n', '?')}", f"{mark} | {note}"))
+
+    lines = [
+        "| Artifact | n | Quotable | Why not |",
+        "| --- | --- | --- | --- |",
+    ]
+    lines += [f"| `{name}` | {n} | {rest} |" for name, n, rest in rows]
+    flagged = sum(1 for _, _, rest in rows if rest.startswith("**no**"))
+    lines.append("")
+    lines.append(
+        f"**{flagged} of {len(rows)}** assessed artifacts are flagged. A flagged number "
+        "may still be quoted as evidence that something *failed*, which is what the "
+        "flag asserts; it may not be quoted as evidence of capability."
+    )
+    if unassessed:
+        lines.append("")
+        lines.append(
+            "**Carrying no validity assessment, which is a gap rather than a pass:** "
+            + ", ".join(f"`{name}`" for name in sorted(unassessed))
+            + "."
+        )
+    present = {p.stem for p in RESULTS.glob("*.json")}
+    pending = sorted((n, w) for n, w in AWAITING_RERUN.items() if n in present)
+    if pending:
+        lines.append("")
+        lines.append(
+            f"Assessed by their script but not yet in the committed artifact "
+            f"({len(pending)} of these), which needs a rerun rather than an edit:"
+        )
+        lines.append("")
+        for name, why in pending:
+            lines.append(f"- `{name}` -- {why}")
+    exempt = sorted(NO_SAMPLING_QUESTION.items())
+    if exempt:
+        lines.append("")
+        lines.append("Exempt, because there is no sampling question to answer:")
+        lines.append("")
+        for name, why in exempt:
+            missing = "" if name in present else " *(artifact absent)*"
+            lines.append(f"- `{name}` -- {why}{missing}")
+    return "\n".join(lines)
+
+
 #: Block name to builder. A block present in a doc but absent here is an error rather
 #: than a no-op: a marker with nothing behind it is how a table quietly stops updating.
-BLOCKS = {"power-claims": power_claims}
+BLOCKS = {"power-claims": power_claims, "measurement-health": measurement_health}
+
+#: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --
+#: adjacent markers with no body, a mismatched name, a missing END -- because those
+#: are silently skipped by `_MARKER` and a block that is never rendered looks exactly
+#: like a block that is up to date. This guard exists because that happened: the
+#: measurement-health block was added with its markers on consecutive lines, produced
+#: no output, and `--check` reported everything current.
+_OPENER = re.compile(r"<!-- BEGIN GENERATED: (?P<name>[a-z0-9-]+) -->")
 
 _MARKER = re.compile(
     r"(?P<open><!-- BEGIN GENERATED: (?P<name>[a-z0-9-]+) -->\n)"
@@ -117,10 +233,18 @@ def main() -> int:
     args = parser.parse_args()
 
     stale: list[str] = []
+    malformed: list[str] = []
     checked = 0
     for path in sorted(DOCS.rglob("*.md")):
         original = path.read_text(encoding="utf-8")
         updated, names = render(original)
+        # Every BEGIN marker must have been rendered. One that was not is a marker the
+        # full pattern could not match, which renders nothing and reports nothing.
+        malformed.extend(
+            f"{path.relative_to(ROOT)} ({m.group('name')})"
+            for m in _OPENER.finditer(original)
+            if m.group("name") not in names
+        )
         checked += len(names)
         if not names:
             continue
@@ -136,6 +260,18 @@ def main() -> int:
     # this project's tooling, so it is asserted rather than assumed.
     if checked == 0:
         _fail("found no generated blocks in docs/; the markers are missing or renamed")
+
+    if malformed:
+        print(
+            "generated blocks whose markers did not match and rendered nothing: "
+            + "; ".join(malformed),
+            file=sys.stderr,
+        )
+        print(
+            "check the BEGIN/END pair: same name, END on its own line, a body between them",
+            file=sys.stderr,
+        )
+        return 1
 
     if stale:
         print("stale generated blocks: " + "; ".join(stale), file=sys.stderr)

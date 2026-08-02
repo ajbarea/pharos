@@ -138,6 +138,65 @@ than a disclaimer, and the two purchases it has prompted so far both ended in a
 retraction. That is the instrument working: an unresolved claim is not a quiet claim,
 it is a claim with a price tag on it.
 
+## Measurement health
+
+`pharos.validity` inspects every measurement for the conditions that make a score
+misleading and marks the artifact unquotable when it trips one. That flag used to be
+computed, warned about on the console, and then read by nothing, which made it a
+console message rather than a property of the record.
+
+It is published here instead of policed. A guard forbidding prose from quoting a
+flagged number would be wrong: quoting one as evidence that something *failed* is
+exactly what the flag asserts, and is what
+[finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) correctly
+does with six models that do not clear their own majority floor. What the flag forbids
+is quoting such a number as evidence of capability.
+
+This table is generated from `results/` and CI fails when it drifts from them.
+
+<!-- BEGIN GENERATED: measurement-health -->
+| Artifact | n | Quotable | Why not |
+| --- | --- | --- | --- |
+| `analyst_review` | 320 | yes | - |
+| `consensus_reliability` | 200 | yes | - |
+| `correlated_fleets` | 30 | yes | - |
+| `edge_cost` | 19 | **no** | n=19 is below 30; treat differences as provisional |
+| `fleet_linkage` | 200 | yes | - |
+| `privacy_budget` | 200 | yes | - |
+| `review_sweep` | 40 | yes | - |
+| `tagged_aggregation` | 200 | yes | - |
+| `triage_lift-llama3.1-8b` | 40 | **no** | accuracy 0.500 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `triage_lift-llama3.2-3b` | 40 | **no** | accuracy 0.475 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `triage_lift-mistral-7b` | 40 | **no** | accuracy 0.425 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `triage_lift-qwen2.5-14b` | 40 | **no** | accuracy 0.525 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `triage_lift-qwen2.5-3b` | 40 | **no** | accuracy 0.625 does not beat the majority floor 0.625: this is not evidence of capability |
+| `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+
+**7 of 14** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+
+Assessed by their script but not yet in the committed artifact (12 of these), which needs a rerun rather than an edit:
+
+- `adapter_learnability` -- train_adapter.py now records it per evaluation pass
+- `decode_stability` -- measure_decode_stability.py now records it over the repeated passes
+- `label_fidelity` -- measure_label_fidelity.py now records it over the scored turns
+- `learnability` -- measure_rule_learnability.py now records it per shot count
+- `review_adapter-any-one` -- train_adapter.py now records it per evaluation pass
+- `review_adapter-any-one-xseed101` -- train_adapter.py now records it per evaluation pass
+- `review_adapter-by-the-book` -- train_adapter.py now records it per evaluation pass
+- `review_adapter-by-the-book-xseed101` -- train_adapter.py now records it per evaluation pass
+- `review_adapter-inattentive` -- train_adapter.py now records it per evaluation pass
+- `review_adapter-inattentive-xseed101` -- train_adapter.py now records it per evaluation pass
+- `review_adapter-two-of-three` -- train_adapter.py now records it per evaluation pass
+- `review_adapter-two-of-three-xseed101` -- train_adapter.py now records it per evaluation pass
+
+Exempt, because there is no sampling question to answer:
+
+- `external_gate_validation` -- carries its own permutation-null statistics per corpus
+- `federation_eligibility` -- deterministic over the label lattice; nothing is sampled
+- `power` -- prices hypothetical evaluation sizes; simulates outcomes rather than measuring any
+- `triage_lift` -- superseded by the per-model triage_lift-* artifacts, which are assessed
+<!-- END GENERATED: measurement-health -->
+
 ## 1. Leave-one-out attribution cannot produce a correct governed label
 
 `scripts/measure_label_fidelity.py`

@@ -38,6 +38,7 @@ from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, record
 from pharos.uncertainty import Trial, resolves, summarize
+from pharos.validity import check_classification
 
 LOG = get_logger()
 
@@ -208,6 +209,19 @@ def main() -> int:
                 "accuracy": round(accuracy, 4),
                 "majority": round(majority, 4),
                 "accuracy_interval": measurements[-1].as_dict(),
+                # Per shot count, because the conditions differ in exactly the ways
+                # the check looks for: unparsed answers spike at four shots and a
+                # condition below its own majority floor is not evidence of learning.
+                # Computed here and carried into the artifact, so a published number
+                # can be checked without rerunning the sweep.
+                "validity": check_classification(
+                    tp=tp,
+                    fp=fp,
+                    tn=tn,
+                    fn=fn,
+                    unparsed=unparsed,
+                    label=f"learnability:{k}-shot",
+                ).as_dict(),
             }
         )
         record("learnability.f1", f1, shots=k, model=args.model)

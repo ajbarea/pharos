@@ -39,6 +39,7 @@ from pharos.models import resolve
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, progress, record
+from pharos.validity import check_sample_size
 
 LOG = get_logger()
 
@@ -264,6 +265,13 @@ def main() -> int:
                     "repeat_one_prompt": [r.as_dict() for r in rows],
                     "repeat_one_prompt_task_ids": flipped,
                     "repeat_whole_pass": pass_rows,
+                    # Finding 9 retracted an earlier reading of itself, so the size
+                    # its replacement rests on belongs in the record rather than only
+                    # in the retraction notice.
+                    "validity": check_sample_size(
+                        len(pass_rows) or args.tasks,
+                        label="decode_stability",
+                    ).as_dict(),
                     "passes": args.passes,
                 },
                 indent=2,

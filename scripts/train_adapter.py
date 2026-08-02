@@ -41,7 +41,7 @@ import argparse
 import json
 import random
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -98,6 +98,12 @@ class EvalResult:
     precision: float
     recall: float
     f1: float
+    #: The validity assessment, carried into the artifact rather than only printed.
+    #: It was computed here and discarded, so a published adapter number could not be
+    #: checked against the conditions that make a score misleading without rerunning a
+    #: GPU job. `pharos.validity` exists to make that checkable; dropping its output
+    #: made it a console warning instead.
+    validity: dict[str, object] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -110,6 +116,7 @@ class EvalResult:
             "precision": self.precision,
             "recall": self.recall,
             "f1": self.f1,
+            "validity": self.validity,
         }
 
 
@@ -281,6 +288,7 @@ def evaluate(
         precision=round(precision, 4),
         recall=round(recall, 4),
         f1=round(f1, 4),
+        validity=validity.as_dict(),
     )
 
 

@@ -28,6 +28,7 @@ from pharos.generate import GeneratorConfig, generate
 from pharos.models import resolve
 from pharos.provenance import run_provenance
 from pharos.tasks import build_tasks
+from pharos.validity import check_sample_size
 
 
 def main() -> int:
@@ -124,6 +125,11 @@ def main() -> int:
                     "model": args.model,
                     "seed": args.seed,
                     "detector": accuracy.as_dict(),
+                    # Finding 1 runs at 24 turns and its own prose says differences
+                    # of this size are provisional. Recording that in the artifact
+                    # makes the caveat travel with the number instead of living only
+                    # in the sentence beside it.
+                    "validity": check_sample_size(len(rows), label="label_fidelity").as_dict(),
                     "rows": rows,
                     "outcomes": dict(outcomes),
                     "source_recall_mean": round(statistics.mean(recalls), 4),

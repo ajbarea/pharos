@@ -1902,3 +1902,38 @@ def test_correlated_score_fleet_reports_the_majority_flag():
     consensus_w, _, crossed_w = mcf.score_fleet(all_wrong, tasks, proposals, truth, seed=mcf.SEED)
     assert crossed_w
     assert consensus_w < 1.0
+
+
+def test_a_marker_pair_that_renders_nothing_is_an_error():
+    """The guard's own blind spot, found by hitting it.
+
+    A BEGIN/END pair on consecutive lines does not match the render pattern, so the
+    block silently produced no output while `--check` reported everything current.
+    Counting rendered blocks cannot detect a block that was never rendered; the
+    declared markers have to be counted separately.
+    """
+    sdt = _docs_module()
+
+    adjacent = "<!-- BEGIN GENERATED: power-claims -->\n<!-- END GENERATED: power-claims -->\n"
+    _, names = sdt.render(adjacent)
+    assert names == [], "the pattern genuinely cannot match this"
+    # But the opener is still declared, which is what the guard keys on.
+    assert [m.group("name") for m in sdt._OPENER.finditer(adjacent)] == ["power-claims"]
+
+    mismatched = "<!-- BEGIN GENERATED: power-claims -->\nx\n<!-- END GENERATED: power-clams -->\n"
+    _, names = sdt.render(mismatched)
+    assert names == []
+    assert [m.group("name") for m in sdt._OPENER.finditer(mismatched)] == ["power-claims"]
+
+
+def test_measurement_health_publishes_the_flag_rather_than_policing_it():
+    sdt = _docs_module()
+
+    table = sdt.measurement_health()
+    assert "| Artifact | n | Quotable | Why not |" in table
+    # The flagged artifacts must appear WITH their reasons, not be omitted.
+    assert "**no**" in table
+    assert "majority floor" in table
+    # And the count line has to agree with the rows it summarises.
+    flagged = sum(1 for line in table.splitlines() if line.startswith("| `") and "**no**" in line)
+    assert f"**{flagged} of" in table
