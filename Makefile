@@ -1,10 +1,11 @@
-.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated logcheck docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty logcheck docs-tables explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
 
-setup:                     ## Sync the dev environment
+setup:                     ## Sync the dev environment and install the git hooks
 	uv sync --all-groups
+	git config core.hooksPath .githooks
 
 lint:                      ## ruff format --check, ruff check, ty
 	uv run ruff format --check .
@@ -57,6 +58,10 @@ correlated:                ## What finding 12's cliff costs when analysts correl
 	@mkdir -p results
 	uv run python scripts/measure_correlated_fleets.py --out results/correlated_fleets.json
 
+difficulty:                ## Whether item difficulty and a wrong standard are separable (no model)
+	@mkdir -p results
+	uv run python scripts/measure_difficulty_confound.py --out results/difficulty_confound.json
+
 logcheck:                  ## Run the model-free measurements and summarise what they logged
 	uv run python scripts/logcheck.py
 
@@ -92,4 +97,7 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_consensus_reliability.py
 	uv run python scripts/measure_tagged_aggregation.py
 	uv run python scripts/measure_privacy_budget.py
+	uv run python scripts/measure_correlated_fleets.py
+	uv run python scripts/measure_difficulty_confound.py
+	uv run python scripts/logcheck.py
 	uv run python scripts/sync_docs_tables.py --check

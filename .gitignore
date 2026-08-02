@@ -12,6 +12,11 @@ site/
 export/
 COMMITS.md
 
+# Trainer checkpoints and optimizer state, written per job under adapter-out/<job id>.
+# Only GPU machines produce these, which is why the directory was never ignored: it
+# has never once existed on the machine where commits are made.
+adapter-out/
+
 # Scratch JSON at the repo root only. Measurement artifacts live in results/ and
 # are tracked on purpose: a table in a paper needs a committed file behind it.
 /*.json

@@ -68,9 +68,15 @@ def teacher_labels(tasks: list[TriageTask], policy: AnalystPolicy, *, seed: int)
     }
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Row:
-    """One (teacher, shot count) condition, scored against both answer keys."""
+    """One (teacher, shot count) condition, scored against both answer keys.
+
+    Keyword-only: five of the seven fields are counts in the same range, so a
+    positional construction that drifts out of order scores a different quantity
+    without failing. The same shape shipped a red build in
+    `measure_consensus_reliability`.
+    """
 
     teacher: str
     shots: int
@@ -139,7 +145,15 @@ def run_condition(
         if (index + 1) % 10 == 0:
             progress("teacher_transfer.progress", teacher=teacher, shots=shots, done=index + 1)
 
-    return Row(teacher, shots, len(targets), unparsed, agree_world, agree_teacher, said_significant)
+    return Row(
+        teacher=teacher,
+        shots=shots,
+        n=len(targets),
+        unparsed=unparsed,
+        agree_world=agree_world,
+        agree_teacher=agree_teacher,
+        said_significant=said_significant,
+    )
 
 
 def main() -> int:

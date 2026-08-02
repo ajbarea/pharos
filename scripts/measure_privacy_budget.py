@@ -72,9 +72,13 @@ PARTICIPATION = (
 )
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Row:
-    """One mechanism setting, its cost, and what the attack still recovers."""
+    """One mechanism setting, its cost, and what the attack still recovers.
+
+    Keyword-only, for the reason given on `measure_teacher_transfer.Row`: `recovery`
+    and `label_noise` are both rates and sit either side of an int.
+    """
 
     mechanism: str
     setting: str
@@ -120,7 +124,16 @@ def main() -> int:
     for flip in VALUE_FLIPS:
         noised = value_noise(baseline, flip=flip, seed=SEED)
         rec = recovery_of(noised)
-        rows.append(Row("value", f"flip={flip}", rec, len(noised), 0.0, None))
+        rows.append(
+            Row(
+                mechanism="value",
+                setting=f"flip={flip}",
+                recovery=rec,
+                contributions=len(noised),
+                label_noise=0.0,
+                budget=None,
+            )
+        )
         print(f"  flip {flip:<5} recovery {rec:.3f}")
     unchanged = {r.recovery for r in rows if r.mechanism == "value"}
     print(
@@ -150,7 +163,14 @@ def main() -> int:
         noise = label_noise(stream, fleet, tasks)
         spent = budget.as_dict(separation)
         rows.append(
-            Row("participation", f"keep={keep},fab={fabricate}", rec, len(stream), noise, spent)
+            Row(
+                mechanism="participation",
+                setting=f"keep={keep},fab={fabricate}",
+                recovery=rec,
+                contributions=len(stream),
+                label_noise=noise,
+                budget=spent,
+            )
         )
         per = spent["epsilon_per_indicator"]
         comp = spent["epsilon_effective"]

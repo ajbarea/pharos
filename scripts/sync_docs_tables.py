@@ -126,6 +126,14 @@ def measurement_health() -> str:
     """
     rows: list[tuple[str, str, str]] = []
     unassessed: list[str] = []
+    # Artifacts that turned out to carry an assessment after all. `AWAITING_RERUN` is
+    # maintained by hand, so it goes stale in exactly one direction: a rerun lands, the
+    # artifact gains its validity block, and the entry saying it has not is left
+    # behind. That produced a table listing `decode_stability` as both quotable at
+    # n=30 and awaiting the rerun that produced the 30. Deriving the pending list from
+    # the artifacts rather than trusting the registry makes the stale direction
+    # self-correcting; the registry keeps only the reasons, which cannot be derived.
+    now_assessed: set[str] = set()
     for path in sorted(RESULTS.glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
         validity = payload.get("validity")
@@ -146,6 +154,7 @@ def measurement_health() -> str:
         mark = "yes" if validity.get("quotable") else "**no**"
         note = "; ".join(str(c) for c in concerns) if concerns else "-"
         rows.append((path.stem, f"{validity.get('n', '?')}", f"{mark} | {note}"))
+        now_assessed.add(path.stem)
 
     lines = [
         "| Artifact | n | Quotable | Why not |",
@@ -167,7 +176,9 @@ def measurement_health() -> str:
             + "."
         )
     present = {p.stem for p in RESULTS.glob("*.json")}
-    pending = sorted((n, w) for n, w in AWAITING_RERUN.items() if n in present)
+    pending = sorted(
+        (n, w) for n, w in AWAITING_RERUN.items() if n in present and n not in now_assessed
+    )
     if pending:
         lines.append("")
         lines.append(

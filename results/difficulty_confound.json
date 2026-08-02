@@ -1,0 +1,120 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "b33f1193527f",
+    "git_dirty": true,
+    "generated_at": "2026-08-02T14:51:55+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
+    "seed": 7
+  },
+  "events": 200,
+  "fleet": 9,
+  "wrong_threshold": 2,
+  "items_by_overlap": {
+    "0": 21,
+    "1": 63,
+    "2": 52,
+    "3": 64
+  },
+  "rows": [
+    {
+      "composition": "correct fleet (control)",
+      "n_wrong": 0,
+      "slip_rate": 0.0,
+      "difficulty_by_overlap": {
+        "0": 0.5607,
+        "1": 0.5607,
+        "2": 0.5607,
+        "3": 0.5607
+      },
+      "difficulty_spread": 1.0,
+      "wrong_ability": null,
+      "right_ability": 3.9686,
+      "ability_ratio": null,
+      "ability_is_inverted": false,
+      "dawid_skene_agreement": 1.0,
+      "glad_agreement": 1.0,
+      "converged": true,
+      "iterations": 1,
+      "quotable": true
+    },
+    {
+      "composition": "correct, 15% random slip",
+      "n_wrong": 0,
+      "slip_rate": 0.15,
+      "difficulty_by_overlap": {
+        "0": 47.8029,
+        "1": 11.1416,
+        "2": 11.8028,
+        "3": 16.7513
+      },
+      "difficulty_spread": 4.29,
+      "wrong_ability": null,
+      "right_ability": 5.3989,
+      "ability_ratio": null,
+      "ability_is_inverted": false,
+      "dawid_skene_agreement": 0.9899,
+      "glad_agreement": 0.9697,
+      "converged": false,
+      "iterations": 100,
+      "quotable": false
+    },
+    {
+      "composition": "3 of 9 wrong standard",
+      "n_wrong": 3,
+      "slip_rate": 0.0,
+      "difficulty_by_overlap": {
+        "0": 0.1086,
+        "1": 0.1086,
+        "2": 2.0497,
+        "3": 0.1086
+      },
+      "difficulty_spread": 18.872,
+      "wrong_ability": 1.1264,
+      "right_ability": 7.3063,
+      "ability_ratio": 0.1542,
+      "ability_is_inverted": false,
+      "dawid_skene_agreement": 1.0,
+      "glad_agreement": 1.0,
+      "converged": true,
+      "iterations": 4,
+      "quotable": true
+    },
+    {
+      "composition": "5 of 9 wrong standard",
+      "n_wrong": 5,
+      "slip_rate": 0.0,
+      "difficulty_by_overlap": {
+        "0": 0.0761,
+        "1": 0.0761,
+        "2": 2.5939,
+        "3": 0.0761
+      },
+      "difficulty_spread": 34.064,
+      "wrong_ability": 8.6268,
+      "right_ability": 0.2741,
+      "ability_ratio": 31.4709,
+      "ability_is_inverted": true,
+      "dawid_skene_agreement": 0.7172,
+      "glad_agreement": 0.7172,
+      "converged": true,
+      "iterations": 7,
+      "quotable": true
+    }
+  ],
+  "converged_rows": [
+    "correct fleet (control)",
+    "3 of 9 wrong standard",
+    "5 of 9 wrong standard"
+  ],
+  "unconverged_rows": [
+    "correct, 15% random slip"
+  ],
+  "validity": {
+    "n": 200,
+    "quotable": true,
+    "concerns": []
+  }
+}

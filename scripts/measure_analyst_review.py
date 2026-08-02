@@ -221,7 +221,16 @@ def main() -> int:
             },
         )
 
-    validity = check_sample_size(len(tasks) * len(DEFAULT_ENSEMBLE), label="analyst_review")
+    # The per-reviewer sample, not the pooled count of decisions. This read
+    # `len(tasks) * len(DEFAULT_ENSEMBLE)`, which is 200 and describes a quantity no
+    # reported rate is computed over: `supervision_yield` is scored per reviewer, so
+    # every `targets`, `correct` and `recover` figure in the table below rests on the
+    # 40 tasks that one reviewer saw. Five reviewers looking at the same 40 tasks are
+    # not 200 independent observations -- they are 40 clusters of 5, which is exactly
+    # the inflation `pharos.uncertainty.cluster_bootstrap` resamples tasks to avoid.
+    # Both values clear the n=30 floor, so nothing here was ever marked wrongly
+    # quotable; the artifact simply advertised five times the precision it has.
+    validity = check_sample_size(len(tasks), label="analyst_review")
 
     print("\n" + "=" * 74)
     print("targets   share of decisions handing the learner a verdict to train on")

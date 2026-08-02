@@ -79,3 +79,68 @@ def test_iterations_are_bounded():
     capped = dawid_skene(rows, max_iters=2, tolerance=0.0)
     assert capped.iterations <= 2
     assert not capped.converged
+
+
+# ---------------------------------------------------------------- GLAD -----
+
+
+def test_glad_recovers_a_liar_on_uniform_items():
+    """The control case: with no difficulty structure, GLAD must behave like DS."""
+    from pharos.inference import glad
+
+    rows = [(f"T-{i}", w, i % 2 == 0) for i in range(40) for w in ("g1", "g2", "g3", "g4")]
+    rows += [(f"T-{i}", "liar", i % 2 != 0) for i in range(40)]
+
+    estimate = glad(rows)
+    assert estimate.converged
+    truth = {f"T-{i}": i % 2 == 0 for i in range(40)}
+    assert agreement_with(estimate.labels(), truth) == 1.0
+    assert estimate.ability["liar"] < 0 < estimate.ability["g1"]
+
+
+def test_glad_finds_no_difficulty_when_labelers_agree():
+    """A unanimous fleet has nothing to explain, so difficulty must stay flat.
+
+    This is the control the confound measurement rests on. If GLAD invented structure
+    here, the structure it reports under a wrong standard would prove nothing.
+    """
+    from pharos.inference import glad
+
+    rows = [(f"T-{i}", w, i % 3 == 0) for i in range(30) for w in ("a", "b", "c", "d", "e")]
+    estimate = glad(rows)
+    spread = [estimate.difficulty(f"T-{i}") for i in range(30)]
+    assert max(spread) / min(spread) < 1.05, "no disagreement, so no difficulty structure"
+
+
+def test_glad_blames_the_item_when_a_subgroup_is_systematically_wrong():
+    """The finding: a wrong subgroup manufactures apparent item difficulty.
+
+    Three labelers invert a fixed, identifiable subset of items. Nothing about those
+    items is intrinsically harder -- the other six labelers resolve them perfectly --
+    yet GLAD assigns them elevated difficulty, because "these items are hard" fits the
+    data as well as "those three are wrong".
+    """
+    from pharos.inference import glad
+
+    contested = {f"T-{i}" for i in range(0, 30, 3)}
+    rows = [
+        (f"T-{i}", w, i % 2 == 0) for i in range(30) for w in ("r1", "r2", "r3", "r4", "r5", "r6")
+    ]
+    rows += [
+        (f"T-{i}", w, (i % 2 != 0) if f"T-{i}" in contested else (i % 2 == 0))
+        for i in range(30)
+        for w in ("w1", "w2", "w3")
+    ]
+
+    estimate = glad(rows)
+    hard = statistics_mean([estimate.difficulty(t) for t in contested])
+    easy = statistics_mean(
+        [estimate.difficulty(f"T-{i}") for i in range(30) if f"T-{i}" not in contested]
+    )
+    assert hard > easy * 1.5, (
+        "the contested items should read as harder, though nothing made them so"
+    )
+
+
+def statistics_mean(values: list[float]) -> float:
+    return sum(values) / len(values)

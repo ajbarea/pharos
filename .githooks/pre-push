@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Refuse to push on top of a red CI run, because this repository did that four times.
+#
+# Commits 05d7d47, dea66f1, 44400f9 and b33f119 all failed the same single test. The
+# first one broke it; the next three were pushed without anyone looking at the result
+# of the one before. Nothing was wrong with the tests or with CI -- the failure was
+# that the signal was never read.
+#
+# So this reads it. It does not run the suite: a ten-minute pre-push hook gets
+# disabled, and the suite already runs in CI. It asks GitHub what happened last time
+# and makes the answer impossible to walk past.
+#
+# Pushing the fix for a red run is the normal case and is allowed, deliberately, by
+# saying so:
+#
+#     PHAROS_PUSH_OVER_RED=1 git push
+#
+# The override is the point. What went wrong was not pushing onto red; it was pushing
+# onto red without knowing.
+set -uo pipefail
+
+[[ -n "${PHAROS_PUSH_OVER_RED:-}" ]] && exit 0
+command -v gh >/dev/null 2>&1 || exit 0
+
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || exit 0
+
+read -r conclusion sha title < <(
+  gh run list --branch "$branch" --workflow CI --limit 1 \
+    --json conclusion,headSha,displayTitle \
+    -q '.[] | "\(.conclusion) \(.headSha[0:7]) \(.displayTitle)"' 2>/dev/null
+) || exit 0
+
+case "${conclusion:-}" in
+  failure|timed_out|startup_failure) ;;
+  *) exit 0 ;;
+esac
+
+cat >&2 <<MSG
+
+  CI is red on $branch and this push would stack another commit on top of it.
+
+    $sha  $conclusion  $title
+    $(gh run list --branch "$branch" --workflow CI --limit 1 --json url -q '.[0].url' 2>/dev/null)
+
+  If this push IS the fix, say so and it will go through:
+
+    PHAROS_PUSH_OVER_RED=1 git push
+
+MSG
+exit 1

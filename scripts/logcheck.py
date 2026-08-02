@@ -40,6 +40,7 @@ SCRIPTS = (
     "measure_tagged_aggregation.py",
     "measure_privacy_budget.py",
     "measure_correlated_fleets.py",
+    "measure_difficulty_confound.py",
 )
 
 #: Warnings this project expects to see, each a real finding rather than a defect.
@@ -50,6 +51,18 @@ EXPECTED_WARNINGS = {
     "tagging.aggregate_leak_invisible",
     "consensus.cliff",
     "budget.no_finite_guarantee",
+    "difficulty.manufactured_by_reviewers",
+    "difficulty.ability_inverted",
+    # GLAD is an unregularised MLE with unbounded parameters, and on the random-slip
+    # composition of the difficulty measurement it does not reach a fixed point. That
+    # is a documented characteristic of the method rather than a defect here (Zheng et
+    # al., PVLDB 10(5), 2017), and the measurement refuses to quote that row.
+    #
+    # Expecting it here is safe because it is not the guard. If a row that DOES carry
+    # the finding stops converging, `measure_difficulty_confound.py` exits non-zero and
+    # this command reports it under "SCRIPTS THAT FAILED" regardless of what the
+    # warning list says.
+    "inference.glad_did_not_converge",
     "validity.small_n",
     "validity.below_majority",
     "validity.degenerate_predictions",
@@ -146,6 +159,8 @@ def main() -> int:
         "tagging.aggregate_leak_invisible",
         "consensus.cliff",
         "budget.no_finite_guarantee",
+        "difficulty.manufactured_by_reviewers",
+        "difficulty.ability_inverted",
     }
     if core_missing:
         print(

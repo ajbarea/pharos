@@ -478,6 +478,57 @@ Verified 2026-08-02 by DOI content negotiation.
   majority voting exactly here, collapse included, because EM initialised from the
   vote converges to the majority's standard.
 
+### Why the analysts are parameterised policies rather than simulated people
+
+Verified 2026-08-02 against the ACL Anthology.
+
+- Seshadri, P., Cahyawijaya, S., Odumakinde, A., Singh, S., & Goldfarb-Tarrant, S.
+  (2026). Lost in Simulation: LLM-Simulated Users are Unreliable Proxies for Human
+  Users in Agentic Evaluations. *ACL 2026*, 47423-47439.
+  [aclanthology.org/2026.acl-long.2192](https://aclanthology.org/2026.acl-long.2192/)
+  **Grounds** a design decision this project had been treating as an apology. Every
+  finding that involves an analyst caps its claim on the analysts being parameterised
+  decision procedures, and the obvious "improvement" is to simulate them with a
+  language model instead. This paper is the reason not to: agent success rates vary by
+  up to **9 percentage points** depending on which LLM plays the user, simulated users
+  systematically miscalibrate difficulty, and outcomes differ by dialect in ways that
+  "risk misrepresenting agent capabilities across diverse user populations". A
+  parameterised policy is legible, reproducible and honestly limited; an LLM analyst
+  would look more realistic while introducing an unmeasured confound.
+
+  The corollary is that **the cap on these findings is not removable by better
+  simulation.** It is removable only by real analysts, which this testbed does not
+  claim to substitute for.
+
+### Item difficulty, and finding 17
+
+Verified 2026-08-02 against the NeurIPS proceedings page.
+
+- Whitehill, J., Wu, T., Bergsma, J., Movellan, J. R., & Ruvolo, P. (2009). Whose Vote
+  Should Count More: Optimal Integration of Labels from Labelers of Unknown Expertise.
+  *NIPS 22*.
+  **Grounds** finding 17, and is implemented in `pharos.inference.glad` rather than
+  cited past. It infers the label, the labeler's expertise *and the difficulty of each
+  item* jointly, which is the standard answer to Dawid-Skene blaming the annotator for
+  every disagreement. Finding 17 measures what that extra term does when the hard items
+  and a reviewer's blind spot coincide, which in this corpus they do by construction.
+
+- Zheng, Y., Li, G., Li, Y., Shan, C., & Cheng, R. (2017). Truth Inference in
+  Crowdsourcing: Is the Problem Solved? *PVLDB* 10(5), 541-552.
+  Verified 2026-08-02 against the full text of the PVLDB PDF, not the abstract.
+  **Corroborates** finding 17 from the outside, and **excuses** its one unconverged
+  row. Two passages carry that load. On quality: "the methods that model task
+  difficulty (GLAD) or latent topics (Multi) in tasks do not perform significantly
+  better in quality; moreover, they often take more time to converge" -- measured
+  across many real crowdsourcing datasets, with no wrong-standard construction
+  anywhere in the design. That is a *what* obtained independently; finding 17 offers a
+  *why* for one common case of it, since where the hard items and the blind spot
+  coincide the difficulty term has an error available to absorb. On convergence: GLAD
+  is grouped with the slowest methods tested, "because they solve an optimization
+  function in each iteration". That is why the random-slip composition here stops at
+  `max_iters` rather than settling, and why its magnitude is withdrawn rather than
+  quoted. Useful precisely because it is not our result and was not looking for ours.
+
 ### Fleet-level disclosure, and finding 11
 
 Verified 2026-08-01.

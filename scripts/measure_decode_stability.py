@@ -82,9 +82,13 @@ REGIMES: tuple[Regime, ...] = (
 )
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Stability:
-    """How often an identical call returned a different answer."""
+    """How often an identical call returned a different answer.
+
+    Keyword-only: four consecutive count fields mean a positional construction that
+    drifts out of order reports a different quantity without failing.
+    """
 
     regime: str
     num_predict: int
@@ -145,7 +149,12 @@ def measure(
             )
     return (
         Stability(
-            regime.name, regime.num_predict, len(tasks), repeats, len(unstable), unparsed_any
+            regime=regime.name,
+            num_predict=regime.num_predict,
+            n_tasks=len(tasks),
+            repeats=repeats,
+            unstable=len(unstable),
+            unparsed_any=unparsed_any,
         ),
         unstable,
     )
@@ -268,8 +277,15 @@ def main() -> int:
                     # Finding 9 retracted an earlier reading of itself, so the size
                     # its replacement rests on belongs in the record rather than only
                     # in the retraction notice.
+                    #
+                    # That size is the number of TASKS compared across sweeps. This
+                    # read `len(pass_rows)`, which is the number of decode regimes --
+                    # two -- so the artifact reported n=2 and marked itself unquotable
+                    # for want of a sample it actually had. A validity check wired to
+                    # the wrong quantity is worse than none: it discredits a sound
+                    # measurement in the same voice it would use for a real problem.
                     "validity": check_sample_size(
-                        len(pass_rows) or args.tasks,
+                        len(tasks),
                         label="decode_stability",
                     ).as_dict(),
                     "passes": args.passes,

@@ -146,6 +146,7 @@ corrections, and the caveats.
 | 14 | What the agent costs on the hardware it is meant to run on |
 | 15 | The standard privacy mechanism spends the budget on the wrong variable |
 | 16 | The cliff is safe only because the fleets were drawn independently |
+| 17 | Adding item difficulty does not separate a hard case from a wrong analyst |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -162,6 +163,7 @@ make tagged      # whether a reliability tag can replace identity (no model)
 make edge        # what the agent costs on laptop-class hardware (needs Ollama)
 make budget      # what a privacy budget buys against the linkage channel (no model)
 make correlated  # what the cliff costs when analysts are not independent (no model)
+make difficulty  # whether item difficulty and a wrong standard are separable (no model)
 ```
 
 ## Build order

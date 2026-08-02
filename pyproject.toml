@@ -158,6 +158,12 @@ indent-style = "space"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+# `slow` runs by default and is marked only so it can be deselected deliberately with
+# `-m "not slow"`. The one test carrying it re-runs every model-free measurement and
+# checks what they logged, which duplicates the `logcheck` CI step -- and earned its
+# place the first time it ran, by catching that GLAD does not converge on one fleet
+# composition whose numbers were already written up.
+markers = ["slow: re-runs the measurements; minutes, not seconds"]
 
 [tool.ty.src]
 include = ["src", "tests", "scripts"]

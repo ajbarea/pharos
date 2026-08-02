@@ -166,13 +166,18 @@ def conditions(
     }
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Row:
     """One fleet composition, and what each aggregation strategy got from it.
 
     A dataclass rather than a dict because the cliff is computed by comparing two of
     these fields, and a comparison against a value typed `object` is how a
     None-versus-float slip gets through unnoticed.
+
+    Keyword-only because six of the eight fields are floats in the same range, so a
+    positional construction survives a field being inserted in the middle and quietly
+    scores a different column. Adding `dawid_skene` did exactly that to the one
+    positional call site in the tests.
     """
 
     n_wrong: int

@@ -133,9 +133,13 @@ def main() -> int:
         type=int,
         default=1,
         help=(
-            "identical passes per task. Finding 9 measured this decode at 10%% "
-            "self-disagreement, so 1 gives a point with no interval and any ordering "
-            "read off it is unsupported. 5 is the publication setting."
+            "identical back-to-back passes per task. 1 is the publication setting and "
+            "the right one: the interval comes from resampling TASKS, so 600 tasks at "
+            "one pass already carries a cluster-bootstrap interval, and a real "
+            "measurement calls each task once from cold. Repeating one prompt adds "
+            "only the warm-up transition finding 9 retracted a claim over -- the first "
+            "call against a prompt differs from every call after it -- so a larger "
+            "value measures the backend warming up and reports it as uncertainty."
         ),
     )
     parser.add_argument("--out", type=Path)
@@ -293,6 +297,13 @@ def main() -> int:
                     ),
                     "model": args.model,
                     "seed": args.seed,
+                    # The corpus this ran on, not just how much of it was scored. An
+                    # artifact recording only `n_eval` cannot be reproduced from its
+                    # own contents: `(seed, n_events)` is what regenerates the world,
+                    # and without the second half the reader has to guess which run
+                    # produced the number they are citing.
+                    "n_events": args.events,
+                    "shots": args.shots,
                     "n_eval": len(evaluation),
                     "rows": rows,
                 },

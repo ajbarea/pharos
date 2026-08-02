@@ -1141,10 +1141,17 @@ def test_the_two_regimes_differ_in_the_thing_being_compared():
 def test_stability_reports_a_share_and_survives_an_empty_run():
     import measure_decode_stability as mds
 
-    row = mds.Stability("r", 8, 30, 3, 3, 0)
+    row = mds.Stability(
+        regime="r", num_predict=8, n_tasks=30, repeats=3, unstable=3, unparsed_any=0
+    )
     assert row.unstable_share == 0.1
     assert row.as_dict()["unstable_share"] == 0.1
-    assert mds.Stability("r", 8, 0, 3, 0, 0).unstable_share == 0.0
+    assert (
+        mds.Stability(
+            regime="r", num_predict=8, n_tasks=0, repeats=3, unstable=0, unparsed_any=0
+        ).unstable_share
+        == 0.0
+    )
 
 
 def test_stability_measure_counts_only_self_disagreement(monkeypatch):
@@ -1200,7 +1207,9 @@ def test_transfer_row_rates_exclude_unparsed_from_the_denominator():
     """An unparsable answer is not a wrong answer, and must not be scored as one."""
     import measure_teacher_transfer as mtt
 
-    row = mtt.Row("t", 8, n=10, unparsed=2, agree_world=4, agree_teacher=8, said_significant=6)
+    row = mtt.Row(
+        teacher="t", shots=8, n=10, unparsed=2, agree_world=4, agree_teacher=8, said_significant=6
+    )
     assert row.world_rate == 0.5
     assert row.teacher_rate == 1.0
     assert row.escalation_rate == 0.75
@@ -1210,7 +1219,13 @@ def test_transfer_row_rates_exclude_unparsed_from_the_denominator():
 
     assert (
         mtt.Row(
-            "t", 0, n=0, unparsed=0, agree_world=0, agree_teacher=0, said_significant=0
+            teacher="t",
+            shots=0,
+            n=0,
+            unparsed=0,
+            agree_world=0,
+            agree_teacher=0,
+            said_significant=0,
         ).world_rate
         == 0.0
     )
@@ -1620,17 +1635,43 @@ def test_fleet_of_splits_right_and_wrong():
     assert all(p.escalation_threshold != mcr.WRONG_THRESHOLD for p in mcr.fleet_of(0, size=9))
 
 
+def _row(mcr, *, n_wrong: int, oracle: float | None, consensus: float | None):
+    """A Row with only the two fields the cliff is computed from set meaningfully.
+
+    Named fields, not positions: this test previously built rows positionally and went
+    on constructing them silently against a changed field order until `dawid_skene`
+    made the arity mismatch loud.
+    """
+    return mcr.Row(
+        n_wrong=n_wrong,
+        share_wrong=round(n_wrong / 9, 4),
+        unweighted=0.7,
+        oracle=oracle,
+        consensus=consensus,
+        dawid_skene=0.7,
+        consensus_interval={},
+        targets={},
+    )
+
+
 def test_an_absent_stream_is_not_scored_as_a_lag():
     """The far end of the sweep has an oracle that refused everything, not one that lost."""
     mcr = _consensus_module()
-    empty_oracle = mcr.Row(9, 1.0, 0.7, None, 0.7, {}, {})
+    empty_oracle = _row(mcr, n_wrong=9, oracle=None, consensus=0.7)
     assert not empty_oracle.consensus_lags_oracle
 
-    lagging = mcr.Row(5, 0.556, 0.84, 1.0, 0.717, {}, {})
+    empty_consensus = _row(mcr, n_wrong=9, oracle=0.7, consensus=None)
+    assert not empty_consensus.consensus_lags_oracle
+
+    lagging = _row(mcr, n_wrong=5, oracle=1.0, consensus=0.717)
     assert lagging.consensus_lags_oracle
 
-    matching = mcr.Row(4, 0.444, 0.87, 1.0, 1.0, {}, {})
+    matching = _row(mcr, n_wrong=4, oracle=1.0, consensus=1.0)
     assert not matching.consensus_lags_oracle
+
+    # The 0.01 tolerance: a gap this small is rounding, not a cliff.
+    within_tolerance = _row(mcr, n_wrong=4, oracle=1.0, consensus=0.995)
+    assert not within_tolerance.consensus_lags_oracle
 
 
 def test_consensus_matches_the_oracle_until_the_wrong_standard_is_the_majority():
@@ -1852,14 +1893,28 @@ def test_privacy_budget_row_serializes():
     mpb = _privacy_module()
     import json as _json
 
-    row = mpb.Row("participation", "keep=0.6,fab=0.4", 0.065, 1200, 0.756, {"epsilon": 0.41})
+    row = mpb.Row(
+        mechanism="participation",
+        setting="keep=0.6,fab=0.4",
+        recovery=0.065,
+        contributions=1200,
+        label_noise=0.756,
+        budget={"epsilon": 0.41},
+    )
     encoded = _json.loads(_json.dumps(row.as_dict()))
     assert encoded["mechanism"] == "participation"
     assert encoded["recovery"] == pytest.approx(0.065)
     assert encoded["budget"]["epsilon"] == pytest.approx(0.41)
 
     # A value-noise row carries no budget, and that must survive the round trip.
-    bare = mpb.Row("value", "flip=0.5", 0.205, 1200, 0.0, None)
+    bare = mpb.Row(
+        mechanism="value",
+        setting="flip=0.5",
+        recovery=0.205,
+        contributions=1200,
+        label_noise=0.0,
+        budget=None,
+    )
     assert _json.loads(_json.dumps(bare.as_dict()))["budget"] is None
 
 
@@ -1937,3 +1992,315 @@ def test_measurement_health_publishes_the_flag_rather_than_policing_it():
     # And the count line has to agree with the rows it summarises.
     flagged = sum(1 for line in table.splitlines() if line.startswith("| `") and "**no**" in line)
     assert f"**{flagged} of" in table
+
+
+# --------------------------------------------------- difficulty confound -----
+
+
+def _difficulty_module():
+    import measure_difficulty_confound as mdc
+
+    return mdc
+
+
+def _difficulty_corpus(n_events: int = 60):
+    from pharos.analyst import Proposal
+    from pharos.disclosure import KEEP_COMPARTMENTS
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.labels import declassify
+    from pharos.tasks import build_triage_tasks
+
+    mdc = _difficulty_module()
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=mdc.SEED, n_events=n_events)))
+    proposals = {
+        t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
+        for t in tasks
+    }
+    return mdc, tasks, proposals
+
+
+def test_signature_overlap_counts_only_the_significant_facts():
+    """The corpus's own difficulty scale. Three means significant by definition."""
+    from pharos.world import SIGNIFICANT_PATTERN
+
+    mdc, tasks, _ = _difficulty_corpus()
+    for task in tasks:
+        overlap = mdc.signature_overlap(task)
+        assert 0 <= overlap <= len(SIGNIFICANT_PATTERN)
+        # The definition the whole finding rests on: a full signature IS significance.
+        if overlap == len(SIGNIFICANT_PATTERN):
+            assert task.significant
+
+    # And the band the finding is about is actually populated, or the control is empty.
+    assert any(mdc.signature_overlap(t) == 2 for t in tasks)
+
+
+def test_build_fleet_splits_wrong_standards_from_slip():
+    """The two explanations for disagreement are separate knobs, not one."""
+    mdc = _difficulty_module()
+
+    control = mdc.build_fleet(0, 0.0)
+    assert len(control) == mdc.FLEET
+    assert all(p.escalation_threshold != mdc.WRONG_THRESHOLD for p in control)
+    assert all(p.slip_rate == 0.0 for p in control)
+
+    slipping = mdc.build_fleet(0, 0.15)
+    assert all(p.slip_rate == 0.15 for p in slipping)
+    assert all(p.escalation_threshold != mdc.WRONG_THRESHOLD for p in slipping)
+
+    mixed = mdc.build_fleet(3, 0.0)
+    wrong = [p for p in mixed if p.escalation_threshold == mdc.WRONG_THRESHOLD]
+    assert len(wrong) == 3
+    assert len(mixed) == mdc.FLEET
+
+
+def test_collect_drops_a_reviewer_who_supplied_no_verdict():
+    """A rejection is not a label. Counting it as one would move every number here."""
+    from pharos.analyst import Action
+
+    mdc, tasks, proposals = _difficulty_corpus()
+    fleet = mdc.build_fleet(3, 0.0)
+    rows = mdc.collect(fleet, tasks, proposals, seed=mdc.SEED)
+
+    assert rows, "the fleet has to yield some supervision or the estimate is vacuous"
+    assert all(isinstance(v, bool) for _, _, v in rows)
+    assert {who for _, who, _ in rows} <= {p.name for p in fleet}
+
+    # Every dropped row must correspond to a decision that carried no verdict.
+    kept = {(tid, who) for tid, who, _ in rows}
+    for policy in fleet:
+        for task in tasks:
+            decision = policy.review(task, proposals[task.task_id], seed=mdc.SEED)
+            carries = decision.action is Action.ACCEPT or (
+                decision.action is Action.REVISE and decision.corrected_verdict is not None
+            )
+            assert ((task.task_id, policy.name) in kept) == carries
+
+
+def test_difficulty_spread_is_one_when_there_is_nothing_to_compare():
+    """A single band, or none, is not a spread. Reporting a ratio there invents one."""
+    mdc = _difficulty_module()
+
+    def row(by_overlap):
+        return mdc.Row(
+            composition="c",
+            n_wrong=0,
+            slip_rate=0.0,
+            by_overlap=by_overlap,
+            wrong_ability=None,
+            right_ability=1.0,
+            dawid_skene_agreement=1.0,
+            glad_agreement=1.0,
+            converged=True,
+            iterations=4,
+        )
+
+    assert row({}).difficulty_spread == 1.0
+    assert row({2: 0.4}).difficulty_spread == 1.0
+    assert row({1: 0.2, 2: 0.6}).difficulty_spread == pytest.approx(3.0)
+    # A zero band is excluded rather than dividing by it.
+    assert row({0: 0.0, 1: 0.2, 2: 0.6}).difficulty_spread == pytest.approx(3.0)
+
+    payload = row({1: 0.2, 2: 0.6}).as_dict()
+    assert payload["difficulty_by_overlap"] == {"1": 0.2, "2": 0.6}
+    assert payload["wrong_ability"] is None
+    assert payload["difficulty_spread"] == pytest.approx(3.0)
+
+
+def test_ability_inversion_is_undefined_without_a_wrong_standard_to_compare():
+    """A fleet with nobody wrong has no answer here, and that is not a ratio of one."""
+    mdc = _difficulty_module()
+
+    def row(wrong, right):
+        return mdc.Row(
+            composition="c",
+            n_wrong=0 if wrong is None else 3,
+            slip_rate=0.0,
+            by_overlap={},
+            wrong_ability=wrong,
+            right_ability=right,
+            dawid_skene_agreement=1.0,
+            glad_agreement=1.0,
+            converged=True,
+            iterations=4,
+        )
+
+    control = row(None, 3.97)
+    assert control.ability_ratio is None
+    assert not control.ability_is_inverted
+    assert control.as_dict()["ability_ratio"] is None
+    assert control.as_dict()["ability_is_inverted"] is False
+
+    # The minority case: the estimator is right, and must not be flagged.
+    minority = row(1.13, 7.31)
+    assert minority.ability_ratio == pytest.approx(1.13 / 7.31)
+    assert not minority.ability_is_inverted
+
+    # The majority case: the wrong rule scores higher, which is the finding.
+    majority = row(8.63, 0.27)
+    assert majority.ability_ratio == pytest.approx(8.63 / 0.27)
+    assert majority.ability_is_inverted
+    assert majority.as_dict()["ability_is_inverted"] is True
+
+    # A zero denominator is not an infinite ratio; it is an unanswered question.
+    assert row(1.0, 0.0).ability_ratio is None
+    assert not row(1.0, 0.0).ability_is_inverted
+
+
+def test_the_measured_inversion_appears_in_the_committed_artifact():
+    """The finding as published: the ability column flips at the majority crossing."""
+    import json
+
+    payload = json.loads(Path("results/difficulty_confound.json").read_text(encoding="utf-8"))
+    by_name = {r["composition"]: r for r in payload["rows"]}
+
+    control = by_name["correct fleet (control)"]
+    assert control["ability_ratio"] is None, "the control has no wrong standard to rank"
+    assert control["difficulty_spread"] == pytest.approx(1.0), "the control must be flat"
+
+    minority = by_name["3 of 9 wrong standard"]
+    assert minority["ability_is_inverted"] is False
+    assert minority["ability_ratio"] < 1.0
+
+    majority = by_name["5 of 9 wrong standard"]
+    assert majority["ability_is_inverted"] is True
+    assert majority["ability_ratio"] > 10.0, "the published claim is a large inversion"
+
+
+def test_every_quoted_row_converged():
+    """The retraction, made permanent.
+
+    This section first published a spread of 4.3 for the random-slip row. That fit does
+    not converge: GLAD is an unregularised MLE with unbounded parameters, and raising
+    the iteration cap from 100 to 1000 grows that row's mean difficulty from 48 to 1290
+    while the spread wanders between 1.6 and 4.5. The number described where gradient
+    ascent was interrupted, not the corpus.
+
+    So the rule is that a magnitude may be quoted only from a converged row, and the
+    three rows the finding rests on have to keep converging for it to stand.
+    """
+    import json
+
+    payload = json.loads(Path("results/difficulty_confound.json").read_text(encoding="utf-8"))
+    by_name = {r["composition"]: r for r in payload["rows"]}
+
+    for name in ("correct fleet (control)", "3 of 9 wrong standard", "5 of 9 wrong standard"):
+        row = by_name[name]
+        assert row["converged"] is True, f"{name} is quoted in docs/findings.md but did not settle"
+        assert row["quotable"] is True
+
+    # And the artifact has to say which rows those are, so a consumer need not re-derive it.
+    assert set(payload["converged_rows"]) >= {
+        "correct fleet (control)",
+        "3 of 9 wrong standard",
+        "5 of 9 wrong standard",
+    }
+    assert set(payload["converged_rows"]).isdisjoint(payload["unconverged_rows"])
+
+    # An unconverged row must be marked unquotable rather than dropped: the fact that
+    # GLAD does not settle on random slip is itself part of the finding.
+    for name in payload["unconverged_rows"]:
+        assert by_name[name]["converged"] is False
+        assert by_name[name]["quotable"] is False
+
+
+def test_the_random_slip_row_is_the_only_one_allowed_to_stall():
+    """Which rows the convergence guard protects, stated rather than inferred.
+
+    CI runs this measurement without `--out`, so the artifact test above cannot see a
+    regression there. The script exits non-zero instead, and it needs to be exact
+    about which rows that applies to: too wide and a known-stalling foil fails the
+    build, too narrow and a quoted row stops settling in silence.
+    """
+    mdc = _difficulty_module()
+
+    def row(n_wrong: int, slip: float):
+        return mdc.Row(
+            composition="c",
+            n_wrong=n_wrong,
+            slip_rate=slip,
+            by_overlap={},
+            wrong_ability=None,
+            right_ability=1.0,
+            dawid_skene_agreement=1.0,
+            glad_agreement=1.0,
+            converged=False,
+            iterations=100,
+        )
+
+    # Exactly the four compositions the script sweeps.
+    assert mdc.carries_the_claim(row(0, 0.0)), "the control is the whole argument"
+    assert mdc.carries_the_claim(row(3, 0.0))
+    assert mdc.carries_the_claim(row(5, 0.0))
+    assert not mdc.carries_the_claim(row(0, 0.15)), "the slip row is a foil, and stalls"
+
+    # And the sweep really is those four, so the classification above is exhaustive.
+    assert {(n, s) for _, n, s in mdc.COMPOSITIONS} == {(0, 0.0), (0, 0.15), (3, 0.0), (5, 0.0)}
+    assert sum(1 for _, n, s in mdc.COMPOSITIONS if not mdc.carries_the_claim(row(n, s))) == 1
+
+
+def test_a_correct_fleet_finds_no_difficulty_where_a_wrong_one_does():
+    """Finding 17, at a small size: the difficulty is manufactured by the reviewers.
+
+    This is the control that gives the measurement its meaning. If the near-boundary
+    items were intrinsically hard they would look hard under a correct fleet too.
+    """
+    import statistics
+
+    from pharos.inference import glad
+
+    mdc, tasks, proposals = _difficulty_corpus(n_events=120)
+    overlap = {t.task_id: mdc.signature_overlap(t) for t in tasks}
+
+    def spread(n_wrong: int) -> float:
+        estimate = glad(mdc.collect(mdc.build_fleet(n_wrong, 0.0), tasks, proposals, seed=mdc.SEED))
+        bands = {}
+        for band in sorted(set(overlap.values())):
+            ids = [t for t, o in overlap.items() if o == band and t in estimate.log_difficulty]
+            if ids:
+                bands[band] = statistics.mean(estimate.difficulty(t) for t in ids)
+        values = [v for v in bands.values() if v > 0]
+        return max(values) / min(values) if len(values) > 1 else 1.0
+
+    control = spread(0)
+    corrupted = spread(5)
+    assert control < 1.5, "a correct fleet must find the corpus flat, or there is no control"
+    assert corrupted > control, "a wrong-standard fleet must manufacture difficulty"
+
+
+def test_the_awaiting_rerun_list_drops_an_artifact_once_it_is_assessed():
+    """The hand-maintained registry goes stale in one direction, so it is not trusted.
+
+    A rerun lands, the artifact gains its validity block, and the entry saying it has
+    not is left behind. That produced a published table listing `decode_stability` as
+    both quotable at n=30 and awaiting the rerun that produced the 30. The pending
+    list is therefore derived from the artifacts; the registry supplies only the
+    reasons, which cannot be derived.
+    """
+    sdt = _docs_module()
+    table = sdt.measurement_health()
+
+    if "needs a rerun rather than an edit:" not in table:
+        pending_block = ""
+    else:
+        pending_block = table.split("needs a rerun rather than an edit:")[-1].split(
+            "Exempt, because"
+        )[0]
+
+    # Anything with a row in the assessed table must not also be listed as pending.
+    assessed = {
+        line.split("`")[1]
+        for line in table.splitlines()
+        if line.startswith("| `") and "Artifact" not in line
+    }
+    assert assessed, "parsed no assessed rows; the parser broke rather than the table"
+
+    both = sorted(name for name in assessed if f"`{name}`" in pending_block)
+    assert not both, (
+        f"listed as assessed AND as awaiting its rerun: {both}. One of the two statements is false."
+    )
+
+    # And every name still pending has to be a real registry entry, not a typo.
+    for line in pending_block.splitlines():
+        if line.startswith("- `"):
+            assert line.split("`")[1] in sdt.AWAITING_RERUN

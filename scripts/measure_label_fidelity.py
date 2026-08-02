@@ -33,9 +33,13 @@ from pharos.validity import check_sample_size
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    # 24, not 8. The first measurement of finding 1 was taken at n=8 and had to be
-    # retracted; a default that reproduces it invites the same mistake twice.
-    parser.add_argument("--tasks", type=int, default=24)
+    # 40, not 8, and not 24 either. The first measurement of finding 1 was taken at
+    # n=8 and had to be retracted, so the default was raised to 24 to stop that
+    # happening twice. But 24 was chosen as "not 8" rather than as "enough": it sits
+    # below the n=30 floor `check_sample_size` applies, so every run marked its own
+    # output unquotable and the finding could not be cited from its own artifact.
+    # 40 clears the floor the repository already enforces everywhere else.
+    parser.add_argument("--tasks", type=int, default=40)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--events", type=int, default=400)
     parser.add_argument("--model", default=DEFAULT_MODEL)

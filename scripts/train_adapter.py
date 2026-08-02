@@ -39,6 +39,7 @@ script evaluates the base model itself under the same prompt and reports both.
 
 import argparse
 import json
+import os
 import random
 import sys
 from dataclasses import dataclass, field
@@ -118,6 +119,24 @@ class EvalResult:
             "f1": self.f1,
             "validity": self.validity,
         }
+
+
+def _scratch_dir() -> Path:
+    """Where the trainer writes checkpoints, scoped so two jobs cannot collide.
+
+    This was a bare `adapter-out/`, which is safe for exactly one run at a time. It is
+    not safe for the way the cluster is actually used: `review-adapter.sbatch` trains
+    four adapters in a loop and `adapter.sbatch` trains a fifth, and submitting the
+    second while the first is running would have had both writing checkpoints and
+    optimizer state through the same path. Nothing would have failed -- one job would
+    simply have finished with the other's weights, and the artifact would have carried
+    a provenance stamp saying otherwise.
+
+    Slurm hands out a unique job id, so use it where there is one and fall back to the
+    process id locally, where concurrent training is unlikely but not prevented.
+    """
+    job = os.environ.get("SLURM_JOB_ID") or f"local-{os.getpid()}"
+    return Path("adapter-out") / job
 
 
 def verdict_text(significant: bool) -> str:
@@ -487,7 +506,7 @@ def main() -> int:
             ),
         }
 
-    out_dir = Path("adapter-out")
+    out_dir = _scratch_dir()
     trainer = Trainer(
         model=model,
         args=TrainingArguments(

@@ -157,11 +157,14 @@ This table is generated from `results/` and CI fails when it drifts from them.
 <!-- BEGIN GENERATED: measurement-health -->
 | Artifact | n | Quotable | Why not |
 | --- | --- | --- | --- |
-| `analyst_review` | 320 | yes | - |
+| `analyst_review` | 40 | yes | - |
 | `consensus_reliability` | 200 | yes | - |
 | `correlated_fleets` | 30 | yes | - |
+| `decode_stability` | 30 | yes | - |
+| `difficulty_confound` | 200 | yes | - |
 | `edge_cost` | 19 | **no** | n=19 is below 30; treat differences as provisional |
 | `fleet_linkage` | 200 | yes | - |
+| `label_fidelity` | 40 | yes | - |
 | `privacy_budget` | 200 | yes | - |
 | `review_sweep` | 40 | yes | - |
 | `tagged_aggregation` | 200 | yes | - |
@@ -172,13 +175,11 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-3b` | 40 | **no** | accuracy 0.625 does not beat the majority floor 0.625: this is not evidence of capability |
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**7 of 14** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**7 of 17** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
-Assessed by their script but not yet in the committed artifact (12 of these), which needs a rerun rather than an edit:
+Assessed by their script but not yet in the committed artifact (10 of these), which needs a rerun rather than an edit:
 
 - `adapter_learnability` -- train_adapter.py now records it per evaluation pass
-- `decode_stability` -- measure_decode_stability.py now records it over the repeated passes
-- `label_fidelity` -- measure_label_fidelity.py now records it over the scored turns
 - `learnability` -- measure_rule_learnability.py now records it per shot count
 - `review_adapter-any-one` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-any-one-xseed101` -- train_adapter.py now records it per evaluation pass
@@ -1391,3 +1392,131 @@ reproduces finding 12's central result on a different fleet distribution.
     conditionals though it does not touch the exact probabilities. What the pair of
     columns establishes is that the i.i.d. assumption is load-bearing and unstated, not
     where a particular organisation would land between them.
+
+## 17. Adding item difficulty does not separate a hard case from a wrong analyst
+
+`scripts/measure_difficulty_confound.py`, `src/pharos/inference.py`, `results/difficulty_confound.json`
+
+[Finding 12](#12-reliability-cannot-be-estimated-without-identity-where-it-matters)
+showed agreement-based estimators failing once a wrong standard holds the majority, and
+the natural objection is that the estimator was too simple. Dawid-Skene blames the
+annotator for every disagreement. The obvious missing term is the **item**: some cases
+sit near the boundary and everyone struggles with them. Whitehill et al. (NIPS 2009)
+add exactly that, estimating labeler ability, item difficulty and the true label
+jointly. That model is now implemented here as `pharos.inference.glad`.
+
+This corpus can test it unusually well, because it carries a real difficulty structure
+built for an unrelated reason. The significant class is a conjunction of three facts,
+and three of the ten background patterns carry **two** of those three. Those routine
+items sit one fact from the boundary:
+
+| Signature facts present | 0 | 1 | **2** | 3 |
+| --- | --- | --- | --- | --- |
+| Items | 21 | 63 | **52** | 64 |
+| Class | routine | routine | **routine, near-boundary** | significant |
+
+The 52 near-boundary items are also **exactly** the items a reviewer holding a
+two-of-three standard gets wrong. "This item is ambiguous" and "this reviewer applies
+the wrong rule" predict identical data.
+
+**The control decides it.** Estimated difficulty by true overlap, under fleets that
+differ only in composition:
+
+| Fleet | ovl=0 | ovl=1 | **ovl=2** | ovl=3 | Spread | Converged |
+| --- | --- | --- | --- | --- | --- | --- |
+| **correct (control)** | 0.561 | 0.561 | **0.561** | 0.561 | **1.0** | yes, 1 iter |
+| correct, 15% random slip | *47.8* | *11.1* | *11.8* | *16.8* | *4.3* | **no** |
+| 3 of 9 wrong standard | 0.109 | 0.109 | **2.050** | 0.109 | 18.9 | yes, 4 iters |
+| 5 of 9 wrong standard | 0.076 | 0.076 | **2.594** | 0.076 | 34.1 | yes, 7 iters |
+
+The italicised row did not reach a fixed point and its magnitudes are not quoted
+anywhere; only the *position* of its peak is used, and why is set out below.
+
+**A correct fleet finds no difficulty structure at all.** Spread 1.0, flat across the
+corpus, because the correct rule resolves a two-of-three item unambiguously: two is not
+three, so the item is routine and there is nothing to be uncertain about. Every bit of
+the structure in the rows below it is manufactured by the reviewers.
+
+So the estimator does not fail by being unable to find the wrong analysts. It fails by
+**relabelling a wrong standard as a property of the data**, and the two diagnoses call
+for opposite actions:
+
+- *"These items are hard"* → clarify the guidance, accept lower accuracy on them, and
+  leave the reviewers alone.
+- *"A third of the fleet holds the wrong rule"* → retrain those reviewers, and expect
+  full accuracy afterwards.
+
+A governance process reading GLAD's output takes the first, which is the wrong one.
+
+**And the ability estimate names the wrong people.** Difficulty is not the only parameter
+GLAD reports. It also scores each reviewer, and that score is the one a supervisor would
+actually query, because it answers *whom do I retrain*:
+
+| Fleet | wrong-standard reviewers | correct reviewers | Verdict |
+| --- | --- | --- | --- |
+| 3 of 9 wrong standard | 1.13 | 7.31 | correct: the wrong rule scores 6.5x lower |
+| 5 of 9 wrong standard | **8.63** | **0.27** | inverted: the wrong rule scores 31x *higher* |
+
+Below the majority the estimate is right, and a supervisor acting on it retrains the
+three reviewers who hold the wrong rule. Above it the ranking flips, and the same
+supervisor acting on the same field retrains the four who are correct while certifying
+the wrong standard as the expert one. The ability score tracks the majority rather than
+the truth, which is finding 12's cliff again in the one parameter that was supposed to
+survive it: item difficulty was added to explain away disagreement the fleet could not
+resolve, and it relocates the error rather than isolating it.
+
+This is why the failure is worse than a low agreement number. At 5 of 9, agreement of
+0.717 at least announces that something is wrong. The ability column does not: it is
+confident, well separated, and backwards.
+
+**Random error is not exempt, and has a different signature -- but only its shape can be
+quoted.** The 15%-slip row shows difficulty inflated with no wrong standard anywhere,
+peaking at overlap 0 rather than 2. Any annotator error inflates apparent difficulty;
+only systematic error inflates it *at the boundary*. That difference is the one hopeful
+result here, and it is a shape rather than a magnitude.
+
+That last clause is now literal rather than rhetorical, because **this row does not
+converge and its magnitude is therefore not a property of the data.** GLAD is an
+unregularised maximum-likelihood fit whose ability and log-difficulty are unbounded, and
+where the posteriors never settle the parameters keep climbing. Run at increasing
+iteration caps, this row's mean difficulty grows without bound while its spread wanders:
+
+| `max_iters` | Converged | Mean difficulty at ovl=0 | Spread | Peak band |
+| --- | --- | --- | --- | --- |
+| 100 | no | 47.8 | 4.29 | 0 |
+| 300 | no | 203.3 | 1.63 | 0 |
+| 1000 | no | 1290.2 | 4.45 | 0 |
+| 3000 | no | 3580.8 | 5.20 | 0 |
+
+The spread is a function of where the ascent was interrupted, so the "4.3" this section
+reported in its first version is withdrawn. The **peak band is stable at 0** across all
+four, which is the claim the paragraph actually needs, and it is the one kept.
+
+The three rows the finding rests on are unaffected: the control converges in 1 iteration,
+3-of-9 in 4, and 5-of-9 in 7. `measure_difficulty_confound.py` now marks each row with
+its convergence status, refuses to quote an unconverged one, and the test suite asserts
+that the quoted rows converged. Slow and incomplete convergence is a documented
+characteristic of GLAD rather than a defect here: Zheng et al.'s benchmark across many
+real crowdsourcing datasets puts GLAD among the slowest methods tested, "because they
+solve an optimization function in each iteration".
+
+!!! note "Independent corroboration, from a benchmark that was not looking for this"
+    The same benchmark reports that "the methods that model task difficulty (GLAD) or
+    latent topics (Multi) in tasks do not perform significantly better in quality;
+    moreover, they often take more time to converge" -- measured across real datasets,
+    against many alternatives, with no wrong-standard construction anywhere in sight.
+    That is the *what*. This finding supplies a *why* for at least one common case: where
+    the hard items and the reviewer's blind spot coincide, the difficulty term has an
+    error to absorb, and absorbing it is not the same as modelling it.
+
+    Zheng, Li, Li, Shan and Cheng, *Truth Inference in Crowdsourcing: Is the Problem
+    Solved?*, PVLDB 10(5):541-552, 2017.
+
+!!! note "What this does not settle"
+    One estimator of this family, one wrong standard, one corpus whose difficulty
+    structure is discrete and known. GLAD is the canonical joint model but not the only
+    one, and a variant with a prior over difficulty might resist this. The finding is
+    not that item-difficulty modelling is worthless; it is that in a setting where the
+    hard items and the reviewer's blind spot coincide by construction, it converts one
+    into the other, and that coincidence is the normal case rather than a contrived one
+    whenever a rule has a boundary.

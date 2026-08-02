@@ -1,12 +1,12 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "ef2e7ed39787",
+    "git_commit": "b33f1193527f",
     "git_dirty": true,
-    "generated_at": "2026-08-01T16:56:31+00:00",
+    "generated_at": "2026-08-02T15:21:01+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
     "seed": 7
   },
   "seed": 7,
@@ -14,7 +14,7 @@
   "n_tasks": 40,
   "ceiling": "INTERNAL[SENSOR]",
   "validity": {
-    "n": 320,
+    "n": 40,
     "quotable": true,
     "concerns": []
   },
