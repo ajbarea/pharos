@@ -125,6 +125,13 @@ ignore = [
 # keys them, so a teacher slips on the same tasks it reviewed. Nothing security-bearing.
 "scripts/train_adapter.py" = ["S311"]
 "scripts/measure_teacher_transfer.py" = ["S311"]
+# The fleet draw and the control ladder must both replay from a seed for the linkage
+# result to be checkable. One caveat is worth stating rather than waving through:
+# `apply_subsample` *simulates* a privacy control, and a real deployment of that
+# control would need a CSPRNG, since an adversary who can predict which
+# contributions were dropped can undo it. Simulating it here is not deploying it.
+"src/pharos/fleet.py" = ["S311"]
+"scripts/measure_fleet_linkage.py" = ["S311"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["pharos"]

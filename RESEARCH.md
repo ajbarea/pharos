@@ -452,6 +452,36 @@ the paper.** The CMU page for the 2015-05-07 version states "about 150 users" an
 The ECML paper describes an earlier state of the corpus, so any count more precise
 than these needs the release version named alongside it.
 
+### Fleet-level disclosure, and finding 11
+
+Verified 2026-08-01.
+
+- Bonawitz, K., Ivanov, V., Kreuter, B., Marcedone, A., McMahan, H. B., Patel, S.,
+  Ramage, D., Segal, A., & Seth, K. (2017). Practical Secure Aggregation for
+  Privacy-Preserving Machine Learning. *CCS 2017*, 1175-1191.
+  [doi:10.1145/3133956.3133982](https://doi.org/10.1145/3133956.3133982)
+  **Grounds** the `pooled` row of finding 11's control ladder. The protocol lets a
+  server compute a sum over client contributions without learning any individual
+  one, which is the deployable form of the control the measurement models as simply
+  discarding the pseudonym. Naming it is also what keeps the "free" reading honest:
+  pooling costs no *training volume*, and the protocol itself is real engineering
+  that the measurement does not price.
+
+- Diana, F., Marfoq, O., Xu, C., Neglia, G., Giroire, F., & Thomas, E. (2024).
+  Attribute Inference Attacks for Federated Regression Tasks.
+  [arXiv:2411.12697](https://arxiv.org/abs/2411.12697)
+  **Grounds** the threat model finding 11 adopts, specifically the standard
+  allowance that an adversary holds "auxiliary public information" alongside what
+  it observes. Pharos's auxiliary information is the published corpus itself.
+
+- Ma, Z., Gao, H., Huang, J., & Wang, P. (2025). Whispers of Data: Unveiling Label
+  Distributions in Federated Learning Through Virtual Client Simulation.
+  [arXiv:2504.21436](https://arxiv.org/abs/2504.21436)
+  **Grounds** that inferring *what a client works on* is an established attack goal
+  rather than one invented here, and marks the boundary of what is new: this attack
+  recovers a label distribution from **model updates**, and remains effective under
+  differential privacy. Finding 11 observes no model updates at all.
+
 ## Open: claims not yet grounded
 
 Kept explicit so silence does not read as coverage.
@@ -472,6 +502,15 @@ Kept explicit so silence does not read as coverage.
   measured, not asserted.
 - **Finding 3b's "scale does not help"** rests on six models at n=40 here and no
   external corroboration.
+- **Finding 11's channel has no published counterpart we could find.** The federated
+  inference literature verified above attacks the *parameter* channel: gradients,
+  model updates, or the messages exchanged during training. Finding 11 attacks a
+  channel that literature does not treat, namely a stream of governed content items
+  each of which has already passed a disclosure gate, and it observes no parameters
+  at all. We state this as an absence of found precedent rather than as novelty:
+  the searches were "attribute inference federated personalization", "label
+  distribution inference", and "declassification unlinkability", run 2026-08-01, and
+  a negative search result is weaker evidence than a positive one.
 - ~~**Accept / revise / reject as a supervision signal** has no citation yet.~~
   **Closed 2026-08-01.** The published framing is learning from *user edits*, and it
   is now cited above: Gao et al. 2024 for the interaction shape, Misra et al. 2026

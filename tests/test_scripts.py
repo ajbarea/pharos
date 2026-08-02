@@ -1349,3 +1349,150 @@ def test_trainer_exposes_the_eval_seed_flag():
     # And records it in the artifact, so a cross-corpus number cannot be mistaken
     # for a within-corpus one when it is read back later.
     assert '"cross_corpus"' in src
+
+
+# -------------------------------------------------------- fleet linkage -----
+
+
+def _linkage_module():
+    import measure_fleet_linkage as mfl
+
+    return mfl
+
+
+def _small_fleet_and_stream():
+    from pharos.disclosure import DROP_COMPARTMENTS
+    from pharos.fleet import assign_fleet, contribute
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=40)))
+    fleet = assign_fleet(20, seed=11)
+    return tasks, fleet, contribute(fleet, tasks, policy=DROP_COMPARTMENTS)
+
+
+def test_recovery_and_anonymity_are_empty_safe():
+    mfl = _linkage_module()
+    assert mfl.recovery_rate(()) == 0.0
+    assert mfl.mean_anonymity(()) == 0.0
+    assert mfl.majority_prior(()) == 0.0
+
+
+def test_majority_prior_is_the_most_common_beat():
+    """The floor a linkage attack has to beat, and it is not 1/16 once a fleet is drawn."""
+    mfl = _linkage_module()
+    from pharos.fleet import assign_fleet
+
+    fleet = assign_fleet(200, seed=11)
+    prior = mfl.majority_prior(fleet)
+    share = max(
+        sum(1 for c in fleet if c.compartments == target) / len(fleet)
+        for target in {c.compartments for c in fleet}
+    )
+    assert prior == pytest.approx(share)
+    assert prior >= 1 / mfl.N_COMPARTMENT_SETS
+
+
+def test_trials_cluster_on_the_analyst_not_the_task():
+    """Tasks are shared across the fleet, so a task-clustered resample double-counts people."""
+    mfl = _linkage_module()
+    from pharos.disclosure import DROP_COMPARTMENTS
+    from pharos.fleet import link
+
+    tasks, fleet, stream = _small_fleet_and_stream()
+    linkages = link(stream, tasks, fleet, policy=DROP_COMPARTMENTS)
+    trials = mfl.trials(linkages)
+    assert len(trials) == len(fleet)
+    assert len({t.task_id for t in trials}) == len(fleet)
+
+
+def test_evaluate_prices_a_control_in_retained_volume():
+    mfl = _linkage_module()
+    from pharos.disclosure import DROP_COMPARTMENTS
+    from pharos.fleet import apply_pooling
+
+    tasks, fleet, stream = _small_fleet_and_stream()
+    full = mfl.evaluate(fleet, tasks, stream, policy=DROP_COMPARTMENTS, baseline_volume=len(stream))
+    assert full["retained_volume"] == 1.0
+
+    pooled = mfl.evaluate(
+        fleet, tasks, apply_pooling(stream), policy=DROP_COMPARTMENTS, baseline_volume=len(stream)
+    )
+    # Pooling costs no volume and takes recovery to zero: the whole point of the row.
+    assert pooled["retained_volume"] == 1.0
+    assert pooled["recovery"] == 0.0
+
+    # A zero baseline is reported as zero rather than dividing by it.
+    assert (
+        mfl.evaluate(fleet, tasks, (), policy=DROP_COMPARTMENTS, baseline_volume=0)[
+            "retained_volume"
+        ]
+        == 0.0
+    )
+
+
+# ---------------------------------------------------------- power analysis -----
+
+
+def _power_module():
+    import measure_power as mp
+
+    return mp
+
+
+def test_a_claim_against_a_constant_costs_one_half_width_not_two():
+    """The distinction that flipped a published verdict, so it gets a test.
+
+    A majority floor and a stated ceiling are computed exactly from a generated
+    corpus and carry no sampling noise. Charging such a claim two half-widths (the
+    two-condition price) reported finding 3b's mistral result as unresolved while
+    finding 3b's own interval table showed it clearing outright.
+    """
+    mp = _power_module()
+    against_constant = mp.Claim("x", 40, 0.2, "vs a known floor", True)
+    two_conditions = mp.Claim("x", 40, 0.2, "vs another measurement")
+
+    assert against_constant.threshold(0.15) == pytest.approx(0.15)
+    assert two_conditions.threshold(0.15) == pytest.approx(0.30)
+    # The gap that motivated the correction: resolved against a constant, not
+    # against a second sampled condition.
+    assert against_constant.effect > against_constant.threshold(0.15)
+    assert two_conditions.effect < two_conditions.threshold(0.15)
+
+
+def test_half_width_shrinks_with_n():
+    mp = _power_module()
+    wide = mp.half_width(30, 0.5, resamples=200, seed=7)
+    narrow = mp.half_width(600, 0.5, resamples=200, seed=7)
+    assert narrow < wide
+    assert 0.0 < narrow < 0.2
+
+
+def test_minimum_detectable_is_twice_the_half_width():
+    """It is the strict end of the three rules, and the docstring says so."""
+    mp = _power_module()
+    half = mp.half_width(120, 0.5, resamples=200, seed=7)
+    assert mp.minimum_detectable(120, 0.5, resamples=200, seed=7) == pytest.approx(2 * half)
+
+
+def test_every_claim_carries_a_finding_and_a_description():
+    """A claim with no finding behind it is a number nobody can check."""
+    mp = _power_module()
+    assert mp.CLAIMS
+    for claim in mp.CLAIMS:
+        assert claim.finding and claim.description
+        assert claim.n > 0
+        assert 0.0 <= claim.effect <= 1.0
+        if claim.rate is not None:
+            assert 0.0 < claim.rate < 1.0
+
+
+def test_class_balance_is_read_from_the_corpus_not_assumed():
+    mp = _power_module()
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=mp.SEED, n_events=60)))
+    rate = mp.class_balance(tasks)
+    assert rate == pytest.approx(sum(1 for t in tasks if t.significant) / len(tasks))
+    assert mp.class_balance([]) == 0.5

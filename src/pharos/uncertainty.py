@@ -34,6 +34,7 @@ Nothing in this module addresses those; it quantifies the two sources Pharos can
 resample and leaves the rest named in the docs.
 """
 
+import math
 import random
 import statistics
 from collections.abc import Callable, Iterable, Sequence
@@ -286,9 +287,36 @@ def summarize(
 def resolves(first: Interval, second: Interval) -> bool:
     """Whether two intervals separate their point estimates.
 
-    False when either covers the other's point, which is the condition for saying
-    two conditions differ. Deliberately conservative and deliberately not a p-value:
-    the question a reader has is whether a reported ordering survives the noise, and
-    overlapping intervals answer it.
+    False when either covers the other's point. For two intervals of equal
+    half-width `h` this is satisfied once the gap exceeds roughly `h`.
+
+    **This is the weaker of the two criteria here, not the stronger one.** An earlier
+    version of this docstring called it conservative, which is backwards: the question
+    "do two conditions differ" is properly asked of an interval on their *difference*,
+    and that interval is wider than either input. Use `resolves_difference` for a
+    claim that two conditions differ. Keep this one for the weaker and still useful
+    statement that a reported ordering is not an artifact of one interval alone.
     """
     return not (first.covers(second.point) or second.covers(first.point))
+
+
+def resolves_difference(first: Interval, second: Interval) -> bool:
+    """Whether the *difference* between two conditions is resolved.
+
+    The gap must exceed the half-width of an interval on the difference, which under
+    independence is the root of the sum of squares rather than either half-width or
+    their sum. Compared with the alternatives:
+
+        gap > h                  what `resolves` implements; too permissive
+        gap > sqrt(h1^2 + h2^2)  this; an interval on the difference
+        gap > h1 + h2            never wrong, and needlessly strict
+
+    Independence is assumed and is the conservative assumption when conditions share
+    an evaluation set, since positive correlation across shared tasks would narrow the
+    difference interval. A paired bootstrap over per-task outcomes would be tighter
+    and is what this should become once measurements persist per-task rows; until they
+    do, this bounds the claim rather than overstating it.
+    """
+    gap = abs(first.point - second.point)
+    spread = math.sqrt((first.width / 2.0) ** 2 + (second.width / 2.0) ** 2)
+    return gap > spread

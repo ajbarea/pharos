@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -33,6 +33,10 @@ power:                     ## What each evaluation size can resolve (no model)
 	@mkdir -p results
 	uv run python scripts/measure_power.py --out results/power.json
 
+linkage:                   ## What the fleet's contribution stream leaks about analysts (no model)
+	@mkdir -p results
+	uv run python scripts/measure_fleet_linkage.py --out results/fleet_linkage.json
+
 explorer:                  ## Freeze the explorer into docs/explorer for static hosting
 	uv run python scripts/build_static_explorer.py --out docs/explorer
 
@@ -58,3 +62,4 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_analyst_review.py
 	uv run python scripts/measure_review_sweep.py
 	uv run python scripts/measure_power.py
+	uv run python scripts/measure_fleet_linkage.py

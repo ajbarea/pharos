@@ -140,6 +140,7 @@ corrections, and the caveats.
 | 8 | Being right and sloppy beats being wrong and careful |
 | 9 | A measurement that repeats one prompt measures the wrong thing |
 | 10 | A fleet learns its analyst's standard, not the world's |
+| 11 | The gate clears every item, and the stream still names the analyst |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -150,6 +151,7 @@ make results     # regenerate the Ollama-backed measurements into results/
 make review      # replay the committed verdicts past the analyst grid (no model)
 make sweep       # target accuracy across the reviewer parameter grid (no model)
 make power       # what each evaluation size can resolve (no model)
+make linkage     # what the fleet's contribution stream leaks about analysts (no model)
 ```
 
 ## Build order
@@ -159,18 +161,25 @@ make power       # what each evaluation size can resolve (no model)
 2. **Tasks and scorers.** `pharos.tasks` carries the triage task and `pharos.detect`
    the labelling path. Still owed are the plant registry, the remaining specialist
    scorers, and an adversarial-input pass over each.
-3. **Simulated analysts.** Finding 10 answers the question this step existed to
-   ask: an adapter trained on a reviewer's decisions reproduces that reviewer's
-   standard exactly, so a wrong analyst yields a wrong agent while a merely careless
-   one is largely repaired by training. `pharos.analyst` supplies the reviewer as a specified
-   policy and finding 7 reports what a review stream is worth: not scarce, but
-   carrying the reviewer's standard rather than the world's, so a reviewer who
-   over-escalates teaches targets below the majority floor. The compartment ruling
-   *is* movable, by an authority rather than by the reviewer, at a cost of 52.5% of
-   the stream. Still owed is the experiment that decides the premise: **a learner
-   trained on those decisions rather than on clean labels.** Finding 6 used the
-   generator's ground truth; whether the rule survives a reviewer's standard is the
-   question the fleet actually turns on. This step remains the critical path.
+3. **Simulated analysts.** Done. This step existed to ask whether the rule survives
+   being learned from a reviewer's decisions rather than from clean labels, and
+   finding 10 answers it: an adapter trained on a reviewer's decisions reproduces
+   that reviewer's standard exactly, so a wrong analyst yields a wrong agent while a
+   merely careless one is largely repaired by training. `pharos.analyst` supplies the
+   reviewer as a specified policy, and finding 7 reports what a review stream is
+   worth: not scarce, but carrying the reviewer's standard rather than the world's,
+   so a reviewer who over-escalates teaches targets below the majority floor. The
+   compartment ruling *is* movable, by an authority rather than by the reviewer, at a
+   cost of 52.5% of the stream.
+
+4. **Fleet-level disclosure.** Finding 11 moves the question from the item to the
+   stream, and it is the current critical path. A per-item gate does not compose:
+   an attack reading no content recovers an analyst's compartment set from a stream
+   of individually-approved items, concentrated entirely on the most highly cleared
+   contributors. Still owed is the piece the finding names and does not settle --
+   an annotator-reliability estimate computed *under* the aggregation that hides
+   contributor identity, since finding 10's mitigation needs that identity and
+   finding 11 shows it is what makes the leak attributable.
 
 ## License
 

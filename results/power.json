@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "ca6da89d5512",
+    "git_commit": "e8017447ab5b",
     "git_dirty": true,
-    "generated_at": "2026-08-01T22:36:26+00:00",
+    "generated_at": "2026-08-02T00:19:56+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
@@ -68,7 +68,9 @@
       "finding": "3b",
       "n": 40,
       "effect": 0.0,
-      "min_detectable": 0.3,
+      "against_constant": true,
+      "rate": 0.2975,
+      "required_gap": 0.15,
       "resolved": false,
       "n_needed": null,
       "description": "qwen2.5-3b (0.625) clears the majority floor (0.625)"
@@ -77,34 +79,64 @@
       "finding": "3b",
       "n": 40,
       "effect": 0.2,
-      "min_detectable": 0.3,
-      "resolved": false,
-      "n_needed": 120,
+      "against_constant": true,
+      "rate": 0.2975,
+      "required_gap": 0.15,
+      "resolved": true,
+      "n_needed": null,
       "description": "mistral-7b (0.425) is below the majority floor (0.625)"
     },
     {
       "finding": "5",
-      "n": 30,
-      "effect": 0.078,
-      "min_detectable": 0.3667,
+      "n": 600,
+      "effect": 0.009,
+      "against_constant": false,
+      "rate": 0.2975,
+      "required_gap": 0.07,
       "resolved": false,
-      "n_needed": 600,
-      "description": "8 shots (0.571) beats 0 shots (0.493)"
+      "n_needed": null,
+      "description": "8 shots (0.514) beats 0 shots (0.523) -- REFUTED at n=600"
     },
     {
       "finding": "5",
-      "n": 30,
-      "effect": 0.507,
-      "min_detectable": 0.3667,
+      "n": 600,
+      "effect": 0.055,
+      "against_constant": false,
+      "rate": 0.2975,
+      "required_gap": 0.07,
+      "resolved": false,
+      "n_needed": 2000,
+      "description": "2 shots (0.468) is worse than 0 shots (0.523)"
+    },
+    {
+      "finding": "5",
+      "n": 600,
+      "effect": 0.486,
+      "against_constant": true,
+      "rate": 0.2975,
+      "required_gap": 0.035,
       "resolved": true,
       "n_needed": null,
-      "description": "8 shots (0.493) is below the stated-rule ceiling (1.000)"
+      "description": "8 shots (0.514) is below the stated-rule ceiling (1.000)"
+    },
+    {
+      "finding": "5",
+      "n": 600,
+      "effect": 0.179,
+      "against_constant": true,
+      "rate": 0.2975,
+      "required_gap": 0.035,
+      "resolved": true,
+      "n_needed": null,
+      "description": "8 shots (0.514) is below the majority floor (0.693)"
     },
     {
       "finding": "6",
       "n": 60,
       "effect": 0.531,
-      "min_detectable": 0.2333,
+      "against_constant": false,
+      "rate": 0.2975,
+      "required_gap": 0.2333,
       "resolved": true,
       "n_needed": null,
       "description": "adapter (1.000) beats the base model (0.469)"
@@ -113,7 +145,9 @@
       "finding": "10",
       "n": 60,
       "effect": 0.367,
-      "min_detectable": 0.2333,
+      "against_constant": false,
+      "rate": 0.2975,
+      "required_gap": 0.2333,
       "resolved": true,
       "n_needed": null,
       "description": "any-one adapter matches teacher (1.000) not world (0.633)"
@@ -122,10 +156,34 @@
       "finding": "10",
       "n": 60,
       "effect": 0.083,
-      "min_detectable": 0.2333,
+      "against_constant": false,
+      "rate": 0.2975,
+      "required_gap": 0.2333,
       "resolved": false,
       "n_needed": 600,
       "description": "inattentive adapter (0.883) beats its own teacher (0.800)"
+    },
+    {
+      "finding": "11",
+      "n": 200,
+      "effect": 0.1,
+      "against_constant": true,
+      "rate": 0.205,
+      "required_gap": 0.065,
+      "resolved": true,
+      "n_needed": null,
+      "description": "linkage recovery (0.205) beats the guessing prior (0.105)"
+    },
+    {
+      "finding": "11",
+      "n": 50,
+      "effect": 0.82,
+      "against_constant": false,
+      "rate": 0.82,
+      "required_gap": 0.18,
+      "resolved": true,
+      "n_needed": null,
+      "description": "RESTRICTED analysts (0.820) are recovered where OPEN (0.000) are not"
     }
   ]
 }

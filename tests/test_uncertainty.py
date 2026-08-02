@@ -174,3 +174,35 @@ def test_summarize_reports_both_estimands_and_the_split():
     assert payload["single_run"]["level"] == 0.95
     assert set(payload["variance"]) == {"between_task", "within_task", "within_share"}
     assert payload["consensus_gain"] == pytest.approx(m.consensus - m.single_run.point, abs=1e-4)
+
+
+def test_difference_test_is_stricter_than_point_coverage():
+    """The pair that taught us the two criteria disagree, kept as a regression.
+
+    Finding 5's 0-shot versus 2-shot at n=600: neither interval covers the other's
+    point, so `resolves` says yes, while an interval on the difference says no. A
+    draft claimed the difference on the strength of the weaker test.
+    """
+    from pharos.uncertainty import Interval, resolves, resolves_difference
+
+    zero = Interval(0.5234, 0.4841, 0.5654, 0.95, 2000)
+    two = Interval(0.4683, 0.4269, 0.5085, 0.95, 2000)
+    assert resolves(zero, two)
+    assert not resolves_difference(zero, two)
+
+
+def test_difference_test_accepts_a_genuinely_large_gap():
+    from pharos.uncertainty import Interval, resolves_difference
+
+    low = Interval(0.469, 0.400, 0.538, 0.95, 2000)
+    high = Interval(1.000, 1.000, 1.000, 0.95, 2000)
+    assert resolves_difference(low, high)
+    # Symmetric: which one is passed first cannot change the answer.
+    assert resolves_difference(high, low)
+
+
+def test_identical_conditions_never_resolve():
+    from pharos.uncertainty import Interval, resolves_difference
+
+    same = Interval(0.5, 0.45, 0.55, 0.95, 2000)
+    assert not resolves_difference(same, same)

@@ -46,25 +46,69 @@ RESAMPLES = 600
 
 @dataclass(frozen=True, slots=True)
 class Claim:
-    """One headline claim, the size it was measured at, and the gap it rests on."""
+    """One headline claim, the size it was measured at, and the gap it rests on.
+
+    `against_constant` distinguishes the two questions this file prices, because they
+    do not cost the same. Comparing two measured conditions needs the gap to clear a
+    half-width on each side. Comparing one measured rate against a *fixed* reference
+    -- a majority floor, a stated ceiling, a prior an adversary reaches by guessing --
+    needs it to clear one half-width only, because the reference carries no sampling
+    noise of its own. Treating the second as though it were the first would declare
+    resolved claims unresolved, which is a failure of the instrument rather than
+    conservatism.
+    """
 
     finding: str
     n: int
     effect: float
     description: str
+    against_constant: bool = False
+    #: Outcome rate to price this claim at, when it is not the corpus class balance.
+    #: Interval width depends on the rate, and a finding whose trials are analysts
+    #: recovered rather than tasks answered has its own. Left None the corpus balance
+    #: is used, which is the right reference for every task-scored finding here.
+    rate: float | None = None
+
+    def threshold(self, half: float) -> float:
+        """The gap this claim must clear at a given half-width."""
+        return half if self.against_constant else 2.0 * half
 
 
 #: Effects are the *gap the claim depends on*, not the score itself. A claim that a
 #: model fails to clear a floor rests on the distance from the score to the floor; a
 #: claim that two conditions differ rests on the distance between them.
 CLAIMS: tuple[Claim, ...] = (
-    Claim("3b", 40, 0.000, "qwen2.5-3b (0.625) clears the majority floor (0.625)"),
-    Claim("3b", 40, 0.200, "mistral-7b (0.425) is below the majority floor (0.625)"),
-    Claim("5", 30, 0.078, "8 shots (0.571) beats 0 shots (0.493)"),
-    Claim("5", 30, 0.507, "8 shots (0.493) is below the stated-rule ceiling (1.000)"),
+    # The majority floor and the stated-rule ceiling are computed from a generated
+    # corpus and are therefore exact, not estimated: claims against them pay one
+    # half-width, not two.
+    Claim("3b", 40, 0.000, "qwen2.5-3b (0.625) clears the majority floor (0.625)", True),
+    Claim("3b", 40, 0.200, "mistral-7b (0.425) is below the majority floor (0.625)", True),
+    # Bought and refuted 2026-08-01. Remeasured at 600 the gap is -0.009, so the
+    # claim is not merely unresolved, it is gone. Kept in the table at its new size
+    # because a claim that was retired by more data is exactly what this file is for.
+    Claim("5", 600, 0.009, "8 shots (0.514) beats 0 shots (0.523) -- REFUTED at n=600"),
+    Claim("5", 600, 0.055, "2 shots (0.468) is worse than 0 shots (0.523) -- direction only"),
+    Claim("5", 600, 0.486, "8 shots (0.514) is below the stated-rule ceiling (1.000)", True),
+    Claim("5", 600, 0.179, "8 shots (0.514) is below the majority floor (0.693)", True),
     Claim("6", 60, 0.531, "adapter (1.000) beats the base model (0.469)"),
     Claim("10", 60, 0.367, "any-one adapter matches teacher (1.000) not world (0.633)"),
     Claim("10", 60, 0.083, "inattentive adapter (0.883) beats its own teacher (0.800)"),
+    # Finding 11 clusters over analysts rather than tasks, so n is the fleet size.
+    Claim(
+        "11",
+        200,
+        0.100,
+        "linkage recovery (0.205) beats the guessing prior (0.105)",
+        True,
+        rate=0.205,
+    ),
+    Claim(
+        "11",
+        50,
+        0.820,
+        "RESTRICTED analysts (0.820) are recovered where OPEN (0.000) are not",
+        rate=0.820,
+    ),
 )
 
 
@@ -89,9 +133,12 @@ def half_width(n: int, rate: float, *, resamples: int, seed: int) -> float:
 def minimum_detectable(n: int, rate: float, *, resamples: int, seed: int) -> float:
     """Smallest gap two conditions of size `n` could separate.
 
-    Two intervals separate when neither covers the other's point, so the gap must
-    exceed roughly one half-width on each side. Conservative and matched to how
-    `uncertainty.resolves` actually decides.
+    Two half-widths, which is the strict end of the three rules in play. It exceeds
+    the difference interval `uncertainty.resolves_difference` applies, and it is well
+    above the point-coverage rule `uncertainty.resolves` applies. A claim this table
+    calls resolved is therefore resolved under any of them, and a claim it calls
+    unresolved may still separate under the difference test -- so the table under-
+    reports rather than over-reports, which is the direction to err in.
     """
     return 2.0 * half_width(n, rate, resamples=resamples, seed=seed)
 
@@ -121,13 +168,16 @@ def main() -> int:
     print("=" * 74)
     verdicts = []
     for claim in CLAIMS:
-        mde = minimum_detectable(claim.n, rate, resamples=args.resamples, seed=SEED)
-        resolved = claim.effect > mde
+        claim_rate = claim.rate if claim.rate is not None else rate
+        half = half_width(claim.n, claim_rate, resamples=args.resamples, seed=SEED)
+        required = claim.threshold(half)
+        resolved = claim.effect > required
         # The smallest listed size that would resolve it, when the current one does not.
         needed = None
         if not resolved:
             for n in SIZES:
-                if claim.effect > minimum_detectable(n, rate, resamples=args.resamples, seed=SEED):
+                candidate = half_width(n, claim_rate, resamples=args.resamples, seed=SEED)
+                if claim.effect > claim.threshold(candidate):
                     needed = n
                     break
         verdicts.append(
@@ -135,7 +185,9 @@ def main() -> int:
                 "finding": claim.finding,
                 "n": claim.n,
                 "effect": claim.effect,
-                "min_detectable": round(mde, 4),
+                "against_constant": claim.against_constant,
+                "rate": round(claim_rate, 4),
+                "required_gap": round(required, 4),
                 "resolved": resolved,
                 "n_needed": needed,
                 "description": claim.description,

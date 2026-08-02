@@ -9,6 +9,8 @@ Ti. Finding 3b sweeps six models from 3B to 14B, and finding 6 fine-tunes
 and 8 call no model at all: they regenerate the corpus from its seed and review
 verdicts already committed to `results/`, so both reproduce exactly and run in CI.
 Finding 9 is a measurement-design result and retracts an earlier version of itself.
+Finding 11 calls no model either -- it is a property of the corpus's label structure
+and of who can read what -- so it also reproduces exactly and runs in CI.
 
 Every artifact in `results/` carries the version, commit, platform, model, and seed
 behind it, so any number here traces back to the run and the machine that produced
@@ -20,7 +22,7 @@ machines, while the gate is.
     needs Ollama serving the model each script names, and it is slow: the label
     fidelity pass alone is 216 sequential model calls. Findings 3b and 6 are cluster
     jobs and are not part of this target. `make review` regenerates finding 7 and
-    needs neither.
+    `make linkage` finding 11; neither needs a model.
 
 ## Status: provisional
 
@@ -76,19 +78,37 @@ gap between them exceeds roughly one half-width on each side, which is exactly h
 
 **Every headline claim against the size it was actually run at:**
 
-| Finding | n | Gap it rests on | Verdict | Claim |
-| --- | --- | --- | --- | --- |
-| 3b | 40 | 0.000 | unresolved (needs n>2000) | qwen2.5-3b (0.625) clears the majority floor (0.625) |
-| 3b | 40 | 0.200 | unresolved (needs n≥120) | mistral-7b (0.425) is below the majority floor (0.625) |
-| 5 | 30 | 0.078 | unresolved (needs n≥600) | 8 shots (0.571) beats 0 shots (0.493) |
-| 5 | 30 | 0.507 | **resolved** | 8 shots (0.493) is below the stated-rule ceiling (1.000) |
-| 6 | 60 | 0.531 | **resolved** | adapter (1.000) beats the base model (0.469) |
-| 10 | 60 | 0.367 | **resolved** | any-one adapter matches teacher (1.000) not world (0.633) |
-| 10 | 60 | 0.083 | unresolved (needs n≥600) | inattentive adapter (0.883) beats its own teacher (0.800) |
+A claim measured against a *fixed* reference is cheaper to resolve than one comparing
+two measured conditions, and the table prices them differently. The majority floor,
+the stated-rule ceiling, and an adversary's guessing prior are all computed exactly
+from a generated corpus, so they carry no sampling noise of their own and the gap has
+to clear one half-width rather than two. Charging them double was an error in an
+earlier version of this section, and it understated two claims.
 
-Three of seven are resolved, and the pattern is the useful part. **The claims this
+| Finding | n | Gap it rests on | vs | Verdict | Claim |
+| --- | --- | --- | --- | --- | --- |
+| 3b | 40 | 0.000 | constant | unresolved (needs n>2000) | qwen2.5-3b (0.625) clears the majority floor (0.625) |
+| 3b | 40 | 0.200 | constant | **resolved** | mistral-7b (0.425) is below the majority floor (0.625) |
+| 5 | 30 | 0.078 | condition | unresolved (needs n≥600) | 8 shots (0.571) beats 0 shots (0.493) |
+| 5 | 30 | 0.507 | constant | **resolved** | 8 shots (0.493) is below the stated-rule ceiling (1.000) |
+| 6 | 60 | 0.531 | condition | **resolved** | adapter (1.000) beats the base model (0.469) |
+| 10 | 60 | 0.367 | condition | **resolved** | any-one adapter matches teacher (1.000) not world (0.633) |
+| 10 | 60 | 0.083 | condition | unresolved (needs n≥600) | inattentive adapter (0.883) beats its own teacher (0.800) |
+| 11 | 200 | 0.100 | constant | **resolved** | linkage recovery (0.205) beats the guessing prior (0.105) |
+| 11 | 50 | 0.820 | condition | **resolved** | RESTRICTED analysts (0.820) are recovered where OPEN (0.000) are not |
+
+Six of nine are resolved, and the pattern is the useful part. **The claims this
 project makes strongly rest on large gaps and are comfortably resolved**; the ones
 that are not are mostly ones it already declines to make. Two deserve naming:
+
+!!! warning "Corrected 2026-08-01"
+    This table previously charged every claim two half-widths, including those
+    measured against an exactly-known reference, and reported "mistral-7b is below
+    the majority floor" as unresolved at n=40. That contradicted
+    [finding 3b's own interval table](#3b-over-escalation-is-universal-and-scale-does-not-fix-it),
+    where mistral's `[0.275, 0.600]` excludes the 0.625 floor outright. The
+    inconsistency was in this section, not in finding 3b, and the corrected
+    accounting reconciles the two. No measurement was rerun and no score changed.
 
 - **"qwen2.5-3b clears the majority floor" has a gap of exactly zero.** It ties the
   floor at 0.625. No sample size resolves a tie, so that is not a claim awaiting
@@ -304,73 +324,92 @@ published property of a *correct* corpus rather than a defect to drive to chance
 
 ## 5. In-context learning does not close the gap
 
-`scripts/measure_rule_learnability.py`
+`scripts/measure_rule_learnability.py`, `results/learnability.json`
 
 The design's premise is that a fleet learns analytic craft from an analyst's
 accept, revise, and reject decisions. Withholding the rule and supplying labelled
 examples instead is the cheap form of that question.
 
-| Condition | Shots | Precision | Recall | F1 | Accuracy | 95% interval |
-| --- | --- | --- | --- | --- | --- | --- |
-| Zero-shot floor | 0 | 0.312 | 0.750 | 0.441 | 0.493 | [0.327, 0.673] |
-| Labelled examples | 2 | 0.288 | 0.872 | 0.433 | 0.399 | [0.230, 0.571] |
-| Labelled examples | 4 | 0.340 | 0.900 | 0.493 | 0.475 | [0.301, 0.654] |
-| Labelled examples | 8 | 0.382 | 0.975 | 0.549 | 0.571 | [0.400, 0.740] |
-| **Rule stated, checklist prompt (ceiling)** | n/a | **1.000** | **1.000** | **1.000** | **1.000** | |
+**600 evaluation tasks per condition**, one pass each, `qwen2.5:7b-instruct`.
 
-**Examples close almost none of the gap.** The best few-shot condition closes 19% of
-the distance from the zero-shot floor to the ceiling, and no condition clears its own
-majority-class accuracy, which sits between 0.716 and 0.737. That conclusion is what
-the wide margin supports; nothing finer is.
+| Condition | Shots | Precision | Recall | F1 | Accuracy | 95% interval | Unparsed |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Zero-shot floor | 0 | 0.382 | 0.918 | 0.540 | 0.523 | [0.484, 0.565] | 2 |
+| Labelled examples | 2 | 0.365 | 0.972 | 0.530 | **0.468** | [0.427, 0.509] | 17 |
+| Labelled examples | 4 | 0.391 | 0.978 | 0.559 | 0.515 | [0.475, 0.557] | 21 |
+| Labelled examples | 8 | 0.385 | 0.978 | 0.553 | 0.514 | [0.473, 0.556] | 1 |
+| **Rule stated, checklist prompt (ceiling)** | n/a | **1.000** | **1.000** | **1.000** | **1.000** | | |
 
-**No pair of shot counts is separated by its interval.** All six pairwise
-comparisons overlap. The curve in the table is not a curve -- 2 shots is not worse
-than 0, and 8 is not better than 4, on this data. Whatever examples do here, this
-experiment cannot resolve how it varies with how many of them there are.
+**Examples close 4% of the gap to the ceiling**, and no condition comes near its own
+majority-class accuracy, which sits at 0.693. The floor is not close: the best
+condition is 0.18 below it.
 
-!!! warning "Remeasured 2026-08-01, and why the reason changed"
-    This table was a single pass per condition with no interval. It is now five
-    passes per task with a cluster-bootstrap interval over tasks.
+**Two shots looks *worse* than none, and the data does not quite resolve it.** The
+gap runs the opposite way to what a reader expects, 0.468 against 0.523, and it is
+the closest any pair here comes to separating. It does not separate. The gap is
+0.0551 against a difference half-width of 0.0576, so the honest verdict is a
+direction, not a difference.
 
-    The remeasurement was prompted by a claim that has since been **retracted** --
-    [finding 9](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing)
-    first reported the reasoning decode as 10% self-disagreeing, which turned out to
-    be a cache warm-up artifact of how that probe was designed. Single passes
-    reproduce exactly.
+That distinction is worth spelling out because two criteria disagree on this pair and
+only one of them is right. Neither interval covers the other's point, which is what
+`uncertainty.resolves` tests, and on that basis an earlier draft of this section
+claimed the comparison as resolved. But "do two conditions differ" is a question about
+an interval on their *difference*, and that interval is wider than either input.
+`uncertainty.resolves_difference` applies the correct rule and returns false here.
+The weaker test was mislabelled "conservative" in its own docstring; it is the
+permissive one, and it has been corrected.
 
-    The table stays, because the interval was the point and it was missing. What
-    makes these four conditions inseparable is **sampling uncertainty over 30
-    tasks**, not run-to-run noise: the intervals span roughly 0.34, and no pair
-    separates. The previous F1 column ran 0.538, 0.424, 0.438, 0.571, and the dip at
-    2 shots was never real. Read the within-task figures (2 to 7%) as the cache
-    transition they are, not as measurement noise.
+What the other columns show is a coherent mechanism for the direction, whether or not
+the size is resolved. Recall climbs from 0.918 to 0.972 while precision falls from
+0.382 to 0.365, so the examples are not teaching the rule, they are teaching the model
+to escalate more. That is the same failure
+[finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) found in
+every model tested, and supplying examples does not repair it.
 
-!!! warning "Corrected 2026-08-01"
-    This table previously carried a second series -- examples annotated with the
-    officer's stated reason -- and a different set of F1 values. No committed
-    script produces that condition and no committed artifact holds those numbers,
-    so both are withdrawn. The values above are `results/learnability.json`, which
-    is what `scripts/measure_rule_learnability.py` writes and what the manuscript's
-    table is generated from. The conclusion is unchanged; only the evidence for it
-    is now checkable.
+No pair separates under the difference test. Four, eight, and zero shots are
+indistinguishable from each other at this size.
 
-Three caveats, because this result is easy to over-read:
+!!! warning "Retracted 2026-08-01: the eight-shot lift"
+    An earlier version of this table, measured at **30** tasks, reported 8 shots at
+    accuracy 0.571 against a zero-shot floor of 0.493 and described the best
+    condition as closing 19% of the gap to the ceiling. The
+    [power analysis](#what-these-sizes-can-resolve) priced that 0.078 gap as
+    unresolvable at 30 tasks and put the size needed at roughly 600.
 
-- Thirty evaluation tasks per condition. Differences of about 0.1 sit inside the
-  noise, so the ordering *between* conditions is not claimed, only that none
-  reaches the ceiling.
+    Remeasured at 600: **8 shots scores 0.514 against a zero-shot 0.523**. The lift
+    is not smaller than reported, it is absent, and the point estimate is slightly
+    negative. The claim is withdrawn.
+
+    One further statement from that version survives and is worth keeping: no pair of
+    shot counts is separated. That was true at 30 tasks and remains true at 600 under
+    the difference test, which is a stronger result than it sounds, because it now
+    rests on intervals a fifth as wide.
+
+    This is the second finding here overturned by buying more evaluation rather than
+    by any change of method, and both were flagged in advance by the power table.
+    That is the table working as intended.
+
+Three caveats, because this result is still easy to over-read:
+
+- **Unparsed answers are not evenly distributed.** 21 of 600 at four shots against 1
+  at eight, and an unparsed answer is carried separately rather than scored as wrong.
+  The variation is unexplained and is a reason to treat the 4-versus-8 ordering as
+  noise even beyond what the intervals say.
 - Eight shots is roughly 1,300 words of examples before the target case, so
   long-context dilution is an unseparated confound.
 - **In-context learning is not gradient learning.** Eight examples in a prompt and
   a LoRA trained on 1,140 tuples are different mechanisms, and the first failing
-  does not establish that the second will.
+  does not establish that the second will --
+  [finding 6](#6-gradient-learning-does-close-the-gap-on-clean-labels) shows it does
+  not.
 
-The useful conclusion is about sequencing. The cheap proxy for the design's
-central premise came back negative-to-inconclusive, so the premise cannot be
-validated cheaply and **the adapter experiment is no longer optional: it is the
-thing that decides.** What the ceiling establishes is where the bottleneck sits. A
-model that reaches F1 1.000 when told the rule is not short of capability, it is
-short of the rule, so rule *acquisition* is the whole question.
+The useful conclusion is about sequencing, and it is now stronger than when the
+lift looked real. The cheap proxy for the design's central premise came back
+**negative**, not merely inconclusive, so the premise cannot be validated cheaply and
+the adapter experiment is the thing that decides. What the ceiling establishes is
+where the bottleneck sits: a model that reaches F1 1.000 when told the rule is not
+short of capability, it is short of the rule, so rule *acquisition* is the whole
+question.
 
 ## 6. Gradient learning does close the gap, on clean labels
 
@@ -721,3 +760,135 @@ construction and most annotation pipelines discard.
     teachers remain parameterised
     decision procedures, so this bounds a mechanism and estimates nothing about
     human analysts.
+
+## 11. The gate clears every item, and the stream still names the analyst
+
+`scripts/measure_fleet_linkage.py`, `src/pharos/fleet.py`, `results/fleet_linkage.json`
+
+Every gate above decides one item at a time. `shared_eligible` asks whether *this*
+entry may train an adapter released at a ceiling; `disclosure.decide` asks whether
+*this* derived label may leave and on whose authority. Both are correct at what they
+do, and neither is asked the question the design's motivating claim actually turns
+on: whether a fleet can learn across analysts **without leaking what any analyst
+works on**.
+
+A fleet does not disclose an item. It discloses a stream, and a stream carries
+something no item in it carries -- the set of tasks a contributor was able to weigh
+in on at all. That set is a function of the contributor's clearance, because an
+analyst can only decide what an analyst can read.
+
+The attack reads **no content**: not the report text, not the verdict, not the
+released label. It sees only which task identifiers appear under a pseudonym, and
+matches that against what each of the 16 candidate compartment sets would have been
+able to reach. That is the sharpest available form of the claim, because there is no
+text in it to redact and no capacity to lower. "Reads no content" is enforced rather
+than asserted: a test flips every verdict in the stream and requires the attack's
+output to be unchanged, so a future edit that lets content reach the scorer fails the
+build.
+
+200 tasks, a fleet of 200 analysts drawn from the full clearance space, every item in
+the stream already approved by the per-item gates.
+
+| Ruling | Contributions | Compartment set recovered | Mean anonymity set |
+| --- | --- | --- | --- |
+| shed compartments | 7,053 | **0.205** [0.150, 0.265] | 10.0 |
+| keep compartments | 1,000 | 0.000 [0.000, 0.000] | 16.0 |
+
+Guessing the fleet's most common beat scores 0.105, and the interval excludes it, so
+the attack is doing real work. But the aggregate is the least interesting number here.
+
+**Identifiability is not spread evenly across the fleet. It concentrates on exactly
+the analysts with the most to protect.**
+
+| Contributor's own clearance | n | Recovered | Mean anonymity set |
+| --- | --- | --- | --- |
+| OPEN | 66 | 0.000 [0.000, 0.000] | 16.0 |
+| INTERNAL | 48 | 0.000 [0.000, 0.000] | 12.0 |
+| PROTECTED | 36 | 0.000 [0.000, 0.000] | 7.0 |
+| RESTRICTED | 50 | **0.820** [0.700, 0.920] | 2.3 |
+
+The mechanism is structural rather than statistical. Of the 64 candidate clearances,
+only **17 produce distinct reachable task sets**, and 12 of those 17 belong to
+exactly one compartment set while a single set is shared by all 16. A cleared analyst
+can reach the rare, heavily compartmented tasks, and those tasks are diagnostic; an
+uncleared one reaches only the handful of uncompartmented tasks everyone reaches, and
+is hidden in the whole candidate space. The pattern holds across five fleet draws
+(RESTRICTED 0.720 to 0.820, every other level exactly 0.000), so it is not an artifact
+of one sample.
+
+A tie is scored as a failure to identify, never as a hit. That is why three of the
+four rows are exactly zero: an adversary left choosing among seven candidates has not
+named anyone, and crediting the tie-break for a coin flip would report a convention as
+a result.
+
+**The controls, each priced in the training volume it destroys.**
+
+| Control | Recovered | Anonymity set | Volume kept | Analysts silenced |
+| --- | --- | --- | --- | --- |
+| none | 0.205 | 10.0 | 1.000 | 0 |
+| k-anonymity, k=10 | 0.205 | 10.0 | 0.992 | 0 |
+| k-anonymity, k=25 | 0.130 | 10.0 | 0.845 | 0 |
+| k-anonymity, k=50 | 0.000 | 13.3 | 0.265 | 0 |
+| suppress rarest 25% | 0.130 | 10.1 | 0.925 | 0 |
+| **suppress rarest 50%** | **0.000** | 12.5 | **0.764** | 0 |
+| subsample p=0.5 | 0.185 | 10.1 | 0.511 | 5 |
+| subsample p=0.05 | 0.025 | 8.6 | 0.048 | 108 |
+| **pool contributors** | **0.000** | **200.0** | **1.000** | 0 |
+
+Three things fall out of that table.
+
+**Textbook k-anonymity at a small k is a no-op**, because in a fleet of 200 even a
+rare clearance cell has several holders: k=10 changes nothing and costs almost
+nothing. It only bites at k=50, where it takes 73% of the training data with it.
+Choosing the threshold by rank instead of as an absolute count reaches the same
+protection for under a third of that cost (23.6% of the volume against 73.5%), and is
+the version worth deploying.
+
+**Subsampling is dominated on both axes.** At p=0.05 it still leaks while destroying
+95% of the volume and silencing 108 of 200 analysts. It removes contributions
+uniformly when the identifying signal is concentrated in the rare ones. (This was our
+first guess at the mechanism and it was wrong -- we assumed the signal lived in the
+*pattern of absences* and would survive suppression of rare tasks. Suppressing the
+rarest half drives recovery to zero, so it does not.)
+
+**Pooling contributors is total and free.** Recovery goes to zero, the anonymity set
+becomes the whole fleet, and not one training example is lost. The reason it costs
+nothing is structural to the design rather than lucky: personalization is the part
+that stays local, so the shared side never needed to know who sent what. The cost
+that remains is the secure-aggregation protocol itself, which is real engineering and
+is not modelled here.
+
+**The tension this creates with finding 10.** Finding 10 concluded that the
+mitigation for learning a wrong standard is annotator-reliability weighting, which
+*requires annotator identity retained through training*. This finding says annotator
+identity is exactly what makes the leak attributable to a person. The two mitigations
+are in direct conflict, and the conflict is not resolvable by tuning: one wants a
+per-contributor weight and the other wants no per-contributor anything. Naming it is
+worth more than picking a side, and the design owes an answer -- most likely a
+reliability estimate computed under the same secure aggregation that hides the
+identity, which neither finding measures.
+
+**What this means for the design.** A disclosure gate that certifies items is not a
+privacy mechanism for a fleet, and no amount of per-item correctness makes it one.
+The ruling that makes federation viable at all
+([finding 2](#2-the-design-is-bimodal-on-one-policy-ruling)) is the same ruling that
+opens this channel: shedding compartments takes contributions from 1,000 to 7,053 and
+recovery from 0.000 to 0.205. Privacy and utility here are one knob, not two, and it
+is the knob finding 2 already identified as the design's hinge.
+
+!!! note "What this does not settle"
+    One corpus, one adversary, and a clearance-recovery attack rather than a
+    membership or reconstruction attack. The adversary is given the corpus's label
+    structure, which is honest for a published benchmark and generous for a deployed
+    system. Analysts are parameterised clearances, not people, and a real watch floor
+    would show correlations between beat and workload that this does not model --
+    every one of which would make the attack easier, not harder. Nothing here measures
+    a trained model: the leak is in the contribution stream, upstream of any gradient.
+
+    **The load-bearing assumption is that the aggregator can tell which task a
+    contribution concerns.** That holds when the federation unit is a labeled example,
+    which is this design's premise and the reason its disclosure gate operates on
+    content at all. It does *not* hold when only gradients are shared, and the
+    established federated-inference attacks target that gradient channel instead. So
+    this result does not transfer to gradient-only federation, and the gradient-channel
+    attacks do not transfer here. Naming the channel is the whole of the claim.
