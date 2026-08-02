@@ -29,23 +29,35 @@ who hold the wrong rule.
 
 The ability estimate then names the wrong people, which is worse still. GLAD scores
 each reviewer as well as each item, and that score is what a supervisor would act on.
-Below the majority it is right, rating the wrong-standard reviewers 1.13 against 7.31.
-Above it, it inverts to 8.63 against 0.27, so the same field read the same way sends
+Below the majority it is right, rating the wrong-standard reviewers 1.96 against 3.98.
+Above it, it inverts to 3.60 against 2.54, so the same field read the same way sends
 the supervisor to retrain the reviewers who are correct. Agreement at least drops to
 0.717 and announces that something is wrong; the ability column stays confident.
 
-**Only converged rows are quoted.** GLAD is an unregularised MLE whose ability and
-log-difficulty are unbounded, so where the posteriors never settle the parameters keep
-climbing and the estimate reports where the ascent was interrupted. On the random-slip
-composition that is what happens: raising the cap from 100 to 3000 iterations grows its
-mean difficulty from 47.8 to 3580.8 while the spread wanders between 1.6 and 5.2. Its
-magnitude is therefore withheld and only the *position* of its peak is used, which is
-stable at overlap 0 throughout. The three rows carrying the finding converge in 1, 4
-and 7 iterations; `carries_the_claim` marks them, and this script exits non-zero if any
-of them stops doing so. Slow convergence is a documented property of the method rather
-than a defect here -- Zheng et al., PVLDB 10(5):541-552, 2017, group GLAD with the
-slowest methods tested "because they solve an optimization function in each iteration",
-and report separately that difficulty-modelling methods do not improve quality.
+**And class-conditioning does not rescue it.** The strongest objection to all of the
+above is that GLAD gives each reviewer a single ability, while a two-of-three reviewer
+is not globally unreliable -- they are exactly right on the significant class and wrong
+only on routine items at the boundary. Singer et al. (arXiv:2607.24622, 2026) name that
+limitation directly, noting that a single ability per annotator "prevents them from
+distinguishing majority-class competence from minority-class competence", and their
+CC-Rasch model conditions both ability and difficulty on the class. Running it here
+answers the objection with a measurement: it agrees with Dawid-Skene and GLAD to three
+decimals at every composition, including 0.717 once the wrong standard holds the
+majority. What it adds is a diagnostic that works and then stops. Routine-class ability
+separates correct from wrong reviewers by +3.76 logits at 3 of 9, rating the wrong ones
+*below chance* on exactly the class where they err, and by +0.003 at 5 of 9, where both
+groups sit at the initialisation value because the fit has no signal left to tell them
+apart. Modelling the class does not fix the confound; it relocates where the failure is
+visible and then loses it at the crossing.
+
+**Only converged rows are quoted**, and `carries_the_claim` marks which those are; this
+script exits non-zero if a row carrying the finding stops settling in either estimator.
+With the priors Whitehill et al. specify, and with CC-Rasch's centring applied as the
+gauge transformation it is, every fit here converges in under 30 iterations.
+
+Zheng et al. (PVLDB 10(5):541-552, 2017) report from a benchmark across many real
+datasets that difficulty-modelling methods "do not perform significantly better in
+quality", which is this result arrived at without this construction.
 
 Needs no model and no network.
 
@@ -61,7 +73,7 @@ from pathlib import Path
 from pharos.analyst import Action, AnalystPolicy, Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
-from pharos.inference import agreement_with, dawid_skene, glad
+from pharos.inference import agreement_with, cc_rasch, dawid_skene, glad
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
@@ -115,12 +127,40 @@ class Row:
     right_ability: float
     dawid_skene_agreement: float
     glad_agreement: float
-    #: Whether the EM fit this row reports actually reached a fixed point. GLAD is an
-    #: unregularised MLE and its parameters are unbounded, so a row that stopped at
-    #: `max_iters` reports where the ascent happened to be, not where it settled. Only
-    #: a converged row's magnitudes may be quoted.
+    #: Whether the EM fit this row reports actually reached a fixed point. A row that
+    #: stopped at `max_iters` reports where the ascent happened to be, not where it
+    #: settled, so only a converged row's magnitudes may be quoted.
     converged: bool
     iterations: int
+    #: The class-conditional estimator, which is the strongest answer available to
+    #: "a better model would separate these". Singer et al. (arXiv:2607.24622, 2026)
+    #: note that GLAD's single ability per annotator "prevents them from
+    #: distinguishing majority-class competence from minority-class competence" --
+    #: exactly the shape of a two-of-three reviewer, who is right on the significant
+    #: class and wrong only on routine items near the boundary.
+    cc_rasch_agreement: float
+    cc_rasch_converged: bool
+    #: Ability on the ROUTINE class specifically, where the wrong standard errs. This
+    #: is the diagnostic a class-conditional model buys that GLAD cannot express.
+    cc_wrong_routine: float | None
+    cc_right_routine: float
+
+    @property
+    def cc_routine_separation(self) -> float | None:
+        """How far routine-class ability separates correct reviewers from wrong ones.
+
+        A difference rather than a ratio, because CC-Rasch's abilities are logits:
+        `sigmoid(ability - difficulty)`. Differences on that scale are the meaningful
+        comparison, and a ratio is not even well defined here -- a reviewer who is
+        worse than chance on a class scores negative, which is exactly what the
+        wrong-standard reviewers do below the majority.
+
+        Above zero means the model can see the error where it actually is. It goes to
+        zero at precisely the composition where every estimator fails.
+        """
+        if self.cc_wrong_routine is None:
+            return None
+        return self.cc_right_routine - self.cc_wrong_routine
 
     @property
     def difficulty_spread(self) -> float:
@@ -162,6 +202,15 @@ class Row:
             "converged": self.converged,
             "iterations": self.iterations,
             "quotable": self.converged,
+            "cc_rasch_agreement": round(self.cc_rasch_agreement, 4),
+            "cc_rasch_converged": self.cc_rasch_converged,
+            "cc_wrong_routine_ability": (
+                None if self.cc_wrong_routine is None else round(self.cc_wrong_routine, 4)
+            ),
+            "cc_right_routine_ability": round(self.cc_right_routine, 4),
+            "cc_routine_separation": (
+                None if self.cc_routine_separation is None else round(self.cc_routine_separation, 4)
+            ),
         }
 
 
@@ -230,6 +279,7 @@ def main() -> int:
         contributions = collect(build_fleet(n_wrong, slip), tasks, proposals, seed=SEED)
         estimate = glad(contributions)
         ds = dawid_skene(contributions)
+        ccr = cc_rasch(contributions)
 
         by_overlap = {}
         for band in bands:
@@ -253,6 +303,14 @@ def main() -> int:
             glad_agreement=agreement_with(estimate.labels(), truth),
             converged=estimate.converged,
             iterations=estimate.iterations,
+            cc_rasch_agreement=agreement_with(ccr.labels(), truth),
+            cc_rasch_converged=ccr.converged,
+            cc_wrong_routine=(
+                statistics.mean(ccr.ability[p][False] for p in wrong_names) if wrong_names else None
+            ),
+            cc_right_routine=statistics.mean(
+                v[False] for p, v in ccr.ability.items() if p.startswith("right-")
+            ),
         )
         rows.append(row)
         cells = "".join(f"{by_overlap.get(k, float('nan')):>9.3f}" for k in bands)
@@ -323,6 +381,45 @@ def main() -> int:
             },
         )
 
+    # Does class-conditioning rescue it? The obvious objection to everything above is
+    # that GLAD gives each reviewer one ability number, and a two-of-three reviewer is
+    # not globally unreliable -- they are exactly right on the significant class and
+    # wrong only on routine items at the boundary. CC-Rasch models ability per class,
+    # which is the shape that objection asks for.
+    print()
+    print(f"  {'fleet composition':<28}{'D-S':>7}{'GLAD':>7}{'CC-R':>7}{'routine gap':>13}")
+    print("  " + "-" * 62)
+    for row in rows:
+        sep = row.cc_routine_separation
+        mark = "" if row.cc_rasch_converged else "  (CC-R stalled)"
+        shown = "--" if sep is None else f"{sep:+.2f}"
+        print(
+            f"  {row.composition:<28}{row.dawid_skene_agreement:>7.3f}"
+            f"{row.glad_agreement:>7.3f}{row.cc_rasch_agreement:>7.3f}{shown:>13}{mark}"
+        )
+
+    graded = [r for r in settled if r.cc_routine_separation is not None and r.cc_rasch_converged]
+    if graded:
+        best = max(graded, key=lambda r: r.cc_routine_separation or 0.0)
+        worst_sep = min(graded, key=lambda r: r.cc_routine_separation or 0.0)
+        print()
+        print(
+            "Class-conditioning buys a real diagnostic below the majority and loses it "
+            "above.\n"
+            f"Routine-class ability separates correct from wrong reviewers by "
+            f"{best.cc_routine_separation:+.2f} logits\nunder '{best.composition}', and by "
+            f"{worst_sep.cc_routine_separation:+.2f} under '{worst_sep.composition}', where the\n"
+            "agreement matches Dawid-Skene and GLAD exactly. Modelling the class does not\n"
+            "rescue the estimate; it relocates where the failure is visible."
+        )
+        record(
+            "difficulty.class_conditional_separation",
+            worst_sep.cc_routine_separation or 0.0,
+            best_composition=best.composition,
+            best_separation=round(best.cc_routine_separation or 0.0, 4),
+            worst_composition=worst_sep.composition,
+        )
+
     control = rows[0]
     worst = max(settled, key=lambda r: r.difficulty_spread)
     print()
@@ -366,7 +463,17 @@ def main() -> int:
     # the check here a load-bearing row could start stalling and CI would report only
     # a warning that logcheck has been told to expect. Failing here makes the guard
     # live rather than retrospective.
-    stalled_load_bearing = [r.composition for r in rows if carries_the_claim(r) and not r.converged]
+    # Both estimators, on both counts. CC-Rasch's numbers are quoted for the same three
+    # rows GLAD's are, so a stall there disqualifies just as much. The random-slip row
+    # is a foil for both and is allowed to stall in either, which is why the expected
+    # `inference.cc_rasch_did_not_converge` warning is safe to whitelist in logcheck.
+    stalled_load_bearing = [
+        f"{r.composition} (GLAD)" for r in rows if carries_the_claim(r) and not r.converged
+    ] + [
+        f"{r.composition} (CC-Rasch)"
+        for r in rows
+        if carries_the_claim(r) and not r.cc_rasch_converged
+    ]
     if stalled_load_bearing:
         print(
             "\nFAIL: these rows carry the published claim and did not converge:\n  "

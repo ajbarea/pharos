@@ -513,6 +513,48 @@ Verified 2026-08-02 against the NeurIPS proceedings page.
   every disagreement. Finding 17 measures what that extra term does when the hard items
   and a reviewer's blind spot coincide, which in this corpus they do by construction.
 
+  **Read section 3.1 before implementing it.** Our first implementation omitted the
+  priors it specifies -- *"In our implementation we used Gaussian priors (mu = 1,
+  sigma = 1) for alpha. For beta, we need a prior that does not generate negative
+  values. To do so we re-parameterized beta = e^beta' and imposed a Gaussian prior
+  (mu = 1, sigma = 1) on beta'."* -- and the resulting unregularised MLE diverges: mean
+  difficulty grew from 47.8 to 3580.8 as the iteration cap rose from 100 to 3000, and
+  finding 17 published that as a property of GLAD. With the priors restored, every
+  composition converges in under 40 iterations. The finding survived; its magnitudes
+  did not.
+
+- Singer, G., Gruffaz, S., Vo Van, O., Vayatis, N., & Kalogeratos, A. (2026). A Model
+  for Imbalanced Label Aggregation: A Focus on Minority-Class Detection.
+  [arXiv:2607.24622](https://arxiv.org/abs/2607.24622), 27 July 2026.
+  Verified 2026-08-02 against the full text.
+  **Closes** finding 17's own caveat. Their taxonomy names the limitation that the
+  caveat was gesturing at: *"Dawid-Skene is class-dependent, but not difficulty-aware,
+  while GLAD is difficulty-aware but not class-dependent"*, and a single ability per
+  annotator *"prevents them from distinguishing majority-class competence from
+  minority-class competence"*. That is precisely a two-of-three reviewer, who is right
+  on the significant class and wrong only on routine items at the boundary. Their
+  CC-Rasch model, `p_{ir,k} = sigmoid(alpha_{r,k} - beta_{i,k})`, conditions both terms
+  on the class and is therefore the strongest available answer to "a better estimator
+  would separate these". Implemented in `pharos.inference.cc_rasch` from the model
+  definition and run on the same fleets: it agrees with Dawid-Skene and GLAD to three
+  decimals at every composition, 0.717 included. Its class-conditional diagnostic
+  separates wrong from correct reviewers by +3.76 logits below the majority -- scoring
+  them below chance on exactly the class they mishandle -- and by +0.003 at it, where
+  the routine-class parameters never move from initialisation at all.
+
+  Their identifiability machinery is not optional either, and getting it wrong cost two
+  false starts. The centring constraints (*"we impose for any k: sum_i h_{i,k} =
+  sum_r g_{r,k} = 0"*) and Gaussian priors on the deviations are what stop EM wandering
+  between mirror-image solutions; without them an early run scored 1.000 on one
+  composition and 0.717 on another with near-identical parameters, which is label
+  switching rather than a result. Then the centring itself was wrong: it shifted ability
+  and difficulty in *opposite* directions, when the model depends on their difference
+  and the gauge transformation must move both the same way.
+
+  **Check that EM's observed-data log-likelihood rises monotonically.** It is three
+  lines, it is the definitive test that an EM implementation is doing EM, and it caught
+  both of these after reading the code twice did not. It is now `test_em_objective`.
+
 - Zheng, Y., Li, G., Li, Y., Shan, C., & Cheng, R. (2017). Truth Inference in
   Crowdsourcing: Is the Problem Solved? *PVLDB* 10(5), 541-552.
   Verified 2026-08-02 against the full text of the PVLDB PDF, not the abstract.

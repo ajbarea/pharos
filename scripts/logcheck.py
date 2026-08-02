@@ -53,16 +53,11 @@ EXPECTED_WARNINGS = {
     "budget.no_finite_guarantee",
     "difficulty.manufactured_by_reviewers",
     "difficulty.ability_inverted",
-    # GLAD is an unregularised MLE with unbounded parameters, and on the random-slip
-    # composition of the difficulty measurement it does not reach a fixed point. That
-    # is a documented characteristic of the method rather than a defect here (Zheng et
-    # al., PVLDB 10(5), 2017), and the measurement refuses to quote that row.
-    #
-    # Expecting it here is safe because it is not the guard. If a row that DOES carry
-    # the finding stops converging, `measure_difficulty_confound.py` exits non-zero and
-    # this command reports it under "SCRIPTS THAT FAILED" regardless of what the
-    # warning list says.
-    "inference.glad_did_not_converge",
+    # `inference.glad_did_not_converge` is deliberately NOT here. It was, for about an
+    # hour, while this project believed non-convergence was a property of GLAD. It is
+    # not: the implementation was missing the Gaussian priors Whitehill et al. specify
+    # in their section 3.1, and with them every composition settles in under 40
+    # iterations. Listing it as expected would now hide a real regression.
     "validity.small_n",
     "validity.below_majority",
     "validity.degenerate_predictions",

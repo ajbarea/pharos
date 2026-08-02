@@ -2093,6 +2093,10 @@ def test_difficulty_spread_is_one_when_there_is_nothing_to_compare():
             glad_agreement=1.0,
             converged=True,
             iterations=4,
+            cc_rasch_agreement=1.0,
+            cc_rasch_converged=True,
+            cc_wrong_routine=None,
+            cc_right_routine=1.0,
         )
 
     assert row({}).difficulty_spread == 1.0
@@ -2123,6 +2127,10 @@ def test_ability_inversion_is_undefined_without_a_wrong_standard_to_compare():
             glad_agreement=1.0,
             converged=True,
             iterations=4,
+            cc_rasch_agreement=1.0,
+            cc_rasch_converged=True,
+            cc_wrong_routine=None,
+            cc_right_routine=1.0,
         )
 
     control = row(None, 3.97)
@@ -2132,13 +2140,13 @@ def test_ability_inversion_is_undefined_without_a_wrong_standard_to_compare():
     assert control.as_dict()["ability_is_inverted"] is False
 
     # The minority case: the estimator is right, and must not be flagged.
-    minority = row(1.13, 7.31)
-    assert minority.ability_ratio == pytest.approx(1.13 / 7.31)
+    minority = row(1.96, 3.98)
+    assert minority.ability_ratio == pytest.approx(1.96 / 3.98)
     assert not minority.ability_is_inverted
 
     # The majority case: the wrong rule scores higher, which is the finding.
-    majority = row(8.63, 0.27)
-    assert majority.ability_ratio == pytest.approx(8.63 / 0.27)
+    majority = row(3.60, 2.54)
+    assert majority.ability_ratio == pytest.approx(3.60 / 2.54)
     assert majority.ability_is_inverted
     assert majority.as_dict()["ability_is_inverted"] is True
 
@@ -2164,20 +2172,21 @@ def test_the_measured_inversion_appears_in_the_committed_artifact():
 
     majority = by_name["5 of 9 wrong standard"]
     assert majority["ability_is_inverted"] is True
-    assert majority["ability_ratio"] > 10.0, "the published claim is a large inversion"
+    # The direction is the finding; the magnitude is modest and was once reported as
+    # 31x from a fit missing the priors Whitehill et al. specify. Assert the direction
+    # and a floor, not a number this test would have to be edited to keep true.
+    assert majority["ability_ratio"] > 1.0, "the wrong standard must score higher"
 
 
 def test_every_quoted_row_converged():
-    """The retraction, made permanent.
+    """A magnitude may be quoted only from a converged row.
 
-    This section first published a spread of 4.3 for the random-slip row. That fit does
-    not converge: GLAD is an unregularised MLE with unbounded parameters, and raising
-    the iteration cap from 100 to 1000 grows that row's mean difficulty from 48 to 1290
-    while the spread wanders between 1.6 and 4.5. The number described where gradient
-    ascent was interrupted, not the corpus.
-
-    So the rule is that a magnitude may be quoted only from a converged row, and the
-    three rows the finding rests on have to keep converging for it to stand.
+    This rule was written when the random-slip fit did not converge and its spread of
+    4.3 had to be withdrawn. The cause turned out to be a missing regulariser rather
+    than the method: with the Gaussian priors Whitehill et al. specify in their section
+    3.1, every composition settles in under 40 iterations. The rule outlived its
+    occasion on purpose -- it is the check that would have caught the problem sooner,
+    and the three rows the finding rests on have to keep converging for it to stand.
     """
     import json
 
@@ -2226,6 +2235,10 @@ def test_the_random_slip_row_is_the_only_one_allowed_to_stall():
             glad_agreement=1.0,
             converged=False,
             iterations=100,
+            cc_rasch_agreement=1.0,
+            cc_rasch_converged=True,
+            cc_wrong_routine=None,
+            cc_right_routine=1.0,
         )
 
     # Exactly the four compositions the script sweeps.
@@ -2304,3 +2317,82 @@ def test_the_awaiting_rerun_list_drops_an_artifact_once_it_is_assessed():
     for line in pending_block.splitlines():
         if line.startswith("- `"):
             assert line.split("`")[1] in sdt.AWAITING_RERUN
+
+
+def test_a_count_of_zero_is_not_a_measurement_of_zero():
+    """The bound that stops "0 differ" being read as "the rate is 0".
+
+    Finding 9's replacement was published from 0 of 30 tasks differing across full
+    sweeps. That observation is consistent with any true rate up to 9.5%, which does
+    not even exclude the 10% the finding originally reported and retracted. The
+    measurement now carries the bound so the claim cannot outrun the sample.
+    """
+    import measure_decode_stability as mds
+
+    # The all-zero case has a closed form; the solver must agree with it exactly.
+    for n in (30, 300, 600):
+        assert mds.rate_upper_bound(0, n) == pytest.approx(1 - 0.05 ** (1 / n), abs=1e-9)
+
+    # The specific numbers the docstrings and findings.md quote.
+    assert mds.rate_upper_bound(0, 30) == pytest.approx(0.095, abs=0.001)
+    assert mds.rate_upper_bound(0, 300) == pytest.approx(0.0099, abs=0.001)
+
+    # More observed disagreement can never license a tighter bound.
+    bounds = [mds.rate_upper_bound(d, 300) for d in range(12)]
+    assert bounds == sorted(bounds)
+    assert all(b >= d / 300 for d, b in enumerate(bounds)), "a bound below the point estimate"
+
+    # And a larger sample can never license a looser one at the same count.
+    assert mds.rate_upper_bound(0, 600) < mds.rate_upper_bound(0, 300)
+    assert mds.rate_upper_bound(0, 0) == 1.0, "no observation rules nothing out"
+
+
+def test_the_default_task_count_supports_the_claim_made_from_it():
+    """The default has to be large enough for the sentence the script prints."""
+    import measure_decode_stability as mds
+
+    parser_default = 300
+    assert mds.rate_upper_bound(0, parser_default) < 0.01, (
+        "the default sample must bound the cross-sweep rate under 1%, or 'the sweep "
+        "reproduces' is again a claim the sample cannot carry"
+    )
+    # The old default, kept here as the thing not to go back to.
+    assert mds.rate_upper_bound(0, 30) > 0.09
+
+
+def test_a_flagged_nested_artifact_names_which_pass_is_flagged():
+    """Which evaluation pass failed, not just that one did.
+
+    Adapter artifacts carry validity per pass: the untrained `base`, the trained
+    `adapter`, and `adapter_vs_teacher`. Collapsing them anonymously reported
+    `review_adapter-by-the-book` as unquotable on the strength of its baseline, while
+    the adapter the artifact exists to report scored 0.995. The flag was true of
+    something in the file and false of the thing being cited from it.
+    """
+    sdt = _docs_module()
+    table = sdt.measurement_health()
+
+    flagged = [
+        line
+        for line in table.splitlines()
+        if line.startswith("| `") and "**no**" in line and "review_adapter" in line
+    ]
+    if not flagged:
+        pytest.skip("no adapter artifact is currently flagged")
+
+    for line in flagged:
+        assert "**base**" in line or "**adapter" in line, (
+            f"a flagged nested artifact must name its pass, got: {line[:160]}"
+        )
+
+    # And a pass name must be one the artifact actually contains, not invented.
+    import json
+
+    for line in flagged:
+        stem = line.split("`")[1]
+        payload = json.loads(Path(f"results/{stem}.json").read_text(encoding="utf-8"))
+        named = line.split("**")[1] if "**" in line.split("|")[3] else None
+        passes = {k for k, v in payload.items() if isinstance(v, dict) and "validity" in v}
+        assert passes, f"{stem} has no nested validity blocks to name"
+        if named and named != "no":
+            assert named in passes, f"{stem} flagged an unknown pass {named!r}, has {passes}"

@@ -94,10 +94,10 @@ CLAIMS: tuple[Claim, ...] = (
     Claim("6", 60, 0.531, "adapter (1.000) beats the base model (0.469)"),
     Claim("10", 600, 0.560, "any-one adapter matches teacher (1.000) not world (0.440)"),
     # Bought and CONFIRMED 2026-08-01, unlike finding 5's. Remeasured at 600 the gap
-    # widened from 0.083 to 0.118 and now clears the bar. Both scorings are of one
+    # widened from 0.083 to 0.112 and now clears the bar. Both scorings are of one
     # decode over one evaluation set, so the pairing makes the real test tighter than
     # this table's independent one.
-    Claim("10", 600, 0.118, "inattentive adapter (0.893) beats its own teacher (0.775)"),
+    Claim("10", 600, 0.112, "inattentive adapter (0.902) beats its own teacher (0.790)"),
     # Finding 11 clusters over analysts rather than tasks, so n is the fleet size.
     Claim(
         "11",

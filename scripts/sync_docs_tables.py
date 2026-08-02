@@ -137,22 +137,29 @@ def measurement_health() -> str:
     for path in sorted(RESULTS.glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
         validity = payload.get("validity")
+        which_pass = ""
         if not isinstance(validity, dict):
             # Adapter artifacts carry the assessment per evaluation pass rather than
             # at the top level, so look one level down before calling it unassessed.
             nested = [
-                v.get("validity")
-                for v in payload.values()
+                (name, v["validity"])
+                for name, v in payload.items()
                 if isinstance(v, dict) and isinstance(v.get("validity"), dict)
             ]
             if not nested:
                 if path.stem not in NO_SAMPLING_QUESTION and path.stem not in AWAITING_RERUN:
                     unassessed.append(path.stem)
                 continue
-            validity = min(nested, key=lambda v: bool(v.get("quotable", True)))
+            # The worst pass decides the flag, but it has to say WHICH pass. Collapsing
+            # them anonymously reported `review_adapter-by-the-book` as unquotable on
+            # the strength of its untrained baseline, while the adapter that artifact
+            # exists to report scored 0.995 and was perfectly quotable. A flag that
+            # names the wrong thing is the same defect as a flag on the wrong number.
+            name, validity = min(nested, key=lambda item: bool(item[1].get("quotable", True)))
+            which_pass = f"**{name}**: "
         concerns = validity.get("concerns") or []
         mark = "yes" if validity.get("quotable") else "**no**"
-        note = "; ".join(str(c) for c in concerns) if concerns else "-"
+        note = f"{which_pass}{'; '.join(str(c) for c in concerns)}" if concerns else "-"
         rows.append((path.stem, f"{validity.get('n', '?')}", f"{mark} | {note}"))
         now_assessed.add(path.stem)
 

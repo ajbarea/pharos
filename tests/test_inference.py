@@ -1,5 +1,10 @@
 """The canonical truth-inference estimator, and where it stops working."""
 
+import math
+import statistics
+
+import pytest
+
 from pharos.inference import agreement_with, dawid_skene, weighted_targets
 
 
@@ -144,3 +149,219 @@ def test_glad_blames_the_item_when_a_subgroup_is_systematically_wrong():
 
 def statistics_mean(values: list[float]) -> float:
     return sum(values) / len(values)
+
+
+# ------------------------------------------------- priors and convergence -----
+
+
+def test_glad_carries_the_priors_its_paper_specifies():
+    """The regulariser whose absence looked like the method failing.
+
+    Whitehill et al. section 3.1: "In our implementation we used Gaussian priors
+    (mu = 1, sigma = 1) for alpha. For beta, we need a prior that does not generate
+    negative values. To do so we re-parameterized beta = e^beta' and imposed a
+    Gaussian prior (mu = 1, sigma = 1) on beta'."
+
+    Without those terms the residual never reaches zero as the sigmoid saturates, so
+    the parameters climb without bound and EM never settles. This repository published
+    that divergence as a property of GLAD before checking the paper for a prior.
+    """
+    from pharos import inference
+
+    assert inference.PRIOR_MEAN == 1.0
+    assert inference.PRIOR_SIGMA == 1.0
+    # log_difficulty IS their beta', since difficulty is reported as exp(log_difficulty),
+    # so it starts at the same prior mean rather than at zero.
+    assert inference.INITIAL_LOG_DIFFICULTY == inference.PRIOR_MEAN
+    assert inference.INITIAL_ABILITY == inference.PRIOR_MEAN
+
+
+def test_glad_converges_and_its_parameters_stay_bounded():
+    """The property the priors buy, asserted rather than assumed.
+
+    An unregularised fit on this data grew mean difficulty from 47.8 to 3580.8 as the
+    iteration cap rose from 100 to 3000. Raising the cap must now change nothing,
+    because the fit has actually settled.
+    """
+    from pharos.inference import glad
+
+    # A fleet where a third hold a wrong standard: the composition that diverged.
+    contributions: list[tuple[str, str, bool]] = []
+    for item in range(60):
+        near_boundary = item % 3 == 0
+        for who in range(9):
+            wrong = who < 3
+            contributions.append((f"T-{item}", f"w{who}", near_boundary and wrong))
+
+    at_100 = glad(contributions, max_iters=100)
+    at_1000 = glad(contributions, max_iters=1000)
+
+    assert at_100.converged, "the fit must settle within the default cap"
+    assert at_1000.converged
+    assert at_100.iterations == at_1000.iterations, "a settled fit cannot use a raised cap"
+
+    # Bounded, and identical, rather than growing with the budget.
+    for task in at_100.log_difficulty:
+        assert at_100.difficulty(task) == pytest.approx(at_1000.difficulty(task))
+        assert at_100.difficulty(task) < 100.0, "difficulty is climbing without bound again"
+    for who in at_100.ability:
+        assert abs(at_100.ability[who]) < 100.0
+
+
+def test_cc_rasch_conditions_ability_on_the_class():
+    """The one thing a class-conditional model buys that GLAD structurally cannot.
+
+    Singer et al. (arXiv:2607.24622, 2026) on GLAD and Rasch: a single ability
+    parameter per annotator "prevents them from distinguishing majority-class
+    competence from minority-class competence". A reviewer who is right on one class
+    and wrong on the other must therefore show two different abilities here.
+    """
+    from pharos.inference import cc_rasch
+
+    # Two groups. Everyone agrees on the significant class; one group is wrong on the
+    # routine class only, which is the shape of a two-of-three standard.
+    contributions: list[tuple[str, str, bool]] = []
+    for item in range(40):
+        significant = item % 2 == 0
+        for who in range(6):
+            skewed = who < 2
+            said = True if significant else (skewed and item % 4 == 1)
+            contributions.append((f"T-{item}", f"w{who}", said))
+
+    estimate = cc_rasch(contributions)
+    assert set(estimate.ability) == {f"w{i}" for i in range(6)}
+    for by_class in estimate.ability.values():
+        assert set(by_class) == {True, False}
+    for by_class in estimate.difficulty.values():
+        assert set(by_class) == {True, False}
+
+    # The skewed reviewers must score lower on the routine class than the others,
+    # which is exactly the discrimination GLAD's single number cannot make.
+    skewed = statistics.mean(estimate.ability[f"w{i}"][False] for i in range(2))
+    sound = statistics.mean(estimate.ability[f"w{i}"][False] for i in range(2, 6))
+    assert sound > skewed, "class-conditional ability did not localise a class-specific error"
+
+    assert estimate.mean_ability("w0") == pytest.approx(
+        (estimate.ability["w0"][True] + estimate.ability["w0"][False]) / 2
+    )
+
+
+def test_cc_rasch_is_empty_safe_and_reports_convergence():
+    from pharos.inference import cc_rasch
+
+    empty = cc_rasch([])
+    assert empty.labels() == {}
+    assert empty.converged and empty.iterations == 0
+    assert empty.mean_ability("nobody") == 0.0
+
+
+def _observed_loglik_glad(contributions, estimate) -> float:
+    """log p(observed labels) under a fitted GLAD, marginalising the true label."""
+    from pharos.inference import _sigmoid
+
+    by_task: dict[str, list[tuple[str, bool]]] = {}
+    for task, who, verdict in contributions:
+        by_task.setdefault(task, []).append((who, verdict))
+    total = 0.0
+    for task, rows in by_task.items():
+        inv = math.exp(-estimate.log_difficulty[task])
+        log_pos = log_neg = 0.0
+        for who, verdict in rows:
+            p = min(max(_sigmoid(estimate.ability[who] * inv), 1e-9), 1 - 1e-9)
+            log_pos += math.log(p if verdict else 1 - p)
+            log_neg += math.log((1 - p) if verdict else p)
+        top = max(log_pos, log_neg)
+        total += top + math.log(math.exp(log_pos - top) + math.exp(log_neg - top))
+    return total
+
+
+def _observed_loglik_cc_rasch(contributions, estimate) -> float:
+    """The same quantity for CC-Rasch, whose parameters are indexed by class."""
+    from pharos.inference import _sigmoid
+
+    by_task: dict[str, list[tuple[str, bool]]] = {}
+    for task, who, verdict in contributions:
+        by_task.setdefault(task, []).append((who, verdict))
+    total = 0.0
+    for task, rows in by_task.items():
+        log_pos = log_neg = 0.0
+        for who, verdict in rows:
+            for klass in (True, False):
+                p = _sigmoid(estimate.ability[who][klass] - estimate.difficulty[task][klass])
+                p = min(max(p, 1e-9), 1 - 1e-9)
+                term = math.log(p if verdict == klass else 1 - p)
+                if klass:
+                    log_pos += term
+                else:
+                    log_neg += term
+        top = max(log_pos, log_neg)
+        total += top + math.log(math.exp(log_pos - top) + math.exp(log_neg - top))
+    return total
+
+
+def _confounded_fleet(n_items: int = 40, n_wrong: int = 3, fleet: int = 9):
+    """A fleet where some reviewers err only on near-boundary routine items."""
+    rows: list[tuple[str, str, bool]] = []
+    for item in range(n_items):
+        near_boundary = item % 3 == 0
+        for who in range(fleet):
+            wrong = who < n_wrong
+            rows.append((f"T-{item}", f"w{who}", near_boundary and wrong))
+    return rows
+
+
+def test_em_objective_never_decreases():
+    """EM increases the observed-data likelihood every iteration. If it does not, the
+    implementation is not EM, whatever the code looks like.
+
+    This is the check that caught both estimator bugs in this module, each of which
+    survived reading the code. GLAD was missing the Gaussian priors its paper
+    specifies, so the parameters climbed without bound. CC-Rasch's centring step moved
+    ability and difficulty in opposite directions, which is not a gauge transformation
+    at all -- the model depends on their difference -- and its likelihood fell between
+    iterations.
+    """
+    from pharos.inference import cc_rasch, glad
+
+    contributions = _confounded_fleet()
+
+    for fit, loglik in ((glad, _observed_loglik_glad), (cc_rasch, _observed_loglik_cc_rasch)):
+        previous = None
+        for cap in range(1, 22, 2):
+            value = loglik(contributions, fit(contributions, max_iters=cap))
+            if previous is not None:
+                assert value >= previous - 1e-6, (
+                    f"{fit.__name__} log-likelihood fell from {previous:.4f} to {value:.4f} "
+                    f"between iteration caps; EM cannot do that"
+                )
+            previous = value
+
+
+def test_cc_rasch_centring_is_a_gauge_transformation():
+    """Adding a constant to ability and difficulty together must change nothing.
+
+    The model is `sigmoid(ability - difficulty)`, so this is the invariance the
+    centring constraint exists to remove -- and the reason the shift has to move both
+    in the same direction. Asserting the invariance directly is what makes the fix
+    permanent rather than incidental.
+    """
+    from pharos.inference import _sigmoid, cc_rasch
+
+    estimate = cc_rasch(_confounded_fleet())
+    assert estimate.converged
+
+    for who, by_class in estimate.ability.items():
+        for klass, value in by_class.items():
+            task = next(iter(estimate.difficulty))
+            plain = _sigmoid(value - estimate.difficulty[task][klass])
+            shifted = _sigmoid((value + 2.5) - (estimate.difficulty[task][klass] + 2.5))
+            assert plain == pytest.approx(shifted), f"{who}/{klass} is not gauge invariant"
+
+    # And the gauge is actually fixed: mean ability sits at the reference per class.
+    from pharos.inference import INITIAL_CLASS_ABILITY
+
+    for klass in (True, False):
+        mean = statistics.mean(v[klass] for v in estimate.ability.values())
+        assert mean == pytest.approx(INITIAL_CLASS_ABILITY, abs=1e-6), (
+            "centring did not fix the free translation"
+        )

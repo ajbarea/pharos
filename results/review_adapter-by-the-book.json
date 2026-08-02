@@ -1,14 +1,18 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "d870f3efc0ce",
+    "git_commit": "b33f1193527f",
     "git_dirty": false,
-    "generated_at": "2026-08-02T00:21:07+00:00",
+    "generated_at": "2026-08-02T15:45:34+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
     "model": "Qwen/Qwen2.5-3B-Instruct",
     "seed": 7
+  },
+  "lora": {
+    "trainable_params": 29933568,
+    "total_params": 3115872256
   },
   "hyperparameters": {
     "lora_rank": 16,
@@ -38,9 +42,11 @@
       "significant": 189,
       "routine": 411
     },
-    "events_disjoint": true
+    "events_disjoint": true,
+    "eval_seed": null,
+    "cross_corpus": false
   },
-  "training_loss": 0.2972930965944316,
+  "training_loss": 0.29311090895276315,
   "base": {
     "label": "base",
     "n": 600,
@@ -55,7 +61,15 @@
     "majority_accuracy": 0.715,
     "precision": 0.336,
     "recall": 0.9883,
-    "f1": 0.5015
+    "f1": 0.5015,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "74/600 answers were unparsable (12%); every other number describes only the remainder",
+        "accuracy 0.361 does not beat the majority floor 0.675: this is not evidence of capability"
+      ]
+    }
   },
   "adapter": {
     "label": "adapter",
@@ -71,7 +85,12 @@
     "majority_accuracy": 0.685,
     "precision": 0.9844,
     "recall": 1.0,
-    "f1": 0.9921
+    "f1": 0.9921,
+    "validity": {
+      "n": 600,
+      "quotable": true,
+      "concerns": []
+    }
   },
   "teacher": {
     "reviewer": "by-the-book",
@@ -93,7 +112,12 @@
     "majority_accuracy": 0.685,
     "precision": 0.9844,
     "recall": 1.0,
-    "f1": 0.9921
+    "f1": 0.9921,
+    "validity": {
+      "n": 600,
+      "quotable": true,
+      "concerns": []
+    }
   },
   "ceiling_f1": 1.0
 }

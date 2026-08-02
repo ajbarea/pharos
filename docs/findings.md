@@ -98,7 +98,7 @@ earlier version of this section, and it understated two claims.
 | 5 | 600 | 0.179 | constant | **resolved** | 8 shots (0.514) is below the majority floor (0.693) |
 | 6 | 60 | 0.531 | condition | **resolved** | adapter (1.000) beats the base model (0.469) |
 | 10 | 600 | 0.560 | condition | **resolved** | any-one adapter matches teacher (1.000) not world (0.440) |
-| 10 | 600 | 0.118 | condition | **resolved** | inattentive adapter (0.893) beats its own teacher (0.775) |
+| 10 | 600 | 0.112 | condition | **resolved** | inattentive adapter (0.902) beats its own teacher (0.790) |
 | 11 | 200 | 0.100 | constant | **resolved** | linkage recovery (0.205) beats the guessing prior (0.105) |
 | 11 | 50 | 0.820 | condition | **resolved** | RESTRICTED analysts (0.820) are recovered where OPEN (0.000) are not |
 
@@ -166,6 +166,10 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `fleet_linkage` | 200 | yes | - |
 | `label_fidelity` | 40 | yes | - |
 | `privacy_budget` | 200 | yes | - |
+| `review_adapter-any-one` | 600 | **no** | **adapter**: accuracy 0.440 does not beat the majority floor 0.685: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `review_adapter-by-the-book` | 600 | **no** | **base**: 74/600 answers were unparsable (12%); every other number describes only the remainder; accuracy 0.361 does not beat the majority floor 0.675: this is not evidence of capability |
+| `review_adapter-inattentive` | 600 | yes | - |
+| `review_adapter-two-of-three` | 600 | yes | - |
 | `review_sweep` | 40 | yes | - |
 | `tagged_aggregation` | 200 | yes | - |
 | `triage_lift-llama3.1-8b` | 40 | **no** | accuracy 0.500 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
@@ -175,19 +179,15 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-3b` | 40 | **no** | accuracy 0.625 does not beat the majority floor 0.625: this is not evidence of capability |
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**7 of 17** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**9 of 21** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
-Assessed by their script but not yet in the committed artifact (10 of these), which needs a rerun rather than an edit:
+Assessed by their script but not yet in the committed artifact (6 of these), which needs a rerun rather than an edit:
 
 - `adapter_learnability` -- train_adapter.py now records it per evaluation pass
 - `learnability` -- measure_rule_learnability.py now records it per shot count
-- `review_adapter-any-one` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-any-one-xseed101` -- train_adapter.py now records it per evaluation pass
-- `review_adapter-by-the-book` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-by-the-book-xseed101` -- train_adapter.py now records it per evaluation pass
-- `review_adapter-inattentive` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-inattentive-xseed101` -- train_adapter.py now records it per evaluation pass
-- `review_adapter-two-of-three` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-two-of-three-xseed101` -- train_adapter.py now records it per evaluation pass
 
 Exempt, because there is no sampling question to answer:
@@ -783,8 +783,8 @@ teacher's answers**.
 | Teacher | Standard | Targets matching world | Adapter vs **world** | Adapter vs **teacher** | Inherited error |
 | --- | --- | --- | --- | --- | --- |
 | by-the-book | 3 of 3 | 1.000 | 0.995 | 0.995 | -0.005 |
-| inattentive | 3 of 3, slips 15% | 0.855 | **0.893** | 0.775 | **+0.038** |
-| two-of-three | 2 of 3 | 0.728 | 0.732 | **0.983** | +0.004 |
+| inattentive | 3 of 3, slips 15% | 0.855 | **0.902** | 0.790 | **+0.046** |
+| two-of-three | 2 of 3 | 0.728 | 0.730 | **0.982** | +0.002 |
 | any-one | 1 of 3 | 0.439 | 0.440 | **1.000** | +0.001 |
 
 Accuracy on **600** held-out tasks whose events are disjoint from training. The base
@@ -793,8 +793,8 @@ gain over not training at all. The last column is the adapter's agreement with t
 world minus its teacher's, and it is the cleanest statement of the finding.
 
 **A wrong standard is inherited almost exactly.** The two systematically-wrong
-teachers hand over their error rate to within **0.004 and 0.001**: a teacher whose
-targets agree with the world on 0.728 produces an adapter agreeing on 0.732, and one
+teachers hand over their error rate to within **0.002 and 0.001**: a teacher whose
+targets agree with the world on 0.728 produces an adapter agreeing on 0.730, and one
 at 0.439 produces 0.440. The adapter did not partially absorb the reviewer's rule or
 average it against its prior; it learned "two of three" and "one of three" and now
 agrees with the world exactly as much as that rule does. This is the concrete form of
@@ -805,7 +805,7 @@ identity rather than a tendency.
 **Random error is filtered; systematic error is not.** The contrast is the finding,
 and the careless teacher is the only row that breaks the inheritance pattern. It slips
 15% of the time, its targets match the world on 0.855, and its adapter matches the
-world on 0.893 while matching the teacher on only 0.775. It tracks the underlying rule
+world on 0.902 while matching the teacher on only 0.790. It tracks the underlying rule
 more closely than the teacher that taught it. Given a consistent wrong rule instead,
 the adapter simply became that rule.
 
@@ -815,7 +815,7 @@ the adapter simply became that rule.
     careless adapter and its teacher was 0.083 against a minimum detectable 0.233, and
     this section said so and declined to claim a margin.
 
-    Remeasured at 600 the gap **widened to 0.118**, against a difference half-width of
+    Remeasured at 600 the gap **widened to 0.112**, against a difference half-width of
     0.042, so it now resolves. Both figures score one decode against two references
     over the same evaluation set, which makes the real test paired and therefore
     tighter than the independent one quoted. The direction reported at 60 tasks was
@@ -1424,13 +1424,10 @@ differ only in composition:
 
 | Fleet | ovl=0 | ovl=1 | **ovl=2** | ovl=3 | Spread | Converged |
 | --- | --- | --- | --- | --- | --- | --- |
-| **correct (control)** | 0.561 | 0.561 | **0.561** | 0.561 | **1.0** | yes, 1 iter |
-| correct, 15% random slip | *47.8* | *11.1* | *11.8* | *16.8* | *4.3* | **no** |
-| 3 of 9 wrong standard | 0.109 | 0.109 | **2.050** | 0.109 | 18.9 | yes, 4 iters |
-| 5 of 9 wrong standard | 0.076 | 0.076 | **2.594** | 0.076 | 34.1 | yes, 7 iters |
-
-The italicised row did not reach a fixed point and its magnitudes are not quoted
-anywhere; only the *position* of its peak is used, and why is set out below.
+| **correct (control)** | 1.090 | 1.090 | **1.090** | 1.090 | **1.00** | yes, 1 iter |
+| correct, 15% random slip | 2.227 | 1.677 | 1.701 | 2.038 | 1.33 | yes, 9 iters |
+| 3 of 9 wrong standard | 0.942 | 0.942 | **2.563** | 0.942 | 2.72 | yes, 6 iters |
+| 5 of 9 wrong standard | 0.933 | 0.933 | **4.398** | 0.933 | 4.72 | yes, 38 iters |
 
 **A correct fleet finds no difficulty structure at all.** Spread 1.0, flat across the
 corpus, because the correct rule resolves a two-of-three item unambiguously: two is not
@@ -1454,8 +1451,8 @@ actually query, because it answers *whom do I retrain*:
 
 | Fleet | wrong-standard reviewers | correct reviewers | Verdict |
 | --- | --- | --- | --- |
-| 3 of 9 wrong standard | 1.13 | 7.31 | correct: the wrong rule scores 6.5x lower |
-| 5 of 9 wrong standard | **8.63** | **0.27** | inverted: the wrong rule scores 31x *higher* |
+| 3 of 9 wrong standard | 1.96 | 3.98 | correct: the wrong rule scores 2.0x lower |
+| 5 of 9 wrong standard | **3.60** | **2.54** | inverted: the wrong rule scores 1.42x *higher* |
 
 Below the majority the estimate is right, and a supervisor acting on it retrains the
 three reviewers who hold the wrong rule. Above it the ranking flips, and the same
@@ -1469,39 +1466,47 @@ This is why the failure is worse than a low agreement number. At 5 of 9, agreeme
 0.717 at least announces that something is wrong. The ability column does not: it is
 confident, well separated, and backwards.
 
-**Random error is not exempt, and has a different signature -- but only its shape can be
-quoted.** The 15%-slip row shows difficulty inflated with no wrong standard anywhere,
-peaking at overlap 0 rather than 2. Any annotator error inflates apparent difficulty;
-only systematic error inflates it *at the boundary*. That difference is the one hopeful
-result here, and it is a shape rather than a magnitude.
+**Random error is not exempt, and has a different signature.** The 15%-slip row inflates
+difficulty with no wrong standard anywhere, but the shape is inverted: it peaks at
+overlap 0, *furthest* from the boundary, and stays nearly flat across the rest. Any
+annotator error inflates apparent difficulty; only systematic error inflates it *at the
+boundary*, and only systematic error inflates one band while leaving the others at the
+control value. That difference is the one hopeful result here, and it is a shape rather
+than a magnitude: the slip row's spread of 1.33 is smaller than 3-of-9's 2.72, but a
+single summary number cannot tell you which band carries it.
 
-That last clause is now literal rather than rhetorical, because **this row does not
-converge and its magnitude is therefore not a property of the data.** GLAD is an
-unregularised maximum-likelihood fit whose ability and log-difficulty are unbounded, and
-where the posteriors never settle the parameters keep climbing. Run at increasing
-iteration caps, this row's mean difficulty grows without bound while its spread wanders:
+!!! warning "This section published different numbers, and the reason is worth recording"
+    Every magnitude above changed on 2026-08-02. The first version of this measurement
+    reported spreads of 18.9 and 34.1, an ability inversion of 31x, and a random-slip
+    row that did not converge at all -- with a whole subsection explaining that GLAD is
+    "an unregularised maximum-likelihood fit whose parameters are unbounded" and that
+    its magnitude therefore could not be quoted.
 
-| `max_iters` | Converged | Mean difficulty at ovl=0 | Spread | Peak band |
-| --- | --- | --- | --- | --- |
-| 100 | no | 47.8 | 4.29 | 0 |
-| 300 | no | 203.3 | 1.63 | 0 |
-| 1000 | no | 1290.2 | 4.45 | 0 |
-| 3000 | no | 3580.8 | 5.20 | 0 |
+    That explanation was about our implementation, not about GLAD. Whitehill et al.
+    specify priors in their section 3.1, and this had omitted them: *"In our
+    implementation we used Gaussian priors (mu = 1, sigma = 1) for alpha. For beta, we
+    need a prior that does not generate negative values. To do so we re-parameterized
+    beta = e^beta' and imposed a Gaussian prior (mu = 1, sigma = 1) on beta'."* Without
+    those terms the residual never reaches zero as the sigmoid saturates, the
+    parameters climb without bound, and EM never settles. With them, every composition
+    converges in under 40 iterations and the divergence disappears entirely.
 
-The spread is a function of where the ascent was interrupted, so the "4.3" this section
-reported in its first version is withdrawn. The **peak band is stable at 0** across all
-four, which is the claim the paragraph actually needs, and it is the one kept.
+    **The finding survives and the caveat does not.** The control is still exactly flat,
+    the structure still appears only when reviewers hold a wrong standard, it is still
+    localised on precisely the band a two-of-three reviewer errs on, and the ability
+    estimate still inverts at the majority. What changed is that the effect is smaller
+    than first reported -- an inversion of 1.42x rather than 31x -- and that nothing
+    needs withdrawing for want of convergence, because everything now converges.
 
-The three rows the finding rests on are unaffected: the control converges in 1 iteration,
-3-of-9 in 4, and 5-of-9 in 7. `measure_difficulty_confound.py` now marks each row with
-its convergence status, refuses to quote an unconverged one, and the test suite asserts
-that the quoted rows converged. Slow and incomplete convergence is a documented
-characteristic of GLAD rather than a defect here: Zheng et al.'s benchmark across many
-real crowdsourcing datasets puts GLAD among the slowest methods tested, "because they
-solve an optimization function in each iteration".
+    The lesson is narrower than "check your implementation". It is that a *negative*
+    result about someone else's method is the one to re-derive from their paper before
+    publishing, because a missing regulariser looks exactly like the method failing,
+    and the failure is more interesting than the bug so it gets less scrutiny. Zheng et
+    al.'s report that GLAD converges slowly made the wrong answer more plausible, not
+    less.
 
 !!! note "Independent corroboration, from a benchmark that was not looking for this"
-    The same benchmark reports that "the methods that model task difficulty (GLAD) or
+    Zheng et al. report that "the methods that model task difficulty (GLAD) or
     latent topics (Multi) in tasks do not perform significantly better in quality;
     moreover, they often take more time to converge" -- measured across real datasets,
     against many alternatives, with no wrong-standard construction anywhere in sight.
@@ -1512,11 +1517,55 @@ solve an optimization function in each iteration".
     Zheng, Li, Li, Shan and Cheng, *Truth Inference in Crowdsourcing: Is the Problem
     Solved?*, PVLDB 10(5):541-552, 2017.
 
+**The strongest objection is that GLAD is too coarse, and it does not hold.** A
+two-of-three reviewer is not globally unreliable. They are exactly right on the
+significant class and wrong only on routine items at the boundary, and GLAD gives each
+reviewer a single ability number that cannot express that. This is not our observation:
+Singer et al. make it about GLAD directly, that a single ability per annotator
+"prevents them from distinguishing majority-class competence from minority-class
+competence", and their **CC-Rasch** model conditions both ability and difficulty on the
+class to fix it. It is five days old at time of writing and is the best available
+answer to the objection, so it is implemented in `pharos.inference.cc_rasch` and run on
+the same fleets:
+
+| Fleet | Dawid-Skene | GLAD | CC-Rasch | Routine-class gap |
+| --- | --- | --- | --- | --- |
+| correct (control) | 1.000 | 1.000 | 1.000 | - |
+| correct, 15% random slip | 0.990 | 0.990 | 0.980 | - |
+| 3 of 9 wrong standard | 1.000 | 1.000 | 1.000 | **+3.76** |
+| **5 of 9 wrong standard** | **0.717** | **0.717** | **0.717** | **+0.003** |
+
+**All three agree to three decimals, including the failure.** Class-conditioning buys
+exactly one thing, and then loses it at the crossing. The gap is a difference in logits,
+because that is the scale CC-Rasch's abilities live on. Below the majority it is
+**+3.76**: the wrong-standard reviewers score -1.51 on the routine class, *below chance*
+on exactly the items they mishandle, against +2.25 for the correct ones. That is a real
+diagnostic naming the right people for the right reason.
+
+At the majority the gap is **+0.003**, and the way it gets there is worth reading. Both
+groups sit at 0.999 and 1.002, which is the initialisation value: the routine-class
+ability parameters never moved at all. Once the wrong standard is the majority the fit
+adopts it as truth, and from there every reviewer looks equally competent on the routine
+class, so there is no gradient left to separate them. The signal does not degrade
+towards zero. It is never generated.
+
+So the answer to "use a better estimator" is measured rather than assumed: a *more*
+expressive model, published in 2026 and designed against this exact limitation, fails
+identically. The confound is not a deficiency of any one estimator.
+
 !!! note "What this does not settle"
-    One estimator of this family, one wrong standard, one corpus whose difficulty
-    structure is discrete and known. GLAD is the canonical joint model but not the only
-    one, and a variant with a prior over difficulty might resist this. The finding is
-    not that item-difficulty modelling is worthless; it is that in a setting where the
-    hard items and the reviewer's blind spot coincide by construction, it converts one
-    into the other, and that coincidence is the normal case rather than a contrived one
-    whenever a rule has a boundary.
+    Two estimators of this family, one wrong standard, one corpus whose difficulty
+    structure is discrete and known. The finding is not that item-difficulty modelling
+    is worthless; it is that in a setting where the hard items and the reviewer's blind
+    spot coincide by construction, it converts one into the other, and that coincidence
+    is the normal case rather than a contrived one whenever a rule has a boundary.
+
+    Both estimators are implemented here from their papers rather than adapted from
+    reference code, and both needed a correction found by checking that EM's
+    observed-data log-likelihood rises monotonically. GLAD was missing its priors.
+    CC-Rasch's centring step shifted ability and difficulty in *opposite* directions,
+    which is not the gauge transformation the constraint calls for -- the model depends
+    on their difference, so both must move the same way. Before that fix its likelihood
+    fell between iterations and it stalled on one composition. The monotonicity check
+    is cheap, it is the definitive test that an EM implementation is doing EM, and it
+    caught what reading the code twice did not.

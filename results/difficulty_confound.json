@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "b33f1193527f",
+    "git_commit": "453f8e3f3b64",
     "git_dirty": true,
-    "generated_at": "2026-08-02T14:51:55+00:00",
+    "generated_at": "2026-08-02T17:04:07+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
@@ -24,94 +24,113 @@
       "n_wrong": 0,
       "slip_rate": 0.0,
       "difficulty_by_overlap": {
-        "0": 0.5607,
-        "1": 0.5607,
-        "2": 0.5607,
-        "3": 0.5607
+        "0": 1.0896,
+        "1": 1.0896,
+        "2": 1.0896,
+        "3": 1.0896
       },
       "difficulty_spread": 1.0,
       "wrong_ability": null,
-      "right_ability": 3.9686,
+      "right_ability": 3.7905,
       "ability_ratio": null,
       "ability_is_inverted": false,
       "dawid_skene_agreement": 1.0,
       "glad_agreement": 1.0,
       "converged": true,
       "iterations": 1,
-      "quotable": true
+      "quotable": true,
+      "cc_rasch_agreement": 1.0,
+      "cc_rasch_converged": true,
+      "cc_wrong_routine_ability": null,
+      "cc_right_routine_ability": 1.0,
+      "cc_routine_separation": null
     },
     {
       "composition": "correct, 15% random slip",
       "n_wrong": 0,
       "slip_rate": 0.15,
       "difficulty_by_overlap": {
-        "0": 47.8029,
-        "1": 11.1416,
-        "2": 11.8028,
-        "3": 16.7513
+        "0": 2.2269,
+        "1": 1.6768,
+        "2": 1.701,
+        "3": 2.0381
       },
-      "difficulty_spread": 4.29,
+      "difficulty_spread": 1.328,
       "wrong_ability": null,
-      "right_ability": 5.3989,
+      "right_ability": 2.8549,
       "ability_ratio": null,
       "ability_is_inverted": false,
       "dawid_skene_agreement": 0.9899,
-      "glad_agreement": 0.9697,
-      "converged": false,
-      "iterations": 100,
-      "quotable": false
+      "glad_agreement": 0.9899,
+      "converged": true,
+      "iterations": 9,
+      "quotable": true,
+      "cc_rasch_agreement": 0.9798,
+      "cc_rasch_converged": true,
+      "cc_wrong_routine_ability": null,
+      "cc_right_routine_ability": 1.0,
+      "cc_routine_separation": null
     },
     {
       "composition": "3 of 9 wrong standard",
       "n_wrong": 3,
       "slip_rate": 0.0,
       "difficulty_by_overlap": {
-        "0": 0.1086,
-        "1": 0.1086,
-        "2": 2.0497,
-        "3": 0.1086
+        "0": 0.9424,
+        "1": 0.9424,
+        "2": 2.5626,
+        "3": 0.9424
       },
-      "difficulty_spread": 18.872,
-      "wrong_ability": 1.1264,
-      "right_ability": 7.3063,
-      "ability_ratio": 0.1542,
+      "difficulty_spread": 2.719,
+      "wrong_ability": 1.9561,
+      "right_ability": 3.9823,
+      "ability_ratio": 0.4912,
       "ability_is_inverted": false,
       "dawid_skene_agreement": 1.0,
       "glad_agreement": 1.0,
       "converged": true,
-      "iterations": 4,
-      "quotable": true
+      "iterations": 6,
+      "quotable": true,
+      "cc_rasch_agreement": 1.0,
+      "cc_rasch_converged": true,
+      "cc_wrong_routine_ability": -1.5085,
+      "cc_right_routine_ability": 2.2542,
+      "cc_routine_separation": 3.7627
     },
     {
       "composition": "5 of 9 wrong standard",
       "n_wrong": 5,
       "slip_rate": 0.0,
       "difficulty_by_overlap": {
-        "0": 0.0761,
-        "1": 0.0761,
-        "2": 2.5939,
-        "3": 0.0761
+        "0": 0.9327,
+        "1": 0.9327,
+        "2": 4.3983,
+        "3": 0.9327
       },
-      "difficulty_spread": 34.064,
-      "wrong_ability": 8.6268,
-      "right_ability": 0.2741,
-      "ability_ratio": 31.4709,
+      "difficulty_spread": 4.716,
+      "wrong_ability": 3.6022,
+      "right_ability": 2.5376,
+      "ability_ratio": 1.4195,
       "ability_is_inverted": true,
       "dawid_skene_agreement": 0.7172,
       "glad_agreement": 0.7172,
       "converged": true,
-      "iterations": 7,
-      "quotable": true
+      "iterations": 38,
+      "quotable": true,
+      "cc_rasch_agreement": 0.7172,
+      "cc_rasch_converged": true,
+      "cc_wrong_routine_ability": 0.9988,
+      "cc_right_routine_ability": 1.0016,
+      "cc_routine_separation": 0.0028
     }
   ],
   "converged_rows": [
     "correct fleet (control)",
+    "correct, 15% random slip",
     "3 of 9 wrong standard",
     "5 of 9 wrong standard"
   ],
-  "unconverged_rows": [
-    "correct, 15% random slip"
-  ],
+  "unconverged_rows": [],
   "validity": {
     "n": 200,
     "quotable": true,

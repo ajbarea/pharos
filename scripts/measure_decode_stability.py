@@ -28,6 +28,7 @@ Temperature is 0.0 and the seed is fixed at 7 for every call, set in
 import argparse
 import json
 from dataclasses import dataclass
+from math import comb
 from pathlib import Path
 from typing import Any
 
@@ -188,9 +189,41 @@ def compare_passes(
     return len(differing), differing
 
 
+def rate_upper_bound(differing: int, n: int, *, level: float = 0.95) -> float:
+    """The largest disagreement rate this observation does not rule out.
+
+    A count of zero is not a measurement of zero, and reporting it as though it were
+    is how "the sweep reproduces" became a claim resting on 30 tasks. For the
+    all-zero case this is the exact one-sided Clopper-Pearson bound, `1 - a**(1/n)`;
+    otherwise it is solved for the same way, as the largest `p` under which seeing
+    this few disagreements still has probability `1 - level`.
+    """
+    if n <= 0:
+        return 1.0
+    alpha = 1.0 - level
+    if differing == 0:
+        return 1.0 - alpha ** (1.0 / n)
+    lo, hi = differing / n, 1.0
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        tail = sum(comb(n, k) * mid**k * (1 - mid) ** (n - k) for k in range(differing + 1))
+        if tail > alpha:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--tasks", type=int, default=30)
+    # 300, not 30. The old default could not support the claim it was used to make.
+    # Finding 9's replacement rests on "0 of N tasks differ across full sweeps", and
+    # 0 of 30 is consistent with any true rate up to 9.5% -- it cannot even exclude
+    # the 10% the finding originally reported and retracted. Comparing two full runs
+    # of identical code at n=600 elsewhere in this repository put the rate near 1.7%,
+    # at which seeing 0 of 30 is the LIKELY outcome (p = 0.60). 0 of 300 bounds it
+    # under 1%, which is a claim rather than a coincidence.
+    parser.add_argument("--tasks", type=int, default=300)
     parser.add_argument("--events", type=int, default=400)
     parser.add_argument(
         "--repeats", type=int, default=3, help="calls per task, one prompt at a time"
@@ -242,21 +275,50 @@ def main() -> int:
             regime, tasks, passes=args.passes, model=spec.tag, endpoint=args.endpoint
         )
         worst_differing = max(worst_differing, n_diff)
-        pass_rows.append({"regime": regime.name, "differing": n_diff, "task_ids": which})
-        print(f"  {regime.name:20} {n_diff}/{len(tasks)} tasks differ across full sweeps")
+        bound = rate_upper_bound(n_diff, len(tasks))
+        pass_rows.append(
+            {
+                "regime": regime.name,
+                "differing": n_diff,
+                "n_tasks": len(tasks),
+                # A count of zero is not a measurement of zero. Carrying the bound in
+                # the artifact is what stops the next reader quoting "0 differ" as
+                # though the rate were known to be nil.
+                "rate_upper_bound_95": round(bound, 4),
+                "task_ids": which,
+            }
+        )
+        print(
+            f"  {regime.name:20} {n_diff}/{len(tasks)} tasks differ across full sweeps"
+            f"   (rules out any rate above {bound:.2%})"
+        )
         if which:
             print(f"    {', '.join(which)}")
+        record(
+            "decode.cross_pass_bound",
+            bound,
+            regime=regime.name,
+            differing=n_diff,
+            n_tasks=len(tasks),
+        )
 
     print("\n" + "=" * 74)
     worst_repeat = max(r.unstable_share for r in rows)
     worst_pass = worst_differing / max(len(tasks), 1)
+    worst_bound = max(rate_upper_bound(r["differing"], len(tasks)) for r in pass_rows)
     if worst_repeat > worst_pass:
         print(
             f"Repeating one prompt disagrees on up to {worst_repeat:.1%} of tasks; repeating the\n"
             f"whole sweep disagrees on {worst_pass:.1%}. The gap is a warm-up transition, not\n"
             "noise: the first call against a prompt differs from every call after it, so a\n"
             "design that repeats one prompt measures cold-versus-warm and reports it as\n"
-            "irreproducibility. A real measurement is all-cold and reproduces."
+            "irreproducibility."
+        )
+        print(
+            f"\nWhat the sweep result licenses, precisely: a rate no higher than "
+            f"{worst_bound:.2%}.\nNot zero. This measurement ran at 30 tasks once, where the "
+            "same observation would\nhave licensed only 'no higher than 9.5%' -- a bound too "
+            "loose to exclude the 10%\nthis finding originally reported and retracted."
         )
     else:
         print("Both designs agree; no warm-up transition is detectable at this sample size.")

@@ -1,14 +1,18 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "d870f3efc0ce",
+    "git_commit": "b33f1193527f",
     "git_dirty": false,
-    "generated_at": "2026-08-02T00:55:19+00:00",
+    "generated_at": "2026-08-02T16:21:35+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
     "model": "Qwen/Qwen2.5-3B-Instruct",
     "seed": 7
+  },
+  "lora": {
+    "trainable_params": 29933568,
+    "total_params": 3115872256
   },
   "hyperparameters": {
     "lora_rank": 16,
@@ -38,25 +42,32 @@
       "significant": 189,
       "routine": 411
     },
-    "events_disjoint": true
+    "events_disjoint": true,
+    "eval_seed": null,
+    "cross_corpus": false
   },
-  "training_loss": 0.29058130073382116,
+  "training_loss": 0.28781109437639113,
   "base": null,
   "adapter": {
     "label": "adapter",
     "n": 600,
     "confusion": {
       "tp": 189,
-      "fp": 161,
-      "tn": 250,
+      "fp": 162,
+      "tn": 249,
       "fn": 0
     },
     "unparsed": 0,
-    "accuracy": 0.7317,
+    "accuracy": 0.73,
     "majority_accuracy": 0.685,
-    "precision": 0.54,
+    "precision": 0.5385,
     "recall": 1.0,
-    "f1": 0.7013
+    "f1": 0.7,
+    "validity": {
+      "n": 600,
+      "quotable": true,
+      "concerns": []
+    }
   },
   "teacher": {
     "reviewer": "two-of-three",
@@ -69,16 +80,21 @@
     "n": 600,
     "confusion": {
       "tp": 346,
-      "fp": 4,
-      "tn": 244,
+      "fp": 5,
+      "tn": 243,
       "fn": 6
     },
     "unparsed": 0,
-    "accuracy": 0.9833,
+    "accuracy": 0.9817,
     "majority_accuracy": 0.5867,
-    "precision": 0.9886,
+    "precision": 0.9858,
     "recall": 0.983,
-    "f1": 0.9858
+    "f1": 0.9844,
+    "validity": {
+      "n": 600,
+      "quotable": true,
+      "concerns": []
+    }
   },
   "ceiling_f1": 1.0
 }

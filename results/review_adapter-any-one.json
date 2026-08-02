@@ -1,14 +1,18 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "d870f3efc0ce",
+    "git_commit": "b33f1193527f",
     "git_dirty": false,
-    "generated_at": "2026-08-02T01:12:03+00:00",
+    "generated_at": "2026-08-02T16:42:17+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
     "model": "Qwen/Qwen2.5-3B-Instruct",
     "seed": 7
+  },
+  "lora": {
+    "trainable_params": 29933568,
+    "total_params": 3115872256
   },
   "hyperparameters": {
     "lora_rank": 16,
@@ -38,9 +42,11 @@
       "significant": 189,
       "routine": 411
     },
-    "events_disjoint": true
+    "events_disjoint": true,
+    "eval_seed": null,
+    "cross_corpus": false
   },
-  "training_loss": 0.2674899095541655,
+  "training_loss": 0.2647503101210936,
   "base": null,
   "adapter": {
     "label": "adapter",
@@ -56,7 +62,15 @@
     "majority_accuracy": 0.685,
     "precision": 0.36,
     "recall": 1.0,
-    "f1": 0.5294
+    "f1": 0.5294,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "accuracy 0.440 does not beat the majority floor 0.685: this is not evidence of capability",
+        "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
+      ]
+    }
   },
   "teacher": {
     "reviewer": "any-one",
@@ -78,7 +92,15 @@
     "majority_accuracy": 0.875,
     "precision": 1.0,
     "recall": 1.0,
-    "f1": 1.0
+    "f1": 1.0,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "class prevalence 0.88 gives a majority floor of 0.875; compare scores to that, not to 0.5",
+        "score is saturated (no errors in 600): the rule of three bounds the true error rate only at 0.5%, and a ceiling cannot rank anything above it. Report n alongside the score"
+      ]
+    }
   },
   "ceiling_f1": 1.0
 }
