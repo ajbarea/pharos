@@ -855,6 +855,20 @@ the stream already approved by the per-item gates.
 Guessing the fleet's most common beat scores 0.105, and the interval excludes it, so
 the attack is doing real work. But the aggregate is the least interesting number here.
 
+!!! warning "Every number in this finding is a lower bound"
+    These are what *our* attack recovers, not what is recoverable. An attack result
+    bounds leakage from below and never from above: a better adversary, a richer
+    auxiliary corpus, or a scheme that exploits content as well as participation would
+    recover at least this much and possibly more. The honest reading of 0.205 is "at
+    least 0.205", and of a control that drives recovery to 0.000 is "this attack is
+    defeated", which is a weaker statement than "the channel is closed".
+
+    That distinction is not hypothetical here.
+    [Finding 13](#13-a-reliability-tag-can-replace-identity-and-the-leak-metric-cannot-tell-you-when)
+    exhibits a scheme this attack scores at 0.000 while clearance leaks in aggregate at
+    0.820, so the repository already contains a case where a zero from this metric meant
+    nothing. Read every 0.000 below as "not by this route".
+
 **Identifiability is not spread evenly across the fleet. It concentrates on exactly
 the analysts with the most to protect.**
 
@@ -916,7 +930,8 @@ a result.
 | subsample p=0.05 | 0.025 | 8.6 | 0.048 | 108 |
 | **pool contributors** | **0.000** | **200.0** | **1.000** | 0 |
 
-Three things fall out of that table.
+Three things fall out of that table, and all of them are statements about this attack
+rather than about the channel.
 
 **Textbook k-anonymity at a small k is a no-op**, because in a fleet of 200 even a
 rare clearance cell has several holders: k=10 changes nothing and costs almost
@@ -1095,7 +1110,12 @@ on the one that matters.** Both name nobody. The independent tag infers clearanc
 INTERNAL*, and *tier2 = the two highest levels*. It is a clearance label wearing a
 reliability name, and every contribution carries it.
 
-**This is a limitation of finding 11's instrument, and it is worth stating plainly.**
+**This is the lower-bound problem made concrete.** Finding 11's recovery figures bound
+leakage from below, and here is a scheme where the bound is vacuous: 0.000 from that
+attack alongside 0.820 clearance inference from a different question asked of the same
+stream. Any control validated only against one attack inherits this.
+
+**It is also a limitation of finding 11's instrument, and worth stating plainly.**
 That measurement scores an analyst as recovered only when the inference is unique
 *and* attributable to them, which is the right question for "was someone named" and
 the wrong one for "was a group characterised." Any tag coarser than a person scores
@@ -1219,6 +1239,12 @@ lacks.
 | 0.8 | 0.2 | 0.120 | 1.39 | 270.3 | 0.537 |
 | 0.7 | 0.3 | 0.100 | 0.85 | 165.2 | 0.668 |
 | **0.6** | **0.4** | **0.065** | **0.41** | **66.7** | **0.756** |
+
+Recovery here is again what *this* attack achieves, so the column bounds leakage from
+below; the epsilon columns, by contrast, bound it from above for any adversary, which
+is exactly why a mechanism with a stated budget is worth more than a control validated
+against one attack. That contrast is the reason this finding is worth having even
+though its numbers are worse than the ladder's.
 
 **The two epsilon columns are the finding.** Randomized response bounds the likelihood
 ratio for *one* indicator, and the attack observes all of them: two clearances in this
