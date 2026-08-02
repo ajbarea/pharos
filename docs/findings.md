@@ -89,15 +89,17 @@ earlier version of this section, and it understated two claims.
 | --- | --- | --- | --- | --- | --- |
 | 3b | 40 | 0.000 | constant | unresolved (needs n>2000) | qwen2.5-3b (0.625) clears the majority floor (0.625) |
 | 3b | 40 | 0.200 | constant | **resolved** | mistral-7b (0.425) is below the majority floor (0.625) |
-| 5 | 30 | 0.078 | condition | unresolved (needs n≥600) | 8 shots (0.571) beats 0 shots (0.493) |
-| 5 | 30 | 0.507 | constant | **resolved** | 8 shots (0.493) is below the stated-rule ceiling (1.000) |
+| 5 | 600 | 0.009 | condition | unresolved (needs n>2000) | 8 shots (0.514) beats 0 shots (0.523) -- REFUTED at n=600 |
+| 5 | 600 | 0.055 | condition | unresolved (needs n≥2000) | 2 shots (0.468) is worse than 0 shots (0.523) |
+| 5 | 600 | 0.486 | constant | **resolved** | 8 shots (0.514) is below the stated-rule ceiling (1.000) |
+| 5 | 600 | 0.179 | constant | **resolved** | 8 shots (0.514) is below the majority floor (0.693) |
 | 6 | 60 | 0.531 | condition | **resolved** | adapter (1.000) beats the base model (0.469) |
 | 10 | 60 | 0.367 | condition | **resolved** | any-one adapter matches teacher (1.000) not world (0.633) |
 | 10 | 60 | 0.083 | condition | unresolved (needs n≥600) | inattentive adapter (0.883) beats its own teacher (0.800) |
 | 11 | 200 | 0.100 | constant | **resolved** | linkage recovery (0.205) beats the guessing prior (0.105) |
 | 11 | 50 | 0.820 | condition | **resolved** | RESTRICTED analysts (0.820) are recovered where OPEN (0.000) are not |
 
-Six of nine are resolved, and the pattern is the useful part. **The claims this
+Seven of eleven are resolved, and the pattern is the useful part. **The claims this
 project makes strongly rest on large gaps and are comfortably resolved**; the ones
 that are not are mostly ones it already declines to make. Two deserve naming:
 
@@ -115,13 +117,20 @@ that are not are mostly ones it already declines to make. Two deserve naming:
   more data -- it is permanently unresolvable as posed, and
   [finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) states it
   as unresolved rather than as a negative.
-- **"8 shots beats 0 shots" needs n≈600**, an order of magnitude more than the 30 it
-  was measured at. That one is worth buying, and it is cheap here: the corpus is a
-  generator, so tasks cost model calls rather than annotation.
+- **"8 shots beats 0 shots" was bought, and the claim died.** This table used to say
+  it needed n≈600, an order of magnitude more than the 30 it was measured at. We ran
+  600. The lift is not there:
+  [finding 5](#5-in-context-learning-does-not-close-the-gap) now reports 8 shots at
+  0.514 against a zero-shot 0.523, and the row above records the refutation rather
+  than deleting it. The companion claim, that 2 shots is *worse* than 0, is the
+  closest thing to a resolved difference here and still is not one.
 
-That last point is the reason this section is not a limitation. A static benchmark
-with 30 items is stuck with 30. A generator is only ever limited by compute, and
-600 is roughly two hours of local inference.
+That second point is why this section is not a limitation. A static benchmark with 30
+items is stuck with 30; a generator is limited only by compute, and 600 tasks is
+roughly two hours of local inference. The table is therefore a purchase order rather
+than a disclaimer, and the two purchases it has prompted so far both ended in a
+retraction. That is the instrument working: an unresolved claim is not a quiet claim,
+it is a claim with a price tag on it.
 
 ## 1. Leave-one-out attribution cannot produce a correct governed label
 
