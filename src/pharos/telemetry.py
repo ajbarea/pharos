@@ -31,6 +31,7 @@ import logging
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
+from datetime import UTC, datetime
 from typing import Any, override
 
 _LOGGER_NAME = "pharos"
@@ -83,7 +84,14 @@ class JsonFormatter(logging.Formatter):
     @override
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, object] = {
-            "timestamp": self.formatTime(record, "%Y-%m-%dT%H:%M:%S%z"),
+            # RFC 3339 with milliseconds. `%z` alone gives `-0400`, which strict RFC 3339
+            # parsers reject for the missing colon, and second resolution left the gate's
+            # own lines unorderable: it emits both probe AUCs, the baseline, and the
+            # duration inside one second, so a log that exists to explain a slow run
+            # could not say which part of it was slow.
+            "timestamp": datetime.fromtimestamp(record.created, tz=UTC)
+            .astimezone()
+            .isoformat(timespec="milliseconds"),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -248,6 +256,31 @@ def record_routine(metric: str, value: float, **attributes: object) -> None:
     _emit_metric(metric, value, logging.DEBUG, attributes)
 
 
+#: UCUM unit and description per metric, because an instrument without them is not
+#: readable by the backend that receives it: a bare number cannot be converted, rendered
+#: with an axis, or aggregated against anything else. OTel's metric conventions ask for
+#: both, and ask that the unit live here rather than in the name -- which is why
+#: `gate.duration_s` was renamed `gate.duration`, the one metric here that carried its
+#: unit as a suffix. Durations are seconds; a dimensionless ratio is `1`; a count of
+#: things is that thing in braces, singular.
+_METRIC_META: dict[str, tuple[str, str]] = {
+    "adapter.train_loss": ("1", "Training loss for a personalization adapter"),
+    "gate.duration": ("s", "Wall-clock time to run the shortcut gate over a corpus"),
+    "gate.null_mean": ("1", "Mean probe AUC under label permutation"),
+    "gate.null_z": ("1", "Standard deviations separating the baseline from its null"),
+    "gate.probe_auc": ("1", "AUC of one surface probe against the class label"),
+    "gate.surface_baseline": ("1", "Best surface-feature AUC, the score to report against"),
+    "generate.reports": ("{report}", "Reports rendered for a generated corpus"),
+    "learnability.accuracy": ("1", "Share of evaluation tasks answered correctly"),
+    "ledger.routing": ("{decision}", "Routing decisions recorded in the ledger"),
+}
+
+#: Anything not in the registry above. `1` is UCUM's unity, which is the honest default
+#: for an unannotated number and is wrong loudly rather than quietly if the metric turns
+#: out to have a dimension.
+_DEFAULT_META = ("1", "")
+
+
 def _emit_metric(metric: str, value: float, level: int, attributes: dict[str, object]) -> None:
     get_logger().log(
         level,
@@ -258,7 +291,8 @@ def _emit_metric(metric: str, value: float, level: int, attributes: dict[str, ob
         return
     histogram = _histograms.get(metric)
     if histogram is None:
-        histogram = _meter.create_histogram(f"pharos.{metric}")
+        unit, description = _METRIC_META.get(metric, _DEFAULT_META)
+        histogram = _meter.create_histogram(f"pharos.{metric}", unit=unit, description=description)
         _histograms[metric] = histogram
     histogram.record(
         value,

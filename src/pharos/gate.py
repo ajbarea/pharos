@@ -340,7 +340,7 @@ def run_gate(
     for probe, value in mean_auc.items():
         record("gate.probe_auc", value, probe=probe, n_reports=len(reports))
     record("gate.surface_baseline", sweep.verdict, n_reports=len(reports), n_folds=len(center_ids))
-    record("gate.duration_s", round(time.monotonic() - gate_started, 2), n_reports=len(reports))
+    record("gate.duration", round(time.monotonic() - gate_started, 2), n_reports=len(reports))
     if null_mean is not None:
         record("gate.null_mean", null_mean, trials=null_trials)
         record("gate.null_z", (sweep.verdict - null_mean) / (null_sd or 1.0), trials=null_trials)

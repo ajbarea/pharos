@@ -8,6 +8,7 @@ an exception or a different number.
 
 import json
 import logging
+import re
 
 from pharos import telemetry
 from pharos.gate import run_gate
@@ -265,3 +266,55 @@ def test_configure_degrades_to_false_when_the_sdk_is_absent(monkeypatch):
         assert telemetry.configure(otlp_endpoint="http://localhost:4318") is False
     finally:
         telemetry._TRACING_ACTIVE = False
+
+
+def test_every_emitted_metric_declares_a_unit_and_description():
+    """The unit registry has to stay level with the call sites that need it.
+
+    A hand-maintained registry drifts in one direction: a new `record(...)` lands, nobody
+    adds the entry, and the instrument ships with the unity default -- which is wrong and
+    silent for anything that is not a ratio. Deriving the expected set from the source
+    makes the drift fail here instead of in a dashboard.
+    """
+    import re
+    from pathlib import Path
+
+    from pharos.telemetry import _METRIC_META
+
+    root = Path(__file__).resolve().parent.parent
+    emitted: set[str] = set()
+    for path in [*(root / "src").rglob("*.py"), *(root / "scripts").rglob("*.py")]:
+        emitted |= set(re.findall(r'record(?:_routine)?\("([a-z_.]+)"', path.read_text()))
+
+    assert emitted, "no record() call sites found; the pattern above has gone stale"
+    assert emitted <= set(_METRIC_META), (
+        f"metrics with no unit declared: {emitted - set(_METRIC_META)}"
+    )
+    assert set(_METRIC_META) <= emitted, (
+        f"registry entries nothing emits: {set(_METRIC_META) - emitted}"
+    )
+
+
+def test_no_metric_name_carries_its_unit_as_a_suffix():
+    """OTel: units live in the instrument's metadata, not in its name.
+
+    `gate.duration_s` did, and a reader had to know that `_s` meant seconds while the
+    exported instrument said nothing at all.
+    """
+    from pharos.telemetry import _METRIC_META
+
+    offenders = [m for m in _METRIC_META if re.search(r"_(s|ms|us|ns|b|kb|mb|gb|mib|pct)$", m)]
+    assert offenders == [], f"unit encoded in metric name: {offenders}"
+
+
+def test_timestamps_are_rfc3339_with_subsecond_precision():
+    """Second resolution left same-second lines unorderable, which the gate produces."""
+    import json
+    import logging
+    import re as _re
+
+    from pharos.telemetry import JsonFormatter
+
+    record = logging.LogRecord("pharos", logging.INFO, __file__, 1, "x", None, None)
+    stamp = json.loads(JsonFormatter().format(record))["timestamp"]
+    assert _re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}", stamp), stamp

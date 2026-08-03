@@ -680,10 +680,10 @@ def _perfect(task):
 
 
 def _under_attributing(task):
-    """Drops a contributing source, which is the direction that leaks."""
+    """Drops contributing sources, which is the direction that leaks."""
     payload = _perfect(task)
     truth = payload["truly_contributing"]
-    payload["attributed_sources"] = frozenset(sorted(truth)[1:])
+    payload["attributed_sources"] = frozenset(sorted(truth)[: len(truth) // 2])
     return payload
 
 
@@ -985,11 +985,21 @@ def test_a_correct_standard_with_no_slip_reproduces_the_world():
     assert control.sd == 0.0, "a reviewer who never slips cannot vary across review seeds"
 
 
-def test_no_wrong_standard_clears_the_floor_at_any_carefulness():
-    """The load-bearing claim of the sweep, asserted over the whole grid.
+def test_the_most_wrong_standard_never_clears_the_floor():
+    """What survived the corpus correction of 2026-08-03, asserted over the whole grid.
 
-    If some (wrong threshold, slip) cell cleared the majority floor, the finding
-    would need rewriting -- so the test says so rather than spot-checking a cell.
+    This test used to assert that *no* wrong standard cleared the majority floor at any
+    carefulness, and its docstring said that a cell clearing it would mean the finding
+    needed rewriting. On the corrected corpus four cells cleared it -- the two-of-three
+    standard at slips 0.00 to 0.15, topping out at 0.750 against a floor of 0.650 -- so
+    the finding was rewritten and this assertion narrowed to the part that held.
+
+    The narrowing is deliberate and it is not a weakening to make a red test green: the
+    surviving claim is the one finding 8 actually rests on, which is the *exchange rate*
+    between systematic and random error, and that is asserted below rather than dropped.
+    A one-step standard error is still not reachable by any amount of carelessness at the
+    correct standard, which is the qualitative result; what changed is that one step no
+    longer takes a reviewer below the floor outright.
     """
     mrs = _sweep_module()
     from pharos.generate import GeneratorConfig, generate
@@ -1002,10 +1012,36 @@ def test_no_wrong_standard_clears_the_floor_at_any_carefulness():
     proposals = {t.task_id: mrs.Proposal(t.task_id, not t.significant, t.label) for t in tasks}
     cells = mrs.sweep(tasks, proposals)
 
-    wrong = [c for c in cells if c.threshold != max(mrs.THRESHOLDS)]
-    assert wrong, "the grid must contain wrong standards"
-    over = [(c.threshold, c.slip_rate, c.mean) for c in wrong if c.mean >= floor]
-    assert over == [], f"a wrong standard cleared the floor: {over}"
+    worst = min(mrs.THRESHOLDS)
+    over = [(c.slip_rate, c.mean) for c in cells if c.threshold == worst and c.mean >= floor]
+    assert over == [], f"the most wrong standard cleared the floor: {over}"
+
+
+def test_systematic_error_costs_more_than_any_measured_carelessness():
+    """Finding 8's actual claim: the exchange rate is lopsided, and by how much.
+
+    A reviewer holding the *correct* standard and slipping at the highest rate measured
+    still produces better targets than a reviewer holding the most wrong standard and
+    never slipping at all. That is the asymmetry the finding is about, and unlike the
+    floor comparison it does not depend on where the majority floor happens to sit.
+    """
+    mrs = _sweep_module()
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(
+        generate(GeneratorConfig(seed=mrs.SEED, n_events=mrs.EVENTS)), limit=mrs.TASKS
+    )
+    proposals = {t.task_id: mrs.Proposal(t.task_id, not t.significant, t.label) for t in tasks}
+    cells = mrs.sweep(tasks, proposals)
+
+    correct, worst = max(mrs.THRESHOLDS), min(mrs.THRESHOLDS)
+    sloppiest = max((c for c in cells if c.threshold == correct), key=lambda c: c.slip_rate)
+    careful_but_wrong = next(c for c in cells if c.threshold == worst and c.slip_rate == 0.0)
+    assert sloppiest.mean > careful_but_wrong.mean, (
+        f"correct standard at slip {sloppiest.slip_rate} scored {sloppiest.mean}, "
+        f"not better than the most wrong standard at no slip ({careful_but_wrong.mean})"
+    )
 
 
 def test_the_grid_covers_every_standard():
@@ -2396,3 +2432,82 @@ def test_a_flagged_nested_artifact_names_which_pass_is_flagged():
         assert passes, f"{stem} has no nested validity blocks to name"
         if named and named != "no":
             assert named in passes, f"{stem} flagged an unknown pass {named!r}, has {passes}"
+
+
+# --- FL Benchmarks & E2E Demo Scripts --------------------------------------
+
+from demo_e2e_system import main as run_e2e_demo  # noqa: E402
+from sweep_fl_benchmarks import (  # noqa: E402
+    generate_fleet_gradients,
+    l2_distance,
+    l2_norm,
+    run_fl_benchmark_sweep,
+)
+
+
+def test_sweep_fl_benchmarks_helpers():
+    assert l2_norm([3.0, 4.0]) == 5.0
+    assert l2_distance([1.0, 2.0], [4.0, 6.0]) == 5.0
+
+    true_grad, clients, is_byz = generate_fleet_gradients(
+        n_clients=10, dim=20, n_byzantine=2, seed=42
+    )
+    assert len(true_grad) == 20
+    assert len(clients) == 10
+    assert sum(is_byz) == 2
+
+
+def test_sweep_fl_benchmarks_run_sweep():
+    results = run_fl_benchmark_sweep(n_clients=5, dim=10, n_rounds=1)
+    assert "records" in results
+    assert len(results["records"]) > 0
+
+
+def test_demo_e2e_system_runs(monkeypatch):
+    import urllib.request
+    from io import BytesIO
+
+    # Mock urllib.request.urlopen for API call inside demo_e2e_system
+    def mock_urlopen(url):
+        return BytesIO(b'{"status": "ok", "n_reports": 360}')
+
+    monkeypatch.setattr(urllib.request, "urlopen", mock_urlopen)
+    run_e2e_demo()
+
+
+def test_a_perturbation_actually_perturbs_the_text_it_returns():
+    """The property `measure_adversarial_robustness.py` never checked, which is why it went.
+
+    That script reported clean accuracy, lexical robustness and decoy vulnerability as
+    1.0, 1.0 and 1.0 at every seed, and could not have reported anything else: it scored
+    the ground truth against itself and hardcoded the "tricked" verdict, so no
+    perturbation reached a prediction. Its test asserted the record count and no value,
+    so the constants passed. Both are deleted.
+
+    What survives is the perturbation itself, which does work, and this asserts the part
+    the harness threw away: `perturbed_reports` differs from the input while the ground
+    truth does not. An adversarial evaluation worth the name has to feed that text to a
+    model and compare verdicts; until one does, there is no robustness number here.
+    """
+    from pharos.adversarial import apply_decoy_injection, apply_lexical_substitution
+    from pharos.generate import GeneratorConfig, generate
+    from pharos.tasks import build_triage_tasks
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=60)))
+    originals = {t.task_id: tuple(s.text for s in t.sources) for t in tasks}
+
+    decoyed = [apply_decoy_injection(t, seed=7) for t in tasks if not t.significant]
+    assert decoyed, "the corpus must contain routine tasks for decoy injection to apply"
+    assert any(a.perturbed_reports != originals[a.original_task_id] for a in decoyed), (
+        "decoy injection changed no report text"
+    )
+    assert all(a.ground_truth_significant is False for a in decoyed), (
+        "a perturbation must not move the ground truth it is testing against"
+    )
+
+    substituted = [apply_lexical_substitution(t, seed=7) for t in tasks]
+    assert any(a.perturbed_reports != originals[a.original_task_id] for a in substituted), (
+        "lexical substitution matched no term in the whole corpus"
+    )
+    for a, t in zip(substituted, tasks, strict=True):
+        assert a.ground_truth_significant == t.significant
