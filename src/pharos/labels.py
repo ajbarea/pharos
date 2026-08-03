@@ -110,11 +110,21 @@ class DeclassificationPolicy:
 
 
 def declassify(label: Label, policy: DeclassificationPolicy) -> Label:
-    """`label` as it may be released, or unchanged when it may not be."""
+    """`label` as it may be released, or unchanged when it may not be.
+
+    Never raises the level. A label already below the release floor stays where it
+    is: `min`, not assignment. This read `Label(policy.release_floor, ...)`
+    unconditionally, so under the PROTECTED-floor policy in `cases/disclosure.json`
+    an OPEN input came back PROTECTED -- a function named `declassify` classifying
+    something up. The error was in the safe direction, which is why nothing caught
+    it, and it was found by checking the lattice laws exhaustively rather than by
+    any case in the table happening to exercise it.
+    """
     if label.capacity not in policy.declassifiable:
         return label
     compartments = frozenset() if policy.drop_compartments else label.compartments
-    return Label(policy.release_floor, compartments, label.capacity)
+    released = min(label.sensitivity, policy.release_floor)
+    return Label(Sensitivity(released), compartments, label.capacity)
 
 
 def shared_eligible(label: Label, release_ceiling: Label, policy: DeclassificationPolicy) -> bool:

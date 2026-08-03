@@ -198,41 +198,22 @@ def agreement_with(labels: Mapping[str, bool], truth: Mapping[str, bool]) -> flo
 
 # --------------------------------------------------------------------- GLAD -----
 #
-# Dawid-Skene attributes every disagreement to the annotator. The other standard
-# explanation is the item: some cases are genuinely near the boundary and everyone
-# struggles with them. Whitehill et al. (NIPS 2009) estimate labeler ability, item
-# difficulty and the true label jointly, which is the model to reach for when both
-# explanations are live.
-#
-# Both are live here, and worse than live: they coincide. This corpus's significant
-# class is a conjunction of three facts, and several background patterns carry two of
-# the three, so the objectively hardest routine items are exactly the ones a reviewer
-# holding a two-of-three standard gets wrong. An estimator asked to apportion blame
-# between "this analyst is wrong" and "this item is hard" is being asked to separate
-# two hypotheses that predict identical data.
-#
-# Implemented so that can be measured rather than asserted.
+# Dawid-Skene blames only the annotator; Whitehill et al. (NIPS 2009) estimate labeler
+# ability, item difficulty and the true label jointly. Both explanations are live here
+# and they coincide: the objectively hardest routine items are exactly the ones a
+# two-of-three reviewer gets wrong, so the estimator is asked to separate two hypotheses
+# that predict identical data. Implemented so that can be measured rather than asserted.
 
-#: Ability starts at the prior mean below: a labeler assumed adversarial at
-#: initialisation converges to an inverted solution that fits equally well and is not
-#: the one meant.
+#: Starts at the prior mean. A labeler assumed adversarial at initialisation converges
+#: to an inverted solution that fits equally well and is not the one meant.
 INITIAL_ABILITY = 1.0
-
-#: Log-difficulty starts at the prior mean, so any structure in the estimate is learned
-#: rather than assumed.
 INITIAL_LOG_DIFFICULTY = 1.0
 
-#: The priors Whitehill et al. specify in section 3.1, and which this omitted at first.
-#: Their words: "In our implementation we used Gaussian priors (mu = 1, sigma = 1) for
-#: alpha. For beta, we need a prior that does not generate negative values. To do so we
+#: Section 3.1: "we used Gaussian priors (mu = 1, sigma = 1) for alpha. For beta ... we
 #: re-parameterized beta = e^beta' and imposed a Gaussian prior (mu = 1, sigma = 1) on
-#: beta'."
-#:
-#: Leaving them out does not give a slightly different GLAD, it gives an unregularised
-#: MLE with unbounded parameters, and this repository published a convergence failure
-#: as a property of the method on that basis. The log-difficulty here IS their beta',
-#: since difficulty is reported as exp(log_difficulty), so the same prior applies
-#: directly.
+#: beta'." Not optional: without them this is an unregularised MLE with unbounded
+#: parameters, and the resulting divergence was once published here as a property of
+#: the method. `log_difficulty` IS their beta', since difficulty is exp(log_difficulty).
 PRIOR_MEAN = 1.0
 PRIOR_SIGMA = 1.0
 
@@ -316,10 +297,8 @@ def glad(
                     residual = target - p_correct
                     grad_a[who] += residual * inv
                     grad_b[task] += -residual * ability[who] * inv
-            # The log-prior gradients from section 3.1. d/dx of log N(x; mu, sigma) is
-            # -(x - mu) / sigma^2, which is what stops the ascent walking off: without
-            # these terms the residual never reaches zero as the sigmoid saturates, so
-            # the parameters climb without bound and EM never reaches a fixed point.
+            # Log-prior gradient, -(x - mu) / sigma^2. Without it the residual never
+            # reaches zero as the sigmoid saturates, so the parameters climb forever.
             precision = 1.0 / (PRIOR_SIGMA**2)
             for w in workers:
                 grad_a[w] -= precision * (ability[w] - PRIOR_MEAN)
@@ -368,44 +347,33 @@ def glad(
 
 # ----------------------------------------------------------------- CC-Rasch -----
 #
-# GLAD gives each annotator one ability number. Singer et al. (arXiv:2607.24622,
-# 2026) point out what that costs: "a single ability parameter per annotator ...
-# prevents them from distinguishing majority-class competence from minority-class
-# competence." Their CC-Rasch model makes both ability and difficulty class-specific,
+# Singer et al. (arXiv:2607.24622, 2026) on GLAD's single ability per annotator: it
+# "prevents them from distinguishing majority-class competence from minority-class
+# competence." Their model makes both terms class-specific,
 #
 #     P(labels correctly | true class k) = sigmoid(ability[r][k] - difficulty[i][k])
 #
-# which is the natural fit for the failure this repository keeps measuring. A reviewer
-# holding a two-of-three standard is not globally unreliable. They are exactly right on
-# the significant class and exactly wrong on the routine items near the boundary, which
-# is a class-conditional error and the one shape GLAD's single parameter cannot
-# represent. Finding 17 noted that a different estimator might resist the confound; this
-# is the strongest available candidate, so the caveat can be measured rather than
-# stated.
+# which is the one shape GLAD cannot represent and exactly the shape of a two-of-three
+# reviewer: right on the significant class, wrong only on routine items at the boundary.
+# Finding 17 hedged that a better estimator might resist the confound; this is the
+# strongest candidate, so the hedge can be measured instead.
 #
 # Implemented from the model definition, not adapted from their code.
 
-#: Class-level means, from which per-annotator and per-item deviations are measured:
-#: `ability[r][k] = mean_ability[k] + g[r][k]` and `difficulty[i][k] = mean_difficulty[k]
-#: + h[i][k]`, exactly the decomposition in their equations for alpha and beta.
+#: Class-level means, from which deviations are measured: their decomposition
+#: `alpha[r][k] = mu_a[k] + g[r][k]`, `beta[i][k] = mu_b[k] + h[i][k]`.
 INITIAL_CLASS_ABILITY = 1.0
 INITIAL_CLASS_DIFFICULTY = 0.0
 
-#: The identifiability machinery, which is not optional and which a first version of
-#: this omitted. Singer et al.: *"To interpret mu_alpha and mu_beta as the average
-#: ability (respectively difficulty) we impose for any k: sum_i h_{i,k} = sum_r g_{r,k}
-#: = 0"*, and *"Following Whitehill et al. (2009); Liu et al. (2026), we fix this
-#: translation invariance with Gaussian priors: g_{r,k} ~ N(0, sigma^2_{a,k}), h_{i,k} ~
-#: N(0, sigma^2_{b,k})"*.
-#:
-#: Without both, the model is translation-invariant per class and EM wanders between
-#: mirror-image solutions: an early run here scored 1.000 on one composition and 0.717
-#: on another with near-identical parameters, which is label switching rather than a
-#: result.
+#: Identifiability, and not optional. Their constraint is `sum_i h_{i,k} = sum_r
+#: g_{r,k} = 0` plus Gaussian priors on the deviations. Without both, the model is
+#: translation-invariant per class and EM wanders between mirror-image solutions --
+#: an early run here scored 1.000 on one composition and 0.717 on another from
+#: near-identical parameters, which is label switching rather than a result.
 CC_RASCH_DEVIATION_SIGMA = 1.0
 
-#: A light ridge on the class means themselves, their `lambda_mu` term. The means are
-#: identified once the deviations are centred, so this only keeps them finite.
+#: Their `lambda_mu` ridge. The means are identified once the deviations are centred,
+#: so this only keeps them finite.
 CC_RASCH_MEAN_PENALTY = 0.01
 
 CC_RASCH_STEPS = 40
@@ -483,9 +451,8 @@ def cc_rasch(
                         residual = weight * ((1.0 if verdict == k else 0.0) - p_correct)
                         grad_a[who][k] += residual
                         grad_b[task][k] -= residual
-            # The penalty, applied to the DEVIATION from each class mean rather than to
-            # the parameter, which is what their `R(theta)` does. Penalising the raw
-            # parameter would instead shrink every annotator toward zero ability.
+            # Penalise the DEVIATION from each class mean, not the parameter: their
+            # `R(theta)`. Penalising the parameter shrinks every annotator to zero.
             precision = 1.0 / (CC_RASCH_DEVIATION_SIGMA**2)
             for k in classes:
                 mean_a = sum(ability[w][k] for w in workers) / len(workers)
@@ -507,16 +474,11 @@ def cc_rasch(
                 for k in classes:
                     difficulty[t][k] += CC_RASCH_RATE * grad_b[t][k]
 
-        # The centring constraint, imposed after the ascent rather than during it.
-        #
-        # The model depends on ability and difficulty only through their DIFFERENCE:
-        # `sigmoid(ability[r][k] - difficulty[i][k])` is unchanged by adding the same
-        # constant to both, which is the translation invariance the constraint exists
-        # to remove. So the shift has to move both in the SAME direction. A first
-        # version moved them in opposite directions by half the drift each, which
-        # changes every sigmoid by the full drift and is not a reparameterisation at
-        # all -- the observed-data log-likelihood fell between iterations, which EM
-        # cannot do, and that is how it was found.
+        # Centring, after the ascent. The model depends only on the DIFFERENCE
+        # `ability - difficulty`, so the gauge shift must move both the same way. A
+        # first version moved them oppositely, which changes every sigmoid and is no
+        # reparameterisation at all; the log-likelihood fell between iterations, which
+        # EM cannot do, and that is how it was found.
         for k in classes:
             gauge = sum(ability[w][k] for w in workers) / len(workers) - INITIAL_CLASS_ABILITY
             for w in workers:

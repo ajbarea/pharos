@@ -13,7 +13,7 @@ the label is wrong, and the two error directions are not equally bad:
 
 Run from the repo root with Ollama serving:
 
-    uv run python scripts/measure_label_fidelity.py --tasks 8
+    uv run python scripts/measure_label_fidelity.py --out results/label_fidelity.json
 """
 
 import argparse
@@ -33,12 +33,9 @@ from pharos.validity import check_sample_size
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    # 40, not 8, and not 24 either. The first measurement of finding 1 was taken at
-    # n=8 and had to be retracted, so the default was raised to 24 to stop that
-    # happening twice. But 24 was chosen as "not 8" rather than as "enough": it sits
-    # below the n=30 floor `check_sample_size` applies, so every run marked its own
-    # output unquotable and the finding could not be cited from its own artifact.
-    # 40 clears the floor the repository already enforces everywhere else.
+    # 40, not 8, and not 24. Finding 1 was first taken at n=8 and retracted, and 24
+    # was then chosen as "not 8" rather than as "enough" -- below the n=30 floor
+    # `check_sample_size` applies, so every run marked its own output unquotable.
     parser.add_argument("--tasks", type=int, default=40)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--events", type=int, default=400)
@@ -129,10 +126,7 @@ def main() -> int:
                     "model": args.model,
                     "seed": args.seed,
                     "detector": accuracy.as_dict(),
-                    # Finding 1 runs at 24 turns and its own prose says differences
-                    # of this size are provisional. Recording that in the artifact
-                    # makes the caveat travel with the number instead of living only
-                    # in the sentence beside it.
+                    # Travels with the number instead of living only in the prose.
                     "validity": check_sample_size(len(rows), label="label_fidelity").as_dict(),
                     "rows": rows,
                     "outcomes": dict(outcomes),

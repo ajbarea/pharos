@@ -409,21 +409,34 @@ examples instead is the cheap form of that question.
 
 | Condition | Shots | Precision | Recall | F1 | Accuracy | 95% interval | Unparsed |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Zero-shot floor | 0 | 0.382 | 0.918 | 0.540 | 0.523 | [0.484, 0.565] | 2 |
-| Labelled examples | 2 | 0.365 | 0.972 | 0.530 | **0.468** | [0.427, 0.509] | 17 |
-| Labelled examples | 4 | 0.391 | 0.978 | 0.559 | 0.515 | [0.475, 0.557] | 21 |
-| Labelled examples | 8 | 0.385 | 0.978 | 0.553 | 0.514 | [0.473, 0.556] | 1 |
+| Zero-shot floor | 0 | 0.372 | 0.874 | 0.522 | 0.513 | [0.472, 0.553] | 3 |
+| Labelled examples | 2 | 0.352 | 0.906 | 0.507 | **0.453** | [0.413, 0.496] | 20 |
+| Labelled examples | 4 | 0.356 | 0.957 | 0.518 | 0.452 | [0.410, 0.492] | 3 |
+| Labelled examples | 8 | 0.402 | 0.962 | 0.567 | 0.549 | [0.507, 0.588] | 1 |
 | **Rule stated, checklist prompt (ceiling)** | n/a | **1.000** | **1.000** | **1.000** | **1.000** | | |
 
-**Examples close 4% of the gap to the ceiling**, and no condition comes near its own
+**Examples close 9% of the gap to the ceiling**, and no condition comes near its own
 majority-class accuracy, which sits at 0.693. The floor is not close: the best
-condition is 0.18 below it.
+condition is 0.14 below it. Every row is marked unquotable by `pharos.validity` for
+exactly that reason, which is the correct reading: none of these numbers is evidence
+of capability.
 
-**Two shots looks *worse* than none, and the data does not quite resolve it.** The
-gap runs the opposite way to what a reader expects, 0.468 against 0.523, and it is
-the closest any pair here comes to separating. It does not separate. The gap is
-0.0551 against a difference half-width of 0.0576, so the honest verdict is a
-direction, not a difference.
+**Two shots looks *worse* than none, and we decline the comparison anyway.** The gap
+runs the opposite way to what a reader expects, 0.453 against 0.513, and it is the
+closest any pair here comes to separating. On this run it does separate, by 0.0592
+against a difference half-width of 0.0579 -- a margin of **0.0013**.
+
+That margin is not worth anything, and the reason is measured rather than argued. The
+replication below re-ran this identical measurement and moved one condition's accuracy
+by 0.062, which is **48 times** the margin by which this comparison clears its own
+criterion. A test whose verdict flips on a quantity far smaller than the measurement's
+own run-to-run variation is not testing anything. The previous run of this same
+measurement put the gap at 0.0551 against 0.0576 and the same criterion returned
+*false*. So the reported verdict on "do two examples hurt" has already changed sign
+once, on data that differs only by which afternoon it was collected.
+
+We therefore report the direction and decline the difference, which is what the earlier
+run's arithmetic said and what this run's replication says for a better reason.
 
 That distinction is worth spelling out because two criteria disagree on this pair and
 only one of them is right. Neither interval covers the other's point, which is what
@@ -435,14 +448,109 @@ The weaker test was mislabelled "conservative" in its own docstring; it is the
 permissive one, and it has been corrected.
 
 What the other columns show is a coherent mechanism for the direction, whether or not
-the size is resolved. Recall climbs from 0.918 to 0.972 while precision falls from
-0.382 to 0.365, so the examples are not teaching the rule, they are teaching the model
+the size is resolved. Recall climbs from 0.874 to 0.906 while precision falls from
+0.372 to 0.352, so the examples are not teaching the rule, they are teaching the model
 to escalate more. That is the same failure
 [finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) found in
 every model tested, and supplying examples does not repair it.
 
-No pair separates under the difference test. Four, eight, and zero shots are
+No other pair separates under the difference test. Four, eight, and zero shots are
 indistinguishable from each other at this size.
+
+### 5b. The intervals above understate the uncertainty, measured by replication
+
+This measurement has now been run twice, end to end, and the two runs disagree by more
+than the intervals allow. That is a fact about every model-backed number in this
+document, not just this one, so it is recorded here where the evidence is.
+
+!!! danger "Withdrawn 2026-08-02, hours after publication. The comparison is confounded."
+    This section originally asserted that the two runs were "the same measurement in
+    every respect that could matter ... the same prompts". That could not be verified,
+    and is probably false.
+
+    `generate()` draws every event first and *then* renders, from a single RNG stream.
+    Events are therefore stable across corpus sizes -- same ids, same facts, same
+    governed labels, which is why the eval set checked out -- but rendering begins at a
+    stream position that depends on `n_events`, so **the same task is worded differently
+    in corpora of different sizes**. The eval task ids are identical for every
+    `n_events` at or above 632; the prompt hash is different for every one of them.
+
+    Run B used `--events 800`. Run A predates the change that made artifacts record
+    `n_events` at all, so its corpus size is unknown and its prompts cannot be
+    reconstructed. The observed differences are therefore confounded between decode
+    variation and a difference in the prose the model was shown, and nothing here
+    separates them.
+
+    The provenance gap that makes this unresolvable is the one closed earlier the same
+    day, by recording `n_events` in the artifact. Finding this is what the fix was for;
+    it simply arrived one run too late to rescue these two.
+
+    **What stands:** the finding itself, which never depended on this section. Every
+    value in both runs sits between 0.45 and 0.55 against a ceiling of 1.000 and a floor
+    of 0.693. **What is withdrawn:** the claim that a 95% interval failed to cover an
+    identical re-run, and the claim that the shot-count ordering reverses between
+    identical runs. Both may well be true; neither is established by these two runs.
+
+    A controlled replication -- two runs at the same recorded `--events`, on the same
+    commit -- is queued. The table below is retained as the record of what was seen,
+    not as evidence for what caused it.
+
+The two runs used the same 600 evaluation tasks, verified identical by task id and
+ground truth, the same model, and temperature 0.0 with seed 7 on both. They may not have
+used the same prompts, for the reason given above.
+
+| Shots | Run A, 2026-08-01 | Run B, 2026-08-02 | Difference | Run A's 95% interval |
+| --- | --- | --- | --- | --- |
+| 0 | 0.5234 | 0.5126 | -0.011 | [0.484, 0.565] |
+| 2 | 0.4683 | 0.4534 | -0.015 | [0.427, 0.509] |
+| **4** | **0.5147** | **0.4523** | **-0.062** | **[0.475, 0.557]** |
+| 8 | 0.5142 | 0.5492 | +0.035 | [0.473, 0.556] |
+
+**Two things were observed. Neither is attributed, for the reason above.**
+
+*A 95% interval did not cover the other run's point estimate.* At four shots, Run A
+reported [0.475, 0.557] and Run B's point is 0.4523, below the bottom of it. Read as
+decode variation this would say the interval understates uncertainty; read as a corpus
+difference it says only that two different renderings score differently, which is
+unremarkable. The runs cannot distinguish these.
+
+*The ordering of the conditions differs.* Run A puts eight shots at 0.5142, below its
+zero-shot 0.5234; Run B puts eight shots at 0.5492, above its zero-shot 0.5126. Same
+ambiguity: a genuine reversal between identical runs would be the stronger form of the
+power argument, and a reversal between differently-worded corpora would be a fact about
+two corpora.
+
+**What survives untouched.** The finding is that in-context learning does not close the
+gap, and every value in both runs sits between 0.45 and 0.55 against a stated-rule
+ceiling of 1.000 and a majority floor of 0.693. A ten-point band is irrelevant to a
+claim about a fifty-point shortfall, whichever source it comes from. This section was
+never load-bearing for the finding; it was an attempt to strengthen a caveat, and it
+overreached.
+
+**The precaution stands even though the evidence for it does not.** Whichever source
+produced these differences, both are live in any model-backed comparison here, so the
+rule is unchanged: a gap under roughly six points between two model-backed conditions
+is unsupported without replication at a *recorded* corpus size. Two claims sit in that
+range and both were already declined on other grounds:
+[finding 5](#5-in-context-learning-does-not-close-the-gap)'s shot-count ordering, and
+the six-model ordering in
+[finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it), which the
+text refuses to present as a ranking. The claims this project does make -- recall
+exactly 1.000 in every model, a fleet inheriting its teacher's error rate to within
+0.002, a consensus cliff from 1.000 to 0.717 -- are all far outside that band.
+
+!!! note "What would settle it, and what is queued"
+    Two runs bound nothing even when they are controlled, and these were not. Two
+    instruments settle it between them.
+
+    *For decode variation:* the per-task cross-run disagreement rate, measured by
+    [finding 9](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing),
+    whose sample was raised from 30 to 300 because 0 of 30 admits a rate as high as
+    9.5% -- more than enough to produce everything above on its own.
+
+    *For the corpus:* a repeat of this measurement at `--events 800`, matching Run B
+    exactly, with the size now recorded in the artifact. If the numbers reproduce, the
+    differences above were rendering. If they do not, they were decode.
 
 !!! warning "Retracted 2026-08-01: the eight-shot lift"
     An earlier version of this table, measured at **30** tasks, reported 8 shots at

@@ -2,9 +2,18 @@
 
 from collections import Counter
 
+import pytest
+
 from pharos.generate import FACTS_PER_EVENT, GeneratorConfig, Report, generate
 from pharos.labels import Capacity, Compartment, Sensitivity
-from pharos.world import CHANNEL_LABELS, FACTS_BY_ID, SIGNIFICANT_PATTERN, ReportType
+from pharos.tasks import build_triage_tasks
+from pharos.world import (
+    CHANNEL_LABELS,
+    DECOY_PATTERNS,
+    FACTS_BY_ID,
+    SIGNIFICANT_PATTERN,
+    ReportType,
+)
 
 CONFIG = GeneratorConfig(seed=1, n_events=120, plant_rate=0.3)
 REPORTS = generate(CONFIG)
@@ -32,9 +41,27 @@ def test_the_corpus_spans_every_channel_and_both_classes():
     assert {r.is_plant for r in REPORTS} == {True, False}
 
 
-def test_plants_and_background_use_the_same_channels():
-    plant_channels = {r.report_type for r in REPORTS if r.is_plant}
-    background_channels = {r.report_type for r in REPORTS if not r.is_plant}
+@pytest.mark.parametrize("seed", [1, 2, 3, 7, 13, 101])
+def test_plants_and_background_use_the_same_channels(seed):
+    """No channel is available to one class and closed to the other.
+
+    Sized so the invariant is observable rather than lucky. The rarest channel for a
+    plant is LIAISON_TIP at about 1.9% of plant reports, so `CONFIG`'s 120 events gave
+    it an expected count near 2 and this assertion turned on whether a two-in-a-hundred
+    draw happened to land: it passes at seeds 2, 7, 13 and 101 and fails at 1 and 3,
+    which is a property of the seed and not of the generator. At 600 events the same
+    channel is expected about 11 times and the invariant holds at every seed here.
+
+    What the assertion does *not* say is that the channel mix is class-independent. It
+    is not, by construction and by a wide margin -- SENSOR_TRACK is roughly 45% of plant
+    reports against 24% of background -- because plants carry the significant fact
+    pattern and channels are chosen to cover an event's facts. That asymmetry is the
+    surface signal the shortcut gate exists to price, and it is why the gate's baseline
+    is expected to sit above chance rather than at it.
+    """
+    reports = generate(GeneratorConfig(seed=seed, n_events=600, plant_rate=0.3))
+    plant_channels = {r.report_type for r in reports if r.is_plant}
+    background_channels = {r.report_type for r in reports if not r.is_plant}
     assert plant_channels == background_channels
 
 
@@ -145,3 +172,72 @@ def test_every_rendered_fact_is_plausible_on_its_channel():
     for report in INTEGRITY_REPORTS:
         for fact_id in report.fact_ids:
             assert report.report_type in FACTS_BY_ID[fact_id].channels
+
+
+# ------------------------------------------------- what n_events does and does not -----
+
+
+def test_a_smaller_corpus_is_an_exact_prefix_of_a_larger_one():
+    """`n_events` is a quantity, not a variable. It took a published claim to learn why.
+
+    One RNG stream threaded through the corpus made corpus size load-bearing for
+    content unrelated to it: every event was drawn before any report was rendered, so
+    rendering began at a position set by how many events had been requested. The
+    obvious checks passed -- event ids and per-task significance matched exactly -- while
+    the per-report fact split agreed only 28% of the time and the per-report governed
+    label only 52%. Findings that read report labels were therefore measuring a
+    different corpus at each `--events` value they happened to use.
+
+    Streams are now derived per event, so this must hold field for field.
+    """
+    small = generate(GeneratorConfig(seed=7, n_events=200))
+    large = generate(GeneratorConfig(seed=7, n_events=600))
+    assert len(large) > len(small)
+
+    for a, b in zip(small, large[: len(small)], strict=True):
+        assert a.report_id == b.report_id
+        assert a.event_id == b.event_id
+        assert a.fact_ids == b.fact_ids, f"{a.report_id} changed facts with corpus size"
+        assert a.label == b.label, f"{a.report_id} changed label with corpus size"
+        assert a.is_plant == b.is_plant
+        assert a.text == b.text, f"{a.report_id} was reworded by corpus size"
+
+
+def test_a_corpus_still_depends_on_its_seed():
+    """Per-event derivation must not collapse different seeds onto one corpus."""
+    a = generate(GeneratorConfig(seed=7, n_events=80))
+    b = generate(GeneratorConfig(seed=11, n_events=80))
+    assert [r.text for r in a] != [r.text for r in b]
+    assert [r.text for r in a] == [r.text for r in generate(GeneratorConfig(seed=7, n_events=80))]
+
+
+def test_ground_truth_is_exactly_the_stated_rule():
+    """A task is significant iff its sources jointly carry all three signature facts.
+
+    Every finding in this project is downstream of this equality. Checked over four
+    seeds rather than one, because a rule that held only at seed 7 would be a property
+    of that draw.
+    """
+    for seed in (7, 11, 23, 101):
+        tasks = build_triage_tasks(generate(GeneratorConfig(seed=seed, n_events=300)))
+        assert tasks, f"seed {seed} produced no tasks"
+        for task in tasks:
+            facts: set[str] = set()
+            for report in task.sources:
+                facts |= set(report.fact_ids)
+            assert task.significant == (facts >= SIGNIFICANT_PATTERN), (
+                f"seed {seed} {task.task_id}: ground truth disagrees with the rule"
+            )
+        share = sum(1 for t in tasks if t.significant) / len(tasks)
+        assert 0.05 < share < 0.95, f"seed {seed} class balance {share:.3f} is degenerate"
+
+
+def test_no_decoy_carries_the_whole_signature():
+    """Decoys hold at most two of the three, or the rule would be unlearnable.
+
+    Finding 17 rests on the near-boundary band existing and being *routine*: a decoy
+    carrying all three would be a mislabelled significant event.
+    """
+    for pattern in DECOY_PATTERNS:
+        overlap = len(set(pattern) & SIGNIFICANT_PATTERN)
+        assert overlap <= 2, f"{sorted(pattern)} carries {overlap} of the signature facts"

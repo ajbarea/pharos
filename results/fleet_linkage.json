@@ -8,7 +8,7 @@
       "resamples": 2000
     },
     "mean_anonymity_set": 9.98,
-    "contributions": 7053
+    "contributions": 6625
   },
   "keep": {
     "recovery": {
@@ -19,7 +19,7 @@
       "resamples": 2000
     },
     "mean_anonymity_set": 16.0,
-    "contributions": 1000
+    "contributions": 600
   },
   "by_clearance_level": [
     {
@@ -75,84 +75,84 @@
     "none": {
       "recovery": 0.205,
       "mean_anonymity_set": 9.98,
-      "contributions": 7053,
+      "contributions": 6625,
       "retained_volume": 1.0,
       "silenced_analysts": 0
     },
     "k_anonymity_k10": {
       "recovery": 0.205,
       "mean_anonymity_set": 9.98,
-      "contributions": 6994,
-      "retained_volume": 0.9916,
+      "contributions": 6566,
+      "retained_volume": 0.9911,
       "silenced_analysts": 0
     },
     "k_anonymity_k25": {
-      "recovery": 0.13,
-      "mean_anonymity_set": 10.04,
-      "contributions": 5957,
-      "retained_volume": 0.8446,
+      "recovery": 0.11,
+      "mean_anonymity_set": 10.27,
+      "contributions": 5395,
+      "retained_volume": 0.8143,
       "silenced_analysts": 0
     },
     "k_anonymity_k50": {
       "recovery": 0.0,
       "mean_anonymity_set": 13.32,
-      "contributions": 1871,
-      "retained_volume": 0.2653,
+      "contributions": 1538,
+      "retained_volume": 0.2322,
       "silenced_analysts": 0
     },
     "k_anonymity_k100": {
       "recovery": 0.0,
       "mean_anonymity_set": 16.0,
-      "contributions": 1000,
-      "retained_volume": 0.1418,
+      "contributions": 600,
+      "retained_volume": 0.0906,
       "silenced_analysts": 0
     },
     "rarity_suppression_keep0.75": {
-      "recovery": 0.13,
-      "mean_anonymity_set": 10.12,
-      "contributions": 6527,
-      "retained_volume": 0.9254,
+      "recovery": 0.11,
+      "mean_anonymity_set": 10.27,
+      "contributions": 6111,
+      "retained_volume": 0.9224,
       "silenced_analysts": 0
     },
     "rarity_suppression_keep0.5": {
       "recovery": 0.0,
-      "mean_anonymity_set": 12.46,
-      "contributions": 5388,
-      "retained_volume": 0.7639,
+      "mean_anonymity_set": 11.56,
+      "contributions": 5053,
+      "retained_volume": 0.7627,
       "silenced_analysts": 0
     },
     "rarity_suppression_keep0.25": {
       "recovery": 0.0,
       "mean_anonymity_set": 12.46,
-      "contributions": 3247,
-      "retained_volume": 0.4604,
+      "contributions": 2957,
+      "retained_volume": 0.4463,
       "silenced_analysts": 0
     },
     "subsample_p0.5": {
-      "recovery": 0.185,
-      "mean_anonymity_set": 10.1,
-      "contributions": 3601,
-      "retained_volume": 0.5106,
-      "silenced_analysts": 5
+      "recovery": 0.18,
+      "mean_anonymity_set": 9.71,
+      "contributions": 3382,
+      "retained_volume": 0.5105,
+      "silenced_analysts": 12
     },
     "subsample_p0.2": {
-      "recovery": 0.09,
-      "mean_anonymity_set": 9.6,
-      "contributions": 1361,
-      "retained_volume": 0.193,
-      "silenced_analysts": 44
+      "recovery": 0.08,
+      "mean_anonymity_set": 8.79,
+      "contributions": 1279,
+      "retained_volume": 0.1931,
+      "silenced_analysts": 58
     },
     "subsample_p0.05": {
-      "recovery": 0.025,
-      "mean_anonymity_set": 8.57,
-      "contributions": 338,
-      "retained_volume": 0.0479,
-      "silenced_analysts": 108
+      "recovery": 0.02,
+      "mean_anonymity_set": 8.02,
+      "contributions": 314,
+      "retained_volume": 0.0474,
+      "silenced_analysts": 110
     },
     "pooled": {
       "recovery": 0.0,
       "mean_anonymity_set": 200.0,
-      "contributions": 7053,
+      "contributions": 6625,
       "retained_volume": 1.0,
       "silenced_analysts": 0
     }
@@ -179,13 +179,12 @@
     "grid": [
       {
         "events": 20,
-        "distinct_structures": 5,
+        "distinct_structures": 4,
         "invariant": false,
         "recoveries": [
           0.0,
-          0.05,
           0.095,
-          0.205
+          0.1
         ]
       },
       {
@@ -193,10 +192,9 @@
         "distinct_structures": 5,
         "invariant": false,
         "recoveries": [
-          0.075,
           0.095,
           0.125,
-          0.17,
+          0.18,
           0.205
         ]
       },
@@ -205,7 +203,8 @@
         "distinct_structures": 2,
         "invariant": false,
         "recoveries": [
-          0.17,
+          0.15,
+          0.18,
           0.205
         ]
       },
@@ -240,9 +239,9 @@
   "candidate_compartment_sets": 16,
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "4b9b2b0c9b28",
+    "git_commit": "b4ec8f77e65d",
     "git_dirty": true,
-    "generated_at": "2026-08-02T00:59:18+00:00",
+    "generated_at": "2026-08-02T18:59:03+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",

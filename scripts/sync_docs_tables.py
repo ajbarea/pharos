@@ -80,15 +80,9 @@ def power_claims() -> str:
     return "\n".join(lines)
 
 
-#: Artifacts with no sampling-validity question to answer, and why. Listing these as
-#: gaps would overstate the problem by more than half: a deterministic computation over
-#: the lattice has no sample to be too small, and a tool that prices hypothetical sizes
-#: has no measurement of its own to assess. An exemption is a claim, so each carries its
-#: reason and is visible on the page rather than filtered out silently.
-#: Artifacts whose *script* now computes validity but whose committed artifact predates
-#: that change. These need a rerun rather than a code change, and the two are different
-#: kinds of work: one is minutes of editing, the other is hours of GPU or model time.
-#: Listing them together would make the backlog unreadable.
+#: Artifacts whose *script* computes validity but whose committed artifact predates
+#: that change. A rerun, not a code change, and hours of GPU rather than minutes of
+#: editing -- which is why they are listed apart from the exemptions below.
 AWAITING_RERUN = {
     "learnability": "measure_rule_learnability.py now records it per shot count",
     "label_fidelity": "measure_label_fidelity.py now records it over the scored turns",
@@ -101,6 +95,9 @@ AWAITING_RERUN = {
     },
 }
 
+#: Artifacts with no sampling-validity question to answer, and why. An exemption is a
+#: claim, so each carries its reason and appears on the page rather than being filtered
+#: out silently.
 NO_SAMPLING_QUESTION = {
     "power": "prices hypothetical evaluation sizes; simulates outcomes rather than measuring any",
     "federation_eligibility": "deterministic over the label lattice; nothing is sampled",
@@ -126,13 +123,11 @@ def measurement_health() -> str:
     """
     rows: list[tuple[str, str, str]] = []
     unassessed: list[str] = []
-    # Artifacts that turned out to carry an assessment after all. `AWAITING_RERUN` is
-    # maintained by hand, so it goes stale in exactly one direction: a rerun lands, the
-    # artifact gains its validity block, and the entry saying it has not is left
-    # behind. That produced a table listing `decode_stability` as both quotable at
-    # n=30 and awaiting the rerun that produced the 30. Deriving the pending list from
-    # the artifacts rather than trusting the registry makes the stale direction
-    # self-correcting; the registry keeps only the reasons, which cannot be derived.
+    # `AWAITING_RERUN` is hand-maintained and goes stale in one direction: a rerun
+    # lands and the entry saying it has not is left behind, which once listed
+    # `decode_stability` as both quotable at n=30 and awaiting the rerun that produced
+    # the 30. Derive the pending list from the artifacts; the registry keeps only the
+    # reasons, which cannot be derived.
     now_assessed: set[str] = set()
     for path in sorted(RESULTS.glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))

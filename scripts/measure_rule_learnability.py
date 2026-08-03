@@ -10,8 +10,7 @@ needs rethinking before any federation work matters.
 
 Three reference points, all with the rule withheld unless stated:
 
-- **Floor**: zero examples. Measured previously at F1 0.537 plain, 0.688 with brief
-  reasoning, over-escalating at recall 1.000.
+- **Floor**: zero examples, over-escalating at high recall.
 - **Ceiling**: the rule stated with a checklist prompt, which reaches F1 1.000, so the
   task is known solvable by this model.
 - **This script**: k labelled examples, rule never stated. Where it lands between
@@ -133,13 +132,10 @@ def main() -> int:
         type=int,
         default=1,
         help=(
-            "identical back-to-back passes per task. 1 is the publication setting and "
-            "the right one: the interval comes from resampling TASKS, so 600 tasks at "
-            "one pass already carries a cluster-bootstrap interval, and a real "
-            "measurement calls each task once from cold. Repeating one prompt adds "
-            "only the warm-up transition finding 9 retracted a claim over -- the first "
-            "call against a prompt differs from every call after it -- so a larger "
-            "value measures the backend warming up and reports it as uncertainty."
+            "identical back-to-back passes per task. 1 is the publication setting: the "
+            "interval resamples TASKS, and a real measurement calls each task once from "
+            "cold. More passes measure the warm-up transition finding 9 retracted a "
+            "claim over, and report it as uncertainty."
         ),
     )
     parser.add_argument("--out", type=Path)
@@ -297,11 +293,8 @@ def main() -> int:
                     ),
                     "model": args.model,
                     "seed": args.seed,
-                    # The corpus this ran on, not just how much of it was scored. An
-                    # artifact recording only `n_eval` cannot be reproduced from its
-                    # own contents: `(seed, n_events)` is what regenerates the world,
-                    # and without the second half the reader has to guess which run
-                    # produced the number they are citing.
+                    # The corpus, not just how much of it was scored. `(seed,
+                    # n_events)` regenerates the world; `n_eval` alone cannot.
                     "n_events": args.events,
                     "shots": args.shots,
                     "n_eval": len(evaluation),

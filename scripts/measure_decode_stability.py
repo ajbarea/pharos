@@ -216,13 +216,9 @@ def rate_upper_bound(differing: int, n: int, *, level: float = 0.95) -> float:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    # 300, not 30. The old default could not support the claim it was used to make.
-    # Finding 9's replacement rests on "0 of N tasks differ across full sweeps", and
-    # 0 of 30 is consistent with any true rate up to 9.5% -- it cannot even exclude
-    # the 10% the finding originally reported and retracted. Comparing two full runs
-    # of identical code at n=600 elsewhere in this repository put the rate near 1.7%,
-    # at which seeing 0 of 30 is the LIKELY outcome (p = 0.60). 0 of 300 bounds it
-    # under 1%, which is a claim rather than a coincidence.
+    # 300, not 30. Finding 9's replacement rests on "0 of N differ across full
+    # sweeps", and 0 of 30 admits any rate up to 9.5% -- it cannot exclude the 10%
+    # that finding retracted. 0 of 300 bounds it under 1%.
     parser.add_argument("--tasks", type=int, default=300)
     parser.add_argument("--events", type=int, default=400)
     parser.add_argument(
@@ -336,16 +332,11 @@ def main() -> int:
                     "repeat_one_prompt": [r.as_dict() for r in rows],
                     "repeat_one_prompt_task_ids": flipped,
                     "repeat_whole_pass": pass_rows,
-                    # Finding 9 retracted an earlier reading of itself, so the size
-                    # its replacement rests on belongs in the record rather than only
-                    # in the retraction notice.
-                    #
-                    # That size is the number of TASKS compared across sweeps. This
-                    # read `len(pass_rows)`, which is the number of decode regimes --
-                    # two -- so the artifact reported n=2 and marked itself unquotable
-                    # for want of a sample it actually had. A validity check wired to
-                    # the wrong quantity is worse than none: it discredits a sound
-                    # measurement in the same voice it would use for a real problem.
+                    # The number of TASKS compared across sweeps. This read
+                    # `len(pass_rows)` -- the two decode regimes -- so the artifact
+                    # reported n=2 and marked itself unquotable for want of a sample
+                    # it had. A validity check on the wrong quantity is worse than
+                    # none: it discredits a sound measurement in the same voice.
                     "validity": check_sample_size(
                         len(tasks),
                         label="decode_stability",

@@ -17,6 +17,7 @@ Everything derives from one seeded `random.Random`, so a corpus is reproducible
 from its `(seed, config)` pair alone.
 """
 
+import hashlib
 import random
 from dataclasses import dataclass, field, replace
 
@@ -141,16 +142,45 @@ def _propose_fact_ids(rng: random.Random, *, plant: bool) -> frozenset[str]:
     return frozenset(chosen)
 
 
+def event_stream(seed: int, index: int, purpose: str = "event") -> random.Random:
+    """A random stream for event `index`, derived from `(seed, index, purpose)` alone.
+
+    `purpose` separates drawing an event from rendering its reports so the two cannot
+    consume each other's draws; both are still a pure function of the event's index.
+
+    This is what makes `n_events` a quantity rather than a variable. A single stream
+    threaded through the corpus made corpus size load-bearing for content unrelated to
+    it: every event was drawn before any report was rendered, so rendering began at a
+    position set by how many events had been requested. Event ids and per-task
+    significance still matched across sizes, so the obvious checks passed, while at
+    seed 7 the per-report fact split agreed 21% of the time between a 40-event and an
+    80-event corpus and the governed label 52%. Any measurement that read a report
+    label was therefore reading a different corpus at each `--events` it happened to
+    use, and two such measurements could not be compared.
+
+    Deriving per event makes a smaller corpus an exact prefix of a larger one, field
+    for field including rendered text, which `tests/test_generate.py` asserts.
+    """
+    digest = hashlib.sha256(f"{seed}:{index}:{purpose}".encode()).digest()
+    return random.Random(digest)
+
+
 def _events(rng: random.Random, config: GeneratorConfig) -> list[Event]:
+    """Events for `config`, each drawn from its own stream.
+
+    `rng` still draws the vessel pool, which is a corpus-level fixture drawn once
+    before any event and so does not depend on how many events follow it.
+    """
     vessels = _vessels(rng)
     events: list[Event] = []
     for index in range(config.n_events):
-        plant = rng.random() < config.plant_rate
+        ev = event_stream(config.seed, index)
+        plant = ev.random() < config.plant_rate
         events.append(
             Event(
                 event_id=f"E-{index:04d}",
-                vessel=rng.choice(vessels),
-                fact_ids=_draw_fact_ids(rng, plant=plant),
+                vessel=ev.choice(vessels),
+                fact_ids=_draw_fact_ids(ev, plant=plant),
             )
         )
     return events
@@ -319,9 +349,10 @@ def generate(config: GeneratorConfig) -> list[Report]:
         reports: list[Report] = []
         counter = 0
 
-        for event in _events(rng, config):
-            for channel, fact_ids in _report_channels(rng, event):
-                center = rng.choice(config.centers)
+        for index, event in enumerate(_events(rng, config)):
+            ev = event_stream(config.seed, index, "render")
+            for channel, fact_ids in _report_channels(ev, event):
+                center = ev.choice(config.centers)
                 sensitivity, compartments = CHANNEL_LABELS[channel]
                 report_id = f"R-{counter:05d}"
                 counter += 1
@@ -334,7 +365,7 @@ def generate(config: GeneratorConfig) -> list[Report]:
                         event_id=event.event_id,
                         vessel_name=event.vessel.name,
                         text=_render(
-                            rng,
+                            ev,
                             report_type=channel,
                             center=center,
                             event=event,

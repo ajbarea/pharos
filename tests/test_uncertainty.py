@@ -5,6 +5,7 @@ a bootstrap that resamples runs instead of tasks still returns a plausible-looki
 interval, just far too narrow, and nothing about the number says so.
 """
 
+import random
 from typing import Any
 
 import pytest
@@ -206,3 +207,77 @@ def test_identical_conditions_never_resolve():
 
     same = Interval(0.5, 0.45, 0.55, 0.95, 2000)
     assert not resolves_difference(same, same)
+
+
+# ------------------------------------------------------ interval validity -----
+
+
+def _simulate(rng, *, n_tasks: int, repeats: int, p: float, clustered: bool):
+    """Trials from a known true rate, optionally correlated within a task."""
+    out: list[Trial] = []
+    for i in range(n_tasks):
+        # Clustered: the task is wholly easy or wholly hard, drawn with probability p.
+        # That is the structure a real corpus has and the reason clusters are tasks.
+        task_p = (1.0 if rng.random() < p else 0.0) if clustered else p
+        out.extend(Trial(f"T-{i}", rng.random() < task_p) for _ in range(repeats))
+    return out
+
+
+def _naive_over_trials(trials, *, resamples=400, level=0.95, seed=7):
+    """Resampling individual (task, run) pairs -- what the docstring says not to do."""
+    rng = random.Random(seed)
+    n = len(trials)
+    draws = sorted(
+        single_run_rate([trials[rng.randrange(n)] for _ in range(n)]) for _ in range(resamples)
+    )
+    tail = (1 - level) / 2
+    return draws[int(tail * resamples)], draws[int((1 - tail) * resamples)]
+
+
+def test_cluster_bootstrap_achieves_its_nominal_coverage():
+    """The definitive test for an interval: does 95% of the time mean 95% of the time?
+
+    Simulated from a known rate, so coverage is checkable rather than assumed. This
+    matters beyond the function: finding 5b argues that these intervals understate
+    total uncertainty because they do not price run-to-run variation. That argument
+    only holds if they correctly price the variation they DO claim, which is over
+    which tasks were drawn.
+    """
+    true_p = 0.5
+    for clustered in (False, True):
+        hits = 0
+        reps = 120
+        for r in range(reps):
+            trials = _simulate(
+                random.Random(1000 + r), n_tasks=60, repeats=5, p=true_p, clustered=clustered
+            )
+            interval = cluster_bootstrap(trials, resamples=400, seed=r)
+            hits += interval.low <= true_p <= interval.high
+        coverage = hits / reps
+        assert 0.88 <= coverage <= 1.0, (
+            f"clustered={clustered}: nominal 95% interval covered {coverage:.0%} of the time"
+        )
+
+
+def test_resampling_runs_instead_of_tasks_undercovers_badly():
+    """Why clusters are tasks, demonstrated rather than asserted in a docstring.
+
+    Correlated repeats resampled as independent observations shrink the interval by
+    roughly sqrt(k), and the resulting interval misses the truth most of the time.
+    """
+    true_p = 0.5
+    cluster_hits = naive_hits = 0
+    reps = 120
+    for r in range(reps):
+        trials = _simulate(random.Random(2000 + r), n_tasks=60, repeats=5, p=true_p, clustered=True)
+        interval = cluster_bootstrap(trials, resamples=400, seed=r)
+        cluster_hits += interval.low <= true_p <= interval.high
+        low, high = _naive_over_trials(trials, seed=r)
+        naive_hits += low <= true_p <= high
+
+    assert cluster_hits / reps >= 0.88, "the correct estimator must hold its coverage"
+    assert naive_hits / reps < 0.80, (
+        "resampling runs should visibly undercover on clustered data; if this passes, "
+        "the simulation stopped exercising the correlation it is meant to"
+    )
+    assert cluster_hits > naive_hits

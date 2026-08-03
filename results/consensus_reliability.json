@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "b63deaafa95d",
+    "git_commit": "b4ec8f77e65d",
     "git_dirty": true,
-    "generated_at": "2026-08-02T11:22:58+00:00",
+    "generated_at": "2026-08-02T18:59:05+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
@@ -29,16 +29,16 @@
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
-        "oracle": 891,
-        "consensus": 99,
-        "dawid_skene": 99
+        "unweighted": 846,
+        "oracle": 846,
+        "consensus": 94,
+        "dawid_skene": 94
       }
     },
     {
       "n_wrong": 1,
       "share_wrong": 0.1111,
-      "unweighted": 0.9686,
+      "unweighted": 0.9563,
       "oracle": 1.0,
       "consensus": 1.0,
       "dawid_skene": 1.0,
@@ -50,16 +50,16 @@
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
-        "oracle": 792,
-        "consensus": 99,
-        "dawid_skene": 99
+        "unweighted": 846,
+        "oracle": 752,
+        "consensus": 94,
+        "dawid_skene": 94
       }
     },
     {
       "n_wrong": 2,
       "share_wrong": 0.2222,
-      "unweighted": 0.9371,
+      "unweighted": 0.9125,
       "oracle": 1.0,
       "consensus": 1.0,
       "dawid_skene": 1.0,
@@ -71,16 +71,16 @@
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
-        "oracle": 693,
-        "consensus": 99,
-        "dawid_skene": 99
+        "unweighted": 846,
+        "oracle": 658,
+        "consensus": 94,
+        "dawid_skene": 94
       }
     },
     {
       "n_wrong": 3,
       "share_wrong": 0.3333,
-      "unweighted": 0.9057,
+      "unweighted": 0.8688,
       "oracle": 1.0,
       "consensus": 1.0,
       "dawid_skene": 1.0,
@@ -92,16 +92,16 @@
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
-        "oracle": 594,
-        "consensus": 99,
-        "dawid_skene": 99
+        "unweighted": 846,
+        "oracle": 564,
+        "consensus": 94,
+        "dawid_skene": 94
       }
     },
     {
       "n_wrong": 4,
       "share_wrong": 0.4444,
-      "unweighted": 0.8743,
+      "unweighted": 0.8251,
       "oracle": 1.0,
       "consensus": 1.0,
       "dawid_skene": 1.0,
@@ -113,115 +113,115 @@
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
-        "oracle": 495,
-        "consensus": 99,
-        "dawid_skene": 99
+        "unweighted": 846,
+        "oracle": 470,
+        "consensus": 94,
+        "dawid_skene": 94
       }
     },
     {
       "n_wrong": 5,
       "share_wrong": 0.5556,
-      "unweighted": 0.8429,
+      "unweighted": 0.7813,
       "oracle": 1.0,
-      "consensus": 0.7172,
-      "dawid_skene": 0.7172,
+      "consensus": 0.6064,
+      "dawid_skene": 0.6064,
       "consensus_interval": {
-        "point": 0.7172,
-        "low": 0.6263,
-        "high": 0.8081,
+        "point": 0.6064,
+        "low": 0.5106,
+        "high": 0.7021,
         "level": 0.95,
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
-        "oracle": 396,
-        "consensus": 99,
-        "dawid_skene": 99
+        "unweighted": 846,
+        "oracle": 376,
+        "consensus": 94,
+        "dawid_skene": 94
       }
     },
     {
       "n_wrong": 6,
       "share_wrong": 0.6667,
-      "unweighted": 0.8114,
+      "unweighted": 0.7376,
       "oracle": 1.0,
-      "consensus": 0.7172,
-      "dawid_skene": 0.7172,
+      "consensus": 0.6064,
+      "dawid_skene": 0.6064,
       "consensus_interval": {
-        "point": 0.7172,
-        "low": 0.6263,
-        "high": 0.8081,
+        "point": 0.6064,
+        "low": 0.5106,
+        "high": 0.7021,
         "level": 0.95,
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
-        "oracle": 297,
-        "consensus": 99,
-        "dawid_skene": 99
+        "unweighted": 846,
+        "oracle": 282,
+        "consensus": 94,
+        "dawid_skene": 94
       }
     },
     {
       "n_wrong": 7,
       "share_wrong": 0.7778,
-      "unweighted": 0.78,
+      "unweighted": 0.6939,
       "oracle": 1.0,
-      "consensus": 0.7172,
-      "dawid_skene": 0.7172,
+      "consensus": 0.6064,
+      "dawid_skene": 0.6064,
       "consensus_interval": {
-        "point": 0.7172,
-        "low": 0.6263,
-        "high": 0.8081,
+        "point": 0.6064,
+        "low": 0.5106,
+        "high": 0.7021,
         "level": 0.95,
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
-        "oracle": 198,
-        "consensus": 99,
-        "dawid_skene": 99
+        "unweighted": 846,
+        "oracle": 188,
+        "consensus": 94,
+        "dawid_skene": 94
       }
     },
     {
       "n_wrong": 8,
       "share_wrong": 0.8889,
-      "unweighted": 0.7486,
+      "unweighted": 0.6501,
       "oracle": 1.0,
-      "consensus": 0.7172,
-      "dawid_skene": 0.7172,
+      "consensus": 0.6064,
+      "dawid_skene": 0.6064,
       "consensus_interval": {
-        "point": 0.7172,
-        "low": 0.6263,
-        "high": 0.8081,
+        "point": 0.6064,
+        "low": 0.5106,
+        "high": 0.7021,
         "level": 0.95,
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
-        "oracle": 99,
-        "consensus": 99,
-        "dawid_skene": 99
+        "unweighted": 846,
+        "oracle": 94,
+        "consensus": 94,
+        "dawid_skene": 94
       }
     },
     {
       "n_wrong": 9,
       "share_wrong": 1.0,
-      "unweighted": 0.7172,
+      "unweighted": 0.6064,
       "oracle": null,
-      "consensus": 0.7172,
-      "dawid_skene": 0.7172,
+      "consensus": 0.6064,
+      "dawid_skene": 0.6064,
       "consensus_interval": {
-        "point": 0.7172,
-        "low": 0.6263,
-        "high": 0.8081,
+        "point": 0.6064,
+        "low": 0.5106,
+        "high": 0.7021,
         "level": 0.95,
         "resamples": 2000
       },
       "targets": {
-        "unweighted": 891,
+        "unweighted": 846,
         "oracle": 0,
-        "consensus": 99,
-        "dawid_skene": 99
+        "consensus": 94,
+        "dawid_skene": 94
       }
     }
   ],

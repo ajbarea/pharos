@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "453f8e3f3b64",
+    "git_commit": "b4ec8f77e65d",
     "git_dirty": true,
-    "generated_at": "2026-08-02T17:04:07+00:00",
+    "generated_at": "2026-08-02T18:59:38+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
@@ -13,10 +13,10 @@
   "fleet": 9,
   "wrong_threshold": 2,
   "items_by_overlap": {
-    "0": 21,
-    "1": 63,
-    "2": 52,
-    "3": 64
+    "0": 31,
+    "1": 47,
+    "2": 62,
+    "3": 60
   },
   "rows": [
     {
@@ -24,14 +24,14 @@
       "n_wrong": 0,
       "slip_rate": 0.0,
       "difficulty_by_overlap": {
-        "0": 1.0896,
-        "1": 1.0896,
-        "2": 1.0896,
-        "3": 1.0896
+        "0": 1.0771,
+        "1": 1.0771,
+        "2": 1.0771,
+        "3": 1.0771
       },
       "difficulty_spread": 1.0,
       "wrong_ability": null,
-      "right_ability": 3.7905,
+      "right_ability": 3.7277,
       "ability_ratio": null,
       "ability_is_inverted": false,
       "dawid_skene_agreement": 1.0,
@@ -50,22 +50,22 @@
       "n_wrong": 0,
       "slip_rate": 0.15,
       "difficulty_by_overlap": {
-        "0": 2.2269,
-        "1": 1.6768,
-        "2": 1.701,
-        "3": 2.0381
+        "0": 1.3448,
+        "1": 1.8941,
+        "2": 1.8908,
+        "3": 1.9717
       },
-      "difficulty_spread": 1.328,
+      "difficulty_spread": 1.466,
       "wrong_ability": null,
-      "right_ability": 2.8549,
+      "right_ability": 2.7407,
       "ability_ratio": null,
       "ability_is_inverted": false,
-      "dawid_skene_agreement": 0.9899,
-      "glad_agreement": 0.9899,
+      "dawid_skene_agreement": 0.9894,
+      "glad_agreement": 0.9894,
       "converged": true,
-      "iterations": 9,
+      "iterations": 10,
       "quotable": true,
-      "cc_rasch_agreement": 0.9798,
+      "cc_rasch_agreement": 0.9787,
       "cc_rasch_converged": true,
       "cc_wrong_routine_ability": null,
       "cc_right_routine_ability": 1.0,
@@ -76,52 +76,52 @@
       "n_wrong": 3,
       "slip_rate": 0.0,
       "difficulty_by_overlap": {
-        "0": 0.9424,
-        "1": 0.9424,
-        "2": 2.5626,
-        "3": 0.9424
+        "0": 0.8883,
+        "1": 0.8883,
+        "2": 2.1087,
+        "3": 0.8883
       },
-      "difficulty_spread": 2.719,
-      "wrong_ability": 1.9561,
-      "right_ability": 3.9823,
-      "ability_ratio": 0.4912,
+      "difficulty_spread": 2.374,
+      "wrong_ability": 1.3265,
+      "right_ability": 3.9966,
+      "ability_ratio": 0.3319,
       "ability_is_inverted": false,
       "dawid_skene_agreement": 1.0,
       "glad_agreement": 1.0,
       "converged": true,
-      "iterations": 6,
+      "iterations": 5,
       "quotable": true,
       "cc_rasch_agreement": 1.0,
       "cc_rasch_converged": true,
-      "cc_wrong_routine_ability": -1.5085,
-      "cc_right_routine_ability": 2.2542,
-      "cc_routine_separation": 3.7627
+      "cc_wrong_routine_ability": -1.8106,
+      "cc_right_routine_ability": 2.4053,
+      "cc_routine_separation": 4.2159
     },
     {
       "composition": "5 of 9 wrong standard",
       "n_wrong": 5,
       "slip_rate": 0.0,
       "difficulty_by_overlap": {
-        "0": 0.9327,
-        "1": 0.9327,
-        "2": 4.3983,
-        "3": 0.9327
+        "0": 0.8391,
+        "1": 0.8391,
+        "2": 2.9208,
+        "3": 0.8391
       },
-      "difficulty_spread": 4.716,
-      "wrong_ability": 3.6022,
-      "right_ability": 2.5376,
-      "ability_ratio": 1.4195,
+      "difficulty_spread": 3.481,
+      "wrong_ability": 4.0079,
+      "right_ability": 1.6255,
+      "ability_ratio": 2.4657,
       "ability_is_inverted": true,
-      "dawid_skene_agreement": 0.7172,
-      "glad_agreement": 0.7172,
+      "dawid_skene_agreement": 0.6064,
+      "glad_agreement": 0.6064,
       "converged": true,
-      "iterations": 38,
+      "iterations": 15,
       "quotable": true,
-      "cc_rasch_agreement": 0.7172,
+      "cc_rasch_agreement": 0.6064,
       "cc_rasch_converged": true,
-      "cc_wrong_routine_ability": 0.9988,
+      "cc_wrong_routine_ability": 0.9987,
       "cc_right_routine_ability": 1.0016,
-      "cc_routine_separation": 0.0028
+      "cc_routine_separation": 0.0029
     }
   ],
   "converged_rows": [

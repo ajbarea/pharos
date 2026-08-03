@@ -1,63 +1,30 @@
 #!/usr/bin/env python3
 """Whether item difficulty and a wrong standard can be told apart. They cannot.
 
-Finding 12 showed that agreement-based estimators fail once a wrong standard holds the
-majority. The natural objection is that those estimators were too simple: Dawid-Skene
-attributes every disagreement to the annotator, and the obvious missing term is the
-*item*, since some cases are genuinely near the boundary and everyone struggles there.
-Whitehill et al. (NIPS 2009) add exactly that, estimating labeler ability, item
-difficulty and the true label jointly.
+Finding 12 showed agreement-based estimators fail once a wrong standard holds the
+majority. The obvious objection is that they blame only the annotator; Whitehill et al.
+(NIPS 2009) add an item-difficulty term. This corpus can test that, because its
+near-boundary items -- routine cases carrying two of the three significant facts -- are
+exactly the items a two-of-three reviewer gets wrong. "Hard item" and "wrong reviewer"
+predict identical data.
 
-This corpus is unusually well suited to testing whether that helps, because it has a
-real difficulty structure that was built for a different reason. The significant class
-is a conjunction of three facts, and three of the ten background patterns carry *two*
-of those three. Those routine items sit one fact from the boundary, and they are also
-exactly the items a reviewer holding a two-of-three standard gets wrong. The two
-explanations for disagreement predict identical data.
+The control decides it. Under a correct fleet the estimated difficulty is flat, because
+the correct rule resolves a two-of-three item unambiguously, so every unit of structure
+the other rows report was manufactured by the reviewers. Worse, GLAD's per-reviewer
+ability -- the field a supervisor would act on to decide whom to retrain -- inverts at
+the majority.
 
-The measurement is the control that separates them. Difficulty is estimated on fleets
-where nobody holds a wrong standard, and on fleets where some do. If the near-boundary
-items are intrinsically hard, they should look hard in both. They do not: under a
-correct fleet the estimated difficulty is flat across the corpus, because the correct
-rule resolves a two-of-three item unambiguously. All of the apparent difficulty is
-manufactured by the reviewers.
+Class-conditioning does not rescue it. Singer et al. (arXiv:2607.24622, 2026) note that
+a single ability per annotator "prevents them from distinguishing majority-class
+competence from minority-class competence", which is precisely a two-of-three reviewer.
+Their CC-Rasch conditions both terms on the class and is run here as the strongest form
+of the objection. It agrees with Dawid-Skene and GLAD to three decimals everywhere,
+0.717 included; its class-conditional diagnostic separates the groups below the majority
+and reaches zero at it. Zheng et al. (PVLDB 10(5):541-552, 2017) report the same
+conclusion from a benchmark that was not looking for it.
 
-That is worse than the estimator merely failing. It fails by relabelling a wrong
-standard as a property of the data, and the two diagnoses call for opposite actions:
-clarify the guidance and accept lower accuracy on hard cases, or retrain the reviewers
-who hold the wrong rule.
-
-The ability estimate then names the wrong people, which is worse still. GLAD scores
-each reviewer as well as each item, and that score is what a supervisor would act on.
-Below the majority it is right, rating the wrong-standard reviewers 1.96 against 3.98.
-Above it, it inverts to 3.60 against 2.54, so the same field read the same way sends
-the supervisor to retrain the reviewers who are correct. Agreement at least drops to
-0.717 and announces that something is wrong; the ability column stays confident.
-
-**And class-conditioning does not rescue it.** The strongest objection to all of the
-above is that GLAD gives each reviewer a single ability, while a two-of-three reviewer
-is not globally unreliable -- they are exactly right on the significant class and wrong
-only on routine items at the boundary. Singer et al. (arXiv:2607.24622, 2026) name that
-limitation directly, noting that a single ability per annotator "prevents them from
-distinguishing majority-class competence from minority-class competence", and their
-CC-Rasch model conditions both ability and difficulty on the class. Running it here
-answers the objection with a measurement: it agrees with Dawid-Skene and GLAD to three
-decimals at every composition, including 0.717 once the wrong standard holds the
-majority. What it adds is a diagnostic that works and then stops. Routine-class ability
-separates correct from wrong reviewers by +3.76 logits at 3 of 9, rating the wrong ones
-*below chance* on exactly the class where they err, and by +0.003 at 5 of 9, where both
-groups sit at the initialisation value because the fit has no signal left to tell them
-apart. Modelling the class does not fix the confound; it relocates where the failure is
-visible and then loses it at the crossing.
-
-**Only converged rows are quoted**, and `carries_the_claim` marks which those are; this
-script exits non-zero if a row carrying the finding stops settling in either estimator.
-With the priors Whitehill et al. specify, and with CC-Rasch's centring applied as the
-gauge transformation it is, every fit here converges in under 30 iterations.
-
-Zheng et al. (PVLDB 10(5):541-552, 2017) report from a benchmark across many real
-datasets that difficulty-modelling methods "do not perform significantly better in
-quality", which is this result arrived at without this construction.
+`carries_the_claim` marks the rows whose magnitudes are quoted, and this script exits
+non-zero if one of them stops converging in either estimator.
 
 Needs no model and no network.
 

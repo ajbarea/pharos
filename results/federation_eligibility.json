@@ -1,20 +1,21 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "74c7fa3aac77",
-    "git_dirty": false,
-    "generated_at": "2026-07-31T01:33:10+00:00",
-    "python": "3.13.13",
+    "git_commit": "b4ec8f77e65d",
+    "git_dirty": true,
+    "generated_at": "2026-08-02T19:00:57+00:00",
+    "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
     "model": "qwen2.5:7b-instruct",
+    "model_key": "qwen2.5-7b",
     "endpoint": "http://localhost:11434/api/generate",
     "seed": 7
   },
   "model": "qwen2.5:7b-instruct",
   "seed": 7,
-  "n_tasks": 40,
-  "mean_compartments": 2.15,
+  "n_tasks": 8,
+  "mean_compartments": 2,
   "grid": [
     {
       "ceiling": "OPEN[]",
@@ -62,14 +63,14 @@
       "ceiling": "OPEN[]",
       "policy": "drop-compartments",
       "capacity": "SCALAR",
-      "eligible": 40,
+      "eligible": 8,
       "share": 1.0
     },
     {
       "ceiling": "OPEN[]",
       "policy": "drop-compartments",
       "capacity": "ENUM",
-      "eligible": 40,
+      "eligible": 8,
       "share": 1.0
     },
     {
@@ -90,14 +91,14 @@
       "ceiling": "INTERNAL[SENSOR]",
       "policy": "keep-compartments",
       "capacity": "SCALAR",
-      "eligible": 10,
+      "eligible": 2,
       "share": 0.25
     },
     {
       "ceiling": "INTERNAL[SENSOR]",
       "policy": "keep-compartments",
       "capacity": "ENUM",
-      "eligible": 10,
+      "eligible": 2,
       "share": 0.25
     },
     {
@@ -118,70 +119,70 @@
       "ceiling": "INTERNAL[SENSOR]",
       "policy": "drop-compartments",
       "capacity": "SCALAR",
-      "eligible": 40,
+      "eligible": 8,
       "share": 1.0
     },
     {
       "ceiling": "INTERNAL[SENSOR]",
       "policy": "drop-compartments",
       "capacity": "ENUM",
-      "eligible": 40,
+      "eligible": 8,
       "share": 1.0
     },
     {
       "ceiling": "PROTECTED[SENSOR,LEGAL]",
       "policy": "keep-compartments",
       "capacity": "FREETEXT",
-      "eligible": 15,
-      "share": 0.375
+      "eligible": 4,
+      "share": 0.5
     },
     {
       "ceiling": "PROTECTED[SENSOR,LEGAL]",
       "policy": "keep-compartments",
       "capacity": "SPAN",
-      "eligible": 15,
-      "share": 0.375
+      "eligible": 4,
+      "share": 0.5
     },
     {
       "ceiling": "PROTECTED[SENSOR,LEGAL]",
       "policy": "keep-compartments",
       "capacity": "SCALAR",
-      "eligible": 15,
-      "share": 0.375
+      "eligible": 4,
+      "share": 0.5
     },
     {
       "ceiling": "PROTECTED[SENSOR,LEGAL]",
       "policy": "keep-compartments",
       "capacity": "ENUM",
-      "eligible": 15,
-      "share": 0.375
+      "eligible": 4,
+      "share": 0.5
     },
     {
       "ceiling": "PROTECTED[SENSOR,LEGAL]",
       "policy": "drop-compartments",
       "capacity": "FREETEXT",
-      "eligible": 15,
-      "share": 0.375
+      "eligible": 4,
+      "share": 0.5
     },
     {
       "ceiling": "PROTECTED[SENSOR,LEGAL]",
       "policy": "drop-compartments",
       "capacity": "SPAN",
-      "eligible": 15,
-      "share": 0.375
+      "eligible": 4,
+      "share": 0.5
     },
     {
       "ceiling": "PROTECTED[SENSOR,LEGAL]",
       "policy": "drop-compartments",
       "capacity": "SCALAR",
-      "eligible": 40,
+      "eligible": 8,
       "share": 1.0
     },
     {
       "ceiling": "PROTECTED[SENSOR,LEGAL]",
       "policy": "drop-compartments",
       "capacity": "ENUM",
-      "eligible": 40,
+      "eligible": 8,
       "share": 1.0
     }
   ]
