@@ -179,7 +179,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `difficulty_confound` | 200 | yes | - |
 | `edge_cost` | 19 | **no** | n=19 is below 30; treat differences as provisional |
 | `fleet_linkage` | 200 | yes | - |
-| `label_fidelity` | 24 | **no** | n=24 is below 30; treat differences as provisional |
+| `label_fidelity` | 40 | yes | - |
 | `privacy_budget` | 200 | yes | - |
 | `review_adapter-any-one` | 600 | **no** | **adapter**: accuracy 0.440 does not beat the majority floor 0.685: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `review_adapter-by-the-book` | 600 | **no** | **base**: 74/600 answers were unparsable (12%); every other number describes only the remainder; accuracy 0.361 does not beat the majority floor 0.675: this is not evidence of capability |
@@ -195,7 +195,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**9 of 22** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**8 of 22** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 **Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`.
 
@@ -238,9 +238,9 @@ copy and the fact survives in the others, so no source is blamed and none of the
 labels enters the join. Corroboration is not an edge case in this domain, it is
 what channels are for.
 
-Read the precision alongside the recall. At 0.921 the ablation rarely blames a source
-that did not contribute, it simply misses most of the ones that did. That asymmetry is
-why the failure is mostly leak, and why a fifth of turns (5 of 24) receive a label that
+Read the precision alongside the recall. At 0.942 the ablation rarely blames a source
+that did not contribute, it simply misses many of the ones that did. That asymmetry is
+why the failure is mostly leak, and why a tenth of turns (4 of 40) receive a label that
 under-protects their sources.
 
 Leave-one-out is also the ceiling that cheaper estimators approximate, so nothing
@@ -248,18 +248,20 @@ faster repairs it. At 67% exactly correct it is not a **usable** labelling
 mechanism, though the original "rules out the whole family" was stated more
 strongly than 24 turns can support.
 
-!!! note "Re-measured 2026-08-03 on the corrected corpus, and one retraction partly reverses"
-    Precision moved from 0.976 to **0.921** and recall from 0.618 to **0.683**; the
-    outcome split is 16 exact, 5 leak, 2 creep, 1 incomparable of 24. The shape is
-    unchanged: still mostly leak, still creep in a small minority, still 67% exact.
+!!! note "Re-measured 2026-08-03 on the corrected corpus, and once at the wrong n"
+    Precision moved from 0.976 to **0.942** and recall from 0.618 to **0.705**; the
+    outcome split is **33 exact, 4 leak, 3 creep of 40**. The shape is unchanged and is
+    the durable part: still mostly leak, still creep in a small minority.
 
-    The one substantive change is the last cell. The 2026-07-30 correction above
-    retracted the claim that leave-one-out can produce an **incomparable** label,
-    because it did not recur at n=24 on the previous corpus. It recurs here, once in
-    24. That is one observation and is not enough to reinstate the claim as stated --
-    but it is enough that "did not recur and should not be quoted" is no longer the
-    right description, and the mechanism is worth a targeted check rather than another
-    retraction.
+    This was first re-run at n=24, because `make results` said `--tasks 24` while the
+    committed artifact was n=40 -- the documented way to regenerate the artifact could
+    not reproduce it, which is now fixed and asserted in the test suite. That run
+    reported a fifth leaking and **one incomparable label**, and on the strength of it
+    this note briefly said the 2026-07-30 retraction of the incomparable claim was
+    reversing. It is not. At the correct sample size no incomparable label appears, the
+    retraction stands as written, and the apparent reversal was an artifact of a sample
+    size nobody chose. Recorded rather than quietly deleted, because it is the second
+    time in two days that a wrong `--tasks` produced a publishable-looking claim.
 
 The replacement costs nothing: given what the output asserts, join the labels of
 every source that *could* have asserted it. One detection pass, no ablation sweep,
@@ -1588,6 +1590,33 @@ time the rates converge, at 0.5, the reassurance was worthless anyway.
 Expected agreement follows: 1.000 against 0.964 at a 10% error rate, 0.993 against
 0.927 at 20%. Dawid-Skene tracks consensus exactly in every cell, which independently
 reproduces finding 12's central result on a different fleet distribution.
+
+!!! success "The 112x is a floor, and it grows with the fleet"
+    Fleet size is swept here for the same reason it is swept in
+    [finding 17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst):
+    nine was not chosen on principle. P(wrong majority), independent against one
+    culture:
+
+    | Fleet | rate 0.1: independent | one culture | understatement | rate 0.3: independent | one culture | understatement |
+    | --- | --- | --- | --- | --- | --- | --- |
+    | 5 | 0.009 | 0.100 | 12x | 0.163 | 0.300 | 2x |
+    | **9** (committed) | 0.001 | 0.100 | **112x** | 0.099 | 0.300 | 3x |
+    | 15 | 0.000 | 0.100 | unbounded | 0.050 | 0.300 | 6x |
+    | 25 | 0.000 | 0.100 | unbounded | 0.018 | 0.300 | 17x |
+    | 51 | 0.000 | 0.100 | unbounded | 0.001 | 0.300 | **214x** |
+
+    **The understatement grows monotonically with fleet size, at every rate.** The
+    mechanism is not subtle: independent draws concentrate as the fleet grows, so
+    P(wrong majority) falls toward zero, while a shared culture is a single coin
+    whatever the headcount. By 15 analysts the independent probability at a 10% error
+    rate rounds to zero at three decimals and the ratio stops being finite.
+
+    So the reported 112x is not the headline number, it is the **smallest** the
+    understatement gets in any fleet a deployment would plausibly field. This is the
+    one place in this document where sweeping a parameter made a finding stronger
+    rather than narrower, and the direction is the uncomfortable one: the i.i.d.
+    assumption gets more dangerous as the fleet scales, which is the opposite of how a
+    designer would expect a statistical assumption to behave.
 
 !!! warning "The first version of this measurement was noise, and it is worth saying why"
     P(wrong majority) was initially *estimated* from 40 drawn fleets. Its standard
