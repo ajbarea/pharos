@@ -1,4 +1,4 @@
-"""Byzantine Attack Primitives (Abstract 2, RQ2).
+"""Byzantine attack primitives, for exercising the aggregation rules.
 
 Round-level attack simulations: sign-flipping, IPM (Inner Product Manipulation),
 Gaussian noise injection, and Sybil client injection.

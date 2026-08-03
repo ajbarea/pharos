@@ -2,8 +2,8 @@
 
 Executes all 4 components of the unified Pharos ecosystem:
 1. Pharos Corpus & Task Generator
-2. Edge Decision Ledger & Provenance-Gated Router (Abstract 2, RQ1)
-3. Byzantine-Robust FL Aggregation & Differential Privacy Noise (Abstract 2, RQ2)
+2. Edge decision ledger and provenance-gated router
+3. Byzantine-robust FL aggregation and differential-privacy noise
 4. Live Explorer HTTP API Endpoints
 """
 
@@ -35,7 +35,7 @@ def main() -> None:
         f"✅ [1. Pharos Core] Generated {len(reports)} reports over 40 events -> {len(tasks)} triage tasks."
     )
 
-    # 2. Ledger Logging & Provenance Routing (Abstract 2, RQ1)
+    # 2. Ledger logging and provenance routing
     ledger = DecisionLedger()
     router = ProvenanceRouter()
     personal_count = 0
@@ -67,7 +67,7 @@ def main() -> None:
     print(f"   -> Shared Federated Adapters (Fleet): {shared_count} records")
     print(f"   -> Sample Record SHA-256 Digest: {ledger[0].digest()[:16]}...")
 
-    # 3. Byzantine-Robust FL Aggregation & Differential Privacy (Abstract 2, RQ2)
+    # 3. Byzantine-robust FL aggregation and differential privacy
     weights = [0.42, 0.65, -0.12, 0.89, 0.33]
     dp_budget = PrivacyBudget(epsilon=1.0, delta=1e-5)
     dp_noisy_weights = add_gaussian_dp_noise(weights, dp_budget)

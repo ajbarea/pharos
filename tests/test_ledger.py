@@ -1,4 +1,4 @@
-"""Tests for DecisionLedger and ProvenanceRouter (Abstract 2, RQ1)."""
+"""Tests for DecisionLedger and ProvenanceRouter."""
 
 from pharos.analyst import Action, Proposal
 from pharos.analyst import Decision as AnalystDecision

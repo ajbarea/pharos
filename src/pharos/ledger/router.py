@@ -1,4 +1,4 @@
-"""Provenance-Gated Gradient Router (Abstract 2, RQ1).
+"""Provenance-gated gradient router: which adapter a decision record trains.
 
 Determines whether an analyst's decision record trains:
 1. Personal Adapter (Style, Need-to-Know, Personal Priorities) - STAYS LOCAL ON NODE
