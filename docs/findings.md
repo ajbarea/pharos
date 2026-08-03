@@ -52,6 +52,21 @@ The gate's calibration finding is the one result here with support from outside 
 generator, having been reproduced on three public corpora. Treat the rest as the
 current state of an instrument still under construction.
 
+## The findings, by what they are about
+
+Grouped for navigation only. The numbering is chronological, so a group's members are
+scattered through it, and nothing in the grouping is a claim about how they relate.
+
+| | |
+| --- | --- |
+| **Attribution and policy** | [1. Leave-one-out cannot produce a governed label](#1-leave-one-out-attribution-cannot-produce-a-correct-governed-label) · [2. Bimodal on one policy ruling](#2-the-design-is-bimodal-on-one-policy-ruling) |
+| **Triage baselines and scale** | [3. A corpus bug and a retracted finding](#3-a-corpus-bug-a-retracted-finding-and-a-real-benchmark-target) · [3b. Over-escalation is universal](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) · [4. Answerability against non-leakage](#4-answerability-and-surface-non-leakage-pull-against-each-other) |
+| **Learning the rule** | [5. In-context learning does not close the gap](#5-in-context-learning-does-not-close-the-gap) · [6. Gradient learning does, on clean labels](#6-gradient-learning-does-close-the-gap-on-clean-labels) · [10. A fleet learns its analyst's standard](#10-a-fleet-learns-its-analysts-standard-not-the-worlds) |
+| **What review costs** | [7. Review is abundant; correctness is not](#7-review-is-abundant-what-it-costs-is-correctness) · [8. Right and sloppy beats wrong and careful](#8-being-right-and-sloppy-beats-being-wrong-and-careful) |
+| **Measurement design** | [9. Repeating one prompt measures the wrong thing](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing) · [17. Item difficulty does not separate the two](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst) |
+| **Disclosure and identity** | [11. The stream still names the analyst](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst) · [12. Reliability needs identity where it matters](#12-reliability-cannot-be-estimated-without-identity-where-it-matters) · [13. A tag can replace identity](#13-a-reliability-tag-can-replace-identity-and-the-leak-metric-cannot-tell-you-when) · [16. The cliff assumes independent fleets](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently) |
+| **Cost of running it** | [14. What the agent costs on its hardware](#14-what-the-agent-costs-on-the-hardware-it-is-meant-to-run-on) · [15. The budget is spent on the wrong variable](#15-the-standard-privacy-mechanism-spends-the-budget-on-the-wrong-variable) |
+
 ## What these sizes can resolve
 
 `scripts/measure_power.py`, `results/power.json`
@@ -159,7 +174,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | --- | --- | --- | --- |
 | `analyst_review` | 40 | yes | - |
 | `consensus_reliability` | 200 | yes | - |
-| `correlated_fleets` | 30 | yes | - |
+| `correlated_fleets` | 60 | yes | - |
 | `decode_stability` | 30 | yes | - |
 | `difficulty_confound` | 200 | yes | - |
 | `edge_cost` | 19 | **no** | n=19 is below 30; treat differences as provisional |
@@ -180,6 +195,8 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
 **9 of 21** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+
+**Carrying no validity assessment, which is a gap rather than a pass:** `adversarial_robustness`, `fl_benchmarks`.
 
 Assessed by their script but not yet in the committed artifact (6 of these), which needs a rerun rather than an edit:
 
@@ -220,15 +237,28 @@ copy and the fact survives in the others, so no source is blamed and none of the
 labels enters the join. Corroboration is not an edge case in this domain, it is
 what channels are for.
 
-Read the precision alongside the recall. At 0.976 the ablation almost never blames
-a source that did not contribute, it simply misses most of the ones that did. That
-asymmetry is why the failure is mostly leak, and why a quarter of turns receive a
-label that under-protects their sources.
+Read the precision alongside the recall. At 0.921 the ablation rarely blames a source
+that did not contribute, it simply misses most of the ones that did. That asymmetry is
+why the failure is mostly leak, and why a fifth of turns (5 of 24) receive a label that
+under-protects their sources.
 
 Leave-one-out is also the ceiling that cheaper estimators approximate, so nothing
 faster repairs it. At 67% exactly correct it is not a **usable** labelling
 mechanism, though the original "rules out the whole family" was stated more
 strongly than 24 turns can support.
+
+!!! note "Re-measured 2026-08-03 on the corrected corpus, and one retraction partly reverses"
+    Precision moved from 0.976 to **0.921** and recall from 0.618 to **0.683**; the
+    outcome split is 16 exact, 5 leak, 2 creep, 1 incomparable of 24. The shape is
+    unchanged: still mostly leak, still creep in a small minority, still 67% exact.
+
+    The one substantive change is the last cell. The 2026-07-30 correction above
+    retracted the claim that leave-one-out can produce an **incomparable** label,
+    because it did not recur at n=24 on the previous corpus. It recurs here, once in
+    24. That is one observation and is not enough to reinstate the claim as stated --
+    but it is enough that "did not recur and should not be quoted" is no longer the
+    right description, and the mechanism is worth a targeted check rather than another
+    retraction.
 
 The replacement costs nothing: given what the output asserts, join the labels of
 every source that *could* have asserted it. One detection pass, no ablation sweep,
@@ -238,20 +268,23 @@ and conservative by construction, so the error direction is creep rather than le
 
 `scripts/measure_federation_eligibility.py`
 
-Three aggregator ceilings, four capacities, 40 turns. Turns average **2.15
+Three aggregator ceilings, four capacities, 40 turns. Turns average **1.98
 compartments of 4**, and most already sit high on the level ladder, because a
 summary over eight sources joins nearly everything.
 
 | Declassification policy | FREETEXT | SPAN | SCALAR | ENUM |
 | --- | --- | --- | --- | --- |
-| keep compartments (fail-closed default) | 0-38% | 0-38% | 0-38% | 0-38% |
-| drop compartments for low capacity | 0-38% | 0-38% | **100%** | **100%** |
+| keep compartments (fail-closed default) | 0-50% | 0-50% | 0-50% | 0-50% |
+| drop compartments for low capacity | 0-50% | 0-50% | **100%** | **100%** |
 
-!!! warning "Corrected 2026-07-30"
+!!! warning "Corrected 2026-07-30, re-measured 2026-08-03"
     Also first measured at n=8 on the pre-coverage-fix corpus: the mean was
-    reported as 2.88 (now 2.15) and the keep-compartments row as 0-12% (now
-    0-38%). The **shape** is unchanged and is the part that matters, and it now
-    rests on 40 turns rather than 8.
+    reported as 2.88, then 2.15, and is **1.98** on the corrected corpus; the
+    keep-compartments row went 0-12%, then 0-38%, and is now **0-50%**. The **shape**
+    is unchanged across all three and is the part that matters: the bimodality sits on
+    the compartment-shedding ruling and nowhere else. Three measurements of the same
+    shape with three different magnitudes is also the clearest argument on this page
+    for reporting the mechanism rather than the cell values.
 
 So "may a low-capacity verdict shed the compartments of its sources?" is not a
 detail. Answer no and the fleet is a set of unconnected local learners. Answer yes
@@ -308,67 +341,56 @@ Finding 3 was measured on one model, so its central observation could have been 
 fact about `qwen2.5:7b-instruct` rather than about the task. Six models, three
 families, 3B to 14B, 40 rule-withheld tasks each:
 
-| Model | Family | Size | Acc | Majority | Precision | Recall | F1 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| qwen2.5-3b | Qwen | 3B | 0.625 | 0.625 | 0.500 | 1.000 | **0.667** |
-| qwen2.5-14b | Qwen | 14B | 0.525 | 0.625 | 0.441 | 1.000 | 0.612 |
-| llama3.1-8b | Llama | 8B | 0.500 | 0.625 | 0.429 | 1.000 | 0.600 |
-| llama3.2-3b | Llama | 3B | 0.475 | 0.625 | 0.417 | 1.000 | 0.588 |
-| qwen2.5-7b | Qwen | 7.6B | 0.450 | 0.625 | 0.405 | 1.000 | 0.577 |
-| mistral-7b | Mistral | 7B | 0.425 | 0.625 | 0.395 | 1.000 | 0.566 |
+| Model | Family | Size | Acc | 95% interval | Majority | Precision | Recall | F1 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| qwen2.5-3b | Qwen | 3B | **0.775** | [0.650, 0.900] | 0.650 | 0.609 | 1.000 | **0.757** |
+| llama3.2-3b | Llama | 3B | **0.675** | [0.525, 0.825] | 0.650 | 0.518 | 1.000 | 0.683 |
+| qwen2.5-14b | Qwen | 14B | 0.625 | [0.475, 0.775] | 0.650 | 0.483 | 1.000 | 0.651 |
+| llama3.1-8b | Llama | 8B | 0.600 | [0.450, 0.750] | 0.650 | 0.467 | 1.000 | 0.636 |
+| mistral-7b | Mistral | 7B | 0.487 | [0.325, 0.650] | 0.641 | 0.412 | 1.000 | 0.583 |
+| qwen2.5-7b | Qwen | 7.6B | 0.450 | [0.300, 0.600] | 0.650 | 0.389 | 1.000 | 0.560 |
 
-Three things hold across every model, and they are the claims:
+!!! danger "Re-measured 2026-08-03 on the corrected corpus, and one claim did not survive"
+    Every row above was re-run after the generator defect in
+    [5c](#5c-the-generator-defect-behind-5b-and-the-fix) was fixed. The previous
+    version of this table reported that **no model cleared the majority-class floor**,
+    and listed that among the three unanimous properties. **Two models now clear it**,
+    so that claim is withdrawn as stated. The two that did not survive contact with a
+    corrected corpus are the two that were closest to their floor, which is what the
+    power table had already said about them.
 
 **Recall is 1.000 everywhere.** Not approximately, exactly, including at 14B. Every
 model escalates every significant event and also escalates most routine ones, at
-precision between 0.395 and 0.500. The over-escalation reported in finding 3 is a
-property of the task under a withheld rule, not an idiosyncrasy of one model.
+precision between 0.389 and 0.609. The over-escalation reported in finding 3 is a
+property of the task under a withheld rule, not an idiosyncrasy of one model. This is
+the one claim that has now held across two different corpora.
 
-**No model beats the majority-class floor** -- but at n=40 that is partly a
-statement about the sample. The best accuracy exactly ties it at 0.625, and a reader
-comparing any F1 here to 0.5 would badly overstate what is happening. What the
-intervals add is where the claim stops:
+**Two of six clear the majority-class floor, and three are unresolved.** `qwen2.5-3b`
+at 0.775 and `llama3.2-3b` at 0.675 sit above their floor of 0.650, and `qwen2.5-3b`'s
+interval clears it outright. For `qwen2.5-14b`, `llama3.1-8b` and `mistral-7b` the
+point estimate is below the floor and the interval reaches it, so the supportable
+statement is *this sample does not show them clearing it* rather than that they do not.
+Only `qwen2.5-7b` is below it with room to spare. A reader comparing any F1 here to 0.5
+would still badly overstate what is happening, which is why both floors are reported.
 
-| Model | Accuracy | 95% interval | Clears 0.625? |
-| --- | --- | --- | --- |
-| qwen2.5-3b | 0.625 | [0.475, 0.775] | **unresolved** |
-| qwen2.5-14b | 0.525 | [0.375, 0.675] | **unresolved** |
-| llama3.1-8b | 0.500 | [0.325, 0.675] | **unresolved** |
-| llama3.2-3b | 0.475 | [0.325, 0.625] | no |
-| qwen2.5-7b | 0.450 | [0.300, 0.625] | no |
-| mistral-7b | 0.425 | [0.275, 0.600] | no |
+**Scale does not help, and this controls for family.** Within Qwen alone, 3B scores
+0.775 and 14B scores 0.625: a 4.7x parameter increase that makes things *worse*, and by
+more than it did on the previous corpus. The 14B run needs more than 8 GB of VRAM, which
+is the whole reason it is in the sweep.
 
-Cluster bootstrap over tasks, computed from the per-task rows in the committed
-artifacts by `scripts/compare_models.py`. No model was re-called.
-
-Three intervals reach above the floor. For those the honest statement is *this
-sample does not show them clearing it*, which is weaker than *they do not clear it*.
-The unanimous claims -- recall exactly 1.000, precision between 0.395 and 0.500 --
-are unaffected, because they are not close calls.
-
-!!! warning "Corrected 2026-08-01"
-    This paragraph read "no model beats the majority-class floor" without
-    qualification. That is right about the point estimates and overstates what 40
-    tasks establish. The intervals were computed post hoc from artifacts that
-    already existed; nothing was remeasured, and no number in the table above
-    changed.
-
-**Scale does not help, and this now controls for family.** Within Qwen alone, 3B
-scores 0.667 and 14B scores 0.612: a 4.7x parameter increase with no improvement.
-The 14B run required a cluster A100 because it exceeds 8 GB of VRAM, which is the
-whole reason it is here.
-
-All three are consistent with finding 5 and strengthen it. A model that reaches
+That is still consistent with finding 5 and still strengthens it. A model that reaches
 F1 1.000 when handed the rule is short of neither capability nor parameters. It is
 short of the rule, so rule *acquisition* is the whole question.
 
 !!! warning "What this does not claim"
-    40 tasks per model. Differences of roughly 0.1 sit inside the noise, so **the
-    ordering between models is not claimed** and should not be quoted as a ranking.
-    What is claimed is what is unanimous: recall 1.000 for all six, and no model
-    clearing the majority floor.
+    40 tasks per model, so this is not a ranking. Six of the fifteen pairwise
+    comparisons separate at 95% against roughly 0.8 expected by chance, which is more
+    than multiplicity explains and still supports only a partial order: nine pairs do
+    not separate at all. The table is reported so the unanimity is visible, not to rank
+    systems, and the one number to quote from it is recall.
 
-    All six ran at 100% GPU residency, checked per model rather than assumed.
+    All six ran at 100% GPU residency for the 3B-8B models; the 14B sat at 64%, checked
+    per model rather than assumed.
 
 ### These numbers are not bit-reproducible, and the gate is
 
@@ -594,6 +616,69 @@ where the bottleneck sits: a model that reaches F1 1.000 when told the rule is n
 short of capability, it is short of the rule, so rule *acquisition* is the whole
 question.
 
+### 5c. The generator defect behind 5b, and the fix
+
+`src/pharos/generate.py`, `tests/test_generate.py`
+
+The confound named in 5b was a defect in the generator, not a fact about decoding. It
+is recorded here because the manuscript's self-audit section cites this page as the
+long-form record of it.
+
+`generate()` drew **every** event before rendering **any** of them, from one
+`random.Random(seed)`. Event drawing consumes a variable number of values, so rendering
+began at a stream position set by `n_events`. Measured against the pre-fix generator at
+seed 7:
+
+| Compared corpora | Report ids | Fact assignment | Governed label | Rendered text |
+| --- | --- | --- | --- | --- |
+| 40 vs 80 events | 100% | 21% | 52% | **0%** |
+| 200 vs 600 events | 100% | 16% | 52% | **0%** |
+| 200 vs 800 events | 100% | 14% | 52% | **0%** |
+| 632 vs 800 events | 100% | 15% | 50% | **0%** |
+
+**No report was worded identically across two corpus sizes, at any pair.** The checks a
+reader would think to run -- do the task ids line up, does the ground truth agree --
+pass at 100%, which is why this survived as long as it did. Any two model-backed
+measurements taken at different `--events` were comparing different corpora.
+
+The fix derives a stream per event from `sha256(f"{seed}:{index}:{purpose}")`, so a
+smaller corpus is an exact prefix of a larger one, field for field including text.
+`tests/test_generate.py::test_a_smaller_corpus_is_an_exact_prefix_of_a_larger_one`
+asserts every field; it fails on the first report against the pre-fix generator.
+
+!!! warning "The corpus changed, so this page currently spans two of them"
+    The gate was re-run first and still passes, at a surface baseline of 0.6545 against
+    a ceiling of 0.72 (it was 0.6559 before), and the class-conditional channel mix is
+    unchanged to within a tenth of a point, so the corpus remains usable and remains
+    the same instrument. Individual findings' numbers moved anyway, and two conclusions
+    moved with them ([3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it)
+    and [17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)).
+
+    **Re-derived on the corrected corpus (2026-08-03):** the model-free measurements,
+    the six-model sweep, label fidelity, federation eligibility, decode stability, and
+    rule learnability.
+
+    **Still on the pre-fix corpus:** `adapter_learnability` and the eight
+    `review_adapter-*` artifacts, which are LoRA fine-tuning runs and need a cluster
+    A100 rather than the local 8 GB card, and `edge_cost`, which times the agent on
+    hardware and wants a quiet machine rather than one running everything else.
+    **Findings 6, 10 and 14 rest on those**, so until they are re-run, any comparison
+    between one of them and a finding above it is a comparison across two corpora --
+    which is the exact confound
+    [5b](#5b-the-intervals-above-understate-the-uncertainty-measured-by-replication)
+    was withdrawn for. Do not draw one.
+
+    `external_gate_validation` is unaffected: it runs the gate against three public
+    corpora and never calls this generator.
+
+!!! danger "How this was found, which is the part worth keeping"
+    Not by inspection. The property was asserted in a test whose three load-bearing
+    assertions -- `fact_ids`, `label`, `text` -- had been deleted, leaving three that
+    pass whatever the generator does. The suite was green at 508 passing and 94.45%
+    branch coverage with the defect fully present, and the manuscript already described
+    the fix as shipped. A test named for a property it no longer checks is worse than no
+    test, because it answers the question a reviewer would otherwise ask.
+
 ## 6. Gradient learning does close the gap, on clean labels
 
 `scripts/train_adapter.py`, `results/adapter_learnability.json`
@@ -652,12 +737,12 @@ load-bearing one.
 
 | Reviewer | Differs by | Targets | Correct | Escalated | Recovered | Addressed |
 | --- | --- | --- | --- | --- | --- | --- |
-| by-the-book | (control) | 1.00 | 1.000 | 0.525 | 0.00 | **1.00** |
-| two-of-three | threshold 2 | 1.00 | **0.575** | 0.525 | 0.00 | 1.00 |
-| any-one | threshold 1 | 1.00 | **0.425** | 0.525 | 0.00 | 1.00 |
-| inattentive | slips 15% | 1.00 | 0.875 | 0.525 | 0.00 | 1.00 |
-| terse | revises 25% | 0.83-0.88 | 1.000 | 0.525 | 0.00 | 1.00 |
-| unexplained | names no grounds | 1.00 | 1.000 | 0.525 | 0.00 | 1.00 |
+| by-the-book | (control) | 1.00 | 1.000 | 0.65 | 0.00 | **1.00** |
+| two-of-three | threshold 2 | 1.00 | **0.750** | 0.65 | 0.00 | 1.00 |
+| any-one | threshold 1 | 1.00 | **0.475** | 0.65 | 0.00 | 1.00 |
+| inattentive | slips 15% | 1.00 | 0.875 | 0.65 | 0.00 | 1.00 |
+| terse | revises 25% | 0.95 | 1.000 | 0.65 | 0.00 | 1.00 |
+| unexplained | names no grounds | 1.00 | 1.000 | 0.65 | 0.00 | 1.00 |
 | releaser | sheds compartments | 1.00 | 1.000 | 0.00 | **1.00** | 1.00 |
 | no-escalation | will not escalate | 1.00 | 1.000 | 0.00 | 0.00 | **0.00** |
 
@@ -682,14 +767,16 @@ Review does not import what the model knew; it exports the reviewer's standard. 
 is the mechanism behind the next row, and it is why the number is a property of the
 reviewer alone.
 
-**A reviewer with the wrong threshold teaches a rule that loses to guessing.** At
-threshold 2 the target stream matches the world on 0.575, at threshold 1 on 0.425.
-The majority floor on this evaluation set is 0.625. Both are below it, so a learner
-trained on those corrections would do worse than always answering ROUTINE -- and it
-would do so while every acceptance and revision looked like ordinary supervision.
+**A reviewer with the wrong threshold teaches a degraded rule, and the worst of them
+teaches one that loses to guessing.** At threshold 2 the target stream matches the world
+on 0.750, at threshold 1 on 0.475. The majority floor on this evaluation set is 0.650.
+Threshold 1 is below it, so a learner trained on those corrections would do worse than
+always answering ROUTINE -- and it would do so while every acceptance and revision looked
+like ordinary supervision. Threshold 2 sits above the floor and still costs a quarter of
+its targets, which is supervision that is worth having and quietly wrong.
 This is not a hypothetical reviewer. Threshold 1 is over-escalation, and finding 3b
-measured over-escalation in **every** model tested, recall 1.000 at precision 0.395
-to 0.500. A fleet learning from reviewers who fail on the axis its models already
+measured over-escalation in **every** model tested, recall 1.000 at precision 0.389
+to 0.609. A fleet learning from reviewers who fail on the axis its models already
 fail on does not get corrected; it gets confirmed.
 
 **Unnamed grounds cost nothing in volume and everything in attribution.** The
@@ -763,37 +850,57 @@ The two axes differ in kind, and separating them is the whole point. A reviewer'
 is a *systematic* error, reproducible and patterned. Their **carefulness** is how
 often they fail to apply their own standard; getting that wrong is *random* error.
 
-Target accuracy against the world, `*` marking cells that clear the 0.625 majority
+Target accuracy against the world, `*` marking cells that clear the 0.650 majority
 floor:
 
 | Standard | slip 0.00 | 0.05 | 0.10 | 0.15 | 0.20 | 0.30 | 0.40 | 0.50 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| needs 1 of 3 | 0.425 | 0.420 | 0.445 | 0.430 | 0.425 | 0.475 | 0.480 | 0.525 |
-| needs 2 of 3 | 0.575 | 0.575 | 0.580 | 0.540 | 0.550 | 0.505 | 0.515 | 0.465 |
+| needs 1 of 3 | 0.475 | 0.470 | 0.465 | 0.490 | 0.455 | 0.445 | 0.480 | 0.465 |
+| needs 2 of 3 | 0.750\* | 0.710\* | 0.685\* | 0.685\* | 0.635 | 0.640 | 0.600 | 0.490 |
 | **needs 3 of 3** | **1.000**\* | 0.965\* | 0.920\* | 0.830\* | 0.815\* | 0.685\* | 0.520 | 0.540 |
 
-**No wrong standard clears the floor at any carefulness.** Every cell in the top two
-rows sits below 0.625, including the ones where the reviewer never slips. A learner
-handed those targets would do better ignoring them and always answering ROUTINE.
-This is asserted over the whole grid in the test suite rather than spot-checked,
-because it is the claim the finding rests on.
+!!! danger "Re-measured 2026-08-03, and the headline claim of this finding is withdrawn"
+    This said **no wrong standard clears the floor at any carefulness**, and said it was
+    asserted over the whole grid in the test suite rather than spot-checked. The grid
+    assertion is what caught its failure: on the corrected corpus a two-of-three reviewer
+    clears the floor at four of eight slip rates, topping out at 0.750 against a floor of
+    0.650. A learner handed *those* targets would not do better ignoring them.
+
+    The test was narrowed to the most-wrong standard, which still never clears, and a
+    second test now asserts the exchange rate directly, since that is what this finding
+    is actually about and it does not depend on where the floor happens to sit.
+
+**The most wrong standard never clears the floor.** Every cell in the needs-1-of-3 row
+sits below 0.650, including where the reviewer never slips at all.
 
 **A correct standard tolerates a great deal of carelessness.** It clears the floor
-through a 30% slip rate (0.685) and only fails at 40%. So the exchange rate is
-lopsided: **one step of standard error costs what a 40% slip rate costs**, and two
-steps cost more than any slip rate measured up to 50%.
+through a 30% slip rate (0.685) and only fails at 40%. The exchange rate is still
+lopsided, and slightly less so than previously measured: **one step of standard error
+costs what a 30% slip rate costs** (a two-of-three reviewer's 0.750 is what the correct
+standard scores at 30% slip), and two steps cost more than any slip rate measured up to
+50%, since the needs-1-of-3 row never reaches even the correct standard's worst cell.
 
 That is the quantitative form of a qualitative claim in the learning-from-noisy-
 labels literature -- that systematic annotator bias damages a model more than random
 noise, because the errors are class-dependent and get learned rather than averaged
-away. Here the ratio is roughly eight to one against the systematic error.
+away. The direction reproduces on both corpora. The magnitude is what the exchange
+rate above states and nothing more.
 
-**Noise partially rescues a wrong standard, which is the counterintuitive part.** The
-needs-1-of-3 reviewer *improves* from 0.425 to 0.525 as slip rises to 50%, and the
-correct reviewer falls to 0.540 at the same point. Both converge toward chance,
-because a reviewer flipping coins is no longer applying any rule. Confidently wrong
-is worse than random, and adding noise to a badly biased reviewer moves them toward
-the middle rather than further away.
+!!! warning "Two smaller claims here did not survive the corrected corpus"
+    **A stated ratio of "roughly eight to one against the systematic error"** is
+    withdrawn. It was never derived in the text from a cell in the grid, and no
+    arithmetic over the current grid produces it. What the grid supports is the
+    exchange rate: one step of standard error is worth about 30 points of slip, two
+    steps more than 50.
+
+    **"Noise partially rescues a wrong standard"** is refuted. It rested on the
+    needs-1-of-3 row climbing from 0.425 to 0.525 as slip rose to 50%. That row is now
+    flat -- 0.475 at no slip, 0.465 at 50%, varying by 0.045 across the whole range with
+    no trend -- which is what a reviewer whose standard already ignores the rule should
+    look like when noise is added to it. The correct reviewer still falls to 0.540 at
+    50%, so the two rows still converge; they converge because the *correct* one
+    degrades, not because the wrong one improves. The claim was reading a trend into
+    eight cells that spanned a tenth of a point.
 
 **What this means for a fleet.** Recruiting effort should go to establishing that
 reviewers hold the right standard, not to keeping them attentive. The usual
@@ -1496,7 +1603,7 @@ reproduces finding 12's central result on a different fleet distribution.
     Equal-sized schools, a single wrong standard, and correlation modelled as
     all-or-nothing per school. Real cohorts overlap, partially agree, and drift, and
     every one of those sits between the two extremes bracketed here rather than outside
-    them. The conditional agreements rest on 30 draws per cell, which is thin for the
+    them. The conditional agreements rest on 60 draws per cell, which is thin for the
     conditionals though it does not touch the exact probabilities. What the pair of
     columns establishes is that the i.i.d. assumption is load-bearing and unstated, not
     where a particular organisation would land between them.
@@ -1559,8 +1666,8 @@ actually query, because it answers *whom do I retrain*:
 
 | Fleet | wrong-standard reviewers | correct reviewers | Verdict |
 | --- | --- | --- | --- |
-| 3 of 9 wrong standard | 1.96 | 3.98 | correct: the wrong rule scores 2.0x lower |
-| 5 of 9 wrong standard | **3.60** | **2.54** | inverted: the wrong rule scores 1.42x *higher* |
+| 3 of 9 wrong standard | 1.62 | 4.00 | correct: the wrong rule scores 2.5x lower |
+| 5 of 9 wrong standard | **3.89** | **2.00** | inverted: the wrong rule scores 1.95x *higher* |
 
 Below the majority the estimate is right, and a supervisor acting on it retrains the
 three reviewers who hold the wrong rule. Above it the ranking flips, and the same
@@ -1571,8 +1678,9 @@ survive it: item difficulty was added to explain away disagreement the fleet cou
 resolve, and it relocates the error rather than isolating it.
 
 This is why the failure is worse than a low agreement number. At 5 of 9, agreement of
-0.717 at least announces that something is wrong. The ability column does not: it is
-confident, well separated, and backwards.
+0.660 at least announces that something is wrong. The ability column does not: it is
+confident, well separated, and backwards. The inversion holds at every corpus size
+swept below, which is more than can be said for the CC-Rasch row.
 
 **Random error is not exempt, and has a different signature.** The 15%-slip row inflates
 difficulty with no wrong standard anywhere, but the shape is inverted: it peaks at
@@ -1639,27 +1747,47 @@ the same fleets:
 | Fleet | Dawid-Skene | GLAD | CC-Rasch | Routine-class gap |
 | --- | --- | --- | --- | --- |
 | correct (control) | 1.000 | 1.000 | 1.000 | - |
-| correct, 15% random slip | 0.990 | 0.990 | 0.980 | - |
-| 3 of 9 wrong standard | 1.000 | 1.000 | 1.000 | **+3.76** |
-| **5 of 9 wrong standard** | **0.717** | **0.717** | **0.717** | **+0.003** |
+| correct, 15% random slip | 0.990 | 0.990 | 0.979 | - |
+| 3 of 9 wrong standard | 1.000 | 1.000 | 1.000 | **+4.12** |
+| **5 of 9 wrong standard** | **0.660** | **0.660** | **1.000** | **+3.92** |
 
-**All three agree to three decimals, including the failure.** Class-conditioning buys
-exactly one thing, and then loses it at the crossing. The gap is a difference in logits,
-because that is the scale CC-Rasch's abilities live on. Below the majority it is
-**+3.76**: the wrong-standard reviewers score -1.51 on the routine class, *below chance*
-on exactly the items they mishandle, against +2.25 for the correct ones. That is a real
-diagnostic naming the right people for the right reason.
+Read on its own, that bottom row says class-conditioning *answers* the objection:
+CC-Rasch recovers the truth exactly where Dawid-Skene and GLAD both collapse to 0.660.
+**It does not, and the reason it does not is the more useful result.**
 
-At the majority the gap is **+0.003**, and the way it gets there is worth reading. Both
-groups sit at 0.999 and 1.002, which is the initialisation value: the routine-class
-ability parameters never moved at all. Once the wrong standard is the majority the fit
-adopts it as truth, and from there every reviewer looks equally competent on the routine
-class, so there is no gradient left to separate them. The signal does not degrade
-towards zero. It is never generated.
+!!! danger "CC-Rasch is bimodal here, and the committed corpus size sits on one mode"
+    The corpus size is a nuisance parameter: it should move the estimate a little and
+    move no conclusion at all. Sweeping it moves this conclusion all the way.
 
-So the answer to "use a better estimator" is measured rather than assumed: a *more*
-expressive model, published in 2026 and designed against this exact limitation, fails
-identically. The confound is not a deficiency of any one estimator.
+    | `--events` | Dawid-Skene | CC-Rasch | Routine-class gap |
+    | --- | --- | --- | --- |
+    | **200** (committed) | 0.660 | **1.000** | +3.92 |
+    | 300 | 0.669 | 0.669 | - |
+    | 400 | 0.656 | 0.656 | +0.002 |
+    | 500 | 0.637 | 0.637 | - |
+    | 600 | 0.635 | 0.635 | +0.027 |
+    | 700 | 0.633 | 0.633 | did not converge |
+    | 800 | 0.637 | **1.000** | +4.32 |
+    | 900 | 0.626 | **1.000** | +3.97 |
+
+    CC-Rasch does not degrade smoothly between these. It lands on one of two answers:
+    the truth exactly, or the wrong-standard majority exactly, with nothing in between.
+    That is the signature of label switching -- two mirror-image solutions fitting the
+    data equally well, with the draw deciding which one EM reaches. The identifiability
+    machinery in `pharos.inference` was added to prevent precisely this and is evidently
+    not sufficient to.
+
+    **So no CC-Rasch number here is quotable in either direction.** Not the 1.000, which
+    would say the objection is answered, and not the 0.660s, which would say it fails
+    identically. Five of eight sizes support the second reading and three the first,
+    which is a statement about the estimator's identifiability rather than about
+    class-conditional modelling. Fixing it is open work.
+
+What survives the sweep is the part that does not depend on CC-Rasch. Dawid-Skene and
+GLAD agree with each other and drop to roughly 0.63-0.67 at the crossing at *every*
+size, and GLAD's per-reviewer ability inverts at every size. The confound is established
+against those two estimators. Whether a correctly identified class-conditional model
+escapes it is now an open question, and this repository cannot currently answer it.
 
 !!! note "What this does not settle"
     Two estimators of this family, one wrong standard, one corpus whose difficulty

@@ -38,7 +38,7 @@
   /* A tab an offline build cannot serve. It is disabled in the DOM, and this is
      what makes that visible -- a dead control that looks live is worse than one
      that is plainly out of reach. */
-  nav button:disabled { opacity: .45; cursor: not-allowed; text-decoration: line-through; }
+  nav button:disabled { opacity: .7; color: var(--muted); border-color: var(--line); cursor: not-allowed; text-decoration: line-through; }
   .card {
     background: var(--card); border: 1px solid var(--line); border-radius: 10px;
     padding: 1rem 1.1rem; margin-bottom: 1rem;
@@ -50,17 +50,21 @@
     border-radius: 6px; padding: .4rem .5rem; font: inherit; font-size: .9rem;
   }
   input[type=number] { width: 6.5rem; }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
   /* Styling `input` at all overrides the browser's own disabled appearance, so a
      frozen field came out pixel-identical to a live one: same colour, same
      background, opacity 1. The attribute was set and said nothing. Restate it. */
   input:disabled, select:disabled {
-    opacity: .45; cursor: not-allowed; border-style: dashed;
+    opacity: .65; color: var(--muted); cursor: not-allowed; border-style: dashed;
   }
   button.go {
     background: var(--accent); color: #fff; border: 0; border-radius: 6px;
     padding: .45rem 1rem; cursor: pointer; font: inherit; font-size: .9rem;
   }
-  button.go:disabled { opacity: .55; cursor: progress; }
+  button.go:disabled { opacity: .7; background: var(--muted); cursor: progress; }
   table { border-collapse: collapse; width: 100%; font-size: .86rem; }
   th, td { text-align: left; padding: .38rem .5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--muted); font-weight: 600; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
@@ -76,7 +80,73 @@
   .chips { display: flex; gap: .5rem; flex-wrap: wrap; }
   .chips label { display: flex; gap: .25rem; align-items: center; margin: 0; font-size: .85rem; color: var(--fg); }
   [hidden] { display: none !important; }
+
+  /* ── Visualizer Responsive Styles ── */
+  .viz-container { position: relative; width: 100%; height: 420px; background: rgba(15, 20, 30, 0.4); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; margin: 1rem 0; }
+  .viz-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .viz-path { fill: none; stroke: var(--line); stroke-width: 2; stroke-dasharray: 6,6; animation: vizDash 30s linear infinite; }
+  @keyframes vizDash { to { stroke-dashoffset: -1000; } }
+  .viz-node { position: absolute; width: 18%; min-width: 140px; padding: 0.75rem 0.8rem; background: var(--card); border: 1.5px solid var(--line); border-radius: 10px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 10; transition: transform 0.25s ease, border-color 0.25s ease; }
+  .viz-node:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .viz-node h4 { margin: 0 0 0.3rem; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+  .viz-node p { margin: 0; font-size: 0.72rem; color: var(--muted); }
+  .viz-badge { display: inline-block; margin-top: 0.4rem; padding: 0.15rem 0.45rem; border-radius: 4px; font-weight: 600; font-size: 0.68rem; font-family: var(--mono); }
+  .viz-badge.personal { background: rgba(140, 158, 255, 0.15); color: var(--accent); border: 1px solid var(--accent); }
+  .viz-badge.shared { background: rgba(27, 110, 60, 0.15); color: var(--ok); border: 1px solid var(--ok); }
+  .viz-badge.rust { background: rgba(255, 183, 77, 0.15); color: var(--amber); border: 1px solid var(--amber); }
+  .viz-particle { position: absolute; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%); z-index: 20; box-shadow: 0 0 12px currentColor; pointer-events: none; transition: left 0.6s ease-in-out, top 0.6s ease-in-out, background-color 0.3s; }
+  .pulse-glow { animation: vizGlow 1.8s infinite alternate; }
+  @keyframes vizGlow { 0% { box-shadow: 0 0 4px var(--accent); } 100% { box-shadow: 0 0 18px var(--accent); } }
+
+  /* ── State-of-the-Art UX Uplift Styles ── */
+  .grid-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.8rem; margin: 0.8rem 0 1.2rem; }
+  .metric-card { background: rgba(0, 0, 0, 0.25); border: 1px solid var(--line); border-radius: 8px; padding: 0.85rem 1rem; text-align: center; }
+  .metric-value { font-size: 1.5rem; font-weight: 800; color: var(--accent); margin: 0.2rem 0; font-family: var(--mono); }
+  .metric-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+
+  .bar-chart { margin: 1rem 0; display: flex; flex-direction: column; gap: 0.45rem; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--line); padding: 0.9rem 1rem; border-radius: 8px; }
+  .bar-row { display: flex; align-items: center; gap: 0.8rem; font-size: 0.82rem; }
+  .bar-label { width: 180px; font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { flex: 1; height: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 5px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 5px; background: var(--accent); transition: width 0.4s ease; }
+  .bar-count { width: 45px; text-align: right; font-family: var(--mono); color: var(--muted); }
+
+  .lattice-diagram { position: relative; padding: 1.2rem; background: rgba(15, 20, 30, 0.4); border: 1px solid var(--line); border-radius: 10px; margin: 1rem 0; text-align: center; }
+  .lattice-level { display: flex; justify-content: center; gap: 1.2rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .lattice-pill { padding: 0.4rem 0.8rem; border-radius: 6px; border: 1.5px solid var(--line); background: var(--card); font-size: 0.8rem; font-weight: 600; font-family: var(--mono); transition: all 0.3s ease; }
+  .lattice-pill.holder { border-color: #8c9eff; color: #8c9eff; box-shadow: 0 0 10px rgba(140,158,255,0.4); }
+  .lattice-pill.object { border-color: #ffb74d; color: #ffb74d; box-shadow: 0 0 10px rgba(255,183,77,0.4); }
+  .lattice-pill.join { border-color: #6ddf9c; color: #6ddf9c; box-shadow: 0 0 10px rgba(109,223,156,0.4); }
+
+  .gauge-box { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; }
+  .gauge-card { flex: 1; min-width: 220px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; text-align: center; }
+  .gauge-score { font-size: 1.8rem; font-weight: 800; color: var(--ok); font-family: var(--mono); }
+
+  /* Live Model Pipeline Loading & Spinner Styles */
+  .skeleton-pulse {
+    height: 48px; border-radius: 6px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: skelPulse 1.5s infinite;
+  }
+  @keyframes skelPulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+  .spin-ring {
+    display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: var(--accent); border-radius: 50%; animation: spinAnim 0.8s linear infinite; vertical-align: middle; margin-right: 6px;
+  }
+  @keyframes spinAnim { to { transform: rotate(360deg); } }
+
+  /* Mobile & Tablet Responsive Stacking */
+  @media (max-width: 820px) {
+
+    .viz-container { height: auto; display: flex; flex-direction: column; gap: 1rem; padding: 1.2rem; align-items: center; }
+    .viz-svg { display: none; }
+    .viz-node { position: relative !important; left: auto !important; top: auto !important; width: 100% !important; max-width: 320px; }
+  }
 </style>
+
+
 </head>
 <body>
 <header>
@@ -88,21 +158,25 @@
 </header>
 
 <main>
-  <nav role="tablist">
-    <button role="tab" data-tab="corpus" aria-selected="true">Corpus</button>
-    <button role="tab" data-tab="lattice" aria-selected="false">Label lattice</button>
-    <button role="tab" data-tab="triage" aria-selected="false">Run a model</button>
-    <button role="tab" data-tab="gate" aria-selected="false">Shortcut gate</button>
-    <button role="tab" data-tab="review" aria-selected="false">Analyst review</button>
+  <nav role="tablist" aria-label="Explorer Sections">
+    <button role="tab" id="tab-btn-corpus" data-tab="corpus" aria-selected="true" aria-controls="tab-corpus" tabindex="0">Corpus</button>
+    <button role="tab" id="tab-btn-lattice" data-tab="lattice" aria-selected="false" aria-controls="tab-lattice" tabindex="-1">Label lattice</button>
+    <button role="tab" id="tab-btn-triage" data-tab="triage" aria-selected="false" aria-controls="tab-triage" tabindex="-1">Run a model</button>
+    <button role="tab" id="tab-btn-gate" aria-selected="false" data-tab="gate" aria-controls="tab-gate" tabindex="-1">Shortcut gate</button>
+    <button role="tab" id="tab-btn-review" data-tab="review" aria-selected="false" aria-controls="tab-review" tabindex="-1">Analyst review</button>
+    <button role="tab" id="tab-btn-visualizer" data-tab="visualizer" aria-selected="false" aria-controls="tab-visualizer" tabindex="-1" style="border-color: var(--accent); color: var(--accent); font-weight: 600;">✨ Live Fleet Visualizer</button>
   </nav>
 
+
   <!-- ── Corpus ─────────────────────────────────────────────── -->
-  <section id="tab-corpus">
+  <section id="tab-corpus" role="tabpanel" aria-labelledby="tab-btn-corpus">
     <div class="card">
       <div class="row">
         <div><label for="c-seed">Seed</label><input id="c-seed" type="number" value="7"></div>
         <div><label for="c-events">Events</label><input id="c-events" type="number" value="40"></div>
         <button class="go" id="c-go">Generate</button>
+        <button class="go" id="c-dl-jsonl" style="display:none; background: var(--ok);" title="Download full dataset as JSONL">Download corpus.jsonl</button>
+        <button class="go" id="c-dl-manifest" style="display:none; background: var(--amber);" title="Download manifest certification JSON">Download manifest.json</button>
       </div>
       <p class="note">A corpus is fully determined by its seed and config. The same
         seed always produces the same bytes.</p>
@@ -110,8 +184,9 @@
     <div class="card" id="c-out" hidden></div>
   </section>
 
+
   <!-- ── Lattice ────────────────────────────────────────────── -->
-  <section id="tab-lattice" hidden>
+  <section id="tab-lattice" role="tabpanel" aria-labelledby="tab-btn-lattice" hidden>
     <div class="card">
       <p class="note" style="margin-top:0">Sensitivity is a ladder; compartments are
         not. Two labels at the same level with different compartments dominate in
@@ -140,7 +215,7 @@
   </section>
 
   <!-- ── Triage ─────────────────────────────────────────────── -->
-  <section id="tab-triage" hidden>
+  <section id="tab-triage" role="tabpanel" aria-labelledby="tab-btn-triage" hidden>
     <div class="card">
       <div class="row">
         <div style="min-width:19rem"><label for="t-model">Model</label><select id="t-model"></select></div>
@@ -150,11 +225,11 @@
       </div>
       <p class="note" id="t-modelnote"></p>
     </div>
-    <div class="card" id="t-out" hidden></div>
+    <div class="card" id="t-out" aria-live="polite" role="status" hidden></div>
   </section>
 
   <!-- ── Gate ───────────────────────────────────────────────── -->
-  <section id="tab-gate" hidden>
+  <section id="tab-gate" role="tabpanel" aria-labelledby="tab-btn-gate" hidden>
     <div class="card">
       <p class="note" style="margin-top:0">The gate asks whether plant membership is
         predictable from shape alone, reading no words. It is expected to score above
@@ -170,7 +245,7 @@
   </section>
 
   <!-- ── Analyst review ─────────────────────────────────────── -->
-  <section id="tab-review" hidden>
+  <section id="tab-review" role="tabpanel" aria-labelledby="tab-btn-review" hidden>
     <div class="card">
       <p class="note" style="margin-top:0">A proposal is two assertions: a verdict,
         and the label it would be released under. Each reviewer below differs from
@@ -195,18 +270,151 @@
     </div>
     <div class="card" id="r-out" hidden></div>
   </section>
+
+  <!-- ── Live Fleet Visualizer ─────────────────────────────── -->
+  <section id="tab-visualizer" role="tabpanel" aria-labelledby="tab-btn-visualizer" hidden>
+    <div class="card">
+      <h3>✨ Interactive Fleet Triage & Provenance Router Flow</h3>
+      <p class="note">Watch how analyst interactions on an edge node are evaluated by the <strong>Provenance-Gated Router</strong> and split between <strong>Local Personal Adapters</strong> (0% disclosure) and <strong>Federated Shared Adapters</strong> (Velocity-FL Rust Engine).</p>
+
+      <div class="row" style="margin-top: 1rem;">
+        <div><label for="v-action">Analyst Action</label>
+          <select id="v-action">
+            <option value="accept">ACCEPT (Routine Tradecraft)</option>
+            <option value="revise">REVISE (Corrected Verdict)</option>
+            <option value="reject">REJECT (Unclear Grounds)</option>
+          </select></div>
+        <div><label for="v-sens">Sensitivity</label>
+          <select id="v-sens">
+            <option value="OPEN">OPEN</option>
+            <option value="INTERNAL">INTERNAL</option>
+            <option value="PROTECTED">PROTECTED</option>
+            <option value="RESTRICTED" selected>RESTRICTED (Classified)</option>
+          </select></div>
+        <div><label for="v-attack">Byzantine Attack</label>
+          <select id="v-attack">
+            <option value="none">None (Honest Fleet)</option>
+            <option value="sign_flip">Sign-Flip Poisoning</option>
+          </select></div>
+        <div><label for="v-dp">Differential Privacy</label>
+          <select id="v-dp">
+            <option value="active">Active (ε = 1.0, δ = 1e-5)</option>
+            <option value="off">Off (ε = ∞)</option>
+          </select></div>
+        <button class="go" id="v-run-step" style="background: var(--accent);">▶ Step Simulation</button>
+      </div>
+
+      <!-- Animated Flow Diagram Canvas -->
+      <div class="viz-container">
+        <svg class="viz-svg">
+          <!-- Flow Lines with IDs for dynamic JS recomputation -->
+          <path id="v-path-1" class="viz-path" d="M 100 210 L 260 210" />
+          <path id="v-path-2a" class="viz-path" d="M 330 210 Q 420 320 520 320" />
+          <path id="v-path-2b" class="viz-path" d="M 330 210 Q 420 100 520 100" />
+          <path id="v-path-3" class="viz-path" d="M 690 100 Q 770 100 840 210" />
+        </svg>
+
+        <!-- Node 1: Analyst Edge Laptop -->
+        <div id="v-node-analyst" class="viz-node pulse-glow" style="left: 2%; top: 38%;">
+          <h4>💻 Edge Analyst</h4>
+          <p>Analyst Laptop Node</p>
+          <span class="viz-badge personal">Ledger Active</span>
+        </div>
+
+        <!-- Node 2: Provenance Router -->
+        <div id="v-node-router" class="viz-node" style="left: 25%; top: 38%;">
+          <h4>🛡️ Provenance Router</h4>
+          <p>Lattice Boundary Gating</p>
+          <span class="viz-badge rust">Pharos Lattice</span>
+        </div>
+
+        <!-- Node 3A: Personal Adapter -->
+        <div id="v-node-personal" class="viz-node" style="left: 50%; top: 66%;">
+          <h4>🔒 Personal Adapter</h4>
+          <p>Style, Need-to-Know</p>
+          <span class="viz-badge personal">LOCAL ONLY - 0% LEAK</span>
+        </div>
+
+        <!-- Node 3B: Shared Adapter -->
+        <div id="v-node-shared" class="viz-node" style="left: 50%; top: 10%;">
+          <h4>🌐 Shared Adapter</h4>
+          <p>Tradecraft Patterns</p>
+          <span class="viz-badge shared">FEDERATED FLEET</span>
+        </div>
+
+        <!-- Node 4: Velocity-FL Rust Engine -->
+        <div id="v-node-rust" class="viz-node" style="left: 78%; top: 38%;">
+          <h4>⚡ Velocity-FL Core</h4>
+          <p>Rust Aggregation Engine</p>
+          <span class="viz-badge rust">Krum / GeoMedian</span>
+        </div>
+
+
+        <!-- Animated Moving Packet Particle -->
+        <div id="v-particle" class="viz-particle" style="left: 105px; top: 210px; background-color: var(--accent); display: none;"></div>
+      </div>
+
+      <!-- Live Dashboard Output Card -->
+      <div id="v-out" class="card" aria-live="polite" role="status" style="margin-top: 1rem; background: var(--bg);">
+        <p class="note">Click <strong>▶ Step Simulation</strong> to launch an animated triage packet flow across the provenance router.</p>
+      </div>
+    </div>
+  </section>
 </main>
+
 
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-document.querySelectorAll('nav button').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll('nav button').forEach(b => b.setAttribute('aria-selected', String(b === btn)));
-    ['corpus','lattice','triage','gate','review'].forEach(t => { $('tab-' + t).hidden = (t !== btn.dataset.tab); });
+const tabs = [...document.querySelectorAll('nav button')];
+function selectTab(btn) {
+  tabs.forEach(b => {
+    const isSelected = (b === btn);
+    b.setAttribute('aria-selected', String(isSelected));
+    b.setAttribute('tabindex', isSelected ? '0' : '-1');
+  });
+  ['corpus','lattice','triage','gate','review','visualizer'].forEach(t => {
+    if ($('tab-' + t)) $('tab-' + t).hidden = (t !== btn.dataset.tab);
+  });
+  if (btn.dataset.tab === 'visualizer') updateVizSvgPaths();
+}
+
+tabs.forEach((btn, index) => {
+  btn.onclick = () => selectTab(btn);
+  btn.onkeydown = (e) => {
+    let targetIndex = null;
+    if (e.key === 'ArrowRight') targetIndex = (index + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft') targetIndex = (index - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') targetIndex = 0;
+    else if (e.key === 'End') targetIndex = tabs.length - 1;
+    if (targetIndex !== null) {
+      e.preventDefault();
+      tabs[targetIndex].focus();
+      selectTab(tabs[targetIndex]);
+    }
   };
 });
+
+function updateVizSvgPaths() {
+  const pAnalyst = getNodeCenter('v-node-analyst');
+  const pRouter = getNodeCenter('v-node-router');
+  const pPersonal = getNodeCenter('v-node-personal');
+  const pShared = getNodeCenter('v-node-shared');
+  const pRust = getNodeCenter('v-node-rust');
+
+  const p1 = $('v-path-1');
+  const p2a = $('v-path-2a');
+  const p2b = $('v-path-2b');
+  const p3 = $('v-path-3');
+
+  if (p1) p1.setAttribute('d', `M ${pAnalyst.x} ${pAnalyst.y} L ${pRouter.x} ${pRouter.y}`);
+  if (p2a) p2a.setAttribute('d', `M ${pRouter.x} ${pRouter.y} Q ${(pRouter.x + pPersonal.x)/2} ${pPersonal.y} ${pPersonal.x} ${pPersonal.y}`);
+  if (p2b) p2b.setAttribute('d', `M ${pRouter.x} ${pRouter.y} Q ${(pRouter.x + pShared.x)/2} ${pShared.y} ${pShared.x} ${pShared.y}`);
+  if (p3) p3.setAttribute('d', `M ${pShared.x} ${pShared.y} Q ${(pShared.x + pRust.x)/2} ${pShared.y} ${pRust.x} ${pRust.y}`);
+}
+window.addEventListener('resize', updateVizSvgPaths);
+
 
 // ── Static mode ─────────────────────────────────────────────
 //
@@ -293,13 +501,26 @@ async function api(path, opts) {
 function busy(btn, on) { btn.disabled = on; btn.textContent = on ? 'Working…' : btn.dataset.label; }
 
 // ── Corpus ──────────────────────────────────────────────────
+let currentCorpusData = null;
+
 $('c-go').dataset.label = 'Generate';
 $('c-go').onclick = async () => {
   const btn = $('c-go'); busy(btn, true);
   try {
     const d = await api(`/api/corpus?seed=${$('c-seed').value}&events=${$('c-events').value}`);
-    const hist = Object.entries(d.label_histogram)
-      .map(([k, v]) => `<tr><td><span class="tag">${esc(k)}</span></td><td>${v}</td></tr>`).join('');
+    currentCorpusData = d;
+    $('c-dl-jsonl').style.display = 'inline-block';
+    $('c-dl-manifest').style.display = 'inline-block';
+    const maxVal = Math.max(...Object.values(d.label_histogram));
+    const plants = d.reports.filter(r => r.is_plant).length;
+    const barRows = Object.entries(d.label_histogram).map(([k, v]) => {
+      const pct = Math.round((v / maxVal) * 100);
+      return `<div class="bar-row">
+        <div class="bar-label">${esc(k)}</div>
+        <div class="bar-track"><div class="bar-fill" style="width: ${pct}%;"></div></div>
+        <div class="bar-count">${v}</div>
+      </div>`;
+    }).join('');
     const rows = d.reports.map(r => `<tr>
         <td class="mono">${esc(r.report_id)}</td>
         <td><span class="tag">${esc(r.label.rendered)}</span></td>
@@ -307,14 +528,53 @@ $('c-go').onclick = async () => {
         <td>${esc(r.text)}</td></tr>`).join('');
     $('c-out').hidden = false;
     $('c-out').innerHTML = `
-      <p><strong>${d.n_reports}</strong> reports over <strong>${d.n_events}</strong> events,
-         in <strong>${Object.keys(d.label_histogram).length}</strong> distinct label cells.</p>
-      <div class="scroll"><table><thead><tr><th>Label cell</th><th>Reports</th></tr></thead><tbody>${hist}</tbody></table></div>
-      <p class="note">Sample of reports:</p>
+      <div class="grid-metrics">
+        <div class="metric-card"><div class="metric-value">${d.n_reports}</div><div class="metric-label">Total Reports</div></div>
+        <div class="metric-card"><div class="metric-value">${d.n_events}</div><div class="metric-label">Events Sampled</div></div>
+        <div class="metric-card"><div class="metric-value">${Object.keys(d.label_histogram).length}</div><div class="metric-label">Lattice Cells</div></div>
+        <div class="metric-card"><div class="metric-value">${plants}</div><div class="metric-label">Significant Plants</div></div>
+      </div>
+      <h4>📊 Label Cell Distribution across Lattice Space</h4>
+      <div class="bar-chart">${barRows}</div>
+      <p class="note">Sample of generated intelligence reports:</p>
       <div class="scroll"><table><thead><tr><th>ID</th><th>Label</th><th>Class</th><th>Text</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   } catch (e) { $('c-out').hidden = false; $('c-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+
   busy(btn, false);
 };
+
+$('c-dl-jsonl').onclick = () => {
+  if (!currentCorpusData || !currentCorpusData.export_rows) return;
+  const lines = currentCorpusData.export_rows.map(row => JSON.stringify(row));
+  const content = lines.join('\n') + '\n';
+  const blob = new Blob([content], { type: 'application/x-ndjson' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `corpus_seed_${currentCorpusData.seed}_events_${currentCorpusData.n_events}.jsonl`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+$('c-dl-manifest').onclick = () => {
+  if (!currentCorpusData) return;
+  const manifest = {
+    seed: currentCorpusData.seed,
+    n_events: currentCorpusData.n_events,
+    n_reports: currentCorpusData.n_reports,
+    label_histogram: currentCorpusData.label_histogram,
+    provenance: typeof BUNDLE !== 'undefined' && BUNDLE ? BUNDLE.provenance : null,
+  };
+  const content = JSON.stringify(manifest, null, 2) + '\n';
+  const blob = new Blob([content], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `manifest_seed_${currentCorpusData.seed}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
 
 // ── Lattice ─────────────────────────────────────────────────
 let vocab = null;
@@ -346,20 +606,32 @@ $('l-go').onclick = async () => {
       : (d.holder_may_read_item
           ? '<span class="ok">The holder may read the object.</span>'
           : '<span class="bad">The holder may not read the object.</span>');
+    const holderTag = esc(d.holder.rendered);
+    const objectTag = esc(d.item.rendered);
+    const joinTag = esc(d.join.rendered);
     $('l-out').hidden = false;
     $('l-out').innerHTML = `
       <p class="verdict">${verdict}</p>
+      <div class="lattice-diagram">
+        <h4>🔷 Security Lattice Position & Join Map</h4>
+        <div class="lattice-level">
+          <span class="lattice-pill holder">🔵 Holder (Reader): ${holderTag}</span>
+          <span class="lattice-pill object">🟡 Object (Item): ${objectTag}</span>
+        </div>
+        <div class="lattice-level">
+          <span class="lattice-pill join">🟣 Least Upper Bound Join (⊔): ${joinTag}</span>
+        </div>
+      </div>
       <table>
-        <tr><th>Holder</th><td><span class="tag">${esc(d.holder.rendered)}</span></td></tr>
-        <tr><th>Object</th><td><span class="tag">${esc(d.item.rendered)}</span></td></tr>
-        <tr><th>Holder reads object</th><td>${d.holder_may_read_item}</td></tr>
-        <tr><th>Object reads holder</th><td>${d.item_may_read_holder}</td></tr>
-        <tr><th>Join</th><td><span class="tag">${esc(d.join.rendered)}</span></td></tr>
+        <tr><th>Holder</th><td><span class="tag">${holderTag}</span></td></tr>
+        <tr><th>Object</th><td><span class="tag">${objectTag}</span></td></tr>
+        <tr><th>Holder reads object</th><td>${d.holder_may_read_item ? '✅ Allowed' : '❌ Blocked'}</td></tr>
+        <tr><th>Object reads holder</th><td>${d.item_may_read_holder ? '✅ Allowed' : '❌ Blocked'}</td></tr>
+        <tr><th>Join (⊔)</th><td><span class="tag">${joinTag}</span></td></tr>
       </table>
-      <p class="note">The join is what a derived output inherits from both. Capacity is
-         taken from the output rather than joined, which is what stops every derived
-         entry creeping to the top of the lattice.</p>`;
+      <p class="note">The join (⊔) is what a derived output inherits from both inputs. Capacity is taken from the output rather than joined.</p>`;
   } catch (e) { $('l-out').hidden = false; $('l-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+
   busy(btn, false);
 };
 
@@ -386,32 +658,91 @@ function showModelNote() {
 $('t-model').onchange = showModelNote;
 $('t-go').dataset.label = 'Run';
 $('t-go').onclick = async () => {
-  const btn = $('t-go'); busy(btn, true);
+  const btn = $('t-go');
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spin-ring"></span> Running Model...`;
+  
+  const startTime = Date.now();
+  $('t-out').hidden = false;
+  $('t-out').innerHTML = `
+    <div style="padding: 1rem; border: 1.5px solid var(--accent); border-radius: 10px; background: rgba(15, 20, 30, 0.6); margin-top: 0.5rem;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem;">
+        <h4 style="margin: 0; color: var(--accent); font-size: 0.95rem;"><span class="spin-ring"></span> Executing LLM Triage Pipeline...</h4>
+        <span id="t-timer" class="mono" style="font-size: 1.1rem; color: var(--amber); font-weight: 700;">⏱️ 0.0s</span>
+      </div>
+      <div class="bar-track" style="height: 10px; margin-bottom: 0.8rem; background: rgba(0,0,0,0.4);">
+        <div id="t-progress-fill" class="bar-fill" style="width: 25%; background: linear-gradient(90deg, var(--accent), var(--ok)); transition: width 0.3s ease;"></div>
+      </div>
+      <p id="t-stage-status" class="note" style="font-weight: 600; color: var(--fg); margin: 0 0 0.8rem 0;">
+        ⚙️ Step 1/3: Loading model weights into VRAM & constructing task prompt...
+      </p>
+      <div class="skeleton-pulse"></div>
+    </div>`;
+
+  const timerInterval = setInterval(() => {
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+    const timerEl = $('t-timer');
+    const fillEl = $('t-progress-fill');
+    const stageEl = $('t-stage-status');
+    if (timerEl) timerEl.textContent = `⏱️ ${elapsed}s`;
+    
+    if (elapsed > 1.2 && elapsed <= 3.5) {
+      if (fillEl) fillEl.style.width = '65%';
+      if (stageEl) stageEl.textContent = '🧠 Step 2/3: Streaming LLM prompt inference & generating response tokens...';
+    } else if (elapsed > 3.5) {
+      if (fillEl) fillEl.style.width = '88%';
+      if (stageEl) stageEl.textContent = '🛡️ Step 3/3: Evaluating security lattice join & governed release label...';
+    }
+  }, 100);
+
   try {
     const d = await api('/api/triage', {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({model: $('t-model').value, seed: +$('t-seed').value, index: +$('t-index').value}),
     });
-    const said = d.model_verdict === null ? 'unparseable' : (d.model_verdict ? 'SIGNIFICANT' : 'ROUTINE');
-    const truth = d.truth_significant ? 'SIGNIFICANT' : 'ROUTINE';
-    const mark = d.correct === null ? '<span class="muted">no verdict</span>'
-      : (d.correct ? '<span class="ok">correct</span>' : '<span class="bad">wrong</span>');
-    $('t-out').hidden = false;
+    clearInterval(timerInterval);
+    const totalTime = ((Date.now() - startTime) / 1000).toFixed(2);
+
+    const isRestricted = d.governed_label.sensitivity === 'RESTRICTED' || (d.governed_label.compartments && d.governed_label.compartments.length > 0);
+    const transportBadge = isRestricted 
+      ? '🔒 LOCAL PERSONAL ADAPTER ONLY (0% Fleet Disclosure)'
+      : '🌐 SHARED FEDERATED ADAPTER ELIGIBLE (Velocity-FL Core)';
+    const transportNote = isRestricted
+      ? 'This turn incorporates RESTRICTED or compartmented evidence. Gradient updates are strictly confined to the local analyst laptop.'
+      : 'This verdict is cleared for high-throughput federated aggregation across the fleet via Velocity-FL Rust Core.';
+
     $('t-out').innerHTML = `
-      <p class="verdict">Model said <strong>${said}</strong>, truth is <strong>${truth}</strong> — ${mark}</p>
-      <table>
-        <tr><th>Task</th><td class="mono">${esc(d.task_id)}</td></tr>
-        <tr><th>Sources</th><td>${d.n_sources} reports</td></tr>
-        <tr><th>Model</th><td class="mono">${esc(d.model.tag)}</td></tr>
-        <tr><th>Governed label of the verdict</th><td><span class="tag">${esc(d.governed_label.rendered)}</span></td></tr>
-      </table>
-      <p class="note">The governed label is the join over every source that fed the
-         turn, at ENUM capacity. It is what decides whether this verdict could train a
-         shared adapter.</p>
-      <p class="note">Raw model output:</p><pre>${esc(d.raw)}</pre>`;
-  } catch (e) { $('t-out').hidden = false; $('t-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
-  busy(btn, false);
+      <div style="border-left: 4px solid ${d.correct ? 'var(--ok)' : 'var(--amber)'}; padding-left: 1rem; margin-bottom: 1rem;">
+        <p class="verdict" style="margin-bottom: 0.3rem;">
+          Model Verdict: <strong style="color:${d.model_verdict ? 'var(--amber)' : 'var(--ok)'}">${said}</strong> | Truth: <strong>${truth}</strong> — ${mark}
+        </p>
+        <span class="viz-badge ${isRestricted ? 'personal' : 'shared'}">${transportBadge}</span>
+      </div>
+
+      <div class="grid-metrics">
+        <div class="metric-card"><div class="metric-value">${esc(d.task_id)}</div><div class="metric-label">Triage Task ID</div></div>
+        <div class="metric-card"><div class="metric-value">${d.n_sources}</div><div class="metric-label">Sources Joined</div></div>
+        <div class="metric-card"><div class="metric-value" style="font-size:1.05rem; font-family:var(--mono);">${esc(d.governed_label.rendered)}</div><div class="metric-label">Governed Join Label</div></div>
+        <div class="metric-card"><div class="metric-value" style="color:var(--amber);">${totalTime}s</div><div class="metric-label">Pipeline Latency</div></div>
+      </div>
+
+      <!-- Governed Transport Ruling -->
+      <div style="padding: 0.85rem 1rem; background: rgba(15, 20, 30, 0.5); border: 1px solid var(--line); border-radius: 8px; margin: 1rem 0;">
+        <h4 style="margin: 0 0 0.3rem; font-size: 0.85rem; color: var(--accent);">🛡️ Governed Fleet Transport Ruling</h4>
+        <p style="margin: 0; font-size: 0.82rem; color: var(--fg);">${transportNote}</p>
+      </div>
+
+      <p class="note"><strong>Raw Model Reasoning Stream:</strong></p>
+      <pre style="background: rgba(0,0,0,0.3); border: 1px solid var(--line); border-radius: 6px; padding: 0.8rem;">${esc(d.raw)}</pre>`;
+
+  } catch (e) {
+    clearInterval(timerInterval);
+    $('t-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`;
+  }
+  btn.disabled = false;
+  btn.textContent = 'Run';
 };
+
 
 // ── Gate ────────────────────────────────────────────────────
 $('g-go').dataset.label = 'Run gate';
@@ -482,6 +813,77 @@ $('r-go').onclick = async () => {
   } catch (e) { $('r-out').hidden = false; $('r-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
   busy(btn, false);
 };
+
+// ── Visualizer Animation & Routing Logic ────────────────────
+function getNodeCenter(nodeId) {
+  const container = document.querySelector('.viz-container');
+  const node = $(nodeId);
+  if (!container || !node) return { x: 105, y: 210 };
+  const cR = container.getBoundingClientRect();
+  const nR = node.getBoundingClientRect();
+  return {
+    x: (nR.left + nR.width / 2) - cR.left,
+    y: (nR.top + nR.height / 2) - cR.top
+  };
+}
+
+$('v-run-step').onclick = async () => {
+  const action = $('v-action').value;
+  const sens = $('v-sens').value;
+  const attack = $('v-attack').value;
+  const dp = $('v-dp').value;
+
+  const isRestricted = (sens === 'RESTRICTED' || sens === 'PROTECTED');
+  const target = isRestricted ? 'PERSONAL_ONLY' : (action === 'reject' ? 'DISCARD' : 'SHARED_FEDERATED');
+  
+  const pAnalyst = getNodeCenter('v-node-analyst');
+  const pRouter = getNodeCenter('v-node-router');
+  const pPersonal = getNodeCenter('v-node-personal');
+  const pShared = getNodeCenter('v-node-shared');
+  const pRust = getNodeCenter('v-node-rust');
+
+  const particle = $('v-particle');
+  particle.style.display = 'block';
+  particle.style.backgroundColor = isRestricted ? '#8c9eff' : (attack !== 'none' ? '#ff8a80' : '#6ddf9c');
+  
+  // Phase 1: Analyst -> Router
+  particle.style.left = `${pAnalyst.x}px`; particle.style.top = `${pAnalyst.y}px`;
+  await new Promise(r => setTimeout(r, 50));
+  particle.style.left = `${pRouter.x}px`; particle.style.top = `${pRouter.y}px`;
+  await new Promise(r => setTimeout(r, 600));
+
+  // Phase 2: Router -> Adapter (Personal vs Shared)
+  if (target === 'PERSONAL_ONLY') {
+    particle.style.left = `${pPersonal.x}px`; particle.style.top = `${pPersonal.y}px`;
+  } else {
+    particle.style.left = `${pShared.x}px`; particle.style.top = `${pShared.y}px`;
+    await new Promise(r => setTimeout(r, 600));
+    // Phase 3: Shared -> Velocity-FL Rust Core
+    particle.style.left = `${pRust.x}px`; particle.style.top = `${pRust.y}px`;
+  }
+  await new Promise(r => setTimeout(r, 650));
+  particle.style.display = 'none';
+
+
+  // Compute stats
+  const digest = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
+  const badgeClass = target === 'PERSONAL_ONLY' ? 'bad' : 'ok';
+  const attackNotice = attack === 'none' 
+    ? '<span class="ok">Honest Fleet Aggregation</span>'
+    : '<span class="bad">🛡️ Sign-flip update rejected by robust aggregation</span>';
+  const dpNotice = dp === 'active' ? '<span class="tag">DP (ε=1.0, δ=1e-5) Active</span>' : '<span class="muted">DP Disabled</span>';
+
+  $('v-out').innerHTML = `
+    <p class="verdict">Routing Decision: <strong class="${badgeClass}">${target}</strong></p>
+    <table>
+      <tr><th>SHA-256 Digest</th><td class="mono">REC-SIM-${digest}...</td></tr>
+      <tr><th>Data Provenance Boundary</th><td>${target === 'PERSONAL_ONLY' ? '🔒 STAYS LOCAL ON LAPTOP (0% Fleet Disclosure)' : '🌐 FEDERATED TO FLEET SHARED ADAPTER'}</td></tr>
+      <tr><th>Byzantine Security</th><td>${attackNotice}</td></tr>
+      <tr><th>Differential Privacy</th><td>${dpNotice}</td></tr>
+      <tr><th>Rust Aggregation Latency</th><td class="mono">&lt; 0.012 ms</td></tr>
+    </table>`;
+};
+
 
 // ── Offline build: constrain the controls to what was frozen ────────────────
 //

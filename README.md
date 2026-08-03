@@ -90,7 +90,11 @@ decision cannot drift with a model version.
 
 That holds in practice, not only in intention: the gate produces **bit-identical**
 surface baselines on a WSL laptop and on an RHEL 9 cluster node with a different CPU
-count, kernel, and libc -- 0.6547, 0.6588, and 0.6675 on seeds 1, 7, and 101.
+count, kernel, and libc. The property is the claim; the values move whenever the
+generator does, and after the 2026-08-03 correction to per-event random streams they
+are 0.6378, 0.6545, and 0.6604 on seeds 1, 7, and 101. Those three were recomputed on
+the laptop only -- the cross-machine comparison was last run on the previous corpus and
+is owed a repeat, which is a check to redo rather than a result to doubt.
 
 ## Documentation
 

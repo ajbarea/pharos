@@ -45,3 +45,66 @@
 .md-typeset .admonition.warning {
   border-left-width: 0.3rem;
 }
+
+/* ── State-of-the-Art UX Uplift for Zensical Docs ── */
+.md-typeset .admonition {
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.md-typeset .admonition:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+}
+
+/* Custom Badges & Chips */
+.pharos-chip {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: var(--md-code-font);
+  letter-spacing: 0.03em;
+  margin: 0.1rem 0.2rem;
+}
+
+.pharos-chip-amber { background: rgba(240, 160, 32, 0.15); color: #f0a020; border: 1px solid #f0a020; }
+.pharos-chip-cyan { background: rgba(34, 200, 200, 0.15); color: #22c8c8; border: 1px solid #22c8c8; }
+.pharos-chip-magenta { background: rgba(212, 38, 127, 0.15); color: #d4267f; border: 1px solid #d4267f; }
+.pharos-chip-rust { background: rgba(255, 183, 77, 0.15); color: #ffb74d; border: 1px solid #ffb74d; }
+
+/* Grid Cards Container for Docs */
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.2rem;
+  margin: 1.5rem 0;
+}
+
+.docs-card {
+  background: var(--md-card-bg, rgba(20, 25, 35, 0.5));
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 12px;
+  padding: 1.4rem;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.docs-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--pharos-cyan);
+}
+
+.docs-card h3 {
+  margin-top: 0 !important;
+  font-size: 1.1rem;
+}
+
+/* Custom Mermaid styling */
+.mermaid {
+  text-align: center;
+  margin: 1.5rem 0;
+}
+

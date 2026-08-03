@@ -37,6 +37,7 @@ from pharos.analyst import (
 )
 from pharos.attribute import DEFAULT_ENDPOINT, generate_text
 from pharos.disclosure import admit
+from pharos.export import corpus_row
 from pharos.gate import run_gate
 from pharos.generate import GeneratorConfig, generate
 from pharos.labels import Capacity, Compartment, Label, Sensitivity, declassify, join
@@ -100,7 +101,7 @@ def create_app():
 
     @app.get("/api/corpus")
     def api_corpus(seed: int = 7, events: int = 40, limit: int = 12) -> dict[str, Any]:
-        """A small corpus, its label histogram, and a sample of reports."""
+        """A small corpus, its label histogram, export rows, and a sample of reports."""
         if events > MAX_EVENTS:
             raise HTTPException(400, f"events must be <= {MAX_EVENTS}")
         reports = generate(GeneratorConfig(seed=seed, n_events=events))
@@ -113,6 +114,7 @@ def create_app():
             "n_events": events,
             "n_reports": len(reports),
             "label_histogram": dict(sorted(histogram.items())),
+            "export_rows": [corpus_row(r) for r in reports],
             "reports": [
                 {
                     "report_id": r.report_id,

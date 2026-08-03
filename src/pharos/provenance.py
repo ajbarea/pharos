@@ -21,6 +21,7 @@ tarball with no `.git`, and provenance is metadata: failing to collect it must n
 take down the measurement it describes.
 """
 
+import os
 import platform
 import shutil
 import subprocess
@@ -138,6 +139,20 @@ def code_provenance() -> dict[str, Any]:
     return stamp
 
 
+def _sanitize_executable(path: str) -> str:
+    """Sanitize Python executable path to avoid leaking absolute personal home directory paths."""
+    if not path:
+        return path
+    if ".venv" in path:
+        idx = path.find(".venv")
+        return path[idx:]
+    home = os.path.expanduser("~")  # noqa: PTH111
+
+    if home and path.startswith(home):
+        return "~" + path[len(home) :]
+    return path
+
+
 def run_provenance(**extra: Any) -> dict[str, Any]:
     """Code provenance plus when and on what, for a measurement result.
 
@@ -149,6 +164,6 @@ def run_provenance(**extra: Any) -> dict[str, Any]:
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "python": platform.python_version(),
         "platform": platform.platform(),
-        "executable": sys.executable,
+        "executable": _sanitize_executable(sys.executable),
         **extra,
     }

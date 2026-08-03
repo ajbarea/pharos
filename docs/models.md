@@ -1,4 +1,6 @@
-# Choosing a model
+# Model Selection & Registry
+
+Inspect installed and verified models in the Pharos model registry:
 
 ```bash
 uv run python -m pharos.cli models
@@ -14,56 +16,57 @@ mistral-7b       mistral:7b-instruct                7B      4.1     yes        y
 qwen2.5-14b      qwen2.5:14b-instruct               14B     9.0     no         yes
 ```
 
-Any script or endpoint that takes `--model` accepts a registry key, a raw tag, or
-nothing at all:
+---
+
+## Model Selection Syntax
+
+Any script or endpoint accepting `--model` accepts a registry key, raw tag, or passthrough:
 
 ```bash
+# Using a registry key
 uv run python scripts/measure_triage_lift.py --model llama3.1-8b --tasks 40
-uv run python scripts/measure_triage_lift.py --model some-model:70b   # passthrough
+
+# Passthrough for unlisted / large models
+uv run python scripts/measure_triage_lift.py --model some-model:70b
 ```
 
-## What `verified` means
+---
 
-**`verified` means the model has answered a Pharos triage task and returned a
-parseable verdict.** `candidate` means nobody has run it. A test enforces the
-distinction and fails if the flag is set on a model that has not been swept.
+## Registry Verification Mechanics
 
-The flag exists because a "supported models" list cannot otherwise be told apart
-from an aspirational one. Findings 1 to 3 were measured on `qwen2.5:7b-instruct`
-alone, and the registry is what makes that visible rather than hidden.
+| Status Flag | Meaning | Impact |
+| :--- | :--- | :--- |
+| **`VERIFIED: yes`** | Model has executed Pharos triage tasks and returned parseable outputs | Enforced by test suite to prevent speculative claims |
+| **`VERIFIED: no`** | Model spec is registered as a candidate but has not been swept | Flagged if quoted as evidence of capability |
+| **`INSTALLED`** | Evaluated live against the local Ollama daemon on each CLI invocation | Reports `no` if daemon is stopped or model is remote |
 
-`INSTALLED` is read live from the Ollama daemon on every invocation, not asserted.
-A stopped daemon reports everything as absent rather than raising.
+!!! note "What `VERIFIED` Enforces"
+    The `VERIFIED` flag distinguishes models with empirical measurement history from aspirational model specs.
 
-## Unknown models still run
+!!! info "Unregistered & Passthrough Models"
+    `resolve` wraps unrecognized model names as ad-hoc specs (`family: unknown`, `verified: false`). The registry tracks history; it **never blocks execution**.
 
-`resolve` wraps an unrecognised name as an ad-hoc, unverified spec and passes it to
-the backend. The registry records what has been tried; it never gates what can run.
-A model Pharos has never heard of works, and carries `family: unknown` and
-`verified: false` into the provenance of whatever it produces.
+---
 
-## The entry that needs more than 8 GB
+## Off-Node & Cluster Models
 
-`qwen2.5-14b` is listed but not installed locally. At roughly 9 GB it exceeds an
-8 GB card, so it runs on a cluster A100. `INSTALLED` therefore reads `no` on a
-workstation while `VERIFIED` reads `yes`: the model has answered Pharos tasks, just
-not on this machine.
+!!! warning "VRAM Hardware Constraints"
+    `qwen2.5-14b` (~9 GB VRAM at Q4) exceeds 8 GB consumer GPUs and is executed on cluster nodes (e.g. NVIDIA A100). On a local workstation, `INSTALLED` reports `no` while `VERIFIED` reports `yes`.
 
-## Sweeping every installed model
+---
+
+## Multi-Model Benchmarking
+
+Run full model sweeps across installed models:
 
 ```bash
-scripts/sweep_models.sh 40        # 40 triage tasks per installed model
+# Run 40 triage tasks per installed model
+scripts/sweep_models.sh 40
+
+# Aggregate and compare results
 uv run python scripts/compare_models.py
 ```
 
-The sweep stops each model between runs. Ollama sizes GPU offload once at load
-time and keeps that split for the life of the loaded model, so loading a second
-model on top of a resident one can push most layers to CPU with no error and no
-warning. Measured cost of that split here: roughly eight times slower. The script
-checks the resident share per model rather than assuming it.
+!!! danger "GPU Offload & Thread Safety"
+    Ollama sizes GPU offload once, at load time, and keeps that split for the life of the loaded model, so loading a second model on top of a resident one can silently push most layers to CPU (up to **$8\times$ slowdown**) with no error and no warning. `sweep_models.sh` stops each model between runs and *reports* the resulting split per model rather than assuming it. It does not enforce a share: the 3B-8B models sit at 100%, and `qwen2.5-14b` at 64% on an 8 GB card, which is the number to read before trusting a latency.
 
-`compare_models.py` prints every score against the majority-class floor and the
-surface baseline, never against 0.5. Ground truth here is content-defined, so a
-probe reading nothing already scores well above chance, and a model that looks
-respectable against 0.5 may be doing nothing at all. See
-[Findings](findings.md) for what the sweep actually showed.

@@ -1,91 +1,66 @@
-# Releasing a corpus
+# Releasing a Corpus & Metadata
+
+Export a dataset release along with metadata and manifest verification:
 
 ```bash
 uv run python -m pharos.cli export --seed 7 --events 400 --out export/
 ```
 
-Writes three files:
+This exports three primary artifacts:
 
-| File | What it is |
-| --- | --- |
-| `corpus.jsonl` | The corpus itself. See [corpus schema](reference/corpus-schema.md) |
-| `manifest.json` | The record that certifies it: seed, config, gate verdict, label histogram |
-| `croissant.json` | Croissant metadata with the Responsible AI extension |
+| Output Artifact | Description | Schema / Reference |
+| :--- | :--- | :--- |
+| `corpus.jsonl` | The exported event corpus | [Corpus Schema](reference/corpus-schema.md) |
+| `manifest.json` | Certified record: seed, config, gate verdict, label distribution | `pharos.manifest` |
+| `croissant.json` | MLCommons Croissant metadata with Responsible AI extension | `pharos.croissant` |
 
-The command **refuses to write anything** when the corpus fails its own gate. A
-citable artifact whose own gate rejected it is worse than no artifact.
+!!! danger "Enforced Gate Verification"
+    The export CLI **refuses to write output** if the generated corpus fails its shortcut gate check. An un-gated or invalid dataset cannot be released.
 
-## Why a generator needs a hash
+---
 
-Pharos is a generator rather than a fixed corpus, so a released artifact is one
-instantiation: `(version, commit, seed, config)` run to completion. That makes the
-digest load-bearing in a way it is not for a hand-collected dataset. A reader who
-reruns the generator at the recorded seed should get a byte-identical file, and
-the `sha256` recorded alongside is what lets them **check** that rather than
-trust it.
+## Reproducibility & Cryptographic Hashing
 
-The export test asserts the property directly: the digest in `croissant.json`
-equals the hash of the `corpus.jsonl` written next to it.
+Because Pharos is a procedural dataset generator, every release is uniquely specified by `(version, commit, seed, config)`. 
 
-## Croissant for a generated dataset
+!!! info "SHA-256 Digest Certification"
+    The cryptographic `sha256` hash in `croissant.json` MUST equal the exact hash of `corpus.jsonl`. This allows downstream consumers to verify bit-identical reproducibility.
 
-[Croissant](https://docs.mlcommons.org/croissant/docs/croissant-spec.html) is the
-MLCommons JSON-LD format for describing an ML-ready dataset. As of the 2026
-NeurIPS Evaluations and Datasets track, a dataset submission must carry one, with
-[Responsible AI](https://docs.mlcommons.org/croissant/docs/croissant-rai-spec.html)
-metadata inside it.
+---
 
-The record is generated from the manifest rather than maintained by hand. A
-separate metadata file is a second source of truth, and it drifts from the
-generator on the first change.
+## MLCommons Croissant & Responsible AI Metadata
 
-A procedurally generated corpus stresses the format in one specific way. Croissant
-assumes a `contentUrl` pointing at a file that already exists, and a Pharos corpus
-does not exist until someone runs the generator. So the record identifies the
-artifact by what reproduces it, and carries `cr:generatorConfig` and
-`cr:codeProvenance` alongside the digest.
+Pharos automatically emits [Croissant JSON-LD](https://docs.mlcommons.org/croissant/docs/croissant-spec.html) metadata conforming to NeurIPS dataset requirements, enriched with the [Responsible AI (RAI)](https://docs.mlcommons.org/croissant/docs/croissant-rai-spec.html) extension.
 
-## Validate, do not read
+### Responsible AI Block Fields
+
+* **`rai:dataBiases`**: Documents surface baselines and permutation null distributions.
+* **`rai:dataLimitations`**: Declares that data is synthetically generated for privacy/governance research and must not be used to train operational classifiers.
+* **`rai:personalSensitiveInformation`**: Confirms security labels are synthetic lattice constructions and do not model real organizations or clearance systems.
+* **`rai:dataCollectionMissingData`**: Documents event coverage guarantees and historical dataset corrections.
+
+---
+
+## Automated Metadata Validation
+
+Validate Croissant JSON-LD metadata against official MLCommons schemas:
 
 ```bash
+# Install validation dependencies
 uv sync --group croissant
+
+# Run validation suite
 uv run pytest tests/test_croissant_validation.py
 ```
 
-Do not hand-check JSON-LD against the prose specification. The first version of
-`pharos.croissant` was written from the spec page and read as correct -- every
-property present, RAI block complete -- but its hand-assembled `@context` omitted
-`column`, so every field's `extract` resolved to nothing and the record described a
-file with no readable columns. `mlcroissant` caught it immediately; reading could
-not. The context is now copied verbatim from the MLCommons reference datasets, and
-the validator runs in the suite.
+!!! tip "Preventing Schema Drift"
+    Metadata generation is driven directly by `pharos.croissant` and programmatically validated with `mlcroissant` in CI, preventing hand-authored spec drift.
 
-## The Responsible AI block
+---
 
-Worth reading before citing a number from this corpus. Four entries carry real
-content:
+## Provenance Block Structure
 
-**`rai:dataBiases`** reports the measured surface baseline with its permutation
-null, because that bias is a known property of the corpus and every downstream
-score must be reported against it rather than against 0.5.
-
-**`rai:dataLimitations`** states the honest ceiling: the evaluation this corpus
-supports is simulated end to end, so behavioural claims carry that cap, and the
-corpus must not be used to train or evaluate a classifier intended for deployment
-against real classified material.
-
-**`rai:personalSensitiveInformation`** records that the classification levels and
-compartments are invented for this testbed and model no real classification
-system, programme, or organisation.
-
-**`rai:dataCollectionMissingData`** records that coverage is guaranteed by
-construction and asserted in the suite, and that an earlier version did not
-guarantee it, which invalidated a measurement. It belongs in the metadata because a
-reader of the data needs it, not only a reader of the changelog.
-
-## Provenance on every artifact
-
-Every measurement result carries a `provenance` block:
+Every exported measurement and manifest records audit provenance metadata:
 
 ```json
 {
@@ -100,10 +75,6 @@ Every measurement result carries a `provenance` block:
 }
 ```
 
-`git_dirty` is reported rather than forbidden. A dirty measurement is often the
-honest state of an experiment in progress, and a reader who can see the flag is
-better served than one handed a commit that does not describe the code that ran.
+!!! note "Deterministic Manifests vs. Measurement Stamps"
+    Measurement result artifacts log timestamps and `git_dirty` flags. Dataset `manifest.json` files **omit timestamps** to ensure two manifests built from identical seeds yield identical hashes.
 
-The corpus manifest carries `code_provenance` **without** the clock, so two
-manifests built from one seed still compare equal. A timestamp there would break
-the reproducibility the manifest exists to certify.

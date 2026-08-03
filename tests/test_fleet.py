@@ -203,7 +203,20 @@ def test_pooling_costs_no_volume_and_hides_everyone(tasks, fleet):
 
     linkages = link(pooled, tasks, fleet, policy=DROP_COMPARTMENTS)
     assert not any(x.exact for x in linkages)
-    assert all(x.anonymity_set >= len(fleet) for x in linkages if not x.silent)
+
+    # Hidden among everyone the adversary can see, which is the crowd sharing the
+    # pseudonym rather than the nominal fleet. Those differ whenever some analysts
+    # are silent, and how many are silent is a property of clearance coverage over
+    # this corpus: at 60 events half of a 40-analyst fleet never draws a task it is
+    # cleared for, at 200 events all of them do. Asserting `>= len(fleet)` passed for
+    # one corpus and failed for another without either being wrong, which is a test
+    # over-fit to a draw rather than a property.
+    crowd = len({c.analyst_id for c in pooled})
+    assert crowd > 1, "a crowd of one hides nobody; the fixture stopped exercising this"
+    live = [x for x in linkages if not x.silent]
+    assert live, "every analyst went silent; pooling was not exercised"
+    assert all(x.anonymity_set >= crowd for x in live)
+    assert len(live) == crowd
 
 
 def test_mitigation_names_are_stable():

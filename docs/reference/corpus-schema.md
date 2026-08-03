@@ -1,8 +1,6 @@
-# Corpus schema
+# Corpus Schema Reference
 
-One JSON object per line, keys sorted, UTF-8. Sorted keys are not cosmetic: an
-unordered dict would hash differently between interpreter versions and quietly
-break the reproducibility property the export exists to provide.
+Pharos exports dataset releases as deterministic JSON Lines files (`corpus.jsonl`). Each line is a single UTF-8 JSON object with sorted keys to guarantee bit-identical hashing across Python releases.
 
 ```json
 {
@@ -15,63 +13,44 @@ break the reproducibility property the export exists to provide.
   "report_id": "R-00317",
   "report_type": "SENSOR_TRACK",
   "sensitivity": "PROTECTED",
-  "text": "...",
-  "vessel_name": "...",
-  "voice": "..."
+  "text": "vessel contact alpha-7 localized near sector grid 12...",
+  "vessel_name": "M/V Poseidon",
+  "voice": "WATCH_OFFICER_3"
 }
 ```
 
-## Fields
+---
 
-| Field | Type | Meaning |
-| --- | --- | --- |
-| `report_id` | string | Stable identifier for one rendered report. The record set key |
-| `event_id` | string | The world event described. Many reports share one event |
-| `report_type` | string | The channel that carried it, which is what confers its label |
-| `center_id` | string | The watch centre that filed it. The gate holds whole centres out |
-| `voice` | string | The officer voice that rendered it, one of a fixed set |
-| `vessel_name` | string | The fictional vessel concerned |
-| `text` | string | The report body. The only field a specialist is meant to read |
-| `sensitivity` | string | `OPEN`, `INTERNAL`, `PROTECTED`, or `RESTRICTED` |
-| `compartments` | array of string | Need-to-know compartments, a subset lattice |
-| `capacity` | string | `ENUM`, `SCALAR`, `SPAN`, or `FREETEXT` |
-| `is_plant` | boolean | Whether the report belongs to a significant event |
-| `fact_ids` | array of string | The fact identifiers this rendering asserts |
+## Field Specifications
 
-## Why the label is split across three columns
+| JSON Field Key | Type | Description / Constraints |
+| :--- | :--- | :--- |
+| `report_id` | `string` | Unique, deterministic report key |
+| `event_id` | `string` | Underlying world event identifier |
+| `report_type` | `string` | Intelligence reporting channel |
+| `center_id` | `string` | Watch center origin (used for cross-validation splits) |
+| `voice` | `string` | Rendering officer voice style |
+| `vessel_name` | `string` | Target maritime vessel name |
+| `text` | `string` | Report prose text (**only field passed to LLM prompts**) |
+| `sensitivity` | `string` | Sensitivity level (`OPEN`, `INTERNAL`, `PROTECTED`, `RESTRICTED`) |
+| `compartments` | `array[string]` | Compartments (`SENSOR`, `LIAISON`, `LEGAL`, `PARTNER`) |
+| `capacity` | `string` | Output capacity format (`ENUM`, `SCALAR`, `SPAN`, `FREETEXT`) |
+| `is_plant` | `boolean` | Ground-truth flag indicating significant event membership |
+| `fact_ids` | `array[string]` | Asserted fact identifiers contained in report |
 
-The label is unpacked into `sensitivity`, `compartments`, and `capacity` rather
-than stringified as `PROTECTED[SENSOR]`. A consumer filtering on level or
-compartment should not have to parse a rendering back apart, and a parser is a
-place for a bug that silently changes what an experiment measured.
+!!! danger "Prompt Leakage Prevention"
+    Model prompts MUST be constructed **strictly from `text`**. Passing ground-truth metadata like `fact_ids`, `is_plant`, or label attributes into an evaluation prompt invalidates the measurement.
 
-## Reading it
+---
+
+## Python Reading Example
 
 ```python
 import json
 from pathlib import Path
 
-rows = [json.loads(line) for line in Path("export/corpus.jsonl").read_text().splitlines()]
-restricted = [r for r in rows if r["sensitivity"] == "RESTRICTED"]
+# Load and filter exported corpus
+records = [json.loads(line) for line in Path("export/corpus.jsonl").read_text().splitlines()]
+restricted_reports = [r for r in records if r["sensitivity"] == "RESTRICTED"]
 ```
 
-The column order in `pharos.export.CORPUS_FIELDS` is fixed, and the Croissant
-record set is generated from that same tuple, so the file and its metadata cannot
-disagree about which columns exist. A test asserts that they describe the same set.
-
-## What `is_plant` means
-
-`is_plant` marks a report belonging to a **significant** event, where significance
-is defined by the event carrying a fixed conjunction of facts. It is not an
-annotation and there was no annotator: it is definitional, assigned at generation
-time.
-
-That definitional quality is why the corpus has a surface baseline above chance.
-See [the gate](gate.md).
-
-## Caveat on `text`
-
-`text` is the only field a specialist should be shown. Passing `fact_ids`,
-`is_plant`, or the label columns into a prompt leaks the answer, and the resulting
-number measures nothing. The task builders in `pharos.tasks` construct prompts
-from `text` alone.

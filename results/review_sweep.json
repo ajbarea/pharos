@@ -3,10 +3,10 @@
     "pharos_version": "0.1.0",
     "git_commit": "b4ec8f77e65d",
     "git_dirty": true,
-    "generated_at": "2026-08-02T18:59:38+00:00",
+    "generated_at": "2026-08-03T19:38:27+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
+    "executable": ".venv/bin/python3",
     "seed": 7
   },
   "seed": 7,
@@ -18,7 +18,7 @@
     101,
     202
   ],
-  "majority_floor": 0.775,
+  "majority_floor": 0.65,
   "validity": {
     "n": 40,
     "quotable": true,
@@ -28,209 +28,209 @@
     {
       "threshold": 1,
       "slip_rate": 0.0,
-      "target_accuracy_mean": 0.3,
+      "target_accuracy_mean": 0.475,
       "target_accuracy_sd": 0.0,
       "per_seed": [
-        0.3,
-        0.3,
-        0.3,
-        0.3,
-        0.3
-      ]
-    },
-    {
-      "threshold": 1,
-      "slip_rate": 0.05,
-      "target_accuracy_mean": 0.355,
-      "target_accuracy_sd": 0.057,
-      "per_seed": [
-        0.325,
-        0.45,
-        0.35,
-        0.35,
-        0.3
-      ]
-    },
-    {
-      "threshold": 1,
-      "slip_rate": 0.1,
-      "target_accuracy_mean": 0.38,
-      "target_accuracy_sd": 0.0371,
-      "per_seed": [
-        0.325,
-        0.375,
-        0.4,
-        0.425,
-        0.375
-      ]
-    },
-    {
-      "threshold": 1,
-      "slip_rate": 0.15,
-      "target_accuracy_mean": 0.385,
-      "target_accuracy_sd": 0.0518,
-      "per_seed": [
-        0.375,
-        0.325,
-        0.35,
-        0.425,
-        0.45
-      ]
-    },
-    {
-      "threshold": 1,
-      "slip_rate": 0.2,
-      "target_accuracy_mean": 0.37,
-      "target_accuracy_sd": 0.0542,
-      "per_seed": [
-        0.4,
-        0.45,
-        0.325,
-        0.325,
-        0.35
-      ]
-    },
-    {
-      "threshold": 1,
-      "slip_rate": 0.3,
-      "target_accuracy_mean": 0.44,
-      "target_accuracy_sd": 0.1257,
-      "per_seed": [
-        0.3,
-        0.6,
-        0.325,
-        0.5,
+        0.475,
+        0.475,
+        0.475,
+        0.475,
         0.475
       ]
     },
     {
       "threshold": 1,
-      "slip_rate": 0.4,
-      "target_accuracy_mean": 0.495,
-      "target_accuracy_sd": 0.0925,
+      "slip_rate": 0.05,
+      "target_accuracy_mean": 0.47,
+      "target_accuracy_sd": 0.0274,
       "per_seed": [
-        0.525,
-        0.6,
-        0.35,
+        0.5,
         0.475,
+        0.475,
+        0.475,
+        0.425
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.1,
+      "target_accuracy_mean": 0.465,
+      "target_accuracy_sd": 0.0602,
+      "per_seed": [
+        0.4,
+        0.55,
+        0.425,
+        0.45,
+        0.5
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.15,
+      "target_accuracy_mean": 0.49,
+      "target_accuracy_sd": 0.0285,
+      "per_seed": [
+        0.45,
+        0.5,
+        0.475,
+        0.5,
         0.525
       ]
     },
     {
       "threshold": 1,
-      "slip_rate": 0.5,
-      "target_accuracy_mean": 0.5,
-      "target_accuracy_sd": 0.075,
+      "slip_rate": 0.2,
+      "target_accuracy_mean": 0.455,
+      "target_accuracy_sd": 0.0542,
       "per_seed": [
         0.525,
+        0.475,
+        0.45,
+        0.45,
+        0.375
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.3,
+      "target_accuracy_mean": 0.445,
+      "target_accuracy_sd": 0.0597,
+      "per_seed": [
         0.375,
+        0.475,
+        0.4,
         0.525,
+        0.45
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.4,
+      "target_accuracy_mean": 0.48,
+      "target_accuracy_sd": 0.1022,
+      "per_seed": [
+        0.45,
+        0.625,
+        0.525,
+        0.45,
+        0.35
+      ]
+    },
+    {
+      "threshold": 1,
+      "slip_rate": 0.5,
+      "target_accuracy_mean": 0.465,
+      "target_accuracy_sd": 0.0602,
+      "per_seed": [
+        0.4,
         0.5,
-        0.575
+        0.45,
+        0.425,
+        0.55
       ]
     },
     {
       "threshold": 2,
       "slip_rate": 0.0,
-      "target_accuracy_mean": 0.5,
+      "target_accuracy_mean": 0.75,
       "target_accuracy_sd": 0.0,
       "per_seed": [
-        0.5,
-        0.5,
-        0.5,
-        0.5,
-        0.5
+        0.75,
+        0.75,
+        0.75,
+        0.75,
+        0.75
       ]
     },
     {
       "threshold": 2,
       "slip_rate": 0.05,
-      "target_accuracy_mean": 0.5,
-      "target_accuracy_sd": 0.0177,
+      "target_accuracy_mean": 0.71,
+      "target_accuracy_sd": 0.0576,
       "per_seed": [
-        0.5,
-        0.525,
-        0.475,
-        0.5,
-        0.5
+        0.75,
+        0.625,
+        0.675,
+        0.75,
+        0.75
       ]
     },
     {
       "threshold": 2,
       "slip_rate": 0.1,
-      "target_accuracy_mean": 0.485,
-      "target_accuracy_sd": 0.0335,
+      "target_accuracy_mean": 0.685,
+      "target_accuracy_sd": 0.0487,
       "per_seed": [
-        0.45,
-        0.5,
-        0.45,
-        0.525,
-        0.5
+        0.7,
+        0.7,
+        0.7,
+        0.725,
+        0.6
       ]
     },
     {
       "threshold": 2,
       "slip_rate": 0.15,
-      "target_accuracy_mean": 0.535,
-      "target_accuracy_sd": 0.072,
+      "target_accuracy_mean": 0.685,
+      "target_accuracy_sd": 0.0802,
       "per_seed": [
-        0.6,
-        0.5,
-        0.475,
-        0.475,
-        0.625
+        0.75,
+        0.65,
+        0.575,
+        0.675,
+        0.775
       ]
     },
     {
       "threshold": 2,
       "slip_rate": 0.2,
-      "target_accuracy_mean": 0.455,
-      "target_accuracy_sd": 0.0481,
+      "target_accuracy_mean": 0.635,
+      "target_accuracy_sd": 0.0379,
       "per_seed": [
-        0.475,
-        0.45,
-        0.475,
-        0.375,
-        0.5
+        0.625,
+        0.7,
+        0.625,
+        0.625,
+        0.6
       ]
     },
     {
       "threshold": 2,
       "slip_rate": 0.3,
-      "target_accuracy_mean": 0.51,
-      "target_accuracy_sd": 0.0285,
+      "target_accuracy_mean": 0.64,
+      "target_accuracy_sd": 0.0379,
       "per_seed": [
-        0.525,
-        0.5,
-        0.5,
-        0.475,
-        0.55
+        0.625,
+        0.65,
+        0.6,
+        0.625,
+        0.7
       ]
     },
     {
       "threshold": 2,
       "slip_rate": 0.4,
-      "target_accuracy_mean": 0.53,
-      "target_accuracy_sd": 0.0837,
+      "target_accuracy_mean": 0.6,
+      "target_accuracy_sd": 0.0707,
       "per_seed": [
-        0.55,
-        0.65,
-        0.45,
-        0.45,
-        0.55
+        0.6,
+        0.5,
+        0.7,
+        0.6,
+        0.6
       ]
     },
     {
       "threshold": 2,
       "slip_rate": 0.5,
-      "target_accuracy_mean": 0.44,
-      "target_accuracy_sd": 0.1664,
+      "target_accuracy_mean": 0.49,
+      "target_accuracy_sd": 0.072,
       "per_seed": [
         0.6,
         0.4,
-        0.55,
+        0.5,
         0.475,
-        0.175
+        0.475
       ]
     },
     {
@@ -340,6 +340,6 @@
   ],
   "equivalent_slip": {
     "1": null,
-    "2": null
+    "2": 0.3
   }
 }

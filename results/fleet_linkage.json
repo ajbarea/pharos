@@ -8,7 +8,7 @@
       "resamples": 2000
     },
     "mean_anonymity_set": 9.98,
-    "contributions": 6625
+    "contributions": 6606
   },
   "keep": {
     "recovery": {
@@ -19,7 +19,7 @@
       "resamples": 2000
     },
     "mean_anonymity_set": 16.0,
-    "contributions": 600
+    "contributions": 400
   },
   "by_clearance_level": [
     {
@@ -75,84 +75,84 @@
     "none": {
       "recovery": 0.205,
       "mean_anonymity_set": 9.98,
-      "contributions": 6625,
+      "contributions": 6606,
       "retained_volume": 1.0,
       "silenced_analysts": 0
     },
     "k_anonymity_k10": {
       "recovery": 0.205,
       "mean_anonymity_set": 9.98,
-      "contributions": 6566,
-      "retained_volume": 0.9911,
+      "contributions": 6518,
+      "retained_volume": 0.9867,
       "silenced_analysts": 0
     },
     "k_anonymity_k25": {
       "recovery": 0.11,
       "mean_anonymity_set": 10.27,
-      "contributions": 5395,
-      "retained_volume": 0.8143,
+      "contributions": 5487,
+      "retained_volume": 0.8306,
       "silenced_analysts": 0
     },
     "k_anonymity_k50": {
       "recovery": 0.0,
       "mean_anonymity_set": 13.32,
-      "contributions": 1538,
-      "retained_volume": 0.2322,
+      "contributions": 1338,
+      "retained_volume": 0.2025,
       "silenced_analysts": 0
     },
     "k_anonymity_k100": {
       "recovery": 0.0,
       "mean_anonymity_set": 16.0,
-      "contributions": 600,
-      "retained_volume": 0.0906,
+      "contributions": 400,
+      "retained_volume": 0.0606,
       "silenced_analysts": 0
     },
     "rarity_suppression_keep0.75": {
       "recovery": 0.11,
       "mean_anonymity_set": 10.27,
-      "contributions": 6111,
-      "retained_volume": 0.9224,
+      "contributions": 6076,
+      "retained_volume": 0.9198,
       "silenced_analysts": 0
     },
     "rarity_suppression_keep0.5": {
       "recovery": 0.0,
       "mean_anonymity_set": 11.56,
-      "contributions": 5053,
-      "retained_volume": 0.7627,
+      "contributions": 4923,
+      "retained_volume": 0.7452,
       "silenced_analysts": 0
     },
     "rarity_suppression_keep0.25": {
       "recovery": 0.0,
       "mean_anonymity_set": 12.46,
-      "contributions": 2957,
-      "retained_volume": 0.4463,
+      "contributions": 2800,
+      "retained_volume": 0.4239,
       "silenced_analysts": 0
     },
     "subsample_p0.5": {
-      "recovery": 0.18,
-      "mean_anonymity_set": 9.71,
-      "contributions": 3382,
-      "retained_volume": 0.5105,
-      "silenced_analysts": 12
+      "recovery": 0.17,
+      "mean_anonymity_set": 9.28,
+      "contributions": 3375,
+      "retained_volume": 0.5109,
+      "silenced_analysts": 23
     },
     "subsample_p0.2": {
-      "recovery": 0.08,
-      "mean_anonymity_set": 8.79,
-      "contributions": 1279,
-      "retained_volume": 0.1931,
-      "silenced_analysts": 58
+      "recovery": 0.1,
+      "mean_anonymity_set": 8.4,
+      "contributions": 1276,
+      "retained_volume": 0.1932,
+      "silenced_analysts": 64
     },
     "subsample_p0.05": {
-      "recovery": 0.02,
-      "mean_anonymity_set": 8.02,
-      "contributions": 314,
+      "recovery": 0.04,
+      "mean_anonymity_set": 6.37,
+      "contributions": 313,
       "retained_volume": 0.0474,
-      "silenced_analysts": 110
+      "silenced_analysts": 116
     },
     "pooled": {
       "recovery": 0.0,
       "mean_anonymity_set": 200.0,
-      "contributions": 6625,
+      "contributions": 6606,
       "retained_volume": 1.0,
       "silenced_analysts": 0
     }
@@ -179,12 +179,11 @@
     "grid": [
       {
         "events": 20,
-        "distinct_structures": 4,
+        "distinct_structures": 5,
         "invariant": false,
         "recoveries": [
-          0.0,
           0.095,
-          0.1
+          0.125
         ]
       },
       {
@@ -194,7 +193,6 @@
         "recoveries": [
           0.095,
           0.125,
-          0.18,
           0.205
         ]
       },
@@ -203,8 +201,6 @@
         "distinct_structures": 2,
         "invariant": false,
         "recoveries": [
-          0.15,
-          0.18,
           0.205
         ]
       },
@@ -241,10 +237,10 @@
     "pharos_version": "0.1.0",
     "git_commit": "b4ec8f77e65d",
     "git_dirty": true,
-    "generated_at": "2026-08-02T18:59:03+00:00",
+    "generated_at": "2026-08-03T19:38:34+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
+    "executable": ".venv/bin/python3",
     "seed": 7
   },
   "fleet_seed": 11,

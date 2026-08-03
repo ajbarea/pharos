@@ -536,20 +536,30 @@ Verified 2026-08-02 against the NeurIPS proceedings page.
   CC-Rasch model, `p_{ir,k} = sigmoid(alpha_{r,k} - beta_{i,k})`, conditions both terms
   on the class and is therefore the strongest available answer to "a better estimator
   would separate these". Implemented in `pharos.inference.cc_rasch` from the model
-  definition and run on the same fleets: it agrees with Dawid-Skene and GLAD to three
-  decimals at every composition, 0.717 included. Its class-conditional diagnostic
-  separates wrong from correct reviewers by +3.76 logits below the majority -- scoring
-  them below chance on exactly the class they mishandle -- and by +0.003 at it, where
-  the routine-class parameters never move from initialisation at all.
+  definition and run on the same fleets.
 
-  Their identifiability machinery is not optional either, and getting it wrong cost two
-  false starts. The centring constraints (*"we impose for any k: sum_i h_{i,k} =
+  **The result is currently unresolved, and that is the honest state.** On the corrected
+  corpus (2026-08-03) CC-Rasch does not track Dawid-Skene and GLAD. It lands on one of
+  two answers: the true labels exactly, or the wrong-standard majority exactly, with
+  nothing in between. Sweeping `--events` from 200 to 900 gives 1.000 at 200, 800 and
+  900 and agreement with Dawid-Skene at 300 through 700, one of which did not converge.
+  Dawid-Skene and GLAD sit at 0.63-0.67 throughout and GLAD's ability inverts at every
+  size, so **finding 17's claim against those two estimators stands**; the claim that a
+  class-conditional model fails identically does not, and neither does its opposite.
+
+  Their identifiability machinery is not optional, and it is evidently not sufficient
+  here either. The centring constraints (*"we impose for any k: sum_i h_{i,k} =
   sum_r g_{r,k} = 0"*) and Gaussian priors on the deviations are what stop EM wandering
   between mirror-image solutions; without them an early run scored 1.000 on one
-  composition and 0.717 on another with near-identical parameters, which is label
-  switching rather than a result. Then the centring itself was wrong: it shifted ability
-  and difficulty in *opposite* directions, when the model depends on their difference
-  and the gauge transformation must move both the same way.
+  composition and 0.717 on another with near-identical parameters. With them, the sweep
+  above shows the same bimodality across corpus draws rather than across compositions.
+  Before that, the centring itself was wrong: it shifted ability and difficulty in
+  *opposite* directions, when the model depends on their difference and the gauge
+  transformation must move both the same way.
+
+  **Open:** either the remaining translation invariance is found and fixed, or the
+  estimator is reported as unidentified on this data. No CC-Rasch number from this
+  repository should be quoted until one of those happens.
 
   **Check that EM's observed-data log-likelihood rises monotonically.** It is three
   lines, it is the definitive test that an EM implementation is doing EM, and it caught

@@ -1,19 +1,43 @@
-# The label lattice
+# The Label Lattice
+
+In Pharos, security and disclosure labels follow a three-element product lattice:
 
 ```text
 label = (sensitivity, compartments, capacity)
 
-sensitivity  : OPEN < INTERNAL < PROTECTED < RESTRICTED    total order, join = max
-compartments : subset of {SENSOR, LIAISON, LEGAL, PARTNER} subset lattice, join = union
-capacity     : ENUM | SCALAR | SPAN | FREETEXT             the form of a derived output
+sensitivity  : OPEN < INTERNAL < PROTECTED < RESTRICTED    (Total order, join = max)
+compartments : subset of {SENSOR, LIAISON, LEGAL, PARTNER} (Subset lattice, join = union)
+capacity     : ENUM | SCALAR | SPAN | FREETEXT             (Derived output format)
 ```
 
-Sensitivity is a ladder. Compartments are not. Two officers at `RESTRICTED` with
-incomparable compartment sets dominate in neither direction, which is what makes
-this a **lattice** test rather than a ladder test, and it is the property none of
-the public corpora surveyed in `RESEARCH.md` supplies.
+## Security Lattice Partial Order Diagram
 
-## Dominance
+```mermaid
+graph TD
+    subgraph Sensitivity Total Order
+        RESTRICTED["🔴 RESTRICTED"] --> PROTECTED["🟡 PROTECTED"]
+        PROTECTED --> INTERNAL["🔵 INTERNAL"]
+        INTERNAL --> OPEN["🟢 OPEN"]
+    end
+
+    subgraph Need-to-Know Compartment Subset Lattice
+        ALL["[SENSOR, LIAISON, LEGAL, PARTNER]"]
+        ALL --> C1["[SENSOR, LIAISON]"]
+        ALL --> C2["[LEGAL, PARTNER]"]
+        C1 --> S1["[SENSOR]"]
+        C2 --> S2["[PARTNER]"]
+        S1 --> EMPTY["Ø (No Compartments)"]
+        S2 --> EMPTY
+    end
+```
+
+!!! note "Lattice vs. Ladder Security Models"
+    Sensitivity operates as a linear ladder. **Compartments do not**. Two holders at `RESTRICTED` with disjoint compartment sets dominate each other in neither direction. This incomparability is what defines a true **security lattice**.
+
+---
+
+
+## Dominance Algebra
 
 ```python
 from pharos.labels import Capacity, Compartment, Label, Sensitivity
@@ -21,78 +45,62 @@ from pharos.labels import Capacity, Compartment, Label, Sensitivity
 holder = Label(Sensitivity.RESTRICTED, frozenset({Compartment.SENSOR}), Capacity.FREETEXT)
 item = Label(Sensitivity.INTERNAL, frozenset({Compartment.PARTNER}), Capacity.FREETEXT)
 
-holder.dominates(item)  # False: outranks it, but lacks PARTNER
+holder.dominates(item)  # Returns False: holder outranks level, but lacks PARTNER compartment
 ```
 
-`dominates` requires **both** a level at least as high and a compartment set at
-least as large. Outranking something is not sufficient to read it.
+!!! info "Dominance Condition"
+    `holder.dominates(item)` evaluates to `True` if and only if **both**:
+    1. `holder.sensitivity >= item.sensitivity`
+    2. `holder.compartments >= item.compartments` (subset containment)
 
-## Join
+---
+
+## Lattice Join Operations
 
 ```python
 from pharos.labels import join
 
+# Returns the join over source labels with specified output capacity
 join(source_labels, capacity=Capacity.ENUM)
 ```
 
-The join takes the maximum sensitivity and the union of compartments, which is
-the conservative thing to do and the only safe thing to do.
+* **Sensitivity Join**: Evaluated as the maximum level across all source labels ($\max$).
+* **Compartment Join**: Evaluated as the union of all source compartment sets ($\bigcup$).
+* **Capacity**: Explicit output format specified per derived task (does not scale upward, preventing label creep).
 
-`capacity` is a **required keyword** rather than something joined from the
-inputs, and that asymmetry is the answer to label creep. An entry's label is the
-join over every object that fed the turn. If capacity were joined too, every
-derived entry would climb to the top of the lattice, nothing would be releasable,
-and federation would degrade to local-only learning. Capacity is a property of
-the *form of the output*: an enum verdict is an enum verdict however sensitive
-its inputs were.
+---
 
-## Declassification
+## Declassification Policies
 
 ```python
 from pharos.labels import DeclassificationPolicy, declassify, shared_eligible
 
-policy = DeclassificationPolicy()  # the fail-closed default
+policy = DeclassificationPolicy()  # Fail-closed default policy
 declassify(label, policy)
 shared_eligible(label, release_ceiling, policy)
 ```
 
-`DeclassificationPolicy` has three fields:
+| Policy Field | Default Value | Purpose & Function |
+| :--- | :--- | :--- |
+| `declassifiable` | `{ENUM, SCALAR}` | Output capacities eligible for automated release |
+| `release_floor` | `OPEN` | Target sensitivity level upon declassification |
+| `drop_compartments` | `False` | Determines whether declassification sheds source compartments |
 
-| Field | Default | Meaning |
-| --- | --- | --- |
-| `declassifiable` | `{ENUM, SCALAR}` | Which capacities are eligible for release at all |
-| `release_floor` | `OPEN` | The level an eligible output drops to |
-| `drop_compartments` | `False` | Whether release also sheds compartments |
+!!! danger "Fail-Closed Defaults"
+    1. **Unlisted Capacities**: Any output capacity not named in `declassifiable` is withheld without declassification.
+    2. **Compartment Survival**: Compartments survive declassification unless `drop_compartments=True` is explicitly configured.
 
-It fails closed twice over.
+---
 
-**A capacity the policy does not name is never released.** An unknown or
-unlisted capacity returns the label unchanged rather than falling through to a
-permissive branch.
+## The Load-Bearing Impact of `drop_compartments`
 
-**Compartments survive by default.** Shedding a compartment discloses that the
-compartment had something to say, which is a disclosure in its own right. So
-dropping one is a deliberate policy act, never an inference from low capacity.
+Across 40 triage turns with an average of 1.98 compartments per report:
 
-`shared_eligible` is exactly dominance after declassification: an entry may train
-a shared adapter when the aggregator's release ceiling dominates what the entry
-declassifies to.
+| Policy Configuration | FREETEXT | SPAN | SCALAR | ENUM |
+| :--- | :---: | :---: | :---: | :---: |
+| **Keep Compartments** (Fail-Closed Default) | 0–50% | 0–50% | 0–50% | 0–50% |
+| **Drop Compartments** (Low-Capacity Release) | 0–50% | 0–50% | **100%** | **100%** |
 
-## Why `drop_compartments` is the load-bearing setting
+!!! summary "Federation Consequence"
+    Keeping compartments limits federation eligibility to **0–50%**. Dropping compartments for low-capacity verdicts permits **100% federation** of structured outputs while keeping prose restricted.
 
-That default is not a detail, and measurement says so. Across three aggregator
-ceilings and four capacities at 40 turns, turns average 2.15 compartments of 4,
-and most already sit high on the level ladder, because a summary over eight
-sources joins nearly everything.
-
-| Declassification policy | FREETEXT | SPAN | SCALAR | ENUM |
-| --- | --- | --- | --- | --- |
-| keep compartments (fail-closed default) | 0-38% | 0-38% | 0-38% | 0-38% |
-| drop compartments for low capacity | 0-38% | 0-38% | **100%** | **100%** |
-
-Answer "no, a low-capacity verdict may not shed its sources' compartments" and
-the fleet is a set of unconnected local learners. Answer "yes" and verdict-shaped
-outputs federate completely while prose never does.
-
-Reproduce with `scripts/measure_federation_eligibility.py`. See
-[Findings](../findings.md).

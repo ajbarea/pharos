@@ -6,7 +6,7 @@
     "generated_at": "2026-08-02T05:58:53+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
-    "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
+    "executable": ".venv/bin/python3",
     "model": "Qwen/Qwen2.5-3B-Instruct",
     "seed": 7
   },

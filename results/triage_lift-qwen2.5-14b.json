@@ -1,12 +1,12 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "677af8c93dfc",
-    "git_dirty": false,
-    "generated_at": "2026-08-01T07:25:27+00:00",
-    "python": "3.13.14",
-    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
-    "executable": "/home/ajb6289/ajsoftworks/pharos/.venv/bin/python3",
+    "git_commit": "b4ec8f77e65d",
+    "git_dirty": true,
+    "generated_at": "2026-08-03T19:26:36+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
     "model": "qwen2.5:14b-instruct",
     "model_key": "qwen2.5-14b",
     "endpoint": "http://localhost:11434/api/generate",
@@ -14,34 +14,34 @@
   },
   "model": "qwen2.5:14b-instruct",
   "seed": 7,
-  "surface_baseline": 0.6588,
+  "surface_baseline": 0.6545,
   "confusion": {
-    "tp": 15,
-    "fp": 19,
-    "tn": 6,
+    "tp": 14,
+    "fp": 15,
+    "tn": 11,
     "fn": 0
   },
   "unparsed": 0,
-  "precision": 0.4412,
+  "precision": 0.4828,
   "recall": 1.0,
-  "f1": 0.6122,
-  "accuracy": 0.525,
-  "majority_accuracy": 0.625,
-  "eligible_keep": 19,
+  "f1": 0.6512,
+  "accuracy": 0.625,
+  "majority_accuracy": 0.65,
+  "eligible_keep": 14,
   "eligible_drop": 40,
   "n_tasks": 40,
   "validity": {
     "n": 40,
     "quotable": false,
     "concerns": [
-      "accuracy 0.525 does not beat the majority floor 0.625: this is not evidence of capability",
+      "accuracy 0.625 does not beat the majority floor 0.650: this is not evidence of capability",
       "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
     ]
   },
   "rows": [
     {
       "task_id": "TR-0000",
-      "truth": false,
+      "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
       "label": "PROTECTED[SENSOR]"
@@ -51,48 +51,48 @@
       "truth": false,
       "verdict": false,
       "raw": "ROUTINE",
-      "label": "PROTECTED[SENSOR]"
+      "label": "PROTECTED[LEGAL]"
     },
     {
       "task_id": "TR-0002",
-      "truth": true,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
-      "label": "PROTECTED[LEGAL,SENSOR]"
+      "truth": false,
+      "verdict": false,
+      "raw": "ROUTINE",
+      "label": "INTERNAL[SENSOR]"
     },
     {
       "task_id": "TR-0003",
-      "truth": false,
+      "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "RESTRICTED[LIAISON]"
+      "label": "PROTECTED[SENSOR]"
     },
     {
       "task_id": "TR-0004",
       "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "INTERNAL[SENSOR]"
+      "label": "RESTRICTED[LEGAL,LIAISON,SENSOR]"
     },
     {
       "task_id": "TR-0005",
       "truth": false,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
-      "label": "RESTRICTED[LEGAL,PARTNER]"
+      "verdict": false,
+      "raw": "ROUTINE",
+      "label": "RESTRICTED[PARTNER]"
     },
     {
       "task_id": "TR-0006",
-      "truth": true,
+      "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
       "label": "PROTECTED[SENSOR]"
     },
     {
       "task_id": "TR-0007",
-      "truth": false,
-      "verdict": false,
-      "raw": "ROUTINE",
+      "truth": true,
+      "verdict": true,
+      "raw": "SIGNIFICANT",
       "label": "PROTECTED[LEGAL,SENSOR]"
     },
     {
@@ -100,18 +100,18 @@
       "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[LEGAL,SENSOR]"
+      "label": "PROTECTED[SENSOR]"
     },
     {
       "task_id": "TR-0009",
-      "truth": false,
-      "verdict": false,
-      "raw": "ROUTINE",
-      "label": "RESTRICTED[PARTNER]"
+      "truth": true,
+      "verdict": true,
+      "raw": "SIGNIFICANT",
+      "label": "RESTRICTED[LIAISON,SENSOR]"
     },
     {
       "task_id": "TR-0010",
-      "truth": false,
+      "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
       "label": "PROTECTED[SENSOR]"
@@ -121,7 +121,7 @@
       "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[SENSOR]"
+      "label": "RESTRICTED[PARTNER,SENSOR]"
     },
     {
       "task_id": "TR-0012",
@@ -132,31 +132,31 @@
     },
     {
       "task_id": "TR-0013",
-      "truth": true,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
+      "truth": false,
+      "verdict": false,
+      "raw": "ROUTINE",
       "label": "PROTECTED[LEGAL,SENSOR]"
     },
     {
       "task_id": "TR-0014",
       "truth": false,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
-      "label": "PROTECTED[SENSOR]"
+      "verdict": false,
+      "raw": "ROUTINE",
+      "label": "INTERNAL[SENSOR]"
     },
     {
       "task_id": "TR-0015",
       "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[SENSOR]"
+      "label": "PROTECTED[LEGAL,SENSOR]"
     },
     {
       "task_id": "TR-0016",
       "truth": false,
       "verdict": false,
       "raw": "ROUTINE",
-      "label": "PROTECTED[SENSOR]"
+      "label": "PROTECTED[LEGAL,SENSOR]"
     },
     {
       "task_id": "TR-0017",
@@ -167,91 +167,91 @@
     },
     {
       "task_id": "TR-0018",
-      "truth": false,
+      "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[SENSOR]"
+      "label": "RESTRICTED[LEGAL,PARTNER,SENSOR]"
     },
     {
       "task_id": "TR-0019",
-      "truth": true,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
-      "label": "RESTRICTED[LEGAL,PARTNER,SENSOR]"
+      "truth": false,
+      "verdict": false,
+      "raw": "ROUTINE",
+      "label": "RESTRICTED[LEGAL,LIAISON]"
     },
     {
       "task_id": "TR-0020",
-      "truth": true,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
-      "label": "RESTRICTED[LEGAL,PARTNER,SENSOR]"
+      "truth": false,
+      "verdict": false,
+      "raw": "ROUTINE",
+      "label": "PROTECTED[LEGAL]"
     },
     {
       "task_id": "TR-0021",
-      "truth": true,
+      "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[LEGAL,SENSOR]"
+      "label": "RESTRICTED[LIAISON,PARTNER,SENSOR]"
     },
     {
       "task_id": "TR-0022",
       "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[SENSOR]"
+      "label": "RESTRICTED[PARTNER,SENSOR]"
     },
     {
       "task_id": "TR-0023",
       "truth": false,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
-      "label": "RESTRICTED[PARTNER,SENSOR]"
+      "verdict": false,
+      "raw": "ROUTINE",
+      "label": "PROTECTED[LEGAL]"
     },
     {
       "task_id": "TR-0024",
       "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[LEGAL,SENSOR]"
+      "label": "PROTECTED[SENSOR]"
     },
     {
       "task_id": "TR-0025",
-      "truth": true,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
-      "label": "RESTRICTED[PARTNER,SENSOR]"
+      "truth": false,
+      "verdict": false,
+      "raw": "ROUTINE",
+      "label": "PROTECTED[SENSOR]"
     },
     {
       "task_id": "TR-0026",
-      "truth": true,
-      "verdict": true,
-      "raw": "SIGNIFICANT",
-      "label": "PROTECTED[SENSOR]"
+      "truth": false,
+      "verdict": false,
+      "raw": "ROUTINE",
+      "label": "OPEN[]"
     },
     {
       "task_id": "TR-0027",
       "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "RESTRICTED[PARTNER]"
+      "label": "RESTRICTED[LIAISON,SENSOR]"
     },
     {
       "task_id": "TR-0028",
-      "truth": false,
+      "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "INTERNAL[SENSOR]"
+      "label": "PROTECTED[SENSOR]"
     },
     {
       "task_id": "TR-0029",
       "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "RESTRICTED[PARTNER,SENSOR]"
+      "label": "RESTRICTED[LIAISON,SENSOR]"
     },
     {
       "task_id": "TR-0030",
-      "truth": true,
+      "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
       "label": "PROTECTED[SENSOR]"
@@ -259,65 +259,65 @@
     {
       "task_id": "TR-0031",
       "truth": false,
-      "verdict": false,
-      "raw": "ROUTINE",
-      "label": "OPEN[]"
+      "verdict": true,
+      "raw": "SIGNIFICANT",
+      "label": "RESTRICTED[LEGAL,LIAISON]"
     },
     {
       "task_id": "TR-0032",
       "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[LEGAL,SENSOR]"
+      "label": "RESTRICTED[PARTNER,SENSOR]"
     },
     {
       "task_id": "TR-0033",
-      "truth": true,
+      "truth": false,
+      "verdict": true,
+      "raw": "SIGNIFICANT",
+      "label": "RESTRICTED[LIAISON,SENSOR]"
+    },
+    {
+      "task_id": "TR-0034",
+      "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
       "label": "RESTRICTED[PARTNER,SENSOR]"
     },
     {
-      "task_id": "TR-0034",
+      "task_id": "TR-0035",
       "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
       "label": "PROTECTED[SENSOR]"
     },
     {
-      "task_id": "TR-0035",
-      "truth": false,
-      "verdict": false,
-      "raw": "ROUTINE",
-      "label": "INTERNAL[SENSOR]"
-    },
-    {
       "task_id": "TR-0036",
-      "truth": false,
+      "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
       "label": "RESTRICTED[PARTNER,SENSOR]"
     },
     {
       "task_id": "TR-0037",
-      "truth": false,
+      "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[SENSOR]"
+      "label": "PROTECTED[LEGAL,SENSOR]"
     },
     {
       "task_id": "TR-0038",
       "truth": true,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "PROTECTED[SENSOR]"
+      "label": "RESTRICTED[LEGAL,PARTNER,SENSOR]"
     },
     {
       "task_id": "TR-0039",
       "truth": false,
       "verdict": true,
       "raw": "SIGNIFICANT",
-      "label": "RESTRICTED[PARTNER,SENSOR]"
+      "label": "PROTECTED[SENSOR]"
     }
   ]
 }

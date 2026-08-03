@@ -9,6 +9,7 @@ copyright = "AJ Barea"
 
 nav = [
   { "Home" = "index.md" },
+  { "Visual Explorer" = "explorer/index.html" },
   { "Getting Started" = "getting-started.md" },
   { "Reference" = [
       { "Label lattice" = "reference/label-lattice.md" },

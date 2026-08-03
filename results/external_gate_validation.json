@@ -6,7 +6,7 @@
     "generated_at": "2026-08-01T07:01:27+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python3",
+    "executable": ".venv/bin/python3",
     "seed": 7
   },
   "method": {
