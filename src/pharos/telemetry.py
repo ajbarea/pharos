@@ -277,6 +277,10 @@ _METRIC_META: dict[str, tuple[str, str]] = {
     ),
     "difficulty.composition": ("1", "Spread of estimated item difficulty across overlap bands"),
     "fleet.linkage": ("1", "Share of contributors the stream identifies exactly"),
+    "fleet_sensitivity.cliff": (
+        "{contributor}",
+        "Wrong-standard contributors at which consensus collapses, per fleet size",
+    ),
     "gate.duration": ("s", "Wall-clock time to run the shortcut gate over a corpus"),
     "gate.null_mean": ("1", "Mean probe AUC under label permutation"),
     "gate.null_z": ("1", "Standard deviations separating the baseline from its null"),

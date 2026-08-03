@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty logcheck docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty fleet-sensitivity logcheck docs-tables explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -67,6 +67,10 @@ budget:                    ## What a privacy budget buys against the linkage cha
 correlated:                ## What finding 12's cliff costs when analysts correlate (no model)
 	@mkdir -p results
 	uv run python scripts/measure_correlated_fleets.py --out results/correlated_fleets.json
+
+fleet-sensitivity:         ## Whether findings 12, 16 and 17 survive the fleet size (no model)
+	@mkdir -p results
+	uv run python scripts/measure_fleet_sensitivity.py --out results/fleet_sensitivity.json
 
 difficulty:                ## Whether item difficulty and a wrong standard are separable (no model)
 	@mkdir -p results
