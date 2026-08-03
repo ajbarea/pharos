@@ -647,6 +647,35 @@ Kept explicit so silence does not read as coverage.
   different bounds. What is still open is narrower and worth keeping separate: no
   published work measures this signal over a **discrete governed label**, which is
   the form a Pharos analyst decision takes.
+- **CC-Rasch is unidentified on this data (opened 2026-08-03).** It is bimodal across
+  corpus draws, recovering the truth at three of eight sizes swept and collapsing onto
+  Dawid-Skene at the other five, one of which does not converge. Their centring
+  constraints and Gaussian priors are implemented and are evidently not sufficient to
+  remove the remaining translation invariance. Until that is found or the estimator is
+  reported as unidentified in the manuscript, **no CC-Rasch number here is quotable in
+  either direction** -- and the committed corpus size sits on the mode that reads as
+  the favourable answer, which is the reason to say so loudly. Finding 17 rests on
+  Dawid-Skene and GLAD, where the inversion holds at every size.
+- **Step 2's adversarial evaluation does not exist (opened 2026-08-03).** The
+  perturbation primitives do: `pharos.adversarial` produces lexically substituted and
+  decoy-injected variants, and a test asserts the text changes while the ground truth
+  does not. What was removed was a harness that reported 1.0 at every seed by scoring
+  ground truth against itself and never reading the perturbed text. A real measurement
+  has to put the perturbed prompt in front of a model and compare verdicts against the
+  unperturbed one. Nothing here currently measures robustness.
+- **Nine artifacts predate the generator correction (opened 2026-08-03).**
+  `adapter_learnability`, the eight `review_adapter-*`, and `edge_cost` were measured
+  before per-event random streams landed, and re-deriving the first nine needs a
+  cluster A100 rather than the local card. **Findings 6, 10 and 14 rest on them**, so
+  any comparison between one of those and a finding measured after the fix is a
+  cross-corpus comparison, which is the confound a reproducibility claim was withdrawn
+  for on 2026-08-02.
+- **The cross-machine gate check is owed a repeat (opened 2026-08-03).** Bit-identical
+  surface baselines on a WSL laptop and an RHEL 9 node were verified on the pre-fix
+  corpus. The property is not in doubt -- SHA-256 and `random.Random` are
+  platform-stable -- but the current values, 0.6378, 0.6545 and 0.6604 on seeds 1, 7
+  and 101, have only been computed on the laptop. That is a check to redo, not a
+  result to doubt, and the distinction is worth keeping.
 
 ## Adding an entry
 
