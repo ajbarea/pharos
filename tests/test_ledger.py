@@ -119,3 +119,70 @@ def test_ledger_append_and_filter():
     assert len(ledger) == 1
     assert len(ledger.records_for_analyst("analyst_alpha")) == 1
     assert len(ledger.records_for_analyst("analyst_beta")) == 0
+
+
+def _sample_record() -> DecisionRecord:
+    """One fully-populated record, so every field is available to mutate below."""
+    label = Label(Sensitivity.RESTRICTED, frozenset({Compartment.SENSOR}), Capacity.ENUM)
+    return record_from_review(
+        "TR-0001",
+        seed=7,
+        proposal=Proposal(task_id="TR-0001", verdict=True, release=label),
+        decision=ReleaseDecision(
+            disposition=Disposition.RELEASE, reason=Reason.RELEASABLE, released=label
+        ),
+        review=AnalystDecision(
+            task_id="TR-0001",
+            analyst="by-the-book",
+            action=Action.ACCEPT,
+            grounds=frozenset(),
+            reasons=frozenset(),
+            corrected_verdict=None,
+            corrected_release=None,
+        ),
+        truth_significant=True,
+    )
+
+
+def test_the_digest_is_stable_for_an_unchanged_record():
+    """Tamper-evidence needs both halves; this is the half that says nothing moved."""
+    record = _sample_record()
+    assert record.digest() == record.digest()
+
+
+def test_every_field_is_covered_by_the_digest():
+    """Change any single field and the digest must change.
+
+    The existing check was `len(record.digest()) == 64`, which is a statement about
+    SHA-256's output width and passes for a constant. It cannot fail if `digest()`
+    silently stops covering a field -- and a field outside the hash is precisely the
+    place a record could be altered without the ledger noticing, which is the one
+    property a decision ledger exists to provide.
+
+    Iterating over the dataclass rather than naming fields is deliberate: a field added
+    later is covered by this test on the day it is added, without anyone remembering to
+    extend it.
+    """
+    import dataclasses
+
+    record = _sample_record()
+    baseline = record.digest()
+    mutated_any = False
+
+    for field in dataclasses.fields(record):
+        current = getattr(record, field.name)
+        if isinstance(current, bool):
+            altered = not current
+        elif isinstance(current, str):
+            altered = current + "-tampered"
+        elif isinstance(current, int):
+            altered = current + 1
+        else:
+            continue
+        changed = dataclasses.replace(record, **{field.name: altered})
+        assert changed.digest() != baseline, (
+            f"altering {field.name!r} left the digest unchanged; it is outside the hash"
+        )
+        mutated_any = True
+
+    assert mutated_any, "no field was mutable; this test exercised nothing"

@@ -2440,13 +2440,11 @@ from demo_e2e_system import main as run_e2e_demo  # noqa: E402
 from sweep_fl_benchmarks import (  # noqa: E402
     generate_fleet_gradients,
     l2_distance,
-    l2_norm,
     run_fl_benchmark_sweep,
 )
 
 
 def test_sweep_fl_benchmarks_helpers():
-    assert l2_norm([3.0, 4.0]) == 5.0
     assert l2_distance([1.0, 2.0], [4.0, 6.0]) == 5.0
 
     true_grad, clients, is_byz = generate_fleet_gradients(
@@ -2511,3 +2509,67 @@ def test_a_perturbation_actually_perturbs_the_text_it_returns():
     )
     for a, t in zip(substituted, tasks, strict=True):
         assert a.ground_truth_significant == t.significant
+
+
+def test_make_results_reproduces_the_sample_sizes_it_overwrites():
+    """`make results` must name the sample size of every artifact it regenerates.
+
+    This is the command the README and the harvest guard both point at when an artifact
+    is stale, so a reader who follows that advice gets whatever the recipe says. Three
+    of its five entries once omitted `--tasks` and inherited a script default that
+    disagreed with the committed artifact: federation eligibility ran at 8 against a
+    committed 40, rule learnability at 30 against 600, and decode stability at 300
+    against 30. Nothing failed. The artifacts came back a different size, carrying
+    validity flags the published numbers did not have, and two separate people re-ran
+    from this target in one day and silently changed what the findings rested on.
+
+    Asserting the recipe against the artifacts is cheap and catches the whole class:
+    a default that drifts, a recipe that loses a flag, or an artifact regenerated at a
+    size nobody chose.
+    """
+    import json
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+    recipe = re.search(
+        r"^results:.*?(?=^\S)", (root / "Makefile").read_text(), re.MULTILINE | re.DOTALL
+    )
+    assert recipe, "the `results` target moved; this guard is reading the wrong recipe"
+
+    #: Where each artifact records the size the run actually used. They differ because
+    #: the measurements differ: an eval reports tasks, a decode probe reports the tasks
+    #: it repeated, a fidelity pass reports turns.
+    size_field = {
+        "label_fidelity.json": ("validity", "n"),
+        "federation_eligibility.json": ("n_tasks",),
+        "triage_lift.json": ("validity", "n"),
+        "learnability.json": ("n_eval",),
+        "decode_stability.json": ("validity", "n"),
+    }
+
+    checked = 0
+    for script, args, out in re.findall(
+        r"scripts/(measure_\w+\.py)\s+([^\n]*?)--out results/(\S+)", recipe.group(0)
+    ):
+        declared = re.search(r"--tasks (\d+)", args)
+        assert declared, (
+            f"{script} in `make results` does not state --tasks; it would inherit a default"
+        )
+
+        artifact = root / "results" / out
+        if not artifact.exists():
+            continue
+        payload = json.loads(artifact.read_text(encoding="utf-8"))
+        node = payload
+        for key in size_field[out]:
+            node = node.get(key, {}) if isinstance(node, dict) else {}
+        assert node == int(declared.group(1)), (
+            f"`make results` runs {script} at --tasks {declared.group(1)}, but "
+            f"results/{out} records {node}. The command cannot regenerate the artifact."
+        )
+        checked += 1
+
+    assert checked >= 3, (
+        f"only {checked} artifacts compared; the guard is not exercising the recipe"
+    )

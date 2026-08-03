@@ -36,10 +36,6 @@ ROOT = Path(__file__).resolve().parent.parent
 RESULTS_DIR = ROOT / "results"
 
 
-def l2_norm(vec: list[float]) -> float:
-    return math.sqrt(sum(x * x for x in vec))
-
-
 def l2_distance(vec1: list[float], vec2: list[float]) -> float:
     return math.sqrt(sum((x - y) ** 2 for x, y in zip(vec1, vec2, strict=True)))
 
@@ -208,7 +204,7 @@ def run_fl_benchmark_sweep(
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     out_file = RESULTS_DIR / "fl_benchmarks.json"
     out_file.write_text(json.dumps(output_payload, indent=2) + "\n", encoding="utf-8")
-    print(f"\n✅ Sweep complete! Results saved to {out_file}")
+    print(f"\nwrote {out_file}")
 
     return output_payload
 

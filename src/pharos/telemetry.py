@@ -264,15 +264,38 @@ def record_routine(metric: str, value: float, **attributes: object) -> None:
 #: unit as a suffix. Durations are seconds; a dimensionless ratio is `1`; a count of
 #: things is that thing in braces, singular.
 _METRIC_META: dict[str, tuple[str, str]] = {
-    "adapter.train_loss": ("1", "Training loss for a personalization adapter"),
+    "adapter.train_loss": ("1", "Final training loss for a personalization adapter"),
+    "budget.participation": ("{contribution}", "Contributions a analyst made under the budget"),
+    "consensus.composition": ("1", "Consensus agreement with the world at one fleet composition"),
+    "correlated.composition": ("1", "Probability of a wrong majority at one correlation structure"),
+    "correlated.understatement": ("1", "How far independence understates that probability"),
+    "decode.cross_pass_bound": ("1", "Upper bound on the cross-pass disagreement rate"),
+    "decode.unstable_share": ("1", "Share of tasks answering differently across repeats"),
+    "difficulty.class_conditional_separation": (
+        "1",
+        "Routine-class ability gap in logits between wrong and correct reviewers",
+    ),
+    "difficulty.composition": ("1", "Spread of estimated item difficulty across overlap bands"),
+    "fleet.linkage": ("1", "Share of contributors the stream identifies exactly"),
     "gate.duration": ("s", "Wall-clock time to run the shortcut gate over a corpus"),
     "gate.null_mean": ("1", "Mean probe AUC under label permutation"),
     "gate.null_z": ("1", "Standard deviations separating the baseline from its null"),
     "gate.probe_auc": ("1", "AUC of one surface probe against the class label"),
     "gate.surface_baseline": ("1", "Best surface-feature AUC, the score to report against"),
     "generate.reports": ("{report}", "Reports rendered for a generated corpus"),
+    "inference.cc_rasch": ("{iteration}", "EM iterations CC-Rasch ran before settling"),
+    "inference.dawid_skene": ("1", "Estimated prevalence of the significant class"),
+    "inference.glad": ("{iteration}", "EM iterations GLAD ran before settling"),
     "learnability.accuracy": ("1", "Share of evaluation tasks answered correctly"),
     "ledger.routing": ("{decision}", "Routing decisions recorded in the ledger"),
+    "linkage.control": ("1", "Recovery rate for the control condition"),
+    "power.claims_resolved": ("{claim}", "Headline claims their evaluation size can resolve"),
+    "review.replayed": ("{task}", "Committed verdicts replayed past the analyst grid"),
+    "review_sweep.cells_clearing_floor": (
+        "{cell}",
+        "Grid cells whose target accuracy clears the majority floor",
+    ),
+    "tagging.scheme": ("1", "Clearance inferable from a tagged aggregate"),
 }
 
 #: Anything not in the registry above. `1` is UCUM's unity, which is the honest default

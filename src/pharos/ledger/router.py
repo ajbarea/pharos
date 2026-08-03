@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from pharos.telemetry import record, span
+from pharos.telemetry import record_routine, span
 
 if TYPE_CHECKING:
     from pharos.ledger.record import DecisionRecord
@@ -45,7 +45,15 @@ class ProvenanceRouter:
     def route(self, record_data: DecisionRecord) -> RoutingVerdict:
         with span("ledger.route", record_id=record_data.record_id, task_id=record_data.task_id):
             verdict = self._evaluate_routing(record_data)
-            record("ledger.routing", 1, target=verdict.target.value, analyst=record_data.analyst_id)
+            # Routine, not headline: a caller routes every record it holds, so at INFO
+            # this is one line per decision and it buries whatever the caller was
+            # actually reporting. The end-to-end smoke test emitted ten of these above
+            # its own five lines of output. The routing of a *single* record is still
+            # visible with `PHAROS_LOG_LEVEL=DEBUG`, and the span above carries the
+            # record and task ids either way.
+            record_routine(
+                "ledger.routing", 1, target=verdict.target.value, analyst=record_data.analyst_id
+            )
             return verdict
 
     def _evaluate_routing(self, record: DecisionRecord) -> RoutingVerdict:

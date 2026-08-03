@@ -18,13 +18,23 @@ test:                      ## Run the test suite with coverage
 gate:                      ## Generate a corpus and run the shortcut gate on it
 	uv run python -m pharos.cli gate
 
+# Every sample size below is stated explicitly, and none of them may be dropped in
+# favour of a script default. Three of these five used to be, and `make results` --
+# the command this repository documents as the way to regenerate results/ -- therefore
+# produced a different corpus size than the artifact it overwrote: eligibility at 8
+# against a committed 40, learnability at 30 against 600, decode stability at 300
+# against 30. Nothing errored; the artifacts simply came back smaller or larger, with
+# validity flags the published numbers did not carry. That is the same failure as an
+# artifact that cannot regenerate its own inputs, one level up, and it caught two
+# different people in one day. `tests/test_scripts.py` now asserts these against the
+# committed artifacts so the drift cannot recur silently.
 results:                   ## Regenerate every measurement artifact in results/ (needs Ollama)
 	@mkdir -p results
-	uv run python scripts/measure_label_fidelity.py --tasks 24 --out results/label_fidelity.json
-	uv run python scripts/measure_federation_eligibility.py --out results/federation_eligibility.json
-	uv run python scripts/measure_triage_lift.py --out results/triage_lift.json
-	uv run python scripts/measure_rule_learnability.py --out results/learnability.json
-	uv run python scripts/measure_decode_stability.py --out results/decode_stability.json
+	uv run python scripts/measure_label_fidelity.py --tasks 40 --out results/label_fidelity.json
+	uv run python scripts/measure_federation_eligibility.py --tasks 40 --out results/federation_eligibility.json
+	uv run python scripts/measure_triage_lift.py --tasks 40 --out results/triage_lift.json
+	uv run python scripts/measure_rule_learnability.py --tasks 600 --events 800 --out results/learnability.json
+	uv run python scripts/measure_decode_stability.py --tasks 30 --out results/decode_stability.json
 
 sweep:                     ## Target accuracy across the reviewer parameter grid (no model)
 	@mkdir -p results

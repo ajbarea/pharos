@@ -284,7 +284,10 @@ def test_every_emitted_metric_declares_a_unit_and_description():
     root = Path(__file__).resolve().parent.parent
     emitted: set[str] = set()
     for path in [*(root / "src").rglob("*.py"), *(root / "scripts").rglob("*.py")]:
-        emitted |= set(re.findall(r'record(?:_routine)?\("([a-z_.]+)"', path.read_text()))
+        # `\s*` because a call wrapped across lines by the formatter still emits the
+        # metric, and a guard that misses it reports the registry entry as unused --
+        # which is the safe direction to fail in, and still a false alarm.
+        emitted |= set(re.findall(r'record(?:_routine)?\(\s*"([a-z_.]+)"', path.read_text()))
 
     assert emitted, "no record() call sites found; the pattern above has gone stale"
     assert emitted <= set(_METRIC_META), (
