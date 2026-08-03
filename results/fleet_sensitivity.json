@@ -1,0 +1,324 @@
+{
+  "fleets": [
+    5,
+    9,
+    15,
+    25,
+    51
+  ],
+  "consensus": [
+    {
+      "fleet": 5,
+      "majority": 3,
+      "cliff_at": 3,
+      "cliff_is_at_majority": true,
+      "consensus_before": 1.0,
+      "consensus_at": 0.6598,
+      "dawid_skene_at": 0.6598,
+      "dawid_skene_survives_crossing": false
+    },
+    {
+      "fleet": 9,
+      "majority": 5,
+      "cliff_at": 5,
+      "cliff_is_at_majority": true,
+      "consensus_before": 1.0,
+      "consensus_at": 0.6598,
+      "dawid_skene_at": 0.6598,
+      "dawid_skene_survives_crossing": false
+    },
+    {
+      "fleet": 15,
+      "majority": 8,
+      "cliff_at": 8,
+      "cliff_is_at_majority": true,
+      "consensus_before": 1.0,
+      "consensus_at": 0.6598,
+      "dawid_skene_at": 1.0,
+      "dawid_skene_survives_crossing": true
+    },
+    {
+      "fleet": 25,
+      "majority": 13,
+      "cliff_at": 13,
+      "cliff_is_at_majority": true,
+      "consensus_before": 1.0,
+      "consensus_at": 0.6598,
+      "dawid_skene_at": 1.0,
+      "dawid_skene_survives_crossing": true
+    },
+    {
+      "fleet": 51,
+      "majority": 26,
+      "cliff_at": 26,
+      "cliff_is_at_majority": true,
+      "consensus_before": 1.0,
+      "consensus_at": 0.6598,
+      "dawid_skene_at": 1.0,
+      "dawid_skene_survives_crossing": true
+    }
+  ],
+  "difficulty": [
+    {
+      "fleet": 5,
+      "majority": 3,
+      "dawid_skene": 0.6598,
+      "glad": 0.6598,
+      "cc_rasch": 0.6598,
+      "cc_rasch_converged": true,
+      "ability_is_inverted": true,
+      "glad_recovers_truth": false,
+      "all_three_agree": true
+    },
+    {
+      "fleet": 9,
+      "majority": 5,
+      "dawid_skene": 0.6598,
+      "glad": 0.6598,
+      "cc_rasch": 1.0,
+      "cc_rasch_converged": true,
+      "ability_is_inverted": true,
+      "glad_recovers_truth": false,
+      "all_three_agree": false
+    },
+    {
+      "fleet": 15,
+      "majority": 8,
+      "dawid_skene": 1.0,
+      "glad": 0.6598,
+      "cc_rasch": 1.0,
+      "cc_rasch_converged": true,
+      "ability_is_inverted": true,
+      "glad_recovers_truth": false,
+      "all_three_agree": false
+    },
+    {
+      "fleet": 25,
+      "majority": 13,
+      "dawid_skene": 1.0,
+      "glad": 0.6598,
+      "cc_rasch": 1.0,
+      "cc_rasch_converged": true,
+      "ability_is_inverted": true,
+      "glad_recovers_truth": false,
+      "all_three_agree": false
+    },
+    {
+      "fleet": 51,
+      "majority": 26,
+      "dawid_skene": 1.0,
+      "glad": 0.6598,
+      "cc_rasch": 1.0,
+      "cc_rasch_converged": true,
+      "ability_is_inverted": true,
+      "glad_recovers_truth": false,
+      "all_three_agree": false
+    }
+  ],
+  "correlated": [
+    {
+      "fleet": 5,
+      "by_rate": [
+        {
+          "rate": 0.1,
+          "independent": 0.0086,
+          "one_culture": 0.1,
+          "understatement": 11.6
+        },
+        {
+          "rate": 0.2,
+          "independent": 0.0579,
+          "one_culture": 0.2,
+          "understatement": 3.5
+        },
+        {
+          "rate": 0.3,
+          "independent": 0.1631,
+          "one_culture": 0.3,
+          "understatement": 1.8
+        },
+        {
+          "rate": 0.4,
+          "independent": 0.3174,
+          "one_culture": 0.4,
+          "understatement": 1.3
+        },
+        {
+          "rate": 0.5,
+          "independent": 0.5,
+          "one_culture": 0.5,
+          "understatement": 1.0
+        }
+      ]
+    },
+    {
+      "fleet": 9,
+      "by_rate": [
+        {
+          "rate": 0.1,
+          "independent": 0.0009,
+          "one_culture": 0.1,
+          "understatement": 111.1
+        },
+        {
+          "rate": 0.2,
+          "independent": 0.0196,
+          "one_culture": 0.2,
+          "understatement": 10.2
+        },
+        {
+          "rate": 0.3,
+          "independent": 0.0988,
+          "one_culture": 0.3,
+          "understatement": 3.0
+        },
+        {
+          "rate": 0.4,
+          "independent": 0.2666,
+          "one_culture": 0.4,
+          "understatement": 1.5
+        },
+        {
+          "rate": 0.5,
+          "independent": 0.5,
+          "one_culture": 0.5,
+          "understatement": 1.0
+        }
+      ]
+    },
+    {
+      "fleet": 15,
+      "by_rate": [
+        {
+          "rate": 0.1,
+          "independent": 0.0,
+          "one_culture": 0.1,
+          "understatement": null
+        },
+        {
+          "rate": 0.2,
+          "independent": 0.0042,
+          "one_culture": 0.2,
+          "understatement": 47.6
+        },
+        {
+          "rate": 0.3,
+          "independent": 0.05,
+          "one_culture": 0.3,
+          "understatement": 6.0
+        },
+        {
+          "rate": 0.4,
+          "independent": 0.2131,
+          "one_culture": 0.4,
+          "understatement": 1.9
+        },
+        {
+          "rate": 0.5,
+          "independent": 0.5,
+          "one_culture": 0.5,
+          "understatement": 1.0
+        }
+      ]
+    },
+    {
+      "fleet": 25,
+      "by_rate": [
+        {
+          "rate": 0.1,
+          "independent": 0.0,
+          "one_culture": 0.1,
+          "understatement": null
+        },
+        {
+          "rate": 0.2,
+          "independent": 0.0004,
+          "one_culture": 0.2,
+          "understatement": 500.0
+        },
+        {
+          "rate": 0.3,
+          "independent": 0.0175,
+          "one_culture": 0.3,
+          "understatement": 17.1
+        },
+        {
+          "rate": 0.4,
+          "independent": 0.1538,
+          "one_culture": 0.4,
+          "understatement": 2.6
+        },
+        {
+          "rate": 0.5,
+          "independent": 0.5,
+          "one_culture": 0.5,
+          "understatement": 1.0
+        }
+      ]
+    },
+    {
+      "fleet": 51,
+      "by_rate": [
+        {
+          "rate": 0.1,
+          "independent": 0.0,
+          "one_culture": 0.1,
+          "understatement": null
+        },
+        {
+          "rate": 0.2,
+          "independent": 0.0,
+          "one_culture": 0.2,
+          "understatement": null
+        },
+        {
+          "rate": 0.3,
+          "independent": 0.0014,
+          "one_culture": 0.3,
+          "understatement": 214.3
+        },
+        {
+          "rate": 0.4,
+          "independent": 0.0735,
+          "one_culture": 0.4,
+          "understatement": 5.4
+        },
+        {
+          "rate": 0.5,
+          "independent": 0.5,
+          "one_culture": 0.5,
+          "understatement": 1.0
+        }
+      ]
+    }
+  ],
+  "invariants": {
+    "cliff_is_always_at_majority": true,
+    "cliff_value_is_constant": true,
+    "cliff_value": [
+      0.6598
+    ],
+    "glad_ability_always_inverts": true,
+    "glad_never_recovers_truth": true,
+    "fleets_where_all_three_estimators_agree": [
+      5
+    ]
+  },
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "0aa3656916ae",
+    "git_dirty": false,
+    "generated_at": "2026-08-03T23:54:16+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "fleets": [
+      5,
+      9,
+      15,
+      25,
+      51
+    ],
+    "draws": 60
+  }
+}

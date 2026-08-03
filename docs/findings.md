@@ -1833,9 +1833,12 @@ CC-Rasch recovers the truth exactly where Dawid-Skene and GLAD both collapse to 
     | 51 | **1.000** | 0.660 | 1.000 | yes |
 
     **Dawid-Skene recovers the truth at a bare majority once the fleet reaches 15**, and
-    so does CC-Rasch from 9. **GLAD never does, at any size.** At the committed fleet of
-    9 all three sit at 0.660 and the natural reading is that the whole family fails
-    together. That reading is an artifact of the smallest fleet in the sweep.
+    CC-Rasch already does at 9. **GLAD never does, at any size.** The three estimators
+    only *all* fail together at a fleet of five, which is the reading the original claim
+    rested on; by nine, two of three; from fifteen, only GLAD. The artifact records that
+    as an invariant (`fleets_where_all_three_estimators_agree`) rather than leaving it
+    to be read off the table, because an earlier draft of this paragraph said all three
+    sat at 0.660 at nine while the table beside it showed CC-Rasch at 1.000.
 
     Two things this does *not* undo. GLAD's failure is size-independent, and its ability
     inversion holds at **every** size tested -- so the claim this finding is actually
