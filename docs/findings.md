@@ -271,23 +271,30 @@ and conservative by construction, so the error direction is creep rather than le
 
 `scripts/measure_federation_eligibility.py`
 
-Three aggregator ceilings, four capacities, 40 turns. Turns average **1.98
+Three aggregator ceilings, four capacities, 40 turns. Turns average **just under two
 compartments of 4**, and most already sit high on the level ladder, because a
 summary over eight sources joins nearly everything.
 
 | Declassification policy | FREETEXT | SPAN | SCALAR | ENUM |
 | --- | --- | --- | --- | --- |
-| keep compartments (fail-closed default) | 0-50% | 0-50% | 0-50% | 0-50% |
-| drop compartments for low capacity | 0-50% | 0-50% | **100%** | **100%** |
+| keep compartments (fail-closed default) | 0-52% | 0-52% | 0-52% | 0-52% |
+| drop compartments for low capacity | 0-52% | 0-52% | **100%** | **100%** |
 
-!!! warning "Corrected 2026-07-30, re-measured 2026-08-03"
-    Also first measured at n=8 on the pre-coverage-fix corpus: the mean was
-    reported as 2.88, then 2.15, and is **1.98** on the corrected corpus; the
-    keep-compartments row went 0-12%, then 0-38%, and is now **0-50%**. The **shape**
-    is unchanged across all three and is the part that matters: the bimodality sits on
-    the compartment-shedding ruling and nowhere else. Three measurements of the same
-    shape with three different magnitudes is also the clearest argument on this page
-    for reporting the mechanism rather than the cell values.
+!!! warning "The shape is the finding; the cell values are not bit-reproducible"
+    This has now been measured four times. The mean compartments went 2.88 at n=8 on
+    the pre-coverage-fix corpus, then 2.15, then 1.98, then **1.875**; the
+    keep-compartments row went 0-12%, then 0-38%, then 0-50%, then **0-52%**. The
+    **shape is identical in all four**: the bimodality sits on the compartment-shedding
+    ruling and nowhere else.
+
+    The last two differ by decode variation alone, not by code or corpus. This
+    measurement calls a model -- `label_by_provenance` classifies each turn's content
+    -- so it is subject to exactly what
+    [finding 9](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing)
+    describes, and two runs at the same `--tasks 40` on the same commit landed 0.1
+    compartments and two percentage points apart. Quote the mechanism and the
+    bimodality. Do not quote a cell to three figures, and do not read a two-point
+    move between runs as a change in anything.
 
 So "may a low-capacity verdict shed the compartments of its sources?" is not a
 detail. Answer no and the fleet is a set of unconnected local learners. Answer yes
