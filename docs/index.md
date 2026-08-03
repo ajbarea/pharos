@@ -24,7 +24,7 @@ A labeled fleet testbed for federated personalization with a **governed disclosu
 
 <div class="hero-beams" markdown>
 
-<span class="beam-amber">Sensitivity</span> &nbsp;·&nbsp; <span class="beam-cyan">Compartments</span> &nbsp;·&nbsp; <span class="beam-magenta">Capacity</span>
+<span class="pharos-chip pharos-chip-amber">Sensitivity</span> &nbsp;·&nbsp; <span class="pharos-chip pharos-chip-cyan">Compartments</span> &nbsp;·&nbsp; <span class="pharos-chip pharos-chip-magenta">Capacity</span> &nbsp;·&nbsp; <span class="pharos-chip pharos-chip-rust">Velocity-FL Rust</span>
 
 </div>
 
@@ -36,85 +36,117 @@ A labeled fleet testbed for federated personalization with a **governed disclosu
 
 <div class="landing-section" markdown>
 
-## The problem it exists for { .section-title }
+## The System Architecture { .section-title }
 
-Federated personalization splits what a model learns into a part that stays local and a part that is shared. Deciding *which* knowledge goes where is a disclosure question, and answering it requires data whose objects carry disclosure labels.
-{ .section-lead }
+Pharos provides an end-to-end testbed for **lattice-governed disclosure** and **federated analyst fleets**.
 
-Public corpora do not. At best they carry a single sensitivity ladder, where every
-label is comparable to every other and a join is a maximum. Real disclosure policy
-is not a ladder. Two holders at the same level with different need-to-know
-compartments dominate each other in neither direction, and it is precisely that
-incomparability that makes a boundary hard to enforce and interesting to measure.
+```mermaid
+flowchart LR
+    Gen["🎲 Synthetic Event Generator"] -->|Reproducible Seed| Lattice{"🛡️ Label Lattice Algebra"}
+    Lattice -->|Sensitivity & Need-to-Know| Gate["🎯 Shortcut Permutation Gate"]
+    Gate -->|Surface AUC < 0.72| Router{"🔒 Provenance Router"}
+    Router -->|RESTRICTED / Need-to-Know| Personal["🔒 Personal LoRA Adapter (Local Only)"]
+    Router -->|Cleared Tradecraft| Shared["🌐 Shared Fleet Adapter (Federated)"]
+    Shared -->|Gradient Updates| Agg["🧮 Robust Aggregation Rules"]
+```
 
-So Pharos generates a world where labels have that structure, and where ground
-truth for the analytic task is defined by content rather than by an insertion
-artifact.
+<div class="docs-grid" markdown>
+
+<div class="docs-card" markdown>
+### 🏷️ Security Label Lattice
+Formal Partial Order Algebra over **Sensitivity Levels** (`OPEN` < `INTERNAL` < `PROTECTED` < `RESTRICTED`) and **Need-to-Know Compartments** (`[SENSOR]`, `[LIAISON]`, `[LEGAL]`, `[PARTNER]`). Defines exact Least Upper Bound joins ($\sqcup$) and dominance rules.
+</div>
+
+<div class="docs-card" markdown>
+### 🎯 Permutation Shortcut Gate
+Adversarial surface feature detector verifying that dataset class labels cannot be predicted by surface tells (sentence length, digit count, timestamp width) without reading narrative content ($z < 2.0$ null threshold).
+</div>
+
+<div class="docs-card" markdown>
+### 🔒 Provenance Router & Ledger
+SHA-256 decision ledger coupled with a boundary-gated router that splits analyst feedback between **Personal LoRA Adapters**, which never leave the holder, and **Shared Fleet Adapters**. Routing is per item; [finding 11](findings.md) shows that a per-item gate does not compose over a stream.
+</div>
+
+<div class="docs-card" markdown>
+### 🧮 Robust Aggregation Rules
+Server-side aggregation implemented from each rule's paper: `FedAvg`, `FedMedian`, `TrimmedMean`, `Krum`, `MultiKrum`, `Bulyan`, `GeometricMedian`, with sign-flip poisoning and a Gaussian DP mechanism to exercise them. Sized rather than settled: no claim from this module is quoted in the manuscript.
+</div>
+
+</div>
 
 </div>
 
 <div class="landing-section" markdown>
 
-## What is here { .section-title }
+## The Core Problem { .section-title }
 
-| Module | Responsibility |
-| --- | --- |
-| [`pharos.labels`](reference/label-lattice.md) | The product lattice: sensitivity, compartments, capacity. Joins, dominance, type-based declassification |
-| `pharos.world` | The fictional maritime watch: channels, officer voices, and the fact vocabulary |
-| `pharos.scenario` | The world as configuration: load a different watch from TOML |
-| `pharos.generate` | Deterministic corpus generation, reproducible from `(seed, config)` |
-| [`pharos.gate`](reference/gate.md) | The shortcut gate: can plant membership be predicted without reading anything? |
-| `pharos.manifest` | The citable record: version, seed, gate verdict, label histogram |
-| `pharos.tasks` | Task instances, and the governed label a verdict inherits from its sources |
-| `pharos.detect` | Content-provenance labelling, the replacement for leave-one-out attribution |
-| `pharos.attribute` | The only module that calls a model |
-| [`pharos.models`](models.md) | The model registry: what can be run, and what actually has been |
-| `pharos.validity` | The conditions under which a score should not be quoted |
-| `pharos.provenance` | The stamp on every result: version, commit, and whether the tree was dirty |
-| [`pharos.export`](reference/corpus-schema.md) | Writing a corpus out, and hashing exactly what was written |
-| [`pharos.croissant`](releasing.md) | Croissant metadata with the Responsible AI extension |
-| `pharos.telemetry` | Structured logs, spans, and the execution-context snapshot |
-| [`pharos.web`](getting-started.md#the-explorer) | The explorer: corpus, lattice, gate, and a triage run behind one page |
-| `pharos.cli` | `gate`, `export`, `models`, `serve` |
 
-Everything in the generation and gating path is offline and deterministic. There
-are no model calls in it, which is what makes the gate reproducible. Model calls
-appear only in the measurement scripts under `scripts/`, and those record which
-model produced each number.
+Federated personalization splits what a model learns into **local knowledge** and **shared knowledge**. Deciding *which* knowledge stays local versus what gets aggregated is a disclosure boundary problem that requires data with formal disclosure labels.
+{ .section-lead }
+
+!!! danger "Why public datasets fall short"
+    Public corpora do not carry security compartment structures. At best, they provide a single linear sensitivity ladder where every label is comparable and a join is just a maximum. Real-world disclosure policy is not a ladder.
+
+!!! info "The Pharos Solution"
+    Two holders at the same sensitivity level with different need-to-know compartments are **incomparable**. Pharos generates synthetic datasets where labels carry this exact lattice structure, allowing researchers to measure privacy leakage, over-escalation, and personalization behavior against content-defined ground truth.
 
 </div>
 
 <div class="landing-section" markdown>
 
-## Why "Pharos" { .section-title }
+## Architecture & Modules { .section-title }
 
-The lighthouse at Alexandria. A watch station whose entire function was seeing what was coming, and reporting it to whoever needed to know.
-{ .section-lead }
+| Module | Purpose & Focus |
+| :--- | :--- |
+| [`pharos.labels`](reference/label-lattice.md) | **Label Algebra**: Sensitivity, compartments, capacity, joins, dominance, and declassification |
+| `pharos.world` | **Synthetic Domain**: Maritime watch scenario, officer voices, and fact vocabulary |
+| `pharos.scenario` | **Configuration Engine**: Load and configure custom watch environments from TOML |
+| `pharos.generate` | **Deterministic Corpus**: Fully reproducible generation from `(seed, config)` |
+| [`pharos.gate`](reference/gate.md) | **Shortcut Gate**: Probe to verify if class membership can be predicted without reading content |
+| `pharos.manifest` | **Citable Ledger**: Versioning, seed tracking, gate verdicts, and label distribution histograms |
+| `pharos.tasks` | **Analyst Tasks**: Governed label evaluation inherited directly from source evidence |
+| `pharos.detect` | **Content Provenance**: Content-attribution labelling replacing naive leave-one-out methods |
+| `pharos.attribute` | **Model Bridge**: The single isolated entry point for model inference calls |
+| [`pharos.models`](models.md) | **Model Registry**: Registry of tested, verified, and candidate models |
+| `pharos.validity` | **Validity Checker**: Conditions for determining if evaluation scores are statistically quotable |
+| `pharos.provenance` | **Audit Stamps**: Version, git commit hash, and dirty-tree state tracking |
+| [`pharos.export`](reference/corpus-schema.md) | **Data Export**: Reproducible JSON Lines exporter with cryptographic content hashing |
+| [`pharos.croissant`](releasing.md) | **Open Metadata**: Emits Croissant metadata extended with Responsible AI fields |
+| `pharos.telemetry` | **Observability**: Structured OpenTelemetry logs, tracing spans, and execution snapshots |
+| [`pharos.web`](getting-started.md#visual-explorer-ui) | **Visual Explorer**: Interactive web UI for corpus, lattice, gate, and triage review |
+| `pharos.cli` | **Command Line**: CLI subcommands (`gate`, `export`, `models`, `serve`) |
 
-The hero image is not only decoration. Real lighthouses use **sector lights**:
-different colours over different bearings, so a mariner reading the colour knows
-which water is safe from where they are standing. A label in Pharos works the same
-way. Sensitivity says how far it travels, compartments say along which bearings, and
-two holders in different sectors are incomparable rather than ranked.
+!!! note "Deterministic Pipeline"
+    Everything in the generation and gating path is **100% offline and deterministic**. Model calls live strictly in `pharos.attribute` and evaluation scripts under `scripts/`, guaranteeing bit-identical reproducibility.
 
 </div>
 
 <div class="landing-section" markdown>
 
-## Where the argument lives { .section-title }
+## Why "Pharos"? { .section-title }
 
-This site is the **reference**: how the pieces work and how to run them. The argument Pharos supports belongs to the manuscript, not here.
+Named after the Great Lighthouse of Alexandria—a watch station built to observe incoming activity and transmit signals to authorized mariners.
 { .section-lead }
 
-[Findings](findings.md) summarises what has been measured and points at the scripts
-that reproduce each number. `RESEARCH.md` in the repository root holds what is true
-*outside* the repo: the survey behind the claim above, argued from the five closest
-public corpora rather than from an exhaustive search, the corpora Pharos is meant to
-be used alongside, and a verified citation for every external claim the design leans
-on.
-
-Design specs live in the Federated Analyst Fleets research docs
-(`kourai-khryseai/docs/research/federated-forge/`): `pharos-testbed.md` for this
-testbed, `index.md` for the system it serves.
+!!! tip "Sector Light Analogy"
+    Real lighthouses project **sector lights**: distinct color beams across different bearings so mariners know safe navigation paths relative to their location. In Pharos:
+    
+    * **Sensitivity** defines how far a message travels (distance).
+    * **Compartments** define along which bearings it can be seen (angle).
+    * Two holders in different sectors are **incomparable**, not ranked.
 
 </div>
+
+<div class="landing-section" markdown>
+
+## Core References { .section-title }
+
+This documentation site serves as the operational reference guide for running Pharos and understanding its internal mechanics.
+{ .section-lead }
+
+* 📊 **[Findings & Benchmarks](findings.md)**: Index of all measured findings, provisional numbers, and reproduction scripts.
+* 📜 **`RESEARCH.md`**: Analysis of existing public corpora, domain trade-offs, and verified citations.
+* 🛡️ **System Design Specs**: Detailed system architecture lives in the [Federated Analyst Fleets](https://github.com/ajbarea/kourai-khryseai) specification docs (`pharos-testbed.md` for this testbed, `index.md` for the Kourai Khryseai fleet harness).
+
+</div>
+

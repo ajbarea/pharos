@@ -1,0 +1,806 @@
+{
+  "experiment": "Aggregation error under sign-flip poisoning",
+  "timestamp": "2026-08-03T21:42:02Z",
+  "parameters": {
+    "n_clients": 20,
+    "gradient_dim": 100,
+    "n_rounds": 50,
+    "f_supplied_to_rules": 4
+  },
+  "records": [
+    {
+      "strategy": "FedAvg",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.2278,
+      "l2_error_ci95": [
+        0.2235,
+        0.232
+      ],
+      "mean_latency_ms": 0.0858,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "FedMedian",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.2752,
+      "l2_error_ci95": [
+        0.27,
+        0.2803
+      ],
+      "mean_latency_ms": 0.1638,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "TrimmedMean",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.2426,
+      "l2_error_ci95": [
+        0.2377,
+        0.2472
+      ],
+      "mean_latency_ms": 0.187,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "Krum",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.878,
+      "l2_error_ci95": [
+        0.8674,
+        0.8897
+      ],
+      "mean_latency_ms": 5.3936,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "MultiKrum",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.2962,
+      "l2_error_ci95": [
+        0.2905,
+        0.3016
+      ],
+      "mean_latency_ms": 4.6319,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "Bulyan",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.3875,
+      "l2_error_ci95": [
+        0.3792,
+        0.3957
+      ],
+      "mean_latency_ms": 4.7906,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "GeometricMedian",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.2282,
+      "l2_error_ci95": [
+        0.2239,
+        0.2323
+      ],
+      "mean_latency_ms": 6.8328,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "FedAvg",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 13.9634,
+      "l2_error_ci95": [
+        13.6367,
+        14.3105
+      ],
+      "mean_latency_ms": 0.0964,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "FedMedian",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 15.8116,
+      "l2_error_ci95": [
+        15.4689,
+        16.1743
+      ],
+      "mean_latency_ms": 0.1593,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "TrimmedMean",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 14.6094,
+      "l2_error_ci95": [
+        14.2774,
+        14.96
+      ],
+      "mean_latency_ms": 0.1777,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "Krum",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 43.4719,
+      "l2_error_ci95": [
+        42.8381,
+        44.0693
+      ],
+      "mean_latency_ms": 4.8511,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "MultiKrum",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 16.8185,
+      "l2_error_ci95": [
+        16.4434,
+        17.1915
+      ],
+      "mean_latency_ms": 4.9095,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "Bulyan",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 20.567,
+      "l2_error_ci95": [
+        20.1684,
+        20.9592
+      ],
+      "mean_latency_ms": 5.7319,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "GeometricMedian",
+      "attack_ratio": 0.0,
+      "n_byzantine": 0,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 13.9907,
+      "l2_error_ci95": [
+        13.6626,
+        14.3369
+      ],
+      "mean_latency_ms": 6.9315,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "FedAvg",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 2.5077,
+      "l2_error_ci95": [
+        2.4702,
+        2.544
+      ],
+      "mean_latency_ms": 0.0863,
+      "error_vs_own_no_attack": 11.008
+    },
+    {
+      "strategy": "FedMedian",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.3198,
+      "l2_error_ci95": [
+        0.3136,
+        0.3259
+      ],
+      "mean_latency_ms": 0.1783,
+      "error_vs_own_no_attack": 1.162
+    },
+    {
+      "strategy": "TrimmedMean",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.2972,
+      "l2_error_ci95": [
+        0.2913,
+        0.3029
+      ],
+      "mean_latency_ms": 0.2,
+      "error_vs_own_no_attack": 1.225
+    },
+    {
+      "strategy": "Krum",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.8811,
+      "l2_error_ci95": [
+        0.8698,
+        0.8931
+      ],
+      "mean_latency_ms": 5.3978,
+      "error_vs_own_no_attack": 1.004
+    },
+    {
+      "strategy": "MultiKrum",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.2961,
+      "l2_error_ci95": [
+        0.2904,
+        0.3016
+      ],
+      "mean_latency_ms": 4.7197,
+      "error_vs_own_no_attack": 1.0
+    },
+    {
+      "strategy": "Bulyan",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.3894,
+      "l2_error_ci95": [
+        0.3821,
+        0.3973
+      ],
+      "mean_latency_ms": 4.8674,
+      "error_vs_own_no_attack": 1.005
+    },
+    {
+      "strategy": "GeometricMedian",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.2617,
+      "l2_error_ci95": [
+        0.2567,
+        0.2664
+      ],
+      "mean_latency_ms": 7.1328,
+      "error_vs_own_no_attack": 1.147
+    },
+    {
+      "strategy": "FedAvg",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 14.0936,
+      "l2_error_ci95": [
+        13.7649,
+        14.4435
+      ],
+      "mean_latency_ms": 0.0923,
+      "error_vs_own_no_attack": 1.009
+    },
+    {
+      "strategy": "FedMedian",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 15.9275,
+      "l2_error_ci95": [
+        15.5798,
+        16.2981
+      ],
+      "mean_latency_ms": 0.1555,
+      "error_vs_own_no_attack": 1.007
+    },
+    {
+      "strategy": "TrimmedMean",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 14.7314,
+      "l2_error_ci95": [
+        14.3934,
+        15.0898
+      ],
+      "mean_latency_ms": 0.1756,
+      "error_vs_own_no_attack": 1.008
+    },
+    {
+      "strategy": "Krum",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 43.445,
+      "l2_error_ci95": [
+        42.7228,
+        44.0877
+      ],
+      "mean_latency_ms": 4.9603,
+      "error_vs_own_no_attack": 0.999
+    },
+    {
+      "strategy": "MultiKrum",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 16.9244,
+      "l2_error_ci95": [
+        16.5451,
+        17.2969
+      ],
+      "mean_latency_ms": 5.0789,
+      "error_vs_own_no_attack": 1.006
+    },
+    {
+      "strategy": "Bulyan",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 20.6263,
+      "l2_error_ci95": [
+        20.2302,
+        21.0408
+      ],
+      "mean_latency_ms": 5.1328,
+      "error_vs_own_no_attack": 1.003
+    },
+    {
+      "strategy": "GeometricMedian",
+      "attack_ratio": 0.1,
+      "n_byzantine": 2,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 14.1171,
+      "l2_error_ci95": [
+        13.7844,
+        14.4671
+      ],
+      "mean_latency_ms": 7.2072,
+      "error_vs_own_no_attack": 1.009
+    },
+    {
+      "strategy": "FedAvg",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 7.501,
+      "l2_error_ci95": [
+        7.387,
+        7.614
+      ],
+      "mean_latency_ms": 0.083,
+      "error_vs_own_no_attack": 32.928
+    },
+    {
+      "strategy": "FedMedian",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.6495,
+      "l2_error_ci95": [
+        0.6425,
+        0.6562
+      ],
+      "mean_latency_ms": 0.1514,
+      "error_vs_own_no_attack": 2.36
+    },
+    {
+      "strategy": "TrimmedMean",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 4.4729,
+      "l2_error_ci95": [
+        4.4104,
+        4.5342
+      ],
+      "mean_latency_ms": 0.1917,
+      "error_vs_own_no_attack": 18.437
+    },
+    {
+      "strategy": "Krum",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.9578,
+      "l2_error_ci95": [
+        0.9391,
+        0.9772
+      ],
+      "mean_latency_ms": 4.9352,
+      "error_vs_own_no_attack": 1.091
+    },
+    {
+      "strategy": "MultiKrum",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.2933,
+      "l2_error_ci95": [
+        0.2867,
+        0.2988
+      ],
+      "mean_latency_ms": 4.776,
+      "error_vs_own_no_attack": 0.99
+    },
+    {
+      "strategy": "Bulyan",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.3837,
+      "l2_error_ci95": [
+        0.3762,
+        0.3914
+      ],
+      "mean_latency_ms": 5.1447,
+      "error_vs_own_no_attack": 0.99
+    },
+    {
+      "strategy": "GeometricMedian",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 0.5273,
+      "l2_error_ci95": [
+        0.5203,
+        0.5339
+      ],
+      "mean_latency_ms": 6.8808,
+      "error_vs_own_no_attack": 2.311
+    },
+    {
+      "strategy": "FedAvg",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 14.3587,
+      "l2_error_ci95": [
+        14.024,
+        14.7113
+      ],
+      "mean_latency_ms": 0.0801,
+      "error_vs_own_no_attack": 1.028
+    },
+    {
+      "strategy": "FedMedian",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 16.1662,
+      "l2_error_ci95": [
+        15.8084,
+        16.5359
+      ],
+      "mean_latency_ms": 0.1467,
+      "error_vs_own_no_attack": 1.022
+    },
+    {
+      "strategy": "TrimmedMean",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 14.9878,
+      "l2_error_ci95": [
+        14.6464,
+        15.3508
+      ],
+      "mean_latency_ms": 0.1725,
+      "error_vs_own_no_attack": 1.026
+    },
+    {
+      "strategy": "Krum",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 43.5672,
+      "l2_error_ci95": [
+        42.8463,
+        44.2156
+      ],
+      "mean_latency_ms": 4.8051,
+      "error_vs_own_no_attack": 1.002
+    },
+    {
+      "strategy": "MultiKrum",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 17.123,
+      "l2_error_ci95": [
+        16.7373,
+        17.5085
+      ],
+      "mean_latency_ms": 5.0068,
+      "error_vs_own_no_attack": 1.018
+    },
+    {
+      "strategy": "Bulyan",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 20.8603,
+      "l2_error_ci95": [
+        20.4421,
+        21.2821
+      ],
+      "mean_latency_ms": 5.5034,
+      "error_vs_own_no_attack": 1.014
+    },
+    {
+      "strategy": "GeometricMedian",
+      "attack_ratio": 0.3,
+      "n_byzantine": 6,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 14.3823,
+      "l2_error_ci95": [
+        14.0436,
+        14.7337
+      ],
+      "mean_latency_ms": 7.3525,
+      "error_vs_own_no_attack": 1.028
+    },
+    {
+      "strategy": "FedAvg",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 12.5011,
+      "l2_error_ci95": [
+        12.3097,
+        12.6909
+      ],
+      "mean_latency_ms": 0.08,
+      "error_vs_own_no_attack": 54.878
+    },
+    {
+      "strategy": "FedMedian",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 13.1227,
+      "l2_error_ci95": [
+        12.9341,
+        13.3122
+      ],
+      "mean_latency_ms": 0.1444,
+      "error_vs_own_no_attack": 47.684
+    },
+    {
+      "strategy": "TrimmedMean",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 12.7394,
+      "l2_error_ci95": [
+        12.5498,
+        12.929
+      ],
+      "mean_latency_ms": 0.1429,
+      "error_vs_own_no_attack": 52.512
+    },
+    {
+      "strategy": "Krum",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 12.03,
+      "l2_error_ci95": [
+        8.7257,
+        15.3795
+      ],
+      "mean_latency_ms": 4.5788,
+      "error_vs_own_no_attack": 13.702
+    },
+    {
+      "strategy": "MultiKrum",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 20.8564,
+      "l2_error_ci95": [
+        20.5369,
+        21.1712
+      ],
+      "mean_latency_ms": 4.7786,
+      "error_vs_own_no_attack": 70.413
+    },
+    {
+      "strategy": "Bulyan",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 25.0029,
+      "l2_error_ci95": [
+        24.6183,
+        25.3792
+      ],
+      "mean_latency_ms": 4.3806,
+      "error_vs_own_no_attack": 64.524
+    },
+    {
+      "strategy": "GeometricMedian",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "No DP",
+      "n_rounds": 50,
+      "mean_l2_error": 12.8499,
+      "l2_error_ci95": [
+        12.6659,
+        13.0339
+      ],
+      "mean_latency_ms": 7.0124,
+      "error_vs_own_no_attack": 56.31
+    },
+    {
+      "strategy": "FedAvg",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 14.6298,
+      "l2_error_ci95": [
+        14.2904,
+        14.986
+      ],
+      "mean_latency_ms": 0.0897,
+      "error_vs_own_no_attack": 1.048
+    },
+    {
+      "strategy": "FedMedian",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 16.4098,
+      "l2_error_ci95": [
+        16.0468,
+        16.7821
+      ],
+      "mean_latency_ms": 0.1565,
+      "error_vs_own_no_attack": 1.038
+    },
+    {
+      "strategy": "TrimmedMean",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 15.2494,
+      "l2_error_ci95": [
+        14.9033,
+        15.6132
+      ],
+      "mean_latency_ms": 0.1732,
+      "error_vs_own_no_attack": 1.044
+    },
+    {
+      "strategy": "Krum",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 43.7144,
+      "l2_error_ci95": [
+        42.9682,
+        44.3824
+      ],
+      "mean_latency_ms": 4.8434,
+      "error_vs_own_no_attack": 1.006
+    },
+    {
+      "strategy": "MultiKrum",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 17.3938,
+      "l2_error_ci95": [
+        17.0108,
+        17.7749
+      ],
+      "mean_latency_ms": 4.7434,
+      "error_vs_own_no_attack": 1.034
+    },
+    {
+      "strategy": "Bulyan",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 21.0597,
+      "l2_error_ci95": [
+        20.6548,
+        21.4669
+      ],
+      "mean_latency_ms": 5.0277,
+      "error_vs_own_no_attack": 1.024
+    },
+    {
+      "strategy": "GeometricMedian",
+      "attack_ratio": 0.5,
+      "n_byzantine": 10,
+      "dp_mode": "DP (\u03b5=1.0, \u03b4=1e-5)",
+      "n_rounds": 50,
+      "mean_l2_error": 14.6542,
+      "l2_error_ci95": [
+        14.3097,
+        15.01
+      ],
+      "mean_latency_ms": 7.0254,
+      "error_vs_own_no_attack": 1.047
+    }
+  ],
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "b4ec8f77e65d",
+    "git_dirty": true,
+    "generated_at": "2026-08-03T21:42:02+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "seed": 42
+  }
+}
