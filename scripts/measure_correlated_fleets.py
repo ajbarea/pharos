@@ -132,14 +132,16 @@ class Cell:
         }
 
 
-def draw_fleet(rate: float, *, schools: int, rng: Random) -> tuple[AnalystPolicy, ...]:
+def draw_fleet(
+    rate: float, *, schools: int, rng: Random, fleet: int = FLEET
+) -> tuple[AnalystPolicy, ...]:
     """A fleet whose wrong standards are distributed over `schools` independent groups.
 
-    `schools == FLEET` is the i.i.d. case, one analyst per school. `schools == 1` is
+    `schools == fleet` is the i.i.d. case, one analyst per school. `schools == 1` is
     total correlation, the whole fleet right or wrong together. Sizes are equal, so the
     expected error rate is `rate` in every structure and only its distribution changes.
     """
-    per_school = FLEET // schools
+    per_school = fleet // schools
     policies: list[AnalystPolicy] = []
     for school in range(schools):
         wrong = rng.random() < rate
@@ -210,6 +212,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--events", type=int, default=EVENTS)
     parser.add_argument("--draws", type=int, default=DRAWS)
+    parser.add_argument("--fleet", type=int, default=FLEET)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
 
@@ -220,8 +223,8 @@ def main() -> int:
     }
     truth = {t.task_id: t.significant for t in tasks}
 
-    structures = (("independent", FLEET), ("three schools", 3), ("one culture", 1))
-    print(f"{len(tasks)} tasks, fleets of {FLEET}, {args.draws} draws per cell")
+    structures = (("independent", args.fleet), ("three schools", 3), ("one culture", 1))
+    print(f"{len(tasks)} tasks, fleets of {args.fleet}, {args.draws} draws per cell")
     print(f"  {'rate':>5} {'structure':>14} {'P(wrong maj)':>13} {'E[agree]':>10} {'D-S':>8}")
     print("  " + "-" * 56)
 
@@ -229,7 +232,7 @@ def main() -> int:
     for rate in RATES:
         for name, schools in structures:
             rng = Random(SEED * 1000 + int(rate * 100) * 10 + schools)
-            exact = exact_wrong_majority(rate, schools=schools)
+            exact = exact_wrong_majority(rate, schools=schools, fleet=args.fleet)
 
             # Conditional agreements, measured. Drawn fleets are grouped by whether
             # they crossed the majority, so each conditional is estimated on the
@@ -239,9 +242,9 @@ def main() -> int:
             ds_major: list[float] = []
             ds_minor: list[float] = []
             for draw in range(args.draws):
-                fleet = draw_fleet(rate, schools=schools, rng=rng)
+                drawn = draw_fleet(rate, schools=schools, rng=rng, fleet=args.fleet)
                 consensus, ds, crossed = score_fleet(
-                    fleet, tasks, proposals, truth, seed=SEED + draw
+                    drawn, tasks, proposals, truth, seed=SEED + draw
                 )
                 (with_majority if crossed else without).append(consensus)
                 (ds_major if crossed else ds_minor).append(ds)
@@ -303,7 +306,7 @@ def main() -> int:
 
     report = {
         "provenance": run_provenance(seed=SEED),
-        "fleet": FLEET,
+        "fleet": args.fleet,
         "events": args.events,
         "draws_per_cell": args.draws,
         "wrong_threshold": WRONG_THRESHOLD,

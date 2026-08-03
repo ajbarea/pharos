@@ -179,7 +179,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `difficulty_confound` | 200 | yes | - |
 | `edge_cost` | 19 | **no** | n=19 is below 30; treat differences as provisional |
 | `fleet_linkage` | 200 | yes | - |
-| `label_fidelity` | 40 | yes | - |
+| `label_fidelity` | 24 | **no** | n=24 is below 30; treat differences as provisional |
 | `privacy_budget` | 200 | yes | - |
 | `review_adapter-any-one` | 600 | **no** | **adapter**: accuracy 0.440 does not beat the majority floor 0.685: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `review_adapter-by-the-book` | 600 | **no** | **base**: 74/600 answers were unparsable (12%); every other number describes only the remainder; accuracy 0.361 does not beat the majority floor 0.675: this is not evidence of capability |
@@ -187,16 +187,17 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `review_adapter-two-of-three` | 600 | yes | - |
 | `review_sweep` | 40 | yes | - |
 | `tagged_aggregation` | 200 | yes | - |
-| `triage_lift-llama3.1-8b` | 40 | **no** | accuracy 0.500 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
-| `triage_lift-llama3.2-3b` | 40 | **no** | accuracy 0.475 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
-| `triage_lift-mistral-7b` | 40 | **no** | accuracy 0.425 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
-| `triage_lift-qwen2.5-14b` | 40 | **no** | accuracy 0.525 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
-| `triage_lift-qwen2.5-3b` | 40 | **no** | accuracy 0.625 does not beat the majority floor 0.625: this is not evidence of capability |
-| `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.625: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `triage_lift-llama3.1-8b` | 40 | **no** | accuracy 0.600 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `triage_lift-llama3.2-3b` | 40 | yes | - |
+| `triage_lift-mistral-7b` | 40 | **no** | accuracy 0.487 does not beat the majority floor 0.641: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `triage_lift-qwen2.5-14b` | 40 | **no** | accuracy 0.625 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `triage_lift-qwen2.5-3b` | 40 | yes | - |
+| `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**9 of 21** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**9 of 22** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
-**Carrying no validity assessment, which is a gap rather than a pass:** `adversarial_robustness`, `fl_benchmarks`.
+**Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`.
 
 Assessed by their script but not yet in the committed artifact (6 of these), which needs a rerun rather than an edit:
 
@@ -1782,6 +1783,39 @@ CC-Rasch recovers the truth exactly where Dawid-Skene and GLAD both collapse to 
     identically. Five of eight sizes support the second reading and three the first,
     which is a statement about the estimator's identifiability rather than about
     class-conditional modelling. Fixing it is open work.
+
+!!! danger "Fleet size decides which estimators agree, and 9 is the size where they all look alike"
+    Fleet size is the other researcher degree of freedom here, and nothing chose 9 on
+    principle. Sweeping it, at a bare majority holding the wrong standard:
+
+    | Fleet | Dawid-Skene | GLAD | CC-Rasch | GLAD ability inverted |
+    | --- | --- | --- | --- | --- |
+    | 5 | 0.660 | 0.660 | 0.660 | yes |
+    | **9** (committed) | **0.660** | **0.660** | 1.000 | yes |
+    | 15 | **1.000** | 0.660 | 1.000 | yes |
+    | 25 | **1.000** | 0.660 | 1.000 | yes |
+    | 51 | **1.000** | 0.660 | 1.000 | yes |
+
+    **Dawid-Skene recovers the truth at a bare majority once the fleet reaches 15**, and
+    so does CC-Rasch from 9. **GLAD never does, at any size.** At the committed fleet of
+    9 all three sit at 0.660 and the natural reading is that the whole family fails
+    together. That reading is an artifact of the smallest fleet in the sweep.
+
+    Two things this does *not* undo. GLAD's failure is size-independent, and its ability
+    inversion holds at **every** size tested -- so the claim this finding is actually
+    about, that adding an item-difficulty term converts a wrong standard into a property
+    of the data, is the part that survives the multiverse. What it does undo is the
+    sentence that all three agree to three decimals: true at 9, false from 15.
+
+    The reason nobody had checked is that `FLEET = 9` was a module constant in this
+    script and in `measure_correlated_fleets.py`, so the parameter that decides the
+    result could not be varied without editing source. Both now take `--fleet`, and the
+    default reproduces every committed number exactly.
+
+    Reported as a multiverse rather than a single specification, after Linde et al.
+    ([arXiv:2605.19745](https://arxiv.org/abs/2605.19745), 2026), whose point is that
+    sweeping the defensible choices mostly exposes *computational failures that
+    otherwise go unreported* -- which is what happened twice on this page.
 
 What survives the sweep is the part that does not depend on CC-Rasch. Dawid-Skene and
 GLAD agree with each other and drop to roughly 0.63-0.67 at the crossing at *every*

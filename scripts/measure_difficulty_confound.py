@@ -55,14 +55,26 @@ FLEET = 9
 #: The wrong standard, matching findings 12 and 16 so the three are comparable.
 WRONG_THRESHOLD = 2
 
-#: Fleet compositions to estimate difficulty under. The first is the control and is
-#: the whole point: without it, a difficulty estimate has nothing to be compared to.
-COMPOSITIONS: tuple[tuple[str, int, float], ...] = (
-    ("correct fleet (control)", 0, 0.0),
-    ("correct, 15% random slip", 0, 0.15),
-    ("3 of 9 wrong standard", 3, 0.0),
-    ("5 of 9 wrong standard", 5, 0.0),
-)
+
+def compositions(fleet: int) -> tuple[tuple[str, int, float], ...]:
+    """Fleet compositions to estimate difficulty under, derived from the fleet size.
+
+    The first is the control and is the whole point: without it, a difficulty estimate
+    has nothing to be compared to. The other two are a clear minority holding the wrong
+    standard and a bare majority holding it, which is the crossing every finding here
+    turns on.
+
+    Derived rather than hardcoded because fleet size is a researcher degree of freedom
+    with no principled single value, and a conclusion that moves with it is a property
+    of the choice rather than of the system. These reproduce the previous literals
+    exactly at the default of 9 -- a third is 3, a bare majority is 5.
+    """
+    return (
+        ("correct fleet (control)", 0, 0.0),
+        ("correct, 15% random slip", 0, 0.15),
+        (f"{round(fleet / 3)} of {fleet} wrong standard", round(fleet / 3), 0.0),
+        (f"{fleet // 2 + 1} of {fleet} wrong standard", fleet // 2 + 1, 0.0),
+    )
 
 
 def signature_overlap(task: TriageTask) -> int:
@@ -192,8 +204,8 @@ def carries_the_claim(row: "Row") -> bool:
     return row.n_wrong > 0 or row.slip_rate == 0.0
 
 
-def build_fleet(n_wrong: int, slip: float) -> tuple[AnalystPolicy, ...]:
-    right = [AnalystPolicy(f"right-{i}", slip_rate=slip) for i in range(FLEET - n_wrong)]
+def build_fleet(n_wrong: int, slip: float, fleet: int = FLEET) -> tuple[AnalystPolicy, ...]:
+    right = [AnalystPolicy(f"right-{i}", slip_rate=slip) for i in range(fleet - n_wrong)]
     wrong = [
         AnalystPolicy(f"wrong-{i}", escalation_threshold=WRONG_THRESHOLD) for i in range(n_wrong)
     ]
@@ -221,6 +233,7 @@ def collect(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--events", type=int, default=EVENTS)
+    parser.add_argument("--fleet", type=int, default=FLEET)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
 
@@ -242,8 +255,8 @@ def main() -> int:
     print("  " + "-" * (28 + 9 * len(bands) + 9))
 
     rows: list[Row] = []
-    for name, n_wrong, slip in COMPOSITIONS:
-        contributions = collect(build_fleet(n_wrong, slip), tasks, proposals, seed=SEED)
+    for name, n_wrong, slip in compositions(args.fleet):
+        contributions = collect(build_fleet(n_wrong, slip, args.fleet), tasks, proposals, seed=SEED)
         estimate = glad(contributions)
         ds = dawid_skene(contributions)
         ccr = cc_rasch(contributions)
@@ -413,7 +426,7 @@ def main() -> int:
     report = {
         "provenance": run_provenance(seed=SEED),
         "events": args.events,
-        "fleet": FLEET,
+        "fleet": args.fleet,
         "wrong_threshold": WRONG_THRESHOLD,
         "items_by_overlap": {str(k): v for k, v in counts.items()},
         "rows": [r.as_dict() for r in rows],
