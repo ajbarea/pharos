@@ -54,6 +54,22 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
+  /* The fleet visualiser is the animated part of this page and the reason this block
+     exists: a dashed path scrolling forever, a glow pulsing on a 1.8s alternate, and a
+     particle easing between nodes. None of it carries information the static frame does
+     not -- the node a particle sits on is already coloured and labelled -- so honouring
+     a reduced-motion preference costs the reader nothing and removes the one thing on
+     this page that can trigger vestibular symptoms. Durations go to a value rather than
+     `none` so transitionend and animationiteration handlers still fire. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    .viz-path { stroke-dasharray: none; }
+  }
   /* Styling `input` at all overrides the browser's own disabled appearance, so a
      frozen field came out pixel-identical to a live one: same colour, same
      background, opacity 1. The attribute was set and said nothing. Restate it. */
