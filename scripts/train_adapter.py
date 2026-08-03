@@ -41,6 +41,7 @@ import argparse
 import json
 import os
 import random
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -173,12 +174,35 @@ def review_targets(tasks: list[TriageTask], policy: AnalystPolicy, *, seed: int)
     }
 
 
+#: A reviewer specified as a point on the standard-by-carefulness grid rather than by
+#: name: `t2s0.15` is a two-of-three reviewer slipping 15% of the time. The named
+#: ensemble has eight members and only four of them move target accuracy at all -- the
+#: rest vary disclosure or grounds -- so a teacher fleet larger than four cannot be
+#: expressed by name. This is the same grid `measure_review_sweep.py` sweeps, so a
+#: teacher's target accuracy is already known before an adapter is trained on it.
+_GRID_SPEC = re.compile(r"^t(?P<threshold>[123])s(?P<slip>0(?:\.\d+)?)$")
+
+
 def resolve_reviewer(name: str) -> AnalystPolicy:
-    """A reviewer from the default grid, by name."""
+    """A reviewer from the default grid by name, or a grid point like `t2s0.15`.
+
+    Named lookup is tried first and is unchanged, so every committed artifact keeps
+    resolving to exactly the policy that produced it.
+    """
     by_name = {p.name: p for p in DEFAULT_ENSEMBLE}
-    if name not in by_name:
-        raise SystemExit(f"unknown reviewer {name!r}; have: {', '.join(sorted(by_name))}")
-    return by_name[name]
+    if name in by_name:
+        return by_name[name]
+    spec = _GRID_SPEC.match(name)
+    if spec is None:
+        raise SystemExit(
+            f"unknown reviewer {name!r}; have: {', '.join(sorted(by_name))}, "
+            f"or a grid point like t2s0.15 (threshold 1-3, slip rate)"
+        )
+    return AnalystPolicy(
+        name,
+        escalation_threshold=int(spec["threshold"]),
+        slip_rate=float(spec["slip"]),
+    )
 
 
 def build_examples(

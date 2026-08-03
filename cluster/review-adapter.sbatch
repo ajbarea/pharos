@@ -65,6 +65,29 @@ nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 MODEL="${PHAROS_ADAPTER_MODEL:-Qwen/Qwen2.5-3B-Instruct}"
 REVIEWERS="${PHAROS_REVIEWERS:-by-the-book inattentive two-of-three any-one}"
 
+# The four named teachers span target accuracy but they are four, and four adapters is
+# four case studies rather than a fleet: federated-LoRA work runs 20 clients in its main
+# experiments and extends to 50 and 100. Submitting this as an array runs one teacher
+# per array task over the full standard-by-carefulness grid instead --- the same grid
+# `measure_review_sweep.py` sweeps, so each teacher's target accuracy is known before an
+# adapter is trained on it, and the 24 cells span 0.445 to 1.000.
+#
+#   sbatch cluster/review-adapter.sbatch                    # the committed four
+#   sbatch --array=0-23%4 cluster/review-adapter.sbatch     # the 24-teacher fleet
+#
+# %4 because four concurrent A100s is what the allocation holds; the array serialises
+# the rest rather than queueing 24 at once.
+if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
+  GRID=()
+  for threshold in 1 2 3; do
+    for slip in 0 0.05 0.1 0.15 0.2 0.3 0.4 0.5; do
+      GRID+=("t${threshold}s${slip}")
+    done
+  done
+  REVIEWERS="${GRID[$SLURM_ARRAY_TASK_ID]}"
+  echo ">>> array task $SLURM_ARRAY_TASK_ID of ${#GRID[@]} -> teacher $REVIEWERS"
+fi
+
 # Evaluation size, and the corpus size that keeps the training set fixed while it
 # grows. The trainer splits tasks into eval-first, train-rest, so holding
 # EVENTS - EVAL constant at 1140 keeps every run's training data the same size as
