@@ -7,8 +7,14 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=06:00:00
-#SBATCH --output=cluster/logs/%x-%j.out
-#SBATCH --error=cluster/logs/%x-%j.err
+# %A_%a rather than %j, so an array task's log is named by the array job and the task
+# index that produced it. With %j each task is named by its own internal job id, which
+# is a different number from the `21444845_7` that squeue, sacct and every error message
+# use -- array task 0 of the first run landed in a file called `...-21444846.out`, and
+# mapping a log back to a teacher meant grepping the file for its own index. For a
+# non-array submission %A_%a still resolves, to the job id and a bare `4294967294`.
+#SBATCH --output=cluster/logs/%x-%A_%a.out
+#SBATCH --error=cluster/logs/%x-%A_%a.err
 #
 # Does a learner trained on a reviewer's decisions learn the rule, or the reviewer?
 #
@@ -122,11 +128,19 @@ for reviewer in $REVIEWERS; do
   echo ">>> teacher: $reviewer"
   echo "============================================================"
   # --skip-base-eval on every run after the first: the base model does not change
-  # between teachers, so re-measuring it four times spends roughly a quarter of the
-  # allocation confirming a number this job already has. The first run keeps it so
-  # the artifact set carries one honest baseline.
+  # between teachers, so re-measuring it once per teacher spends a large fraction of
+  # the allocation confirming a number the job already has. One honest baseline is
+  # kept so the artifact set carries it.
+  #
+  # "The first" has to mean the first *across the whole submission*, not the first in
+  # this process. Under `--array` each task runs a single teacher, so every task saw
+  # itself as first and re-ran the base evaluation: 24 tasks, 24 base evaluations at
+  # 600 tasks apiece, of which 23 measure an unchanged model. Array task 0 keeps it
+  # and the rest skip.
   extra=""
-  if [ "$reviewer" != "$(echo "$REVIEWERS" | awk '{print $1}')" ]; then
+  if [ -n "${SLURM_ARRAY_TASK_ID:-}" ]; then
+    [ "$SLURM_ARRAY_TASK_ID" -ne 0 ] && extra="--skip-base-eval"
+  elif [ "$reviewer" != "$(echo "$REVIEWERS" | awk '{print $1}')" ]; then
     extra="--skip-base-eval"
   fi
 
