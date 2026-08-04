@@ -321,3 +321,86 @@ def test_timestamps_are_rfc3339_with_subsecond_precision():
     record = logging.LogRecord("pharos", logging.INFO, __file__, 1, "x", None, None)
     stamp = json.loads(JsonFormatter().format(record))["timestamp"]
     assert _re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}[+-]\d{2}:\d{2}", stamp), stamp
+
+
+def _fresh_tally():
+    """A tally isolated from whatever the rest of the suite has already logged."""
+    from pharos.telemetry import _WarningTally
+
+    return _WarningTally()
+
+
+def test_the_tally_counts_only_warnings_and_above():
+    """INFO is the volume the summary exists to see past, so it must not be counted."""
+    import logging
+
+    tally = _fresh_tally()
+    logger = logging.getLogger("pharos.test.tally")
+    logger.propagate = False
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(tally)
+
+    for _ in range(2000):
+        logger.info("tick", extra={"event": "adapter.eval_progress"})
+    for _ in range(24):
+        logger.warning("unauth", extra={"event": "hf.unauthenticated"})
+    logger.error("boom", extra={"event": "adapter.failed"})
+
+    assert tally.counts == {
+        ("WARNING", "hf.unauthenticated"): 24,
+        ("ERROR", "adapter.failed"): 1,
+    }
+
+
+def test_the_tally_keys_on_the_event_not_the_message():
+    """Records carry a stable `event`; the message is prose and varies per call site."""
+    import logging
+
+    tally = _fresh_tally()
+    logger = logging.getLogger("pharos.test.tally.event")
+    logger.propagate = False
+    logger.addHandler(tally)
+
+    logger.warning("accuracy 0.47 below floor", extra={"event": "validity.below_majority"})
+    logger.warning("accuracy 0.33 below floor", extra={"event": "validity.below_majority"})
+    assert tally.counts == {("WARNING", "validity.below_majority"): 2}
+
+    # No `event` at all: fall back to the message, so a stdlib warning still tallies.
+    logger.warning("a bare warning")
+    assert tally.counts[("WARNING", "a bare warning")] == 1
+
+
+def test_the_summary_is_empty_when_nothing_warned():
+    """A clean run must print nothing. A summary that always fires is noise itself."""
+    import pharos.telemetry as t
+
+    saved = dict(t._TALLY.counts)
+    t._TALLY.counts.clear()
+    try:
+        assert t.format_warning_summary() == ""
+    finally:
+        t._TALLY.counts.update(saved)
+
+
+def test_the_summary_orders_errors_first_then_by_count():
+    """What a human scanning the tail of a 1.1 MB log needs at the top."""
+    import pharos.telemetry as t
+
+    saved = dict(t._TALLY.counts)
+    t._TALLY.counts.clear()
+    t._TALLY.counts.update(
+        {
+            ("WARNING", "hf.unauthenticated"): 24,
+            ("WARNING", "validity.below_majority"): 12,
+            ("ERROR", "adapter.failed"): 1,
+        }
+    )
+    try:
+        lines = t.format_warning_summary().splitlines()
+        assert "37 warning(s)" in lines[0]
+        assert "adapter.failed" in lines[1], "an ERROR must outrank a 24x WARNING"
+        assert "hf.unauthenticated" in lines[2]
+        assert "validity.below_majority" in lines[3]
+    finally:
+        t._TALLY.counts.clear()
+        t._TALLY.counts.update(saved)

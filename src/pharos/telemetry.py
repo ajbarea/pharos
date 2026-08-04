@@ -26,9 +26,11 @@ it you still get JSON logs, which is the useful default for a research tool.
 `docker compose up -d` brings up a collector, Jaeger, and Prometheus to point at.
 """
 
+import atexit
 import json
 import logging
 import os
+import sys
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -43,6 +45,72 @@ _TRACING_ACTIVE = False
 _tracer: Any = None
 _meter: Any = None
 _histograms: dict[str, Any] = {}
+
+
+class _WarningTally(logging.Handler):
+    """Counts WARNING-and-above records so a run can report them where a human looks.
+
+    Volume is the problem this solves. A 24-task adapter array wrote 1.1 MB of stderr,
+    of which 2,880 lines were routine progress and 24 were "you are sending
+    unauthenticated requests to the HF Hub" -- every task in the array, invisible in
+    every one of them. Nobody was ignoring the warning; it was six thousandths of the
+    output and scrolled past twenty minutes before the job ended.
+
+    Demoting progress is not the fix: `progress` is INFO deliberately, because a job
+    that logs only its result is indistinguishable from a job that has hung, and that
+    ambiguity has already cost a debugging session here. So the fix is at the other
+    end -- summarise at exit, where the eye lands, in a fixed number of lines that does
+    not grow with the run.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(level=logging.WARNING)
+        self.counts: dict[tuple[str, str], int] = {}
+
+    @override
+    def emit(self, record: logging.LogRecord) -> None:
+        event = str(getattr(record, "event", None) or record.getMessage())
+        self.counts[(record.levelname, event)] = self.counts.get((record.levelname, event), 0) + 1
+
+
+_TALLY = _WarningTally()
+
+
+def warning_tally() -> dict[tuple[str, str], int]:
+    """What has been warned about so far, as {(level, event): count}."""
+    return dict(_TALLY.counts)
+
+
+def format_warning_summary() -> str:
+    """The summary text, or empty when the run warned about nothing.
+
+    Separate from printing it so a caller -- a test, or a script that wants the summary
+    somewhere other than stderr -- can have the string without the side effect.
+    """
+    if not _TALLY.counts:
+        return ""
+    order = {"CRITICAL": 0, "ERROR": 1, "WARNING": 2}
+    rows = sorted(_TALLY.counts.items(), key=lambda kv: (order.get(kv[0][0], 3), -kv[1]))
+    total = sum(_TALLY.counts.values())
+    lines = [f"pharos: {total} warning(s) this run, by event:"]
+    lines += [f"  {count:5d}  {level:8s} {event}" for (level, event), count in rows]
+    return "\n".join(lines)
+
+
+def _print_warning_summary() -> None:
+    # Not under pytest. A suite provokes these warnings on purpose -- half the validity
+    # tests exist to assert that a warning fires -- so the summary would report a dozen
+    # deliberate ones after every run and read as a failing build. pytest already
+    # reports what a test run needs reported.
+    if "pytest" in sys.modules:
+        return
+    summary = format_warning_summary()
+    if summary:
+        # Written to the stream rather than printed: this is a library, `print` is the
+        # CLI's to use, and at interpreter exit the stream is the only thing still
+        # guaranteed to be there.
+        sys.stderr.write(summary + "\n")
+        sys.stderr.flush()
 
 
 class JsonFormatter(logging.Formatter):
@@ -162,6 +230,11 @@ def configure(
         handler = logging.StreamHandler()
         handler.setFormatter(JsonFormatter() if json_logs else logging.Formatter())
         logger.addHandler(handler)
+        # Counts warnings for the exit summary. Attached to the same logger rather than
+        # wrapping the stream handler, so it tallies every warning regardless of where
+        # the records are being written or whether anything is reading them.
+        logger.addHandler(_TALLY)
+        atexit.register(_print_warning_summary)
         logger.setLevel(level)
         logger.propagate = False
         _CONFIGURED = True

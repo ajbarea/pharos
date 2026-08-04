@@ -1668,7 +1668,7 @@ requires-dist = [
     { name = "peft", marker = "extra == 'train'", specifier = ">=0.14" },
     { name = "scikit-learn", specifier = ">=1.6" },
     { name = "torch", marker = "extra == 'train'", specifier = ">=2.6" },
-    { name = "transformers", marker = "extra == 'train'", specifier = ">=4.48" },
+    { name = "transformers", marker = "extra == 'train'", specifier = ">=5.0" },
 ]
 provides-extras = ["otel", "train", "external"]
 

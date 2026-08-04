@@ -540,7 +540,11 @@ def main() -> int:
             gradient_accumulation_steps=args.grad_accum,
             learning_rate=args.lr,
             lr_scheduler_type="cosine",
-            warmup_ratio=0.1,
+            # A float below 1 means the same thing `warmup_ratio` did: a fraction of
+            # total steps. The two arguments were merged in transformers 5, which is
+            # why the extra now floors there -- on 4.x this field is an int and 0.1
+            # truncates to zero, silently training with no warmup at all.
+            warmup_steps=0.1,
             logging_steps=5,
             save_strategy="no",
             bf16=True,

@@ -73,7 +73,7 @@ jobs:
           files: coverage.xml
           flags: unit
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
+          fail_ci_if_error: true
           disable_search: true
       - name: Upload test results to Codecov
         if: ${{ !cancelled() && matrix.python-version == '3.13' }}
@@ -82,7 +82,7 @@ jobs:
           files: junit.xml
           report_type: test_results
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
+          fail_ci_if_error: true
           disable_search: true
       # Dependency vulnerability scan, matching the sisters. Runs last so a CVE in a
       # transitive dependency does not mask a real test failure.
