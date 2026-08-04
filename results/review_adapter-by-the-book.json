@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "b33f1193527f",
+    "git_commit": "7a37bb5113ba",
     "git_dirty": false,
-    "generated_at": "2026-08-02T15:45:34+00:00",
+    "generated_at": "2026-08-04T14:42:56+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": ".venv/bin/python3",
@@ -35,39 +35,39 @@
     "n_train": 1140,
     "n_eval": 600,
     "train_balance": {
-      "significant": 335,
-      "routine": 805
+      "significant": 350,
+      "routine": 790
     },
     "eval_balance": {
-      "significant": 189,
-      "routine": 411
+      "significant": 186,
+      "routine": 414
     },
     "events_disjoint": true,
     "eval_seed": null,
     "cross_corpus": false
   },
-  "training_loss": 0.29311090895276315,
+  "training_loss": 0.2994937323827024,
   "base": {
     "label": "base",
     "n": 600,
     "confusion": {
-      "tp": 169,
-      "fp": 334,
-      "tn": 21,
-      "fn": 2
+      "tp": 165,
+      "fp": 325,
+      "tn": 27,
+      "fn": 1
     },
-    "unparsed": 74,
-    "accuracy": 0.3167,
-    "majority_accuracy": 0.715,
-    "precision": 0.336,
-    "recall": 0.9883,
-    "f1": 0.5015,
+    "unparsed": 82,
+    "accuracy": 0.32,
+    "majority_accuracy": 0.7233,
+    "precision": 0.3367,
+    "recall": 0.994,
+    "f1": 0.503,
     "validity": {
       "n": 600,
       "quotable": false,
       "concerns": [
-        "74/600 answers were unparsable (12%); every other number describes only the remainder",
-        "accuracy 0.361 does not beat the majority floor 0.675: this is not evidence of capability"
+        "82/600 answers were unparsable (14%); every other number describes only the remainder",
+        "accuracy 0.371 does not beat the majority floor 0.680: this is not evidence of capability"
       ]
     }
   },
@@ -75,17 +75,17 @@
     "label": "adapter",
     "n": 600,
     "confusion": {
-      "tp": 189,
-      "fp": 3,
-      "tn": 408,
+      "tp": 186,
+      "fp": 2,
+      "tn": 412,
       "fn": 0
     },
     "unparsed": 0,
-    "accuracy": 0.995,
-    "majority_accuracy": 0.685,
-    "precision": 0.9844,
+    "accuracy": 0.9967,
+    "majority_accuracy": 0.69,
+    "precision": 0.9894,
     "recall": 1.0,
-    "f1": 0.9921,
+    "f1": 0.9947,
     "validity": {
       "n": 600,
       "quotable": true,
@@ -102,17 +102,17 @@
     "label": "adapter-vs-teacher",
     "n": 600,
     "confusion": {
-      "tp": 189,
-      "fp": 3,
-      "tn": 408,
+      "tp": 186,
+      "fp": 2,
+      "tn": 412,
       "fn": 0
     },
     "unparsed": 0,
-    "accuracy": 0.995,
-    "majority_accuracy": 0.685,
-    "precision": 0.9844,
+    "accuracy": 0.9967,
+    "majority_accuracy": 0.69,
+    "precision": 0.9894,
     "recall": 1.0,
-    "f1": 0.9921,
+    "f1": 0.9947,
     "validity": {
       "n": 600,
       "quotable": true,

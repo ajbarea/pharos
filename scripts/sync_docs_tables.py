@@ -105,6 +105,19 @@ NO_SAMPLING_QUESTION = {
     "triage_lift": "superseded by the per-model triage_lift-* artifacts, which are assessed",
     "fleet_sensitivity": "a sweep over a nuisance parameter; reports invariants, samples nothing",
     "teacher_fleet": "aggregates assessed adapter artifacts; adds no measurement of its own",
+    "adapter_replication": (
+        "compares assessed adapter artifacts against their own replicates; the question is "
+        "whether two runs agree, which no sampling flag answers"
+    ),
+    "gate_determinism": (
+        "reports the gate's surface baseline at full precision on one machine; the result "
+        "is the comparison against another machine, not the number"
+    ),
+    "gate_determinism-cluster": "the second machine of that comparison",
+    "fl_benchmarks": (
+        "sizes the problem rather than settling it, is quoted nowhere in the manuscript, "
+        "and reports a bootstrap interval per condition instead of a flag"
+    ),
 }
 
 

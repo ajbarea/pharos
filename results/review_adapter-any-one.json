@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "b33f1193527f",
+    "git_commit": "7a37bb5113ba",
     "git_dirty": false,
-    "generated_at": "2026-08-02T16:42:17+00:00",
+    "generated_at": "2026-08-04T15:44:43+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": ".venv/bin/python3",
@@ -35,39 +35,39 @@
     "n_train": 1140,
     "n_eval": 600,
     "train_balance": {
-      "significant": 335,
-      "routine": 805
+      "significant": 350,
+      "routine": 790
     },
     "eval_balance": {
-      "significant": 189,
-      "routine": 411
+      "significant": 186,
+      "routine": 414
     },
     "events_disjoint": true,
     "eval_seed": null,
     "cross_corpus": false
   },
-  "training_loss": 0.2647503101210936,
+  "training_loss": 0.25347677802868995,
   "base": null,
   "adapter": {
     "label": "adapter",
     "n": 600,
     "confusion": {
-      "tp": 189,
-      "fp": 336,
-      "tn": 75,
+      "tp": 186,
+      "fp": 320,
+      "tn": 94,
       "fn": 0
     },
     "unparsed": 0,
-    "accuracy": 0.44,
-    "majority_accuracy": 0.685,
-    "precision": 0.36,
+    "accuracy": 0.4667,
+    "majority_accuracy": 0.69,
+    "precision": 0.3676,
     "recall": 1.0,
-    "f1": 0.5294,
+    "f1": 0.5376,
     "validity": {
       "n": 600,
       "quotable": false,
       "concerns": [
-        "accuracy 0.440 does not beat the majority floor 0.685: this is not evidence of capability",
+        "accuracy 0.467 does not beat the majority floor 0.690: this is not evidence of capability",
         "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
       ]
     }
@@ -76,20 +76,20 @@
     "reviewer": "any-one",
     "escalation_threshold": 1,
     "slip_rate": 0.0,
-    "train_target_agreement": 0.4386
+    "train_target_agreement": 0.4465
   },
   "adapter_vs_teacher": {
     "label": "adapter-vs-teacher",
     "n": 600,
     "confusion": {
-      "tp": 525,
+      "tp": 506,
       "fp": 0,
-      "tn": 75,
+      "tn": 94,
       "fn": 0
     },
     "unparsed": 0,
     "accuracy": 1.0,
-    "majority_accuracy": 0.875,
+    "majority_accuracy": 0.8433,
     "precision": 1.0,
     "recall": 1.0,
     "f1": 1.0,
@@ -97,7 +97,7 @@
       "n": 600,
       "quotable": false,
       "concerns": [
-        "class prevalence 0.88 gives a majority floor of 0.875; compare scores to that, not to 0.5",
+        "class prevalence 0.84 gives a majority floor of 0.843; compare scores to that, not to 0.5",
         "score is saturated (no errors in 600): the rule of three bounds the true error rate only at 0.5%, and a ceiling cannot rank anything above it. Report n alongside the score"
       ]
     }

@@ -377,6 +377,10 @@ _METRIC_META: dict[str, tuple[str, str]] = {
         "1",
         "Share of decisions an adapter reproduces from the teacher that taught it",
     ),
+    "replication.delta": (
+        "1",
+        "How far a retrained adapter's agreement with the world moved from its replicate",
+    ),
 }
 
 #: Anything not in the registry above. `1` is UCUM's unity, which is the honest default

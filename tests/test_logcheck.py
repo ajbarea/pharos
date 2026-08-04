@@ -65,6 +65,7 @@ def test_the_model_free_sweep_covers_the_model_free_measurements():
         "measure_gate_determinism.py": "one half of a two-machine comparison; CI is one machine",
         "measure_edge_cost.py": "reads artifacts produced by GPU jobs",
         "measure_teacher_fleet.py": "reads adapter artifacts produced by cluster jobs",
+        "measure_adapter_replication.py": "reads adapter artifacts produced by cluster jobs",
         "train_adapter.py": "needs a CUDA GPU",
         "validate_gate_externally.py": "downloads corpora from the network",
         "sweep_models.sh": "shell driver",

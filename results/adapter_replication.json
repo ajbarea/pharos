@@ -1,0 +1,64 @@
+{
+  "pairs": [
+    {
+      "named": "any-one",
+      "grid": "t1s0",
+      "slip_rate": 0.0,
+      "targets_identical": true,
+      "delta_vs_world": 0.0,
+      "delta_vs_teacher": 0.0,
+      "target_agreement_delta": 0.0
+    },
+    {
+      "named": "two-of-three",
+      "grid": "t2s0",
+      "slip_rate": 0.0,
+      "targets_identical": true,
+      "delta_vs_world": 0.008399999999999963,
+      "delta_vs_teacher": 0.015000000000000013,
+      "target_agreement_delta": 0.0
+    },
+    {
+      "named": "by-the-book",
+      "grid": "t3s0",
+      "slip_rate": 0.0,
+      "targets_identical": true,
+      "delta_vs_world": 0.0,
+      "delta_vs_teacher": 0.0,
+      "target_agreement_delta": 0.0
+    },
+    {
+      "named": "inattentive",
+      "grid": "t3s0.15",
+      "slip_rate": 0.15,
+      "targets_identical": false,
+      "delta_vs_world": 0.026599999999999957,
+      "delta_vs_teacher": 0.0050000000000000044,
+      "target_agreement_delta": 0.008700000000000041
+    }
+  ],
+  "summary": {
+    "training_only": {
+      "n_pairs": 3,
+      "max": 0.015,
+      "median": 0.0,
+      "exactly_identical": 2
+    },
+    "whole_procedure_including_target_draw": {
+      "n_pairs": 1,
+      "max": 0.0266,
+      "median": 0.0158,
+      "exactly_identical": 0
+    }
+  },
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "3d4f99f59b9c",
+    "git_dirty": true,
+    "generated_at": "2026-08-04T15:54:14+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "n_pairs": 4
+  }
+}
