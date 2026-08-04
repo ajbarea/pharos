@@ -29,6 +29,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from pharos.export import corpus_bytes, sha256
 from pharos.gate import run_gate
 from pharos.generate import GeneratorConfig, generate
 from pharos.provenance import run_provenance
@@ -48,6 +49,11 @@ def measure() -> dict[str, Any]:
     baselines: dict[str, Any] = {}
     for seed in SEEDS:
         corpus = generate(GeneratorConfig(seed=seed, n_events=EVENTS))
+        #: What the gate actually scored, so `--compare` can ask whether two machines saw
+        #: the same corpus instead of inferring it from a commit id. A commit is a proxy
+        #: and a bad one in both directions: a docstring fix changes it without changing
+        #: the corpus, and the two artifacts here differed by exactly such a commit.
+        digest = sha256(corpus_bytes(corpus))
         result = run_gate(corpus)
         # Coerced rather than assumed: the gate types this as `int | float`, and an
         # AUC of exactly 1 or 0 would arrive as an int, which has no `.hex()`. A
@@ -57,6 +63,7 @@ def measure() -> dict[str, Any]:
             #: Exact. Two machines agreeing here agree in every bit of the mantissa.
             "hex": baseline.hex(),
             "decimal": baseline,
+            "corpus_sha256": digest,
         }
         record("gate.surface_baseline", baseline, seed=seed)
     return {
@@ -84,13 +91,37 @@ def compare(left: Path, right: Path) -> int:
     """
     a = json.loads(left.read_text(encoding="utf-8"))
     b = json.loads(right.read_text(encoding="utf-8"))
-    if a["provenance"]["git_commit"] != b["provenance"]["git_commit"]:
+
+    # Refuse when the two machines scored different corpora, because then a difference
+    # in baselines says nothing about the machines. Asked of the corpus digest rather
+    # than the commit id: the commit is a proxy that is wrong in both directions, and it
+    # was wrong here -- the first two artifacts differed by a commit that touched no
+    # generator code at all, and refusing on that would have made the check unrunnable
+    # in exactly the workflow its own instructions describe.
+    # Missing digests are checked first, and separately. "Cannot tell whether the corpora
+    # match" and "the corpora do not match" are different findings with different
+    # remedies, and testing them in the other order reports the second for the first: one
+    # artifact carrying a digest against one that does not compares a string to None,
+    # which is unequal, which reads as a corpus difference nobody can act on.
+    if not all("corpus_sha256" in v for v in (*a["baselines"].values(), *b["baselines"].values())):
         print(
-            f"refusing to compare: {left.name} is at "
-            f"{a['provenance']['git_commit'][:12]} and {right.name} is at "
-            f"{b['provenance']['git_commit'][:12]}.\n"
-            "  The generator defines the corpus, so two commits measure two corpora and\n"
-            "  a difference would say nothing about the machines.",
+            "refusing to compare: an artifact predates the corpus digest, so whether the\n"
+            "  two machines scored the same corpus cannot be established. Regenerate both.",
+            file=sys.stderr,
+        )
+        return 2
+    differing = [
+        seed
+        for seed in sorted(set(a["baselines"]) & set(b["baselines"]), key=int)
+        if a["baselines"][seed]["corpus_sha256"] != b["baselines"][seed]["corpus_sha256"]
+    ]
+    if differing:
+        print(
+            f"refusing to compare: the corpora differ at seed(s) {', '.join(differing)}.\n"
+            "  The generator defines the corpus, so this compares two different things\n"
+            "  and any difference in baselines would say nothing about the machines.\n"
+            f"  {left.name} is at {a['provenance']['git_commit'][:12]}, "
+            f"{right.name} at {b['provenance']['git_commit'][:12]}.",
             file=sys.stderr,
         )
         return 2
