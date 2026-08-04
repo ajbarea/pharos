@@ -59,6 +59,7 @@ def test_the_model_free_sweep_covers_the_model_free_measurements():
         # `make fleet-sensitivity` runs it, and its own artifact carries the invariants.
         "measure_fleet_sensitivity.py": "re-runs three swept scripts; minutes, not seconds",
         "measure_edge_cost.py": "reads artifacts produced by GPU jobs",
+        "measure_teacher_fleet.py": "reads adapter artifacts produced by cluster jobs",
         "train_adapter.py": "needs a CUDA GPU",
         "validate_gate_externally.py": "downloads corpora from the network",
         "sweep_models.sh": "shell driver",

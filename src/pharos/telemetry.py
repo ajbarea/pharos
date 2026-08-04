@@ -300,6 +300,10 @@ _METRIC_META: dict[str, tuple[str, str]] = {
         "Grid cells whose target accuracy clears the majority floor",
     ),
     "tagging.scheme": ("1", "Clearance inferable from a tagged aggregate"),
+    "teacher_fleet.inheritance": (
+        "1",
+        "Share of decisions an adapter reproduces from the teacher that taught it",
+    ),
 }
 
 #: Anything not in the registry above. `1` is UCUM's unity, which is the honest default
