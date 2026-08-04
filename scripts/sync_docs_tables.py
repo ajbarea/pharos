@@ -103,6 +103,8 @@ NO_SAMPLING_QUESTION = {
     "federation_eligibility": "deterministic over the label lattice; nothing is sampled",
     "external_gate_validation": "carries its own permutation-null statistics per corpus",
     "triage_lift": "superseded by the per-model triage_lift-* artifacts, which are assessed",
+    "fleet_sensitivity": "a sweep over a nuisance parameter; reports invariants, samples nothing",
+    "teacher_fleet": "aggregates assessed adapter artifacts; adds no measurement of its own",
 }
 
 
@@ -141,6 +143,22 @@ def measurement_health() -> str:
                 for name, v in payload.items()
                 if isinstance(v, dict) and isinstance(v.get("validity"), dict)
             ]
+            # And one level down inside a *list*, which is where a per-condition
+            # measurement puts it: `learnability` assesses each shot count separately
+            # and has no single top-level verdict. Only the dict case was handled, so
+            # every such artifact was reported as carrying no assessment at all while
+            # its rows each carried one. `learnability` was masked by an
+            # `AWAITING_RERUN` entry that has since been satisfied; its replication had
+            # no such cover and showed up as an unassessed gap on the page.
+            for name, value in payload.items():
+                if not isinstance(value, list):
+                    continue
+                for index, item in enumerate(value):
+                    if not isinstance(item, dict):
+                        continue
+                    row_validity = item.get("validity")
+                    if isinstance(row_validity, dict):
+                        nested.append((f"{name}[{index}]", row_validity))
             if not nested:
                 if path.stem not in NO_SAMPLING_QUESTION and path.stem not in AWAITING_RERUN:
                     unassessed.append(path.stem)

@@ -180,6 +180,8 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `edge_cost` | 19 | **no** | n=19 is below 30; treat differences as provisional |
 | `fleet_linkage` | 200 | yes | - |
 | `label_fidelity` | 40 | yes | - |
+| `learnability` | 600 | **no** | **rows[0]**: accuracy 0.482 does not beat the majority floor 0.685: this is not evidence of capability |
+| `learnability_replication` | 600 | **no** | **rows[0]**: accuracy 0.507 does not beat the majority floor 0.685: this is not evidence of capability |
 | `privacy_budget` | 200 | yes | - |
 | `review_adapter-any-one` | 600 | **no** | **adapter**: accuracy 0.440 does not beat the majority floor 0.685: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `review_adapter-by-the-book` | 600 | **no** | **base**: 74/600 answers were unparsable (12%); every other number describes only the remainder; accuracy 0.361 does not beat the majority floor 0.675: this is not evidence of capability |
@@ -195,14 +197,13 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**8 of 22** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**10 of 24** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
-**Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`, `fleet_sensitivity`, `learnability_replication`.
+**Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`.
 
-Assessed by their script but not yet in the committed artifact (6 of these), which needs a rerun rather than an edit:
+Assessed by their script but not yet in the committed artifact (5 of these), which needs a rerun rather than an edit:
 
 - `adapter_learnability` -- train_adapter.py now records it per evaluation pass
-- `learnability` -- measure_rule_learnability.py now records it per shot count
 - `review_adapter-any-one-xseed101` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-by-the-book-xseed101` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-inattentive-xseed101` -- train_adapter.py now records it per evaluation pass
@@ -212,7 +213,9 @@ Exempt, because there is no sampling question to answer:
 
 - `external_gate_validation` -- carries its own permutation-null statistics per corpus
 - `federation_eligibility` -- deterministic over the label lattice; nothing is sampled
+- `fleet_sensitivity` -- a sweep over a nuisance parameter; reports invariants, samples nothing
 - `power` -- prices hypothetical evaluation sizes; simulates outcomes rather than measuring any
+- `teacher_fleet` -- aggregates assessed adapter artifacts; adds no measurement of its own *(artifact absent)*
 - `triage_lift` -- superseded by the per-model triage_lift-* artifacts, which are assessed
 <!-- END GENERATED: measurement-health -->
 
