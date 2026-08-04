@@ -288,12 +288,90 @@ def teacher_fleet() -> str:
     return "\n".join(lines)
 
 
+def secure_readership() -> str:
+    """What the aggregate discloses, one row per source-join it was read off.
+
+    Generated rather than typed because the interesting column is the comparison
+    between the headcount and the adversary's prior, and a corpus change moves both.
+    An earlier hand-written version of this table showed thirteen rows for fourteen
+    joins, because it was keyed on the compartment set and two joins carrying the same
+    compartments at different sensitivities collapsed into one.
+    """
+    path = RESULTS / "secure_reliability.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make secure` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    readership = payload.get("readership") or {}
+    headcounts = readership.get("headcounts") or {}
+    if not headcounts:
+        _fail("secure_reliability.json carries no readership; refusing to emit an empty table")
+
+    truth = readership["truth"]
+    prior = readership["prior_expectation"]
+    lines = [
+        "| Sensitivity \\| compartments | Read off the aggregate | True | Adversary's prior |",
+        "| --- | --- | --- | --- |",
+    ]
+    for key in sorted(headcounts, key=lambda k: (-headcounts[k], k)):
+        observed = headcounts[key]
+        exact = "**" if observed == truth[key] else ""
+        lines.append(
+            f"| {key.replace('|', '\\|')} | {exact}{observed}{exact} | "
+            f"{truth[key]} | {prior[key]:.2f} |"
+        )
+    lines += [
+        "",
+        f"{readership['exact_headcounts']} of {readership['labels_probed']} joins yield an "
+        "exactly correct headcount. Bold marks the exact ones; a row that stopped being "
+        "exact would lose its bold here rather than in a sentence nobody reran.",
+    ]
+    return "\n".join(lines)
+
+
+def authority_price() -> str:
+    """The audited-items threshold per fleet composition, from finding 19's artifact.
+
+    Five numbers that are the entire practical content of the finding, and exactly the
+    shape that goes stale: they move whenever the corpus, the anchor draw or the
+    repaired threshold moves, and none of those changes touches this page.
+    """
+    path = RESULTS / "authority_anchors.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make authority` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    needed = payload.get("anchors_needed") or {}
+    if not needed:
+        _fail("authority_anchors.json carries no thresholds; refusing to emit an empty table")
+
+    total = payload["events"]
+    fleet = payload["fleet"]
+    swept = max(payload["anchor_counts"])
+    lines = [
+        f"| Wrong of {fleet} | Audited items needed | Share of the round |",
+        "| --- | --- | --- |",
+    ]
+    for key in sorted(needed, key=int):
+        count = needed[key]
+        if count is None:
+            lines.append(f"| {key} | not reached within {swept} | — |")
+            continue
+        lines.append(f"| {key} | {count} | {count / total:.1%} |")
+    lines += [
+        "",
+        f"Threshold for 'repaired' is agreement ≥ {payload['repaired_threshold']:.2f} on "
+        f"unanchored tasks, over a corpus of {total}.",
+    ]
+    return "\n".join(lines)
+
+
 #: Block name to builder. A block present in a doc but absent here is an error rather
 #: than a no-op: a marker with nothing behind it is how a table quietly stops updating.
 BLOCKS = {
     "power-claims": power_claims,
     "measurement-health": measurement_health,
     "teacher-fleet": teacher_fleet,
+    "secure-readership": secure_readership,
+    "authority-price": authority_price,
 }
 
 #: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --

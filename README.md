@@ -73,6 +73,18 @@ Python 3.12 to 3.14. Generation and gating need only `numpy` and `scikit-learn`.
 | `pharos.validity` | The conditions under which a score should not be quoted |
 | `pharos.uncertainty` | Cluster-bootstrap intervals, and which estimand a deployment actually gets |
 
+**The fleet, and what crosses between its nodes:**
+
+| Module | Responsibility |
+| --- | --- |
+| `pharos.fleet` | Clearances, the contribution stream, and the attack that reads an analyst's compartments off it |
+| `pharos.inference` | Truth inference from disagreeing contributors: Dawid-Skene, GLAD, CC-Rasch, and the variant that runs under a sum |
+| `pharos.secagg` | Masked aggregation, and the server's view of a round as a value with no per-client field |
+| `pharos.budget` | Privacy-budget composition over the distinguishing indicators, and the effective epsilon it buys |
+| `pharos.fl` | Server-side aggregation rules, DP noise, and the attack surface they are measured against |
+| `pharos.ledger` | The auditable decision record an edge node writes, and where it routes |
+| `pharos.plants`, `pharos.scorers`, `pharos.adversarial` | The plant registry, the specialist scorers, and the perturbation primitives |
+
 **Release and inspection:**
 
 | Module | Responsibility |
@@ -130,7 +142,7 @@ the system it serves.
 
 ## What has been measured
 
-Eighteen findings so far, each reproducible from a named script and each backed by a
+Twenty findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, a third was retracted outright after a generator bug, and a
@@ -159,6 +171,8 @@ corrections, and the caveats.
 | 15 | The standard privacy mechanism spends the budget on the wrong variable |
 | 16 | The cliff is safe only because the fleets were drawn independently |
 | 17 | Adding item difficulty does not separate a hard case from a wrong analyst |
+| 18 | The estimate moves under secure aggregation, and the cliff does not move with it |
+| 19 | An authority of record repairs the cliff, and its price explodes |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -176,6 +190,8 @@ make edge        # what the agent costs on laptop-class hardware (needs Ollama)
 make budget      # what a privacy budget buys against the linkage channel (no model)
 make correlated  # what the cliff costs when analysts are not independent (no model)
 make difficulty  # whether item difficulty and a wrong standard are separable (no model)
+make secure      # whether reliability can be estimated under secure aggregation (no model)
+make authority   # what an authority of record costs, in audited items (no model)
 
 # Sensitivity: whether a finding survives a parameter nobody chose on principle
 make fleet-sensitivity  # findings 12, 16 and 17 across fleets of 5 to 51 (no model)
@@ -223,12 +239,36 @@ make teacher-fleet      # whether adapters inherit their teachers, across 24 of 
    findings already used. 57.1 MiB per personalization round, 3.7 s to wake a node,
    0.321 s per warm decision over 199 timed calls, 1.8 GB resident for the 3B model.
 
-**The open problem, stated as precisely as the measurements allow.** A reliability
-estimate computed *under* secure aggregation rather than recovered from pooled
-outputs. Finding 10 needs contributor identity, finding 11 shows identity is the leak,
-and findings 12 and 13 rule out the two ways of recovering the first from the second
-after the fact. That is the next thing worth building, and it is a cryptographic
-question rather than a measurement one.
+6. **Estimation under aggregation.** Done, and it answered the question this
+   repository had carried as its open problem. Finding 10 needs contributor identity,
+   finding 11 shows identity is the leak, and findings 12 and 13 rule out both ways of
+   recovering the first from the second after the fact. The remaining direction was to
+   compute the estimate *under* aggregation instead, and Dawid-Skene splits along
+   exactly the seam a secure sum offers: its M step is per contributor and stays local,
+   its E step is a product over contributors and so a sum in logs. Finding 18 reports
+   the port as exact -- worst posterior disagreement 3.8e-14 over ten fleet
+   compositions, zero label disagreements -- and reports that **the cliff does not move
+   with it**. That was the prediction, and it localises the failure to
+   non-identifiability rather than to pooling or to a leak.
+
+   What replaces the leak is smaller and task-shaped rather than person-shaped: a
+   per-task mean needs its denominator, so the aggregate discloses how many analysts
+   are cleared for each source-join, exactly and with no inference, on all 14 joins in
+   the stream.
+
+7. **The authority of record.** Done, and it is the mechanism step 3 owed. An
+   exogenous label breaks the relabelling degeneracy no estimator escapes from the data
+   alone. Finding 19 prices it, and the price is a second threshold rather than a rate:
+   5 audited items in 200 repair a bare majority, 100 repair six of nine, 150 repair
+   seven. A partial budget is briefly *worse* than none.
+
+**The open problem, stated as precisely as the measurements now allow.** Not the
+protocol -- that is built and exact -- but the threshold. Findings 16 and 19 together
+say a fleet sharing one house style reaches a wrong majority far more often than an
+i.i.d. draw suggests, and that repairing anything past a bare majority costs half the
+round or more. Whether an audit policy that selects *which* items to rule on can move
+that threshold down is the next thing worth measuring, and unlike its predecessor it is
+a measurement question rather than a cryptographic one.
 
 ## License
 

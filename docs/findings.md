@@ -11,7 +11,9 @@ and 8 call no model at all: they regenerate the corpus from its seed and review
 verdicts already committed to `results/`, so both reproduce exactly and run in CI.
 Finding 9 is a measurement-design result and retracts an earlier version of itself.
 Finding 11 calls no model either -- it is a property of the corpus's label structure
-and of who can read what -- so it also reproduces exactly and runs in CI.
+and of who can read what -- so it also reproduces exactly and runs in CI. Findings 18
+and 19 are the same kind: they are properties of an estimator and a protocol over the
+committed corpus, call nothing, and reproduce bit-for-bit.
 
 Every artifact in `results/` carries the version, commit, platform, model, and seed
 behind it, so any number here traces back to the run and the machine that produced
@@ -65,7 +67,8 @@ scattered through it, and nothing in the grouping is a claim about how they rela
 | **What review costs** | [7. Review is abundant; correctness is not](#7-review-is-abundant-what-it-costs-is-correctness) · [8. Right and sloppy beats wrong and careful](#8-being-right-and-sloppy-beats-being-wrong-and-careful) |
 | **Measurement design** | [9. Repeating one prompt measures the wrong thing](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing) · [17. Item difficulty does not separate the two](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst) |
 | **Disclosure and identity** | [11. The stream still names the analyst](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst) · [12. Reliability needs identity where it matters](#12-reliability-cannot-be-estimated-without-identity-where-it-matters) · [13. A tag can replace identity](#13-a-reliability-tag-can-replace-identity-and-the-leak-metric-cannot-tell-you-when) · [16. The cliff assumes independent fleets](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently) |
-| **Cost of running it** | [14. What the agent costs on its hardware](#14-what-the-agent-costs-on-the-hardware-it-is-meant-to-run-on) · [15. The budget is spent on the wrong variable](#15-the-standard-privacy-mechanism-spends-the-budget-on-the-wrong-variable) |
+| **Cost of running it** | [14. What the agent costs on its hardware](#14-what-the-agent-costs-on-the-hardware-it-is-meant-to-run-on) · [15. The budget is spent on the wrong variable](#15-the-standard-privacy-mechanism-spends-the-budget-on-the-wrong-variable) · [19. What an authority of record costs](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) |
+| **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) |
 
 ## What these sizes can resolve
 
@@ -174,6 +177,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | --- | --- | --- | --- |
 | `adapter_learnability` | 60 | **no** | **base**: 9/60 answers were unparsable (15%); every other number describes only the remainder; accuracy 0.392 does not beat the majority floor 0.647: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `analyst_review` | 40 | yes | - |
+| `authority_anchors` | 200 | yes | - |
 | `consensus_reliability` | 200 | yes | - |
 | `correlated_fleets` | 60 | yes | - |
 | `decode_stability` | 30 | yes | - |
@@ -217,6 +221,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `review_adapter-two-of-three-xseed101` | 600 | yes | - |
 | `review_adapter-two-of-three` | 600 | yes | - |
 | `review_sweep` | 40 | yes | - |
+| `secure_reliability` | 200 | yes | - |
 | `tagged_aggregation` | 200 | yes | - |
 | `triage_lift-llama3.1-8b` | 40 | **no** | accuracy 0.600 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift-llama3.2-3b` | 40 | yes | - |
@@ -226,7 +231,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**25 of 53** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**25 of 55** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 Exempt, because there is no sampling question to answer:
 
@@ -2075,3 +2080,174 @@ escapes it is now an open question, and this repository cannot currently answer 
     fell between iterations and it stalled on one composition. The monotonicity check
     is cheap, it is the definitive test that an EM implementation is doing EM, and it
     caught what reading the code twice did not.
+
+## 18. The estimate moves under secure aggregation, and the cliff does not move with it
+
+`scripts/measure_secure_reliability.py`, `results/secure_reliability.json`
+
+This repository has carried one open problem since
+[finding 13](#13-a-reliability-tag-can-replace-identity-and-the-leak-metric-cannot-tell-you-when).
+[Finding 10](#10-a-fleet-learns-its-analysts-standard-not-the-worlds) needs contributor
+identity to weight a fleet by reliability;
+[finding 11](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst)
+shows identity is the leak; findings 12 and 13 close both ways of recovering the first
+from the second *after* aggregation. The direction never tried was the other one:
+compute the estimate **under** aggregation, so the per-analyst stream the attack reads
+is never produced.
+
+It works, and it is exact rather than approximate, because Dawid-Skene splits along
+the seam a secure sum offers. Its M step is per contributor over that contributor's own
+reports, so it runs locally and is never transmitted. Its E step needs a product over
+contributors per task, which is a sum in logs, and a sum is what secure aggregation
+reveals and all that it reveals. `pharos.secagg` supplies masked aggregation over a
+64-bit ring and returns a `ServerView` with no per-client field on it; `pharos.inference`
+supplies `federated_dawid_skene` on top.
+
+**The port does not change the answer.** Across all ten fleet compositions, the largest
+posterior disagreement between the federated and centralized estimators is
+**3.8e-14**, with **zero** label disagreements and matching iteration counts.
+
+| Wrong of 9 | Centralized | Federated | Posterior gap |
+| --- | --- | --- | --- |
+| 0-4 | 1.0000 | 1.0000 | ≤ 7.9e-15 |
+| **5** | **0.6598** | **0.6598** | 3.8e-14 |
+| 6-9 | 0.6598 | 0.6598 | ≤ 2.2e-15 |
+
+**And the cliff does not move.** It sits at 5 of 9 under both, which was the prediction
+stated before the run. That localises the problem, and the localisation is the finding:
+the cliff is not a leak and not an artifact of pooling, it is **non-identifiability**.
+Dawid-Skene's parameters are identified only up to a relabelling of the latent class,
+and the tie-break the literature relies on is diagonal dominance -- FedDS
+(Dong, Zhu, Shang and Xue, *Information Sciences* 745:123425, 2026) assumes exactly
+that in its Eq. (16). A fleet whose majority holds the wrong standard is the fleet
+where that assumption is false.
+
+!!! note "FedDS is the nearest relative, and it sits on the wrong side of the leak"
+    FedDS brings Dawid-Skene to federated learning to weight clients by estimated
+    reliability without a labelled public dataset at the server, which is the same
+    problem this finding addresses. It runs EM **at the server** over each client's
+    prediction vector on an unlabelled public set, so the server observes precisely the
+    per-client stream finding 11 attacks, and the paper does not discuss secure
+    aggregation. The contribution here is not the estimator, which is theirs and Dawid
+    and Skene's; it is that the estimator can be computed with the server holding only
+    sums, at no cost in accuracy, and that doing so leaves the identifiability failure
+    exactly where it was.
+
+### What the aggregate discloses anyway
+
+Closing the naming channel opens a counting one, and it is worth stating precisely
+rather than claiming the protocol leaks nothing. Majority-vote initialization is a
+per-task mean; a mean needs its denominator; that denominator is the number of analysts
+who could read the task. Nobody is named. But a task's readership is decided by the join
+of its sources, so **reading one headcount is reading, exactly and with no inference, how
+many analysts are cleared for that join.**
+
+Over a 200-analyst fleet, every distinct source-join in the stream yields an **exactly
+correct** headcount, with no estimation error at all:
+
+<!-- BEGIN GENERATED: secure-readership -->
+| Sensitivity \| compartments | Read off the aggregate | True | Adversary's prior |
+| --- | --- | --- | --- |
+| 0 \| (none) | **200** | 200 | 200.00 |
+| 1 \| SENSOR | **67** | 67 | 75.00 |
+| 2 \| SENSOR | **43** | 43 | 50.00 |
+| 2 \| LEGAL | **34** | 34 | 50.00 |
+| 3 \| LIAISON | **32** | 32 | 25.00 |
+| 3 \| PARTNER | **25** | 25 | 25.00 |
+| 2 \| LEGAL,SENSOR | **19** | 19 | 25.00 |
+| 3 \| LIAISON,SENSOR | **15** | 15 | 12.50 |
+| 3 \| LEGAL,PARTNER | **10** | 10 | 12.50 |
+| 3 \| PARTNER,SENSOR | **10** | 10 | 12.50 |
+| 3 \| LEGAL,LIAISON | **9** | 9 | 12.50 |
+| 3 \| LEGAL,PARTNER,SENSOR | **6** | 6 | 6.25 |
+| 3 \| LIAISON,PARTNER,SENSOR | **6** | 6 | 6.25 |
+| 3 \| LEGAL,LIAISON,SENSOR | **5** | 5 | 6.25 |
+
+14 of 14 joins yield an exactly correct headcount. Bold marks the exact ones; a row that stopped being exact would lose its bold here rather than in a sentence nobody reran.
+<!-- END GENERATED: secure-readership -->
+
+The prior column is what makes this a disclosure rather than a restatement of the fleet
+size: clearances are drawn uniformly from the candidate space, so an adversary who knew
+only the draw would expect 12.50 analysts on LEGAL+LIAISON and learns the answer is
+exactly 9. The channel is **task-side rather than person-side** -- it discloses the
+fleet's clearance census, not who holds what -- and on a watch floor "how many people
+are read into LIAISON" is not obviously the safer of the two.
+
+!!! warning "Stated as structure, not as a score"
+    Finding 11's attack is not reported here at 0.000. Its input is the set of task
+    identifiers appearing under each pseudonym, and under secure aggregation there are
+    no pseudonyms, so the attack has no input rather than a poor one. Scoring an
+    undefined observation as a defeated attack would credit the protocol with a
+    measurement nobody made. What is measured is what replaces it.
+
+    The masking is real and its cancellation is checked. Key agreement, threshold secret
+    sharing for dropout recovery, and authentication are **not** implemented: they decide
+    who may run the protocol and what happens when a client vanishes mid-round, neither
+    of which changes what a server learns from a completed round, which is the quantity
+    under study.
+
+## 19. An authority of record repairs the cliff, and its price explodes
+
+`scripts/measure_authority_anchors.py`, `results/authority_anchors.json`
+
+Finding 18 localised the cliff to non-identifiability, and
+[finding 17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)
+already showed no better estimator escapes it from the data alone. What breaks a
+relabelling degeneracy is an **exogenous** label: a task whose disposition is asserted
+by an authority rather than inferred from the fleet. That is the *authority of record*
+the build order has owed since step 3, and this prices it.
+
+**The scoring rule is the methodology.** An anchored task's label was handed over, so
+counting it would measure how many answers the authority supplied rather than what they
+bought. Every number below is computed **only over unanchored tasks**.
+
+| Wrong of 9 | 0 | 5 | 12 | 50 | 80 | 100 | 150 | 180 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 4 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| **5** | 0.660 | **1.000** | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| **6** | 0.660 | 0.667 | 0.663 | 0.658 | 0.638 | **1.000** | 1.000 | 1.000 |
+| **7** | 0.660 | 0.667 | 0.663 | 0.658 | 0.638 | 0.667 | **1.000** | 1.000 |
+| **9** | 0.660 | 0.667 | 0.663 | 0.658 | 0.638 | 0.667 | 0.680 | **1.000** |
+
+**The price is not linear and it is not a curve.** It is a second threshold, and it
+moves far faster than the fleet's error does:
+
+<!-- BEGIN GENERATED: authority-price -->
+| Wrong of 9 | Audited items needed | Share of the round |
+| --- | --- | --- |
+| 4 | 0 | 0.0% |
+| 5 | 5 | 2.5% |
+| 6 | 100 | 50.0% |
+| 7 | 150 | 75.0% |
+| 9 | 180 | 90.0% |
+
+Threshold for 'repaired' is agreement ≥ 0.95 on unanchored tasks, over a corpus of 200.
+<!-- END GENERATED: authority-price -->
+
+At a bare majority an authority ruling on **five items in two hundred** restores the
+estimate on the other 195. One analyst further and the same repair costs **half the
+round**; two further, three quarters. The mechanism is visible in the M step: an
+anchored task constrains every contributor's confusion matrix, but the unanchored
+majority still outvotes it, so the anchors have to reach a share that dominates the
+estimate rather than merely inform it.
+
+!!! danger "A partial budget is briefly worse than none"
+    The curve is not monotone. At 6 of 9 wrong, 80 anchors scores **0.638** against
+    **0.660** with no anchors at all. A programme that funds an audit at a fraction of
+    what the crossing requires does not buy a fraction of the benefit; it buys slightly
+    less than nothing until it clears the threshold. This is the practical warning in
+    the finding, and it is the reason to report the threshold rather than a rate.
+
+!!! note "What the unanimity row is and is not"
+    At 9 of 9 the fleet is unanimous, so there is no disagreement to estimate from and
+    the estimator has nothing to work with. The 1.000 at 180 anchors is real but it is
+    not assistance: the authority has ruled on 90% of the round, and what the remaining
+    10% gets is the benefit of having learned that every contributor is inverted. An
+    authority auditing nine items in ten has not been helped by a fleet. It is carried
+    as the control that shows where the mechanism stops being a mechanism.
+
+    Anchors are drawn uniformly and without regard to difficulty. An authority that
+    audited the *hardest* items would score better and would be assuming the question:
+    knowing which items are hard is knowing where the fleet is wrong, which is what the
+    estimate was meant to establish. Uniform is the honest floor; a targeted policy can
+    only beat it.

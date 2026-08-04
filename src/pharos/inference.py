@@ -23,6 +23,7 @@ import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
+from pharos.secagg import MIN_PARTICIPANTS, secure_sum
 from pharos.telemetry import get_logger, record_routine
 
 #: Laplace smoothing on the confusion counts. Without it a contributor who is right on
@@ -194,6 +195,268 @@ def agreement_with(labels: Mapping[str, bool], truth: Mapping[str, bool]) -> flo
     if not shared:
         return 0.0
     return sum(1 for t in shared if labels[t] == truth[t]) / len(shared)
+
+
+# ------------------------------------------------- Dawid-Skene under a sum -----
+#
+# The estimator above needs a stable handle per contributor to group their reports,
+# and finding 11 is that the handle is the leak. The open problem this repository
+# has carried since is whether the estimate can be computed *under* aggregation
+# instead of recovered after it.
+#
+# It can, and the reason is a property of the algorithm rather than a new
+# approximation of it. Dawid-Skene's M step is per contributor and touches only that
+# contributor's own reports, so it can run on the contributor's own machine and never
+# be transmitted. Its E step needs, for each task, a *product* over contributors --
+# which is a sum in logs, and a sum over clients is exactly what secure aggregation
+# reveals and all it reveals. Split along that seam, the server holds two vectors of
+# per-task log-likelihood and nobody's confusion matrix.
+#
+# The nearest published relative is FedDS (Dong, Zhu, Shang and Xue, *Information
+# Sciences* 745:123425, 2026), which brings Dawid-Skene to federated learning to
+# weight clients by estimated reliability without a labelled public dataset. It runs
+# EM *at the server* over each client's prediction vector on an unlabelled public set,
+# so the server sees precisely the per-client stream that finding 11 attacks, and the
+# paper does not discuss secure aggregation. Its identifiability result (§4.2, Eq. 16)
+# assumes each confusion matrix is diagonally dominant. That assumption is the subject
+# of finding 12's cliff, and finding 16 prices how often a fleet violates it, which is
+# why moving the computation under a sum was never going to fix the cliff and why
+# measuring both at once is the honest way to report it.
+
+
+def partition_by_contributor(
+    contributions: Sequence[tuple[str, str, bool]],
+) -> dict[str, list[tuple[str, bool]]]:
+    """Regroup flat `(task, contributor, verdict)` rows into per-contributor streams.
+
+    A conversion for callers holding finding 12's shape. The federated estimator takes
+    the partitioned form because that is the form the protocol actually has -- each
+    analyst holds only their own rows -- and building the flat list first is the
+    centralization the protocol exists to avoid.
+    """
+    partitioned: dict[str, list[tuple[str, bool]]] = {}
+    for task, who, verdict in contributions:
+        partitioned.setdefault(who, []).append((task, verdict))
+    return partitioned
+
+
+@dataclass(frozen=True, slots=True)
+class FederatedDawidSkene:
+    """What the server holds after running Dawid-Skene without seeing a contributor.
+
+    **There is no `error_rates` field and no `reliability(who)` method.** Their absence
+    is the result, not an omission: each contributor's confusion matrix is computed and
+    kept on that contributor's own machine, so a server-side object that could return
+    one would be reporting something the protocol does not produce. A deployment that
+    wants reliability weighting applies it locally, where the matrix lives.
+
+    `readership` is the opposite case and is present for the opposite reason. The
+    server genuinely does learn how many contributors reported on each task, because
+    majority-vote initialization is a per-task mean and a mean needs its denominator.
+    Carrying it here is what let finding 18 measure the channel instead of claiming
+    the protocol has none.
+    """
+
+    posterior: dict[str, float]
+    prevalence: float
+    iterations: int
+    converged: bool
+    participants: int
+    readership: dict[str, int]
+    anchored: frozenset[str]
+
+    def labels(self) -> dict[str, bool]:
+        """Hard labels, which is what a learner would actually train on."""
+        return {task: p >= 0.5 for task, p in self.posterior.items()}
+
+
+def _stable_posterior(log_pos: float, log_neg: float) -> float:
+    """P(significant) from two log-likelihoods, without leaving log space.
+
+    The centralized implementation multiplies probabilities directly and falls back to
+    0.5 when the product underflows to zero on both sides. This cannot underflow, so a
+    fleet wide enough to underflow a product of per-contributor likelihoods would make
+    the two disagree, and there this one is right.
+
+    **That regime is not measured.** Finding 18 compares the two at a fleet of nine,
+    where they agree to 3.8e-14, and sweeps the wrong-standard share rather than the
+    fleet size. So the equivalence claim is scoped to the size it was run at, and the
+    crossover point is unknown rather than absent.
+    """
+    difference = log_neg - log_pos
+    if difference > 0:
+        return 1.0 / (1.0 + math.exp(difference))
+    scaled = math.exp(-difference)
+    return scaled / (1.0 + scaled)
+
+
+def federated_dawid_skene(
+    partitioned: Mapping[str, Sequence[tuple[str, bool]]],
+    *,
+    seed: int = 0,
+    max_iters: int = MAX_ITERS,
+    tolerance: float = TOLERANCE,
+    anchors: Mapping[str, bool] | None = None,
+    min_participants: int = MIN_PARTICIPANTS,
+) -> FederatedDawidSkene:
+    """Dawid-Skene where the server learns only per-task sums.
+
+    `partitioned` maps a contributor to their own `(task, verdict)` rows. Every
+    quantity crossing to the server does so through `pharos.secagg.secure_sum`, whose
+    return value has no per-client field to read, so the separation is enforced by the
+    types rather than by care.
+
+    `anchors` are tasks whose true label is supplied by an authority of record. Their
+    posteriors are clamped and never revised, which is what breaks the relabelling
+    degeneracy the wrong majority otherwise exploits. Finding 19 prices how many are
+    needed.
+
+    The mask seed advances every round. Reusing masks across rounds would let a server
+    difference two rounds and recover a client's change, so the freshness is a property
+    of the protocol and not a detail of the loop.
+    """
+    contributors = sorted(partitioned)
+    tasks = sorted({task for rows in partitioned.values() for task, _ in rows})
+    if not contributors or not tasks:
+        return FederatedDawidSkene({}, 0.0, 0, True, len(contributors), {}, frozenset())
+
+    index = {task: i for i, task in enumerate(tasks)}
+    width = len(tasks)
+    anchors = dict(anchors or {})
+    anchored = frozenset(anchors) & set(tasks)
+
+    def _clamp(posterior: dict[str, float]) -> None:
+        """The authority's rulings, reasserted after every step that could move them."""
+        for task in anchored:
+            posterior[task] = 1.0 if anchors[task] else 0.0
+
+    # Round zero: the majority vote, as two aggregates. `votes` sums the verdicts and
+    # `seen` sums participation, and the server divides them. `seen` is the readership
+    # channel in the open: a per-task mean cannot be formed without its denominator.
+    vote_vectors: list[list[float]] = []
+    seen_vectors: list[list[float]] = []
+    for who in contributors:
+        votes = [0.0] * width
+        seen = [0.0] * width
+        for task, verdict in partitioned[who]:
+            votes[index[task]] += 1.0 if verdict else 0.0
+            seen[index[task]] += 1.0
+        vote_vectors.append(votes)
+        seen_vectors.append(seen)
+
+    vote_view = secure_sum(vote_vectors, seed=seed, min_participants=min_participants)
+    seen_view = secure_sum(seen_vectors, seed=seed + 1, min_participants=min_participants)
+    readership = {task: round(seen_view.total[index[task]]) for task in tasks}
+
+    posterior = {
+        task: (
+            vote_view.total[index[task]] / seen_view.total[index[task]]
+            if seen_view.total[index[task]] > 0
+            else 0.5
+        )
+        for task in tasks
+    }
+    _clamp(posterior)
+
+    prevalence = 0.5
+    converged = False
+    iterations_run = 0
+
+    for step in range(1, max_iters + 1):
+        iterations_run += 1
+
+        # M step, entirely local. Each contributor updates their own confusion matrix
+        # from their own rows and the broadcast posterior. Nothing here is sent.
+        local_rates: dict[str, tuple[tuple[float, float], tuple[float, float]]] = {}
+        for who in contributors:
+            counts = [[SMOOTHING, SMOOTHING], [SMOOTHING, SMOOTHING]]
+            for task, verdict in partitioned[who]:
+                p = posterior[task]
+                reported = 1 if verdict else 0
+                counts[1][reported] += p
+                counts[0][reported] += 1.0 - p
+            local_rates[who] = (
+                (counts[0][0] / sum(counts[0]), counts[0][1] / sum(counts[0])),
+                (counts[1][0] / sum(counts[1]), counts[1][1] / sum(counts[1])),
+            )
+
+        prevalence = sum(posterior.values()) / len(posterior)
+        prevalence = min(max(prevalence, 1e-6), 1 - 1e-6)
+
+        # E step. Each contributor emits the log-likelihood their own reports assign to
+        # each hypothesis, zero on every task they did not touch, and only the sum
+        # crosses. Two aggregates rather than one interleaved vector so that a
+        # coordinate means the same thing in both.
+        neg_vectors: list[list[float]] = []
+        pos_vectors: list[list[float]] = []
+        for who in contributors:
+            under_neg = [0.0] * width
+            under_pos = [0.0] * width
+            rates = local_rates[who]
+            for task, verdict in partitioned[who]:
+                reported = 1 if verdict else 0
+                under_neg[index[task]] += math.log(rates[0][reported])
+                under_pos[index[task]] += math.log(rates[1][reported])
+            neg_vectors.append(under_neg)
+            pos_vectors.append(under_pos)
+
+        round_seed = seed + 2 * step
+        neg_view = secure_sum(neg_vectors, seed=round_seed, min_participants=min_participants)
+        pos_view = secure_sum(pos_vectors, seed=round_seed + 1, min_participants=min_participants)
+
+        log_prior_pos = math.log(prevalence)
+        log_prior_neg = math.log(1.0 - prevalence)
+        moved = 0.0
+        for task in tasks:
+            # An anchored task's posterior is asserted, not estimated, so it is not a
+            # free parameter and EM must not update it. Skipping it here rather than
+            # overwriting and re-clamping is also what makes convergence reachable: the
+            # clamp would otherwise restore the authority's value every iteration while
+            # the movement check kept reporting the gap EM wanted to open, so `moved`
+            # never fell below the tolerance and every anchored run burned the full
+            # iteration cap. `logcheck` caught that as a non-convergence warning.
+            if task in anchored:
+                continue
+            i = index[task]
+            updated = _stable_posterior(
+                log_prior_pos + pos_view.total[i], log_prior_neg + neg_view.total[i]
+            )
+            moved = max(moved, abs(updated - posterior[task]))
+            posterior[task] = updated
+
+        if moved < tolerance:
+            converged = True
+            break
+
+    if not converged:
+        get_logger().warning(
+            "inference.federated_em_did_not_converge",
+            extra={
+                "event": "inference.federated_em_did_not_converge",
+                "iterations": iterations_run,
+                "max_iters": max_iters,
+                "tasks": len(tasks),
+                "workers": len(contributors),
+            },
+        )
+    record_routine(
+        "inference.federated_dawid_skene",
+        prevalence,
+        converged=converged,
+        iterations=iterations_run,
+        tasks=len(tasks),
+        workers=len(contributors),
+        anchors=len(anchored),
+    )
+    return FederatedDawidSkene(
+        posterior,
+        prevalence,
+        iterations_run,
+        converged,
+        len(contributors),
+        readership,
+        anchored,
+    )
 
 
 # --------------------------------------------------------------------- GLAD -----

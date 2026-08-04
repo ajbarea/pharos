@@ -41,6 +41,8 @@ SCRIPTS = (
     "measure_privacy_budget.py",
     "measure_correlated_fleets.py",
     "measure_difficulty_confound.py",
+    "measure_secure_reliability.py",
+    "measure_authority_anchors.py",
 )
 
 #: Warnings this project expects to see, each a real finding rather than a defect.
