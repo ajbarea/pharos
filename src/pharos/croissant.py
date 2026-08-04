@@ -132,6 +132,12 @@ def _rai_block(manifest: Manifest) -> dict[str, str]:
             "reproducible from its version, commit, seed, and config alone."
         ),
         "rai:dataCollectionType": "Synthetic, procedurally generated. No human subjects.",
+        "rai:dataCollectionTimeframe": (
+            "Not applicable in the usual sense: nothing was collected over a period. A corpus "
+            "is generated on demand and is a function of its seed and config, so the only "
+            "date that carries meaning is the commit its provenance stamp names, and two "
+            "corpora from the same commit and seed are identical whenever they were made."
+        ),
         "rai:dataCollectionRawData": (
             "None. There is no source corpus, no scrape, and no derivation from any existing "
             "dataset. The world model and fact vocabulary are authored fiction."
@@ -150,6 +156,30 @@ def _rai_block(manifest: Manifest) -> dict[str, str]:
             "carries a fixed conjunction of facts."
         ),
         "rai:dataAnnotationPlatform": "None. Labels are assigned in code by pharos.labels.",
+        "rai:dataAnnotationAnalysis": (
+            "Every released corpus is scored by an acceptance gate before it may be used: a "
+            "surface-only probe attempts to predict plant membership from length, punctuation, "
+            "and channel alone, and is compared against a permutation null under the identical "
+            f"procedure. This corpus scores {baseline:.4f} against a null of {null_text}. A "
+            "corpus whose baseline is unmeasured, insignificant against its own null, or above "
+            "the ceiling cannot support a triage claim and the gate exits non-zero. Measured "
+            "scores additionally carry a validity assessment naming the conditions under which "
+            "they should not be quoted."
+        ),
+        "rai:dataPreprocessingProtocol": (
+            "None. Reports are consumed exactly as generated: no filtering, deduplication, "
+            "normalisation, or tokenisation is applied between generation and release, so the "
+            "SHA-256 in this record is the hash of what the generator emitted."
+        ),
+        "rai:dataManipulationProtocol": (
+            "None after generation. The only transformation is serialisation to JSON Lines, "
+            "which is byte-stable for a given corpus, and the hash is taken over exactly those "
+            "bytes."
+        ),
+        "rai:dataImputationProtocol": (
+            "None, and none is possible: there are no missing values to impute. Every field of "
+            "every report is written at generation time, which the test suite asserts."
+        ),
         "rai:machineAnnotationTools": (
             "pharos.generate for rendering, pharos.labels for the label algebra. No model is "
             "involved in producing the corpus or its labels."
@@ -250,7 +280,12 @@ def croissant_record(
     record: dict[str, Any] = {
         "@context": CONTEXT,
         "@type": "sc:Dataset",
-        "conformsTo": CROISSANT_VERSION,
+        # Both, as a list. RAI conformance is declared exactly one way -- by naming the RAI
+        # URI in `dct:conformsTo` -- and this record used to put it in `rai:version`, which
+        # is not a property the specification defines. A consumer checking conformance the
+        # way the spec says to would have read this dataset as core Croissant with some
+        # unrecognised extra keys, which is the one thing the RAI extension exists to avoid.
+        "conformsTo": [CROISSANT_VERSION, RAI_VERSION],
         "name": "pharos",
         "description": (
             "A labeled fleet testbed for federated personalization with a governed disclosure "
@@ -276,7 +311,6 @@ def croissant_record(
             "disclosure policy",
         ],
         "isAccessibleForFree": True,
-        "rai:version": RAI_VERSION,
         **_rai_block(manifest),
         "cr:generatorConfig": manifest.as_dict()["config"],
         "cr:codeProvenance": provenance,

@@ -55,9 +55,19 @@ def test_every_line_is_json_with_the_declared_fields(tmp_path, reports):
         assert set(json.loads(line)) == set(CORPUS_FIELDS)
 
 
-def test_croissant_declares_the_spec_it_conforms_to(manifest):
+def test_croissant_declares_both_specs_it_conforms_to(manifest):
+    """RAI conformance is declared in `dct:conformsTo` or it is not declared.
+
+    This record used to name the RAI version under `rai:version`, which the
+    specification does not define. A consumer checking conformance the documented way
+    would have seen core Croissant plus unrecognised keys -- which is precisely the
+    situation the extension exists to prevent -- while every local test passed.
+    """
+    from pharos.croissant import RAI_VERSION
+
     record = croissant_record(manifest)
-    assert record["conformsTo"] == CROISSANT_VERSION
+    assert record["conformsTo"] == [CROISSANT_VERSION, RAI_VERSION]
+    assert "rai:version" not in record, "not a property the RAI specification defines"
     assert record["@type"] == "sc:Dataset"
     assert record["@context"]["rai"] == "http://mlcommons.org/croissant/RAI/"
 
@@ -76,19 +86,60 @@ def test_croissant_field_sources_point_at_the_declared_file(manifest):
         assert field["source"]["fileObject"]["@id"] == file_id
 
 
-def test_croissant_carries_the_required_rai_properties(manifest):
-    record = croissant_record(manifest)
-    required = {
+#: Every property the Croissant RAI 1.0 specification defines. The specification marks
+#: none of them mandatory, so this list is a choice rather than a floor: a reviewer
+#: reading a dataset card should not have to wonder whether an absent field means "not
+#: applicable" or "not considered". Answering all twenty makes the distinction explicit,
+#: and several of the answers here are "none, and none is possible", which is
+#: information.
+RAI_PROPERTIES = frozenset(
+    {
         "rai:dataCollection",
         "rai:dataCollectionType",
+        "rai:dataCollectionMissingData",
+        "rai:dataCollectionRawData",
+        "rai:dataCollectionTimeframe",
+        "rai:dataImputationProtocol",
+        "rai:dataManipulationProtocol",
+        "rai:dataPreprocessingProtocol",
         "rai:dataAnnotationProtocol",
+        "rai:dataAnnotationPlatform",
+        "rai:dataAnnotationAnalysis",
+        "rai:dataReleaseMaintenancePlan",
         "rai:personalSensitiveInformation",
+        "rai:dataSocialImpact",
         "rai:dataBiases",
         "rai:dataLimitations",
         "rai:dataUseCases",
+        "rai:annotationsPerItem",
+        "rai:annotatorDemographics",
+        "rai:machineAnnotationTools",
     }
-    assert required <= set(record)
-    assert all(record[key].strip() for key in required)
+)
+
+
+def test_croissant_answers_every_rai_property_the_spec_defines(manifest):
+    """All twenty, because five were missing and nothing said so.
+
+    NeurIPS 2026's Evaluations & Datasets track requires RAI metadata in the Croissant
+    file for every dataset submission, and this is a data generator -- exactly the
+    contribution type that track requires an artifact for.
+    """
+    record = croissant_record(manifest)
+    missing = sorted(RAI_PROPERTIES - set(record))
+    assert not missing, f"RAI properties the spec defines and this record omits: {missing}"
+    assert all(str(record[key]).strip() for key in RAI_PROPERTIES), "an empty answer is not one"
+
+
+def test_no_invented_rai_properties(manifest):
+    """A key under the `rai:` prefix that the spec does not define is silently ignored.
+
+    It reads as documentation to a human and is invisible to a validator, which is the
+    worst of both. `rai:version` was one for a while.
+    """
+    record = croissant_record(manifest)
+    invented = sorted(k for k in record if k.startswith("rai:") and k not in RAI_PROPERTIES)
+    assert not invented, f"not defined by the RAI specification: {invented}"
 
 
 def test_the_bias_entry_reports_the_measured_baseline(manifest):

@@ -13,6 +13,7 @@ corpora, which is minutes, and it is the part with no logic to get wrong.
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,7 +25,9 @@ def _module():
     return measure_gate_determinism
 
 
-def _artifact(baselines: dict[str, tuple[float, str]], commit: str = "abc123def456") -> dict:
+def _artifact(
+    baselines: dict[str, tuple[float, str]], commit: str = "abc123def456"
+) -> dict[str, Any]:
     """An artifact shaped like the real one. `baselines` maps seed to (value, digest)."""
     return {
         "machine": {"platform": "Linux-test", "python": "3.14.0"},
@@ -37,7 +40,7 @@ def _artifact(baselines: dict[str, tuple[float, str]], commit: str = "abc123def4
     }
 
 
-def _write(tmp_path: Path, name: str, payload: dict) -> Path:
+def _write(tmp_path: Path, name: str, payload: dict[str, Any]) -> Path:
     path = tmp_path / name
     path.write_text(json.dumps(payload), encoding="utf-8")
     return path
