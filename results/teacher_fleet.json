@@ -300,13 +300,67 @@
         "min_gap": -0.1742,
         "adapters_better_than_their_teacher": 12
       }
-    }
+    },
+    "ceiling": {
+      "residual_vs_denoised_ceiling": {
+        "median": -0.03,
+        "min": -0.0783,
+        "max": 0.0183,
+        "largest_shortfall": 0.0783
+      },
+      "vs_teacher_self_agreement": {
+        "median": 0.0408,
+        "n_exceeding": 20,
+        "n": 24
+      }
+    },
+    "by_threshold": [
+      {
+        "threshold": 1,
+        "n": 8,
+        "median_gap": -0.0449,
+        "adapters_better_than_their_teacher": 2,
+        "quotable": 0
+      },
+      {
+        "threshold": 2,
+        "n": 8,
+        "median_gap": 0.0458,
+        "adapters_better_than_their_teacher": 5,
+        "quotable": 5
+      },
+      {
+        "threshold": 3,
+        "n": 8,
+        "median_gap": 0.0549,
+        "adapters_better_than_their_teacher": 6,
+        "quotable": 7
+      }
+    ],
+    "quotable": 12,
+    "high_fidelity_but_refused": [
+      {
+        "reviewer": "t1s0",
+        "adapter_agrees_with_teacher": 1.0,
+        "adapter_agrees_with_world": 0.4667
+      },
+      {
+        "reviewer": "t1s0.05",
+        "adapter_agrees_with_teacher": 0.9233,
+        "adapter_agrees_with_world": 0.465
+      },
+      {
+        "reviewer": "t1s0.1",
+        "adapter_agrees_with_teacher": 0.9183,
+        "adapter_agrees_with_world": 0.4667
+      }
+    ]
   },
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "f79611b68cad",
-    "git_dirty": false,
-    "generated_at": "2026-08-04T12:17:52+00:00",
+    "git_commit": "8c118c757f73",
+    "git_dirty": true,
+    "generated_at": "2026-08-04T12:51:30+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",

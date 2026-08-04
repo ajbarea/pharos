@@ -76,6 +76,92 @@ def rows() -> list[dict[str, Any]]:
     return sorted(out, key=lambda r: (r["threshold"], r["slip_rate"]))
 
 
+def _ceiling_analysis(grid: list[dict[str, Any]]) -> dict[str, Any]:
+    """How close each adapter comes to the best score obtainable against its teacher.
+
+    Reading the fidelity column alone says inheritance decays: it runs from 1.000 at a
+    teacher who never slips to about 0.5 at one who slips half the time. That reading is
+    wrong, and the bound is why. A teacher slipping at rate `s` emits labels that
+    disagree with its own rule that often, so an adapter that had learned the rule
+    *perfectly* would still agree with those labels only `1 - s` of the time. `1 - s` is
+    a ceiling on the column, not a target, and the distance below it is the only part
+    that is about the adapter at all.
+
+    The second comparison is the same point from the other side. Two independent passes
+    of a teacher slipping at `s` agree with each other `(1-s)^2 + s^2` of the time. When
+    the adapter beats that, it is reproducing the teacher more faithfully than the
+    teacher reproduces itself -- which is what learning a rule from noisy draws of it
+    looks like, and is not something a copier could do.
+    """
+    residual = [r["adapter_agrees_with_teacher"] - (1 - r["slip_rate"]) for r in grid]
+    retest = [
+        r["adapter_agrees_with_teacher"] - ((1 - r["slip_rate"]) ** 2 + r["slip_rate"] ** 2)
+        for r in grid
+    ]
+    return {
+        "residual_vs_denoised_ceiling": {
+            "median": round(statistics.median(residual), 4),
+            "min": round(min(residual), 4),
+            "max": round(max(residual), 4),
+            #: The claim in one number: no adapter sits further below the ceiling than
+            #: this, so none of them is failing to inherit by more than that much.
+            "largest_shortfall": round(-min(residual), 4),
+        },
+        "vs_teacher_self_agreement": {
+            "median": round(statistics.median(retest), 4),
+            #: Adapters that reproduce their teacher better than the teacher reproduces
+            #: itself. A copier cannot exceed the thing it copies; a learner can.
+            "n_exceeding": sum(1 for x in retest if x > 0),
+            "n": len(retest),
+        },
+    }
+
+
+def _by_threshold(grid: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """The inheritance gap conditioned on the standard rather than the carelessness.
+
+    This is the split that changes sign, and averaging over the fleet hides it: a
+    teacher applying the correct threshold is improved upon, one applying the strictest
+    is made worse, and the fleet-wide median is positive either way. Training denoises a
+    teacher who is right and careless; it cannot rescue one who is careful and wrong.
+    """
+    out = []
+    for threshold in sorted({r["threshold"] for r in grid}):
+        subset = [r for r in grid if r["threshold"] == threshold]
+        gaps = [r["adapter_agrees_with_world"] - r["teacher_agrees_with_world"] for r in subset]
+        out.append(
+            {
+                "threshold": threshold,
+                "n": len(subset),
+                "median_gap": round(statistics.median(gaps), 4),
+                "adapters_better_than_their_teacher": sum(1 for g in gaps if g > 0.01),
+                "quotable": sum(1 for r in subset if r["quotable"]),
+            }
+        )
+    return out
+
+
+def _fidelity_without_usefulness(grid: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Adapters that reproduce their teacher well and are refused by the validity check.
+
+    The governance result. An operator accepting a personalized model on agreement with
+    the analyst who trained it would ship every row here, and every row here is refused
+    for scoring at or beneath what answering "escalate" to everything scores. Fidelity
+    and usefulness are separate measurements; only one of them can be an acceptance
+    gate. Empty is a meaningful answer and would weaken the claim, so it is computed
+    rather than asserted.
+    """
+    return [
+        {
+            "reviewer": r["reviewer"],
+            "adapter_agrees_with_teacher": r["adapter_agrees_with_teacher"],
+            "adapter_agrees_with_world": r["adapter_agrees_with_world"],
+        }
+        for r in sorted(grid, key=lambda r: -r["adapter_agrees_with_teacher"])
+        if r["quotable"] is False and r["adapter_agrees_with_teacher"] >= 0.9
+    ]
+
+
 def _gap_summary(subset: list[dict[str, Any]], label: str) -> dict[str, Any]:
     """Inheritance gap over one slice of the grid.
 
@@ -158,6 +244,14 @@ def main() -> int:
                     [r for r in grid if r["slip_rate"] > 0.0], "slip > 0"
                 ),
             },
+            #: Why the fidelity column falls without inheritance failing. See
+            #: `_ceiling_analysis`.
+            "ceiling": _ceiling_analysis(grid),
+            #: The split that changes sign. See `_by_threshold`.
+            "by_threshold": _by_threshold(grid),
+            "quotable": sum(1 for r in grid if r["quotable"]),
+            #: The governance result. See `_fidelity_without_usefulness`.
+            "high_fidelity_but_refused": _fidelity_without_usefulness(grid),
         },
         "provenance": run_provenance(n_teachers=len(grid)),
     }
@@ -179,6 +273,30 @@ def main() -> int:
                 f"  {s['label']:24s} n={s['n']:2d}  median gap {s['median_gap']:+.4f}  "
                 f"{s['adapters_better_than_their_teacher']} adapters beat their teacher"
             )
+
+    c = payload["summary"]["ceiling"]
+    print(
+        f"  below the 1-s ceiling by a median of "
+        f"{-c['residual_vs_denoised_ceiling']['median']:.4f}, never more than "
+        f"{c['residual_vs_denoised_ceiling']['largest_shortfall']:.4f}"
+    )
+    v = c["vs_teacher_self_agreement"]
+    print(f"  reproduce the teacher better than it reproduces itself: {v['n_exceeding']}/{v['n']}")
+    print("  by threshold (the split that changes sign):")
+    for row in payload["summary"]["by_threshold"]:
+        print(
+            f"    threshold {row['threshold']}  n={row['n']:2d}  median gap "
+            f"{row['median_gap']:+.4f}  {row['adapters_better_than_their_teacher']} beat "
+            f"their teacher  {row['quotable']} quotable"
+        )
+    refused = payload["summary"]["high_fidelity_but_refused"]
+    print(f"  high fidelity but refused by the validity check: {len(refused)}")
+    for row in refused:
+        print(
+            f"    {row['reviewer']:10s} reproduces its teacher at "
+            f"{row['adapter_agrees_with_teacher']:.4f}, agrees with the world at "
+            f"{row['adapter_agrees_with_world']:.4f}"
+        )
 
     if f["min"] < 0.9:
         LOG.warning(

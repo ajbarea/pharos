@@ -1239,6 +1239,9 @@ A fleet-wide average would report a net gain and hide this entirely.
     counts. An operator holding only the fidelity column would have shipped a model
     indistinguishable from a stub.
 
+    It is not an isolated row: **three** adapters reproduce their teacher above 0.9
+    and are refused, and half the grid is refused on the same grounds.
+
     This is the governance consequence of the whole section. Fidelity to the teacher
     and usefulness to the mission are separate measurements, and only one of them can
     be an acceptance gate.
