@@ -58,7 +58,7 @@ tagged:                    ## Whether a reliability tag can replace identity (no
 
 edge:                      ## What the agent costs on laptop-class hardware (needs Ollama)
 	@mkdir -p results
-	uv run python scripts/measure_edge_cost.py --out results/edge_cost.json
+	uv run python scripts/measure_edge_cost.py --tasks 200 --out results/edge_cost.json
 
 budget:                    ## What a privacy budget buys against the linkage channel (no model)
 	@mkdir -p results

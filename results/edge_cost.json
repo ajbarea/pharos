@@ -1,12 +1,12 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "324950652e64",
+    "git_commit": "b6663c2f57b2",
     "git_dirty": true,
-    "generated_at": "2026-08-02T10:14:31+00:00",
+    "generated_at": "2026-08-04T10:36:36+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": ".venv/bin/python",
+    "executable": ".venv/bin/python3",
     "seed": 7
   },
   "sync": {
@@ -15,9 +15,17 @@
     "trainable_share": 0.009607,
     "bf16_mib": 57.09,
     "fp32_mib": 114.19,
-    "source": "supplied on the command line"
+    "source": "results/review_adapter-any-one.json"
   },
   "footprint": [
+    {
+      "model": "qwen2.5:14b-instruct",
+      "resident_mib": 8571.7
+    },
+    {
+      "model": "qwen2.5:14b-instruct-q4_K_M",
+      "resident_mib": 8571.7
+    },
     {
       "model": "llama3.1:8b-instruct-q4_K_M",
       "resident_mib": 4692.8
@@ -42,19 +50,17 @@
   "latency": {
     "model": "qwen2.5:7b-instruct",
     "num_predict": 8,
-    "cold_start_s": 4.778,
-    "warm_median_s": 0.335,
-    "warm_p95_s": 0.351,
-    "warm_min_s": 0.321,
-    "n_warm": 19,
-    "decisions_per_hour": 10739.6,
-    "cold_start_in_warm_decisions": 14.3
+    "cold_start_s": 3.655,
+    "warm_median_s": 0.321,
+    "warm_p95_s": 0.337,
+    "warm_min_s": 0.296,
+    "n_warm": 199,
+    "decisions_per_hour": 11213.6,
+    "cold_start_in_warm_decisions": 11.4
   },
   "validity": {
-    "n": 19,
-    "quotable": false,
-    "concerns": [
-      "n=19 is below 30; treat differences as provisional"
-    ]
+    "n": 199,
+    "quotable": true,
+    "concerns": []
   }
 }

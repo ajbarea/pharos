@@ -177,7 +177,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `correlated_fleets` | 60 | yes | - |
 | `decode_stability` | 30 | yes | - |
 | `difficulty_confound` | 200 | yes | - |
-| `edge_cost` | 19 | **no** | n=19 is below 30; treat differences as provisional |
+| `edge_cost` | 199 | yes | - |
 | `fleet_linkage` | 200 | yes | - |
 | `label_fidelity` | 40 | yes | - |
 | `learnability` | 600 | **no** | **rows[0]**: accuracy 0.482 does not beat the majority floor 0.685: this is not evidence of capability |
@@ -197,7 +197,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**10 of 24** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**9 of 24** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 **Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`.
 
@@ -609,9 +609,9 @@ asserts every field; it fails on the first report against the pre-fix generator.
 
     **Still on the pre-fix corpus:** `adapter_learnability` and the eight
     `review_adapter-*` artifacts, which are LoRA fine-tuning runs and need a cluster
-    A100 rather than the local 8 GB card, and `edge_cost`, which times the agent on
-    hardware and wants a quiet machine rather than one running everything else.
-    **Findings 6, 10 and 14 rest on those**, so until they are re-run, any comparison
+    A100 rather than the local 8 GB card. `edge_cost` was on that list and is not any
+    more; it re-ran on 2026-08-04 once the machine was quiet.
+    **Findings 6 and 10 rest on the remainder**, so until they are re-run, any comparison
     between one of them and a finding above it is a comparison across two corpora --
     which is the exact confound
     [5b](#5b-the-intervals-above-understate-the-uncertainty-measured-by-replication)
@@ -1516,8 +1516,8 @@ Three costs, because they bind at different moments.
 | --- | --- | --- |
 | **Sync**, per node per round | **57.1 MiB** (bf16) | Bandwidth to personalize |
 | **Footprint**, resident | 4,466 MiB (7B) / 1,841 MiB (3B) | Whether the node can answer at all |
-| **Cold start** | **4.8 s** | Waking a node that slept |
-| **Warm decision** | **0.335 s** median, 0.351 s p95 | Throughput once resident |
+| **Cold start** | **3.7 s** | Waking a node that slept |
+| **Warm decision** | **0.321 s** median, 0.337 s p95 (n=199) | Throughput once resident |
 
 **A round costs the adapter, not the model.** The adapter is 29,933,568 of
 3,115,872,256 parameters, 0.961%, so a personalization round puts **57.1 MiB** on the
@@ -1525,8 +1525,8 @@ wire at bf16 and the base never moves. Doubling that to 114 MiB is the cost of s
 a checkpoint in fp32 without noticing, which is worth stating because it is invisible
 until someone measures the file.
 
-**One resident node sustains about 10,700 triage decisions per hour** at 0.335 s
-median. Waking a node costs 4.8 s, or what **14 warm decisions** cost, which is the
+**One resident node sustains about 11,200 triage decisions per hour** at 0.321 s
+median. Waking a node costs 3.7 s, or what **11 warm decisions** cost, which is the
 number that matters for a duty cycle: a node that sleeps between watches pays it every
 time, and one held resident pays it once.
 
@@ -1547,9 +1547,17 @@ time, and one held resident pays it once.
 
 !!! note "What this does not settle"
     One machine, one server, one quantization, `num_predict` of 8 because a triage
-    answer is one word. Nineteen warm calls is below this project's own small-sample
-    threshold and the artifact is marked unquotable for that reason: the spread is
-    tight (0.321 s to 0.351 s) but tightness on one machine is not generality. Nothing
+    answer is one word. The spread is tight (0.297 s to 0.337 s) but tightness on one
+    machine is not generality.
+
+    This was measured at nineteen warm calls until 2026-08-04 and marked unquotable for
+    it. That was the smaller problem. At nineteen the reported p95 was
+    `warm[min(n-1, int(0.95*n))]`, which is `warm[18]` -- **the largest value in the
+    sample**, published under a percentile's name, and the maximum of nineteen draws is
+    the noisiest statistic they admit. At 199 the same index is the tenth largest, which
+    is an estimate. The corpus had to grow too: `--tasks 200` was silently capped at 59
+    because only 60 events were generated, so the requested sample was really the corpus
+    size. Nothing
     here measures energy or thermal throttling, which current on-device guidance treats
     as the binding constraint on sustained mobile inference and which an 8 GB desktop
     card will not reproduce. The sync figure is arithmetic on parameter counts rather

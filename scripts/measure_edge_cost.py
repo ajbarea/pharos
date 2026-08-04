@@ -47,11 +47,21 @@ from pharos.tasks import build_triage_tasks
 from pharos.validity import check_sample_size
 
 SEED = 7
-EVENTS = 60
+#: Events to generate. 60 yielded about 59 timed tasks, which capped `--tasks 200` at 59
+#: without saying so -- the requested sample was silently the corpus size. 240 supplies
+#: more tasks than the timing loop asks for, so the sample is the one requested.
+EVENTS = 240
 
-#: Tasks to time. Enough for a median and a p95 without turning a cost measurement
-#: into an accuracy sweep; correctness is measured elsewhere and is not re-asked here.
-TIMED_TASKS = 20
+#: Tasks to time. This was 20, and at 20 the reported p95 was
+#: `warm[min(n-1, int(0.95*n))]` = `warm[18]` of 19 samples -- the largest value in the
+#: sample, reported under a percentile's name. A maximum and a p95 answer different
+#: questions, and the maximum of 19 draws is the noisiest statistic available from them.
+#: 200 puts the index at the 10th largest, which is an estimate rather than an extremum,
+#: and costs about a minute: a warm decision is roughly a third of a second and this is
+#: the one measurement here that is cheap in exactly the dimension it needs to grow.
+#: It also clears `pharos.validity`'s n>=30 floor, which had this artifact flagged
+#: unquotable while finding 14 quoted it.
+TIMED_TASKS = 200
 
 #: The decode a triage answer actually needs. One word from a closed set, so the
 #: latency reported is the latency of a decision rather than of an essay.
