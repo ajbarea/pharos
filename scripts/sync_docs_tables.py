@@ -219,9 +219,69 @@ def measurement_health() -> str:
     return "\n".join(lines)
 
 
+def teacher_fleet() -> str:
+    """The 24-teacher grid behind finding 10, plus the split that changes sign.
+
+    Twenty-four rows of six numbers is the largest hand-maintained table this page could
+    have carried, and it was one: pasted from a shell one-liner while the section was
+    being written. Every rerun of the grid would have silently invalidated all of it.
+
+    The ceiling column is the reason the table needs more than the obvious four columns.
+    Fidelity falls from 1.000 to 0.473 as the slip rate rises, which reads as
+    inheritance decaying and is not: a teacher slipping at rate `s` disagrees with its
+    own rule that often, so `1 - s` is the best score any model can post against its
+    labels. The dagger marks rows the validity check refuses, and it is load-bearing --
+    the row with the table's highest fidelity is one of them.
+    """
+    path = RESULTS / "teacher_fleet.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make teacher-fleet` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    rows = payload.get("rows") or []
+    if not rows:
+        _fail("teacher_fleet.json carries no rows; refusing to emit an empty table")
+    summary = payload["summary"]
+
+    lines = [
+        "| Teacher | Targets vs world | Adapter vs **world** | "
+        "Adapter vs **teacher** | Ceiling `1-s` | Inherited |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in rows:
+        dagger = "" if row["quotable"] else " †"
+        gap = row["adapter_agrees_with_world"] - row["teacher_agrees_with_world"]
+        lines.append(
+            f"| `{row['reviewer']}`{dagger} | {row['teacher_agrees_with_world']:.3f} | "
+            f"{row['adapter_agrees_with_world']:.3f} | "
+            f"{row['adapter_agrees_with_teacher']:.3f} | "
+            f"{1 - row['slip_rate']:.3f} | {gap:+.3f} |"
+        )
+
+    refused = len(rows) - summary["quotable"]
+    lines += [
+        "",
+        f"† marks the {refused} adapters the validity check refuses, for accuracy "
+        "beneath the majority floor or for recall bought with more false positives "
+        "than true ones.",
+        "",
+        "| Threshold | n | Median inherited | Beat their teacher | Quotable |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for block in summary["by_threshold"]:
+        lines.append(
+            f"| {block['threshold']} | {block['n']} | {block['median_gap']:+.4f} | "
+            f"{block['adapters_better_than_their_teacher']} | {block['quotable']} |"
+        )
+    return "\n".join(lines)
+
+
 #: Block name to builder. A block present in a doc but absent here is an error rather
 #: than a no-op: a marker with nothing behind it is how a table quietly stops updating.
-BLOCKS = {"power-claims": power_claims, "measurement-health": measurement_health}
+BLOCKS = {
+    "power-claims": power_claims,
+    "measurement-health": measurement_health,
+    "teacher-fleet": teacher_fleet,
+}
 
 #: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --
 #: adjacent markers with no body, a mismatched name, a missing END -- because those

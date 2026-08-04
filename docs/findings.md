@@ -172,6 +172,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 <!-- BEGIN GENERATED: measurement-health -->
 | Artifact | n | Quotable | Why not |
 | --- | --- | --- | --- |
+| `adapter_learnability` | 60 | **no** | **base**: 9/60 answers were unparsable (15%); every other number describes only the remainder; accuracy 0.392 does not beat the majority floor 0.647: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `analyst_review` | 40 | yes | - |
 | `consensus_reliability` | 200 | yes | - |
 | `correlated_fleets` | 60 | yes | - |
@@ -186,6 +187,30 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `review_adapter-any-one` | 600 | **no** | **adapter**: accuracy 0.440 does not beat the majority floor 0.685: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `review_adapter-by-the-book` | 600 | **no** | **base**: 74/600 answers were unparsable (12%); every other number describes only the remainder; accuracy 0.361 does not beat the majority floor 0.675: this is not evidence of capability |
 | `review_adapter-inattentive` | 600 | yes | - |
+| `review_adapter-t1s0.05` | 600 | **no** | **adapter**: accuracy 0.465 does not beat the majority floor 0.690: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `review_adapter-t1s0.1` | 600 | **no** | **adapter**: accuracy 0.467 does not beat the majority floor 0.690: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `review_adapter-t1s0.15` | 600 | **no** | **adapter**: accuracy 0.388 does not beat the majority floor 0.690: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `review_adapter-t1s0.2` | 600 | **no** | **adapter**: accuracy 0.435 does not beat the majority floor 0.690: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `review_adapter-t1s0.3` | 600 | **no** | **adapter**: accuracy 0.310 does not beat the majority floor 0.690: this is not evidence of capability; every prediction was positive: the model is not discriminating, and precision/recall describe the class balance rather than the model; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `review_adapter-t1s0.4` | 600 | **no** | **adapter**: accuracy 0.390 does not beat the majority floor 0.690: this is not evidence of capability |
+| `review_adapter-t1s0.5` | 600 | **no** | **adapter**: accuracy 0.310 does not beat the majority floor 0.690: this is not evidence of capability; every prediction was positive: the model is not discriminating, and precision/recall describe the class balance rather than the model; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `review_adapter-t1s0` | 600 | **no** | **base**: 82/600 answers were unparsable (14%); every other number describes only the remainder; accuracy 0.371 does not beat the majority floor 0.680: this is not evidence of capability |
+| `review_adapter-t2s0.05` | 600 | yes | - |
+| `review_adapter-t2s0.1` | 600 | yes | - |
+| `review_adapter-t2s0.15` | 600 | yes | - |
+| `review_adapter-t2s0.2` | 600 | yes | - |
+| `review_adapter-t2s0.3` | 600 | **no** | **adapter**: accuracy 0.680 does not beat the majority floor 0.690: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `review_adapter-t2s0.4` | 600 | **no** | **adapter**: accuracy 0.600 does not beat the majority floor 0.690: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
+| `review_adapter-t2s0.5` | 600 | **no** | **adapter**: accuracy 0.328 does not beat the majority floor 0.690: this is not evidence of capability |
+| `review_adapter-t2s0` | 600 | yes | - |
+| `review_adapter-t3s0.05` | 600 | yes | - |
+| `review_adapter-t3s0.1` | 600 | yes | - |
+| `review_adapter-t3s0.15` | 600 | yes | - |
+| `review_adapter-t3s0.2` | 600 | yes | - |
+| `review_adapter-t3s0.3` | 600 | yes | - |
+| `review_adapter-t3s0.4` | 600 | **no** | **adapter_vs_teacher**: accuracy 0.548 does not beat the majority floor 0.560: this is not evidence of capability |
+| `review_adapter-t3s0.5` | 600 | **no** | **adapter**: accuracy 0.360 does not beat the majority floor 0.690: this is not evidence of capability |
+| `review_adapter-t3s0` | 600 | yes | - |
 | `review_adapter-two-of-three` | 600 | yes | - |
 | `review_sweep` | 40 | yes | - |
 | `tagged_aggregation` | 200 | yes | - |
@@ -197,13 +222,12 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**9 of 24** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**23 of 49** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 **Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`.
 
-Assessed by their script but not yet in the committed artifact (5 of these), which needs a rerun rather than an edit:
+Assessed by their script but not yet in the committed artifact (4 of these), which needs a rerun rather than an edit:
 
-- `adapter_learnability` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-any-one-xseed101` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-by-the-book-xseed101` -- train_adapter.py now records it per evaluation pass
 - `review_adapter-inattentive-xseed101` -- train_adapter.py now records it per evaluation pass
@@ -215,7 +239,7 @@ Exempt, because there is no sampling question to answer:
 - `federation_eligibility` -- deterministic over the label lattice; nothing is sampled
 - `fleet_sensitivity` -- a sweep over a nuisance parameter; reports invariants, samples nothing
 - `power` -- prices hypothetical evaluation sizes; simulates outcomes rather than measuring any
-- `teacher_fleet` -- aggregates assessed adapter artifacts; adds no measurement of its own *(artifact absent)*
+- `teacher_fleet` -- aggregates assessed adapter artifacts; adds no measurement of its own
 - `triage_lift` -- superseded by the per-model triage_lift-* artifacts, which are assessed
 <!-- END GENERATED: measurement-health -->
 
@@ -1170,7 +1194,8 @@ escalation thresholds with eight slip rates and trains all 24, one A100 job per 
 It also runs on the **corrected** generator, so unlike the tables above it is directly
 comparable with every other finding on this page.
 
-| Teacher | Targets vs world | Adapter vs **world** | Adapter vs **teacher** | Ceiling 1-s | Inherited |
+<!-- BEGIN GENERATED: teacher-fleet -->
+| Teacher | Targets vs world | Adapter vs **world** | Adapter vs **teacher** | Ceiling `1-s` | Inherited |
 | --- | --- | --- | --- | --- | --- |
 | `t1s0` † | 0.447 | 0.467 | 1.000 | 1.000 | +0.020 |
 | `t1s0.05` † | 0.457 | 0.465 | 0.923 | 0.950 | +0.008 |
@@ -1197,8 +1222,14 @@ comparable with every other finding on this page.
 | `t3s0.4` | 0.595 | 0.722 | 0.548 | 0.600 | +0.127 |
 | `t3s0.5` † | 0.492 | 0.360 | 0.503 | 0.500 | -0.132 |
 
-† marks the 12 adapters the validity check refuses, for accuracy beneath the majority
-floor of 0.690 or for recall bought with more false positives than true ones.
+† marks the 12 adapters the validity check refuses, for accuracy beneath the majority floor or for recall bought with more false positives than true ones.
+
+| Threshold | n | Median inherited | Beat their teacher | Quotable |
+| --- | --- | --- | --- | --- |
+| 1 | 8 | -0.0449 | 2 | 0 |
+| 2 | 8 | +0.0458 | 5 | 5 |
+| 3 | 8 | +0.0549 | 6 | 7 |
+<!-- END GENERATED: teacher-fleet -->
 
 **The two conclusions survive, and one number does not.** Teachers who never slip hand
 their disagreement over at a median of **+0.0008** -- the inheritance claim, now on
@@ -1219,14 +1250,7 @@ The adapter learns the teacher's rule with the teacher's noise averaged out -- w
 weak-to-strong literature calls convergence to the *posterior mean* teacher rather than
 to any individual one ([Xu et al. 2025](https://arxiv.org/abs/2505.24313)).
 
-**Whether the fleet helps depends on which error the teacher makes.** Conditioning on
-the threshold instead of the slip rate splits the grid cleanly:
-
-| Threshold | n | Median inherited | Adapters beating their teacher | Quotable |
-| --- | --- | --- | --- | --- |
-| 1 (strictest) | 8 | **-0.045** | 2 | 0 |
-| 2 (middle) | 8 | +0.046 | 5 | 5 |
-| 3 (correct) | 8 | **+0.055** | 6 | 7 |
+**Whether the fleet helps depends on which error the teacher makes.** Conditioning on the threshold instead of the slip rate splits the grid cleanly -- see the second table above.
 
 Training denoises a teacher who is right and careless. It cannot rescue a teacher who
 is careful and wrong, and where the standard *itself* is the error, more of it hurts.
