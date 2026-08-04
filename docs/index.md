@@ -117,7 +117,9 @@ Federated personalization splits what a model learns into **local knowledge** an
 | `pharos.cli` | **Command Line**: CLI subcommands (`gate`, `export`, `models`, `serve`) |
 
 !!! note "Deterministic Pipeline"
-    Everything in the generation and gating path is **100% offline and deterministic**. Model calls live strictly in `pharos.attribute` and evaluation scripts under `scripts/`, guaranteeing bit-identical reproducibility.
+    Everything in the generation and gating path is **100% offline**, and no model is contacted outside `pharos.attribute` and the evaluation scripts under `scripts/`.
+
+    Reproducibility is exact where it has to be and approximate where it cannot be. The **corpus** is bit-identical across machines -- its SHA-256 agrees at every seed, which is what lets two parties discuss the same data. The gate's **score** is not: measured across a Ryzen laptop and a Xeon cluster node with identical library versions, 2 of 7 seeds differ by ~1e-05, because the BLAS selects kernels by processor and that changes reduction order inside the probe fit. No **verdict** moves, since the gap to the acceptance ceiling is four orders of magnitude larger. See [findings](findings.md) and `scripts/measure_gate_determinism.py`.
 
 </div>
 

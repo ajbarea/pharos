@@ -34,8 +34,9 @@ Three capabilities are general, and none of them is about disclosure:
   six-model sweep result -- recall exactly 1.000 everywhere, 3B outscoring 14B --
   is a finding about that task, and would stand if the labels carried no lattice.
 - **The reproducibility machinery is reusable.** Provenance stamps, the staleness
-  guard, cross-platform bit-identical gating, and a retraction the artifacts caught
-  are contributions to how generated corpora are released, independent of subject.
+  guard, a cross-platform determinism check that separates what is bit-identical from
+  what only agrees to a tolerance, and two retractions the artifacts caught are
+  contributions to how generated corpora are released, independent of subject.
 
 So the survey below answers a narrow question -- *which corpora could stand in for
 Pharos on the boundary claim* -- and the answer is none. It does **not** establish
@@ -670,12 +671,23 @@ Kept explicit so silence does not read as coverage.
   any comparison between one of those and a finding measured after the fix is a
   cross-corpus comparison, which is the confound a reproducibility claim was withdrawn
   for on 2026-08-02.
-- **The cross-machine gate check is owed a repeat (opened 2026-08-03).** Bit-identical
-  surface baselines on a WSL laptop and an RHEL 9 node were verified on the pre-fix
-  corpus. The property is not in doubt -- SHA-256 and `random.Random` are
-  platform-stable -- but the current values, 0.6378, 0.6545 and 0.6604 on seeds 1, 7
-  and 101, have only been computed on the laptop. That is a check to redo, not a
-  result to doubt, and the distinction is worth keeping.
+- **The cross-machine gate check was owed a repeat, and the repeat refuted it
+  (opened 2026-08-03, closed 2026-08-04).** This entry used to say "the property is not
+  in doubt -- SHA-256 and `random.Random` are platform-stable -- that is a check to redo,
+  not a result to doubt". Half of that was right and the confident half was wrong, which
+  is the argument for redoing a check rather than reasoning about what it would say.
+
+  The corpus is bit-identical: SHA-256 agrees at every seed, and that part of the
+  reasoning held. The gate's *score* is not. Two of seven seeds differ, by 1.2e-05 and
+  6.5e-06, with numpy, scikit-learn, scipy and the BLAS at identical versions on both
+  machines. `random.Random` was never the operative component -- the probe fit runs
+  through a BLAS that dispatches kernels by processor, AVX-512 on the Xeon and AVX2 on
+  the Ryzen, and a different kernel is a different reduction order.
+
+  No verdict moves, since the disagreement sits four orders of magnitude below the gap
+  between any baseline and the 0.720 ceiling, so the property the gate needs survives in
+  a more precisely stated form. Rerunnable with `scripts/measure_gate_determinism.py`
+  and `cluster/gate-determinism.sbatch`.
 
 ## Adding an entry
 
