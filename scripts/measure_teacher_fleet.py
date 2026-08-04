@@ -76,6 +76,26 @@ def rows() -> list[dict[str, Any]]:
     return sorted(out, key=lambda r: (r["threshold"], r["slip_rate"]))
 
 
+def _gap_summary(subset: list[dict[str, Any]], label: str) -> dict[str, Any]:
+    """Inheritance gap over one slice of the grid.
+
+    Positive means the adapter agrees with the world *better* than the teacher that
+    taught it -- training repaired some of the teacher's error. Near zero means the
+    error rate was handed over intact.
+    """
+    if not subset:
+        return {"label": label, "n": 0}
+    gaps = [r["adapter_agrees_with_world"] - r["teacher_agrees_with_world"] for r in subset]
+    return {
+        "label": label,
+        "n": len(subset),
+        "median_gap": round(statistics.median(gaps), 4),
+        "max_gap": round(max(gaps), 4),
+        "min_gap": round(min(gaps), 4),
+        "adapters_better_than_their_teacher": sum(1 for g in gaps if g > 0.01),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path)
@@ -124,6 +144,20 @@ def main() -> int:
                 "largest_absolute": max(abs(g) for g in inheritance_gap),
             },
             "adapters_with_perfect_recall": sum(1 for r in grid if r["adapter_recall"] >= 1.0),
+            #: Finding 10's actual claim is a dissociation, not a single number: a
+            #: *systematic* error (the wrong threshold) is inherited almost exactly,
+            #: while a *random* one (slipping) is partly repaired by training, because
+            #: noise does not survive being averaged over 1,140 decisions and a wrong
+            #: rule does. Four teachers could show that twice; the grid varies both axes
+            #: independently, so the two groups below are the test.
+            "dissociation": {
+                "systematic_only": _gap_summary(
+                    [r for r in grid if r["slip_rate"] == 0.0], "slip 0, threshold varies"
+                ),
+                "with_random_error": _gap_summary(
+                    [r for r in grid if r["slip_rate"] > 0.0], "slip > 0"
+                ),
+            },
         },
         "provenance": run_provenance(n_teachers=len(grid)),
     }
@@ -138,6 +172,13 @@ def main() -> int:
     print(f"  adapter reproduces its teacher: min {f['min']:.4f} median {f['median']:.4f}")
     g = payload["summary"]["inheritance_gap"]
     print(f"  largest gap between adapter and teacher error rate: {g['largest_absolute']:.4f}")
+    for slice_name in ("systematic_only", "with_random_error"):
+        s = payload["summary"]["dissociation"][slice_name]
+        if s["n"]:
+            print(
+                f"  {s['label']:24s} n={s['n']:2d}  median gap {s['median_gap']:+.4f}  "
+                f"{s['adapters_better_than_their_teacher']} adapters beat their teacher"
+            )
 
     if f["min"] < 0.9:
         LOG.warning(
