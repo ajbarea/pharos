@@ -486,9 +486,12 @@ The weaker test was mislabelled "conservative" in its own docstring; it is the
 permissive one, and it has been corrected.
 
 What the other columns show is a coherent mechanism for the direction, whether or not
-the size is resolved. Recall climbs from 0.874 to 0.906 while precision falls from
-0.372 to 0.352, so the examples are not teaching the rule, they are teaching the model
-to escalate more. That is the same failure
+the size is resolved. Recall climbs from 0.899 at zero shots to **exactly 1.000** at
+eight, while precision falls from 0.368 to 0.380 -- it does not recover -- so the
+examples are not teaching the rule, they are teaching the model to escalate more. At
+eight shots the model escalates every single task, which is the clearest form this
+failure has taken: a classifier that answers SIGNIFICANT to everything has a recall of
+1.000 and has learned nothing. That is the same failure
 [finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) found in
 every model tested, and supplying examples does not repair it.
 
@@ -575,7 +578,7 @@ the six-model ordering in
 [finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it), which the
 text refuses to present as a ranking. The claims this project does make -- recall
 exactly 1.000 in every model, a fleet inheriting its teacher's error rate to within
-0.002, a consensus cliff from 1.000 to 0.717 -- are all far outside that band.
+0.002, a consensus cliff from 1.000 to 0.660 -- are all far outside that band.
 
 !!! note "What would settle it, and what is queued"
     Two runs bound nothing even when they are controlled, and these were not. Two
@@ -1307,22 +1310,29 @@ identity**).
 | Wrong standard | Unweighted | Oracle (identity + truth) | Consensus | **Dawid-Skene** |
 | --- | --- | --- | --- | --- |
 | 0 of 9 | 1.000 | 1.000 | 1.000 | 1.000 |
-| 2 of 9 | 0.937 | 1.000 | 1.000 | 1.000 |
-| 4 of 9 | 0.874 | 1.000 | 1.000 | 1.000 |
-| **5 of 9** | 0.843 | **1.000** | **0.717** | **0.717** |
-| 7 of 9 | 0.780 | 1.000 | 0.717 | 0.717 |
-| 9 of 9 | 0.717 | none | 0.717 | 0.717 |
+| 3 of 9 | 0.887 | 1.000 | 1.000 | 1.000 |
+| 4 of 9 | 0.849 | 1.000 | 1.000 | 1.000 |
+| **5 of 9** | 0.811 | **1.000** | **0.660** | **0.660** |
+| 7 of 9 | 0.735 | 1.000 | 0.660 | 0.660 |
+| 9 of 9 | 0.660 | none | 0.660 | 0.660 |
 
 **It is a cliff, not a curve, and it sits exactly at the majority crossing.** Up to 4
 of 9, consensus is worth precisely as much as knowing who everyone is. At 5 of 9 it
-collapses to 0.717, which is not a degraded score but *the wrong standard's own
-agreement with the world*: past the crossing, consensus returns the wrong rule intact
-and with full confidence.
+collapses to 0.660, which is not a degraded score but *the wrong standard's own
+agreement with the world* -- the bottom row is the same number, because a fleet that is
+entirely wrong and a fleet that is merely mostly wrong return the same rule. Past the
+crossing, consensus returns the wrong rule intact and with full confidence.
+
+The [fleet sweep](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently)
+shows both properties are structural: across fleets of 5 to 51 the cliff lands at the
+majority threshold every time and the value it lands on is 0.660 every time.
 
 **The canonical estimator falls off the same cliff, to the same value.** Dawid and
 Skene (1979) infer per-contributor error rates and true labels jointly by EM, using no
 ground truth, and surveys of truth inference report it beating majority voting. Here it
-matches majority voting exactly at every composition, collapse included. The mechanism
+matches majority voting exactly at every composition here, collapse included --- at
+this fleet size, which the sweep above qualifies: from fifteen contributors it gains one
+step of margin before falling. The mechanism
 is pinned in `tests/test_inference.py`: EM started from the majority vote is drawn
 toward whatever the majority believes, so once most contributors hold the wrong
 standard it concludes the correct minority *are* the unreliable ones. It rates them
