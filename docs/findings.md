@@ -224,7 +224,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 
 **23 of 49** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
-**Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`.
+**Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`, `gate_determinism`, `gate_determinism-cluster`.
 
 Assessed by their script but not yet in the committed artifact (4 of these), which needs a rerun rather than an edit:
 
@@ -439,12 +439,21 @@ judgements**: `qwen2.5-3b` and `llama3.1-8b` each flipped exactly one task of fo
 the other three were identical. Temperature is 0 and the seed is fixed, so this is
 runtime and quantization numerics moving a borderline verdict, not sampling.
 
-The [gate](reference/gate.md), by contrast, reproduces **bit-identically** across the
-same two machines. That asymmetry is the reason model calls are confined to
-`pharos.attribute`: the acceptance decision that licenses a corpus cannot drift with
-a backend, while the scores measured *on* that corpus carry roughly a
-one-percent floor on cross-platform agreement. Quote model-dependent numbers with
-the platform named.
+The **corpus** reproduces bit-identically across the same two machines -- the SHA-256
+of the serialized corpus agrees at every seed. The gate's **score** does not, which we
+report because `scripts/measure_gate_determinism.py` measured it rather than assuming
+it: two of seven seeds disagree, by 1.2e-05 and 6.5e-06, with numpy, scikit-learn,
+scipy and the BLAS all at identical versions. The BLAS selects kernels by processor --
+AVX-512 on the cluster's Xeon, AVX2 on the laptop's Ryzen -- which changes the
+reduction order inside the probe fit.
+
+What matters is that no *verdict* moves: the largest disagreement is about four orders
+of magnitude below the gap between any measured baseline (0.638--0.660) and the 0.720
+acceptance ceiling. That asymmetry is still the reason model calls are confined to
+`pharos.attribute`, but the accurate form of it is that the acceptance **decision**
+does not drift with the platform, not that the number is identical. The scores measured
+*on* the corpus carry roughly a one-percent floor on cross-platform agreement. Quote
+model-dependent numbers with the platform named.
 
 ## 4. Answerability and surface non-leakage pull against each other
 

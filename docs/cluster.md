@@ -13,7 +13,7 @@ Model-dependent numbers are **not** bit-reproducible across different CPU/GPU pl
 
 | Workload | Recommended Platform | Reason |
 | :--- | :---: | :--- |
-| **Generation, Gate, Tests, Docs** | 💻 **Local Workstation** | Offline, zero-model calls, 100% bit-identical |
+| **Generation, Gate, Tests, Docs** | 💻 **Local Workstation** | Offline, zero-model calls; the corpus is bit-identical anywhere, the gate's score is not |
 | **Models up to ~8B** (Qwen 3B/7B, Llama 8B) | 💻 **Local Workstation** | 4.7 GB VRAM at Q4, ~16s/call, zero queue latency |
 | **Models above 8B** (Qwen 14B) | ⚡ **HPC Cluster** | Exceeds 8 GB VRAM capacity |
 | **LoRA Adapter Training** | ⚡ **HPC Cluster** | Requires 16–24 GB VRAM allocation |
@@ -70,7 +70,7 @@ Interactive `srun` sessions or backgrounded `ollama pull` commands terminate if 
 
 ## Verified Cluster Achievements
 
-* ⚠️ **Bit-Identical Gate Verification**: surface baselines matched bit-for-bit between WSL Linux laptops and RHEL 9 HPC cluster nodes on the pre-2026-08-03 corpus. The generator now derives a random stream per event, so the values are 0.6378, 0.6545 and 0.6604 on seeds 1, 7 and 101; these were recomputed on the laptop and the cluster half of the comparison is owed a repeat.
+* ⚠️ **Cross-machine gate reproducibility**: repeated 2026-08-04 on the corrected corpus, and the earlier bit-for-bit claim did not survive. The *corpus* is bit-identical -- its SHA-256 agrees at every seed -- but 2 of 7 surface baselines differ, by 1.2e-05 and 6.5e-06, with numpy, scikit-learn, scipy and the BLAS at identical versions. The BLAS selects kernels by processor (AVX-512 on the Xeon, AVX2 on the Ryzen), changing reduction order inside the probe fit. No verdict moves: the gap to the 0.720 ceiling is ~4 orders of magnitude larger. Repeat it with `sbatch cluster/gate-determinism.sbatch` and `scripts/measure_gate_determinism.py --compare`.
 * ✅ **Gradient Learnability**: Validated on NVIDIA A100-PCIE-40GB (`torch 2.13.0+cu130`, `peft 0.20.0`). LoRA adapter fine-tuning moved triage F1 from **0.469 to 1.000**.
 
 ---

@@ -88,13 +88,19 @@ Python 3.12 to 3.14. Generation and gating need only `numpy` and `scikit-learn`.
 model is contacted, so generation and gating stay reproducible and the acceptance
 decision cannot drift with a model version.
 
-That holds in practice, not only in intention: the gate produces **bit-identical**
-surface baselines on a WSL laptop and on an RHEL 9 cluster node with a different CPU
-count, kernel, and libc. The property is the claim; the values move whenever the
-generator does, and after the 2026-08-03 correction to per-event random streams they
-are 0.6378, 0.6545, and 0.6604 on seeds 1, 7, and 101. Those three were recomputed on
-the laptop only -- the cross-machine comparison was last run on the previous corpus and
-is owed a repeat, which is a check to redo rather than a result to doubt.
+That holds in practice, and the repeat we owed has now been run --- which corrected the
+claim. The **corpus** is bit-identical on a WSL laptop and an RHEL 9 cluster node: the
+SHA-256 of the serialized corpus agrees at every seed. The gate's **surface baseline**
+is not. Two of seven seeds disagree, by 1.2e-05 and 6.5e-06, with numpy, scikit-learn,
+scipy and the BLAS pinned to identical versions on both. The BLAS picks kernels by
+processor --- AVX-512 on the Xeon, AVX2 on the Ryzen --- and that changes the reduction
+order inside the probe fit.
+
+The portable property is therefore the *verdict*, not the float: the largest
+disagreement is four orders of magnitude below the gap between any baseline
+(0.638--0.660) and the 0.720 acceptance ceiling, so no corpus changes status. Rerun it
+with `scripts/measure_gate_determinism.py` and `cluster/gate-determinism.sbatch`, which
+compare `float.hex()` and refuse outright unless both machines scored the same corpus.
 
 ## Documentation
 
