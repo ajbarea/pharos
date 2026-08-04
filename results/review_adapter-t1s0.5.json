@@ -1,0 +1,108 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "2c937f15b8f7",
+    "git_dirty": false,
+    "generated_at": "2026-08-04T08:46:42+00:00",
+    "python": "3.13.14",
+    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
+    "executable": ".venv/bin/python3",
+    "model": "Qwen/Qwen2.5-3B-Instruct",
+    "seed": 7
+  },
+  "lora": {
+    "trainable_params": 29933568,
+    "total_params": 3115872256
+  },
+  "hyperparameters": {
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "epochs": 3.0,
+    "learning_rate": 0.0001,
+    "effective_batch": 16
+  },
+  "data": {
+    "n_train": 1140,
+    "n_eval": 600,
+    "train_balance": {
+      "significant": 350,
+      "routine": 790
+    },
+    "eval_balance": {
+      "significant": 186,
+      "routine": 414
+    },
+    "events_disjoint": true,
+    "eval_seed": null,
+    "cross_corpus": false
+  },
+  "training_loss": 0.3504675052439173,
+  "base": null,
+  "adapter": {
+    "label": "adapter",
+    "n": 600,
+    "confusion": {
+      "tp": 186,
+      "fp": 414,
+      "tn": 0,
+      "fn": 0
+    },
+    "unparsed": 0,
+    "accuracy": 0.31,
+    "majority_accuracy": 0.69,
+    "precision": 0.31,
+    "recall": 1.0,
+    "f1": 0.4733,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "accuracy 0.310 does not beat the majority floor 0.690: this is not evidence of capability",
+        "every prediction was positive: the model is not discriminating, and precision/recall describe the class balance rather than the model",
+        "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
+      ]
+    }
+  },
+  "teacher": {
+    "reviewer": "t1s0.5",
+    "escalation_threshold": 1,
+    "slip_rate": 0.5,
+    "train_target_agreement": 0.4842
+  },
+  "adapter_vs_teacher": {
+    "label": "adapter-vs-teacher",
+    "n": 600,
+    "confusion": {
+      "tp": 284,
+      "fp": 316,
+      "tn": 0,
+      "fn": 0
+    },
+    "unparsed": 0,
+    "accuracy": 0.4733,
+    "majority_accuracy": 0.5267,
+    "precision": 0.4733,
+    "recall": 1.0,
+    "f1": 0.6425,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "accuracy 0.473 does not beat the majority floor 0.527: this is not evidence of capability",
+        "every prediction was positive: the model is not discriminating, and precision/recall describe the class balance rather than the model",
+        "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
+      ]
+    }
+  },
+  "ceiling_f1": 1.0
+}

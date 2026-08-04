@@ -1,0 +1,103 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "2c937f15b8f7",
+    "git_dirty": false,
+    "generated_at": "2026-08-04T09:49:32+00:00",
+    "python": "3.13.14",
+    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
+    "executable": ".venv/bin/python3",
+    "model": "Qwen/Qwen2.5-3B-Instruct",
+    "seed": 7
+  },
+  "lora": {
+    "trainable_params": 29933568,
+    "total_params": 3115872256
+  },
+  "hyperparameters": {
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "epochs": 3.0,
+    "learning_rate": 0.0001,
+    "effective_batch": 16
+  },
+  "data": {
+    "n_train": 1140,
+    "n_eval": 600,
+    "train_balance": {
+      "significant": 350,
+      "routine": 790
+    },
+    "eval_balance": {
+      "significant": 186,
+      "routine": 414
+    },
+    "events_disjoint": true,
+    "eval_seed": null,
+    "cross_corpus": false
+  },
+  "training_loss": 0.3464068822838642,
+  "base": null,
+  "adapter": {
+    "label": "adapter",
+    "n": 600,
+    "confusion": {
+      "tp": 186,
+      "fp": 192,
+      "tn": 222,
+      "fn": 0
+    },
+    "unparsed": 0,
+    "accuracy": 0.68,
+    "majority_accuracy": 0.69,
+    "precision": 0.4921,
+    "recall": 1.0,
+    "f1": 0.6596,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "accuracy 0.680 does not beat the majority floor 0.690: this is not evidence of capability",
+        "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
+      ]
+    }
+  },
+  "teacher": {
+    "reviewer": "t2s0.3",
+    "escalation_threshold": 2,
+    "slip_rate": 0.3,
+    "train_target_agreement": 0.5991
+  },
+  "adapter_vs_teacher": {
+    "label": "adapter-vs-teacher",
+    "n": 600,
+    "confusion": {
+      "tp": 238,
+      "fp": 140,
+      "tn": 146,
+      "fn": 76
+    },
+    "unparsed": 0,
+    "accuracy": 0.64,
+    "majority_accuracy": 0.5233,
+    "precision": 0.6296,
+    "recall": 0.758,
+    "f1": 0.6879,
+    "validity": {
+      "n": 600,
+      "quotable": true,
+      "concerns": []
+    }
+  },
+  "ceiling_f1": 1.0
+}

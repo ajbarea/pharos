@@ -1159,14 +1159,97 @@ terms.
     cross-corpus evaluation. What each table supports on its own is the same pair of
     conclusions, which is the claim being made.
 
+### At fleet scale: 24 teachers, both axes crossed
+
+`scripts/measure_teacher_fleet.py`, `results/teacher_fleet.json`
+
+Four teachers is four case studies, and two of the three claims above are ones four
+points cannot separate: the named teachers vary standard *and* carefulness together, so
+"systematic" and "random" are never independently manipulated. The grid crosses three
+escalation thresholds with eight slip rates and trains all 24, one A100 job per point.
+It also runs on the **corrected** generator, so unlike the tables above it is directly
+comparable with every other finding on this page.
+
+| Teacher | Targets vs world | Adapter vs **world** | Adapter vs **teacher** | Ceiling 1-s | Inherited |
+| --- | --- | --- | --- | --- | --- |
+| `t1s0` † | 0.447 | 0.467 | 1.000 | 1.000 | +0.020 |
+| `t1s0.05` † | 0.457 | 0.465 | 0.923 | 0.950 | +0.008 |
+| `t1s0.1` † | 0.454 | 0.467 | 0.918 | 0.900 | +0.012 |
+| `t1s0.15` † | 0.468 | 0.388 | 0.793 | 0.850 | -0.079 |
+| `t1s0.2` † | 0.446 | 0.435 | 0.773 | 0.800 | -0.011 |
+| `t1s0.3` † | 0.475 | 0.310 | 0.640 | 0.700 | -0.165 |
+| `t1s0.4` † | 0.482 | 0.390 | 0.562 | 0.600 | -0.092 |
+| `t1s0.5` † | 0.484 | 0.310 | 0.473 | 0.500 | -0.174 |
+| `t2s0` | 0.701 | 0.702 | 0.990 | 1.000 | +0.001 |
+| `t2s0.05` | 0.696 | 0.702 | 0.940 | 0.950 | +0.006 |
+| `t2s0.1` | 0.651 | 0.693 | 0.867 | 0.900 | +0.042 |
+| `t2s0.15` | 0.639 | 0.692 | 0.805 | 0.850 | +0.053 |
+| `t2s0.2` | 0.627 | 0.715 | 0.775 | 0.800 | +0.088 |
+| `t2s0.3` † | 0.599 | 0.680 | 0.640 | 0.700 | +0.081 |
+| `t2s0.4` † | 0.551 | 0.600 | 0.538 | 0.600 | +0.049 |
+| `t2s0.5` † | 0.500 | 0.328 | 0.503 | 0.500 | -0.172 |
+| `t3s0` | 1.000 | 0.997 | 0.997 | 1.000 | -0.003 |
+| `t3s0.05` | 0.947 | 0.982 | 0.945 | 0.950 | +0.034 |
+| `t3s0.1` | 0.910 | 0.960 | 0.853 | 0.900 | +0.050 |
+| `t3s0.15` | 0.864 | 0.923 | 0.787 | 0.850 | +0.059 |
+| `t3s0.2` | 0.804 | 0.920 | 0.733 | 0.800 | +0.116 |
+| `t3s0.3` | 0.723 | 0.835 | 0.622 | 0.700 | +0.112 |
+| `t3s0.4` | 0.595 | 0.722 | 0.548 | 0.600 | +0.127 |
+| `t3s0.5` † | 0.492 | 0.360 | 0.503 | 0.500 | -0.132 |
+
+† marks the 12 adapters the validity check refuses, for accuracy beneath the majority
+floor of 0.690 or for recall bought with more false positives than true ones.
+
+**The two conclusions survive, and one number does not.** Teachers who never slip hand
+their disagreement over at a median of **+0.0008** -- the inheritance claim, now on
+three independent points rather than two. Teachers who do slip are improved upon at a
+median of **+0.034**, with **12 of 21** adapters ending closer to the world than the
+teacher that taught them. What does not survive is "close enough to read as an
+identity": across 24 teachers, adapter-teacher agreement runs from 1.000 down to 0.473
+with a median of 0.781. Four teachers could not have distinguished a tendency from an
+identity, and the grid does.
+
+**The apparent decay is a ceiling, not a failure to inherit.** A teacher slipping at
+rate *s* disagrees with its own rule that often, so an adapter that had learned the
+rule *perfectly* would still match those labels only `1-s` of the time. Measured
+against that bound the residual has median **-0.030** and never exceeds 0.078 in
+magnitude. Equivalently, in **20 of 24** cases the adapter agrees with its teacher more
+closely than the teacher agrees with *itself* on a second pass, by a median of 0.041.
+The adapter learns the teacher's rule with the teacher's noise averaged out -- what the
+weak-to-strong literature calls convergence to the *posterior mean* teacher rather than
+to any individual one ([Xu et al. 2025](https://arxiv.org/abs/2505.24313)).
+
+**Whether the fleet helps depends on which error the teacher makes.** Conditioning on
+the threshold instead of the slip rate splits the grid cleanly:
+
+| Threshold | n | Median inherited | Adapters beating their teacher | Quotable |
+| --- | --- | --- | --- | --- |
+| 1 (strictest) | 8 | **-0.045** | 2 | 0 |
+| 2 (middle) | 8 | +0.046 | 5 | 5 |
+| 3 (correct) | 8 | **+0.055** | 6 | 7 |
+
+Training denoises a teacher who is right and careless. It cannot rescue a teacher who
+is careful and wrong, and where the standard *itself* is the error, more of it hurts.
+A fleet-wide average would report a net gain and hide this entirely.
+
+!!! danger "Agreement with the analyst is not an acceptance criterion"
+    `t1s0` reproduces its teacher at **1.000** -- perfect fidelity, the best score in
+    the table -- while agreeing with the world on **0.467**, below the 0.690 obtainable
+    by answering "escalate" to everything. The validity check refuses it on both
+    counts. An operator holding only the fidelity column would have shipped a model
+    indistinguishable from a stub.
+
+    This is the governance consequence of the whole section. Fidelity to the teacher
+    and usefulness to the mission are separate measurements, and only one of them can
+    be an acceptance gate.
+
 !!! note "What this does not settle"
-    Four teachers, one model, single-pass evaluation. Every contrast is resolved at 600
-    tasks, and both conclusions now survive a corpus with no shared events, so the
-    caveat that remains is about generality rather than about size or contamination.
-    The teachers are parameterised decision procedures, so this bounds a mechanism and
-    estimates nothing about human analysts. One model is the real limit: that a 3B Qwen
-    inherits a wrong rule this exactly says nothing yet about whether a larger model or
-    a different task shape would.
+    One model, single-pass evaluation. Size and contamination are settled: 24 teachers
+    crossing both axes, 600-task contrasts, and both conclusions surviving a corpus
+    with no shared events. The teachers are parameterised decision procedures, so this
+    bounds a mechanism and estimates nothing about human analysts. One model is the
+    real limit: that a 3B Qwen inherits a wrong rule this exactly says nothing yet
+    about whether a larger model or a different task shape would.
 
 ## 11. The gate clears every item, and the stream still names the analyst
 

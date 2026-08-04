@@ -1,0 +1,104 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "2c937f15b8f7",
+    "git_dirty": false,
+    "generated_at": "2026-08-04T11:38:46+00:00",
+    "python": "3.13.14",
+    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
+    "executable": ".venv/bin/python3",
+    "model": "Qwen/Qwen2.5-3B-Instruct",
+    "seed": 7
+  },
+  "lora": {
+    "trainable_params": 29933568,
+    "total_params": 3115872256
+  },
+  "hyperparameters": {
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "epochs": 3.0,
+    "learning_rate": 0.0001,
+    "effective_batch": 16
+  },
+  "data": {
+    "n_train": 1140,
+    "n_eval": 600,
+    "train_balance": {
+      "significant": 350,
+      "routine": 790
+    },
+    "eval_balance": {
+      "significant": 186,
+      "routine": 414
+    },
+    "events_disjoint": true,
+    "eval_seed": null,
+    "cross_corpus": false
+  },
+  "training_loss": 0.3567955932338481,
+  "base": null,
+  "adapter": {
+    "label": "adapter",
+    "n": 600,
+    "confusion": {
+      "tp": 154,
+      "fp": 352,
+      "tn": 62,
+      "fn": 32
+    },
+    "unparsed": 0,
+    "accuracy": 0.36,
+    "majority_accuracy": 0.69,
+    "precision": 0.3043,
+    "recall": 0.828,
+    "f1": 0.4451,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "accuracy 0.360 does not beat the majority floor 0.690: this is not evidence of capability"
+      ]
+    }
+  },
+  "teacher": {
+    "reviewer": "t3s0.5",
+    "escalation_threshold": 3,
+    "slip_rate": 0.5,
+    "train_target_agreement": 0.4921
+  },
+  "adapter_vs_teacher": {
+    "label": "adapter-vs-teacher",
+    "n": 600,
+    "confusion": {
+      "tp": 252,
+      "fp": 254,
+      "tn": 50,
+      "fn": 44
+    },
+    "unparsed": 0,
+    "accuracy": 0.5033,
+    "majority_accuracy": 0.5067,
+    "precision": 0.498,
+    "recall": 0.8514,
+    "f1": 0.6284,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "accuracy 0.503 does not beat the majority floor 0.507: this is not evidence of capability"
+      ]
+    }
+  },
+  "ceiling_f1": 1.0
+}

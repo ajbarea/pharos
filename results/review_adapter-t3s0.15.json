@@ -1,0 +1,100 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "2c937f15b8f7",
+    "git_dirty": false,
+    "generated_at": "2026-08-04T11:20:26+00:00",
+    "python": "3.13.14",
+    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
+    "executable": ".venv/bin/python3",
+    "model": "Qwen/Qwen2.5-3B-Instruct",
+    "seed": 7
+  },
+  "lora": {
+    "trainable_params": 29933568,
+    "total_params": 3115872256
+  },
+  "hyperparameters": {
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "epochs": 3.0,
+    "learning_rate": 0.0001,
+    "effective_batch": 16
+  },
+  "data": {
+    "n_train": 1140,
+    "n_eval": 600,
+    "train_balance": {
+      "significant": 350,
+      "routine": 790
+    },
+    "eval_balance": {
+      "significant": 186,
+      "routine": 414
+    },
+    "events_disjoint": true,
+    "eval_seed": null,
+    "cross_corpus": false
+  },
+  "training_loss": 0.34099950000678225,
+  "base": null,
+  "adapter": {
+    "label": "adapter",
+    "n": 600,
+    "confusion": {
+      "tp": 178,
+      "fp": 38,
+      "tn": 376,
+      "fn": 8
+    },
+    "unparsed": 0,
+    "accuracy": 0.9233,
+    "majority_accuracy": 0.69,
+    "precision": 0.8241,
+    "recall": 0.957,
+    "f1": 0.8856,
+    "validity": {
+      "n": 600,
+      "quotable": true,
+      "concerns": []
+    }
+  },
+  "teacher": {
+    "reviewer": "t3s0.15",
+    "escalation_threshold": 3,
+    "slip_rate": 0.15,
+    "train_target_agreement": 0.864
+  },
+  "adapter_vs_teacher": {
+    "label": "adapter-vs-teacher",
+    "n": 600,
+    "confusion": {
+      "tp": 159,
+      "fp": 57,
+      "tn": 313,
+      "fn": 71
+    },
+    "unparsed": 0,
+    "accuracy": 0.7867,
+    "majority_accuracy": 0.6167,
+    "precision": 0.7361,
+    "recall": 0.6913,
+    "f1": 0.713,
+    "validity": {
+      "n": 600,
+      "quotable": true,
+      "concerns": []
+    }
+  },
+  "ceiling_f1": 1.0
+}

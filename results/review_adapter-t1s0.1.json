@@ -1,0 +1,105 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "2c937f15b8f7",
+    "git_dirty": false,
+    "generated_at": "2026-08-04T07:50:55+00:00",
+    "python": "3.13.14",
+    "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
+    "executable": ".venv/bin/python3",
+    "model": "Qwen/Qwen2.5-3B-Instruct",
+    "seed": 7
+  },
+  "lora": {
+    "trainable_params": 29933568,
+    "total_params": 3115872256
+  },
+  "hyperparameters": {
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj",
+      "gate_proj",
+      "up_proj",
+      "down_proj"
+    ],
+    "epochs": 3.0,
+    "learning_rate": 0.0001,
+    "effective_batch": 16
+  },
+  "data": {
+    "n_train": 1140,
+    "n_eval": 600,
+    "train_balance": {
+      "significant": 350,
+      "routine": 790
+    },
+    "eval_balance": {
+      "significant": 186,
+      "routine": 414
+    },
+    "events_disjoint": true,
+    "eval_seed": null,
+    "cross_corpus": false
+  },
+  "training_loss": 0.299537488595686,
+  "base": null,
+  "adapter": {
+    "label": "adapter",
+    "n": 600,
+    "confusion": {
+      "tp": 186,
+      "fp": 320,
+      "tn": 94,
+      "fn": 0
+    },
+    "unparsed": 0,
+    "accuracy": 0.4667,
+    "majority_accuracy": 0.69,
+    "precision": 0.3676,
+    "recall": 1.0,
+    "f1": 0.5376,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "accuracy 0.467 does not beat the majority floor 0.690: this is not evidence of capability",
+        "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
+      ]
+    }
+  },
+  "teacher": {
+    "reviewer": "t1s0.1",
+    "escalation_threshold": 1,
+    "slip_rate": 0.1,
+    "train_target_agreement": 0.4544
+  },
+  "adapter_vs_teacher": {
+    "label": "adapter-vs-teacher",
+    "n": 600,
+    "confusion": {
+      "tp": 463,
+      "fp": 43,
+      "tn": 88,
+      "fn": 6
+    },
+    "unparsed": 0,
+    "accuracy": 0.9183,
+    "majority_accuracy": 0.7817,
+    "precision": 0.915,
+    "recall": 0.9872,
+    "f1": 0.9497,
+    "validity": {
+      "n": 600,
+      "quotable": false,
+      "concerns": [
+        "class prevalence 0.78 gives a majority floor of 0.782; compare scores to that, not to 0.5"
+      ]
+    }
+  },
+  "ceiling_f1": 1.0
+}
