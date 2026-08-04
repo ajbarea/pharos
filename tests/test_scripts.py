@@ -2585,3 +2585,48 @@ def test_make_results_reproduces_the_sample_sizes_it_overwrites():
     assert checked >= 3, (
         f"only {checked} artifacts compared; the guard is not exercising the recipe"
     )
+
+
+def test_a_measurement_script_writes_its_artifact_only_when_asked():
+    """No measurement may write into `results/` as a side effect of being imported or called.
+
+    Two scripts did. `measure_adversarial_robustness.py` wrote unconditionally, so
+    `logcheck.py` -- a read-only diagnostic -- mutated the results tree on every run.
+    `sweep_fl_benchmarks.py` did the same at the bottom of a long function, and the test
+    that exercises its helpers calls it with 5 clients and 1 round: every full test run
+    replaced the committed 20-client, 50-round artifact with a toy, and nothing failed,
+    because a smaller sweep is still a well-formed sweep. It was caught by noticing the
+    artifact dirty after a green suite.
+
+    The rule is mechanical, so assert it mechanically rather than trusting review.
+    """
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+    offenders: list[str] = []
+    for path in sorted((root / "scripts").glob("*.py")):
+        source = path.read_text(encoding="utf-8")
+        #: Only writes aimed at `results/` are in scope. `sync_docs_tables.py` writes
+        #: `docs/findings.md` unconditionally and should -- rendering a page is its
+        #: entire job, and it already has `--check` for the read-only mode. The rule
+        #: being enforced is narrower than "no unconditional writes": it is that a
+        #: measurement artifact is produced only when someone asks for one.
+        if "RESULTS" not in source and "results/" not in source:
+            continue
+        for match in re.finditer(r"^\s*(\S.*?)\.write_text\(", source, re.MULTILINE):
+            target = match.group(1)
+            line_no = source[: match.start()].count("\n") + 1
+            window = source[: match.start()].splitlines()[-6:]
+            guarded = any(re.search(r"\bif\b.*\bout\b", line) for line in window)
+            #: No name-based exclusion. A first version skipped any target containing
+            #: "out", which skipped `out_file` -- the exact variable the original
+            #: defect used. Whether the write is permitted is decided by the guard
+            #: above it, never by what the variable is called.
+            aims_at_results = "RESULTS" in target or "out_file" in target
+            if aims_at_results and not guarded:
+                offenders.append(f"{path.name}:{line_no} writes {target} unguarded")
+
+    assert not offenders, "measurement scripts writing to results/ unconditionally: " + "; ".join(
+        offenders
+    )

@@ -12,6 +12,7 @@ ratio where the honest majority assumption behind that rule no longer holds.
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import random
@@ -87,6 +88,7 @@ def run_fl_benchmark_sweep(
     dim: int = 100,
     n_rounds: int = 50,
     seed: int = 42,
+    out: Path | None = None,
 ) -> dict[str, Any]:
     print("Aggregation error under sign-flip poisoning")
 
@@ -201,13 +203,36 @@ def run_fl_benchmark_sweep(
         "provenance": run_provenance(seed=seed),
     }
 
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    out_file = RESULTS_DIR / "fl_benchmarks.json"
-    out_file.write_text(json.dumps(output_payload, indent=2) + "\n", encoding="utf-8")
-    print(f"\nwrote {out_file}")
+    # Only when asked. This wrote `results/fl_benchmarks.json` unconditionally, so
+    # `tests/test_scripts.py` -- which calls this with 5 clients, 10 dimensions and 1
+    # round to exercise the helpers -- replaced the committed 20-client, 50-round
+    # artifact with a toy every time the suite ran. The artifact was found carrying
+    # `n_clients: 5, n_rounds: 1` and errors an order of magnitude off, and nothing
+    # failed, because a smaller sweep is still a well-formed sweep.
+    #
+    # Same defect and same fix as `measure_adversarial_robustness.py`, which was
+    # deleted for it earlier today; this one was missed because its write is at the
+    # bottom of a long function rather than in an obvious `main`.
+    if out is not None:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(output_payload, indent=2) + "\n", encoding="utf-8")
+        print(f"\nwrote {out}")
 
     return output_payload
 
 
 if __name__ == "__main__":
-    run_fl_benchmark_sweep()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--clients", type=int, default=20)
+    parser.add_argument("--dim", type=int, default=100)
+    parser.add_argument("--rounds", type=int, default=50)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--out", type=Path)
+    args = parser.parse_args()
+    run_fl_benchmark_sweep(
+        n_clients=args.clients,
+        dim=args.dim,
+        n_rounds=args.rounds,
+        seed=args.seed,
+        out=args.out,
+    )
