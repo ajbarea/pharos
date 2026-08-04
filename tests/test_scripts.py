@@ -2630,3 +2630,42 @@ def test_a_measurement_script_writes_its_artifact_only_when_asked():
     assert not offenders, "measurement scripts writing to results/ unconditionally: " + "; ".join(
         offenders
     )
+
+
+def test_every_make_command_the_repository_tells_you_to_run_exists():
+    """An instruction naming a target that was never added is a dead end.
+
+    This repository has produced that defect twice. `cluster/setup-env.sh` printed
+    "Fix: hf auth login" at a point where `hf` was not installed, and a skip message
+    here said to run `make replication` before the target existed. Both are the same
+    shape: a human-readable instruction that no build step ever executes, so nothing
+    disagrees with it until somebody types it.
+
+    Only unambiguous command contexts count -- backticked, or alone on a line. Prose
+    like "make the comparison" is not an instruction, and matching it produced a dozen
+    imaginary targets on the first attempt.
+    """
+    import re
+
+    root = Path(__file__).resolve().parents[1]
+    targets = set(re.findall(r"^([a-zA-Z][\w-]*):", (root / "Makefile").read_text(), re.MULTILINE))
+
+    pattern = re.compile(
+        r"(?:`make ([a-z][\w-]*)`|^\s*(?:\$ )?make ([a-z][\w-]*)\s*$)", re.MULTILINE
+    )
+    skip = {".git", ".venv", "site", "node_modules", "__pycache__", ".pytest_cache", ".ruff_cache"}
+    suffixes = {".py", ".md", ".sh", ".sbatch", ".toml", ".yml", ".yaml"}
+
+    referenced: dict[str, set[str]] = {}
+    for path in root.rglob("*"):
+        if not path.is_file() or any(s in path.parts for s in skip):
+            continue
+        if path.suffix not in suffixes and path.name != "Makefile":
+            continue
+        for match in pattern.finditer(path.read_text(encoding="utf-8", errors="ignore")):
+            name = match.group(1) or match.group(2)
+            referenced.setdefault(name, set()).add(str(path.relative_to(root)))
+
+    assert referenced, "no `make <target>` instructions found; the pattern has gone stale"
+    missing = {k: sorted(v) for k, v in referenced.items() if k not in targets}
+    assert not missing, f"instructions naming targets that do not exist: {missing}"

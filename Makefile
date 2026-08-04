@@ -76,6 +76,14 @@ fleet-sensitivity:         ## Whether findings 12, 16 and 17 survive the fleet s
 	@mkdir -p results
 	uv run python scripts/measure_fleet_sensitivity.py --out results/fleet_sensitivity.json
 
+replication:               ## How far a retrained adapter moves from its replicate (reads artifacts)
+	@mkdir -p results
+	uv run python scripts/measure_adapter_replication.py --out results/adapter_replication.json
+
+gate-determinism:          ## The gate's baselines at full precision, for a cross-machine diff (no model)
+	@mkdir -p results
+	uv run python scripts/measure_gate_determinism.py --out results/gate_determinism.json
+
 difficulty:                ## Whether item difficulty and a wrong standard are separable (no model)
 	@mkdir -p results
 	uv run python scripts/measure_difficulty_confound.py --out results/difficulty_confound.json

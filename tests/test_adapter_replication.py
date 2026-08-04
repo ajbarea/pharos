@@ -151,7 +151,7 @@ def test_the_committed_artifact_still_supports_the_paper(monkeypatch):
 
     path = ROOT / "results" / "adapter_replication.json"
     if not path.is_file():
-        pytest.skip("no adapter_replication.json; run make replication")
+        pytest.skip("no adapter_replication.json; run `make replication`")
     summary = json.loads(path.read_text(encoding="utf-8"))["summary"]
     training = summary["training_only"]
 
