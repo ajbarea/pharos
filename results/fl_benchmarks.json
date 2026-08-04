@@ -1,6 +1,6 @@
 {
   "experiment": "Aggregation error under sign-flip poisoning",
-  "timestamp": "2026-08-03T21:42:02Z",
+  "timestamp": "2026-08-04T04:33:30Z",
   "parameters": {
     "n_clients": 20,
     "gradient_dim": 100,
@@ -19,7 +19,7 @@
         0.2235,
         0.232
       ],
-      "mean_latency_ms": 0.0858,
+      "mean_latency_ms": 0.0944,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -33,7 +33,7 @@
         0.27,
         0.2803
       ],
-      "mean_latency_ms": 0.1638,
+      "mean_latency_ms": 0.152,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -47,7 +47,7 @@
         0.2377,
         0.2472
       ],
-      "mean_latency_ms": 0.187,
+      "mean_latency_ms": 0.178,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -61,7 +61,7 @@
         0.8674,
         0.8897
       ],
-      "mean_latency_ms": 5.3936,
+      "mean_latency_ms": 4.4719,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -75,7 +75,7 @@
         0.2905,
         0.3016
       ],
-      "mean_latency_ms": 4.6319,
+      "mean_latency_ms": 4.0683,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -89,7 +89,7 @@
         0.3792,
         0.3957
       ],
-      "mean_latency_ms": 4.7906,
+      "mean_latency_ms": 4.7215,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -103,7 +103,7 @@
         0.2239,
         0.2323
       ],
-      "mean_latency_ms": 6.8328,
+      "mean_latency_ms": 6.2395,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -117,7 +117,7 @@
         13.6367,
         14.3105
       ],
-      "mean_latency_ms": 0.0964,
+      "mean_latency_ms": 0.0752,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -131,7 +131,7 @@
         15.4689,
         16.1743
       ],
-      "mean_latency_ms": 0.1593,
+      "mean_latency_ms": 0.1514,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -145,7 +145,7 @@
         14.2774,
         14.96
       ],
-      "mean_latency_ms": 0.1777,
+      "mean_latency_ms": 0.1771,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -159,7 +159,7 @@
         42.8381,
         44.0693
       ],
-      "mean_latency_ms": 4.8511,
+      "mean_latency_ms": 3.9881,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -173,7 +173,7 @@
         16.4434,
         17.1915
       ],
-      "mean_latency_ms": 4.9095,
+      "mean_latency_ms": 4.2451,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -187,7 +187,7 @@
         20.1684,
         20.9592
       ],
-      "mean_latency_ms": 5.7319,
+      "mean_latency_ms": 4.3157,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -201,7 +201,7 @@
         13.6626,
         14.3369
       ],
-      "mean_latency_ms": 6.9315,
+      "mean_latency_ms": 6.3077,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -215,7 +215,7 @@
         2.4702,
         2.544
       ],
-      "mean_latency_ms": 0.0863,
+      "mean_latency_ms": 0.0833,
       "error_vs_own_no_attack": 11.008
     },
     {
@@ -229,7 +229,7 @@
         0.3136,
         0.3259
       ],
-      "mean_latency_ms": 0.1783,
+      "mean_latency_ms": 0.147,
       "error_vs_own_no_attack": 1.162
     },
     {
@@ -243,7 +243,7 @@
         0.2913,
         0.3029
       ],
-      "mean_latency_ms": 0.2,
+      "mean_latency_ms": 0.1682,
       "error_vs_own_no_attack": 1.225
     },
     {
@@ -257,7 +257,7 @@
         0.8698,
         0.8931
       ],
-      "mean_latency_ms": 5.3978,
+      "mean_latency_ms": 4.1726,
       "error_vs_own_no_attack": 1.004
     },
     {
@@ -271,7 +271,7 @@
         0.2904,
         0.3016
       ],
-      "mean_latency_ms": 4.7197,
+      "mean_latency_ms": 4.0287,
       "error_vs_own_no_attack": 1.0
     },
     {
@@ -285,7 +285,7 @@
         0.3821,
         0.3973
       ],
-      "mean_latency_ms": 4.8674,
+      "mean_latency_ms": 4.4107,
       "error_vs_own_no_attack": 1.005
     },
     {
@@ -299,7 +299,7 @@
         0.2567,
         0.2664
       ],
-      "mean_latency_ms": 7.1328,
+      "mean_latency_ms": 6.0129,
       "error_vs_own_no_attack": 1.147
     },
     {
@@ -313,7 +313,7 @@
         13.7649,
         14.4435
       ],
-      "mean_latency_ms": 0.0923,
+      "mean_latency_ms": 0.0775,
       "error_vs_own_no_attack": 1.009
     },
     {
@@ -327,7 +327,7 @@
         15.5798,
         16.2981
       ],
-      "mean_latency_ms": 0.1555,
+      "mean_latency_ms": 0.1392,
       "error_vs_own_no_attack": 1.007
     },
     {
@@ -341,7 +341,7 @@
         14.3934,
         15.0898
       ],
-      "mean_latency_ms": 0.1756,
+      "mean_latency_ms": 0.1605,
       "error_vs_own_no_attack": 1.008
     },
     {
@@ -355,7 +355,7 @@
         42.7228,
         44.0877
       ],
-      "mean_latency_ms": 4.9603,
+      "mean_latency_ms": 4.3237,
       "error_vs_own_no_attack": 0.999
     },
     {
@@ -369,7 +369,7 @@
         16.5451,
         17.2969
       ],
-      "mean_latency_ms": 5.0789,
+      "mean_latency_ms": 4.6267,
       "error_vs_own_no_attack": 1.006
     },
     {
@@ -383,7 +383,7 @@
         20.2302,
         21.0408
       ],
-      "mean_latency_ms": 5.1328,
+      "mean_latency_ms": 4.4365,
       "error_vs_own_no_attack": 1.003
     },
     {
@@ -397,7 +397,7 @@
         13.7844,
         14.4671
       ],
-      "mean_latency_ms": 7.2072,
+      "mean_latency_ms": 6.5485,
       "error_vs_own_no_attack": 1.009
     },
     {
@@ -411,7 +411,7 @@
         7.387,
         7.614
       ],
-      "mean_latency_ms": 0.083,
+      "mean_latency_ms": 0.0975,
       "error_vs_own_no_attack": 32.928
     },
     {
@@ -425,7 +425,7 @@
         0.6425,
         0.6562
       ],
-      "mean_latency_ms": 0.1514,
+      "mean_latency_ms": 0.1384,
       "error_vs_own_no_attack": 2.36
     },
     {
@@ -439,7 +439,7 @@
         4.4104,
         4.5342
       ],
-      "mean_latency_ms": 0.1917,
+      "mean_latency_ms": 0.1637,
       "error_vs_own_no_attack": 18.437
     },
     {
@@ -453,7 +453,7 @@
         0.9391,
         0.9772
       ],
-      "mean_latency_ms": 4.9352,
+      "mean_latency_ms": 4.1017,
       "error_vs_own_no_attack": 1.091
     },
     {
@@ -467,7 +467,7 @@
         0.2867,
         0.2988
       ],
-      "mean_latency_ms": 4.776,
+      "mean_latency_ms": 4.3859,
       "error_vs_own_no_attack": 0.99
     },
     {
@@ -481,7 +481,7 @@
         0.3762,
         0.3914
       ],
-      "mean_latency_ms": 5.1447,
+      "mean_latency_ms": 4.478,
       "error_vs_own_no_attack": 0.99
     },
     {
@@ -495,7 +495,7 @@
         0.5203,
         0.5339
       ],
-      "mean_latency_ms": 6.8808,
+      "mean_latency_ms": 6.374,
       "error_vs_own_no_attack": 2.311
     },
     {
@@ -509,7 +509,7 @@
         14.024,
         14.7113
       ],
-      "mean_latency_ms": 0.0801,
+      "mean_latency_ms": 0.0868,
       "error_vs_own_no_attack": 1.028
     },
     {
@@ -523,7 +523,7 @@
         15.8084,
         16.5359
       ],
-      "mean_latency_ms": 0.1467,
+      "mean_latency_ms": 0.1559,
       "error_vs_own_no_attack": 1.022
     },
     {
@@ -537,7 +537,7 @@
         14.6464,
         15.3508
       ],
-      "mean_latency_ms": 0.1725,
+      "mean_latency_ms": 0.217,
       "error_vs_own_no_attack": 1.026
     },
     {
@@ -551,7 +551,7 @@
         42.8463,
         44.2156
       ],
-      "mean_latency_ms": 4.8051,
+      "mean_latency_ms": 4.881,
       "error_vs_own_no_attack": 1.002
     },
     {
@@ -565,7 +565,7 @@
         16.7373,
         17.5085
       ],
-      "mean_latency_ms": 5.0068,
+      "mean_latency_ms": 4.5044,
       "error_vs_own_no_attack": 1.018
     },
     {
@@ -579,7 +579,7 @@
         20.4421,
         21.2821
       ],
-      "mean_latency_ms": 5.5034,
+      "mean_latency_ms": 4.7994,
       "error_vs_own_no_attack": 1.014
     },
     {
@@ -593,7 +593,7 @@
         14.0436,
         14.7337
       ],
-      "mean_latency_ms": 7.3525,
+      "mean_latency_ms": 7.4336,
       "error_vs_own_no_attack": 1.028
     },
     {
@@ -607,7 +607,7 @@
         12.3097,
         12.6909
       ],
-      "mean_latency_ms": 0.08,
+      "mean_latency_ms": 0.1075,
       "error_vs_own_no_attack": 54.878
     },
     {
@@ -621,7 +621,7 @@
         12.9341,
         13.3122
       ],
-      "mean_latency_ms": 0.1444,
+      "mean_latency_ms": 0.1446,
       "error_vs_own_no_attack": 47.684
     },
     {
@@ -635,7 +635,7 @@
         12.5498,
         12.929
       ],
-      "mean_latency_ms": 0.1429,
+      "mean_latency_ms": 0.1487,
       "error_vs_own_no_attack": 52.512
     },
     {
@@ -649,7 +649,7 @@
         8.7257,
         15.3795
       ],
-      "mean_latency_ms": 4.5788,
+      "mean_latency_ms": 3.925,
       "error_vs_own_no_attack": 13.702
     },
     {
@@ -663,7 +663,7 @@
         20.5369,
         21.1712
       ],
-      "mean_latency_ms": 4.7786,
+      "mean_latency_ms": 4.2435,
       "error_vs_own_no_attack": 70.413
     },
     {
@@ -677,7 +677,7 @@
         24.6183,
         25.3792
       ],
-      "mean_latency_ms": 4.3806,
+      "mean_latency_ms": 4.4599,
       "error_vs_own_no_attack": 64.524
     },
     {
@@ -691,7 +691,7 @@
         12.6659,
         13.0339
       ],
-      "mean_latency_ms": 7.0124,
+      "mean_latency_ms": 7.0797,
       "error_vs_own_no_attack": 56.31
     },
     {
@@ -705,7 +705,7 @@
         14.2904,
         14.986
       ],
-      "mean_latency_ms": 0.0897,
+      "mean_latency_ms": 0.0835,
       "error_vs_own_no_attack": 1.048
     },
     {
@@ -719,7 +719,7 @@
         16.0468,
         16.7821
       ],
-      "mean_latency_ms": 0.1565,
+      "mean_latency_ms": 0.1515,
       "error_vs_own_no_attack": 1.038
     },
     {
@@ -733,7 +733,7 @@
         14.9033,
         15.6132
       ],
-      "mean_latency_ms": 0.1732,
+      "mean_latency_ms": 0.1757,
       "error_vs_own_no_attack": 1.044
     },
     {
@@ -747,7 +747,7 @@
         42.9682,
         44.3824
       ],
-      "mean_latency_ms": 4.8434,
+      "mean_latency_ms": 4.2735,
       "error_vs_own_no_attack": 1.006
     },
     {
@@ -761,7 +761,7 @@
         17.0108,
         17.7749
       ],
-      "mean_latency_ms": 4.7434,
+      "mean_latency_ms": 4.642,
       "error_vs_own_no_attack": 1.034
     },
     {
@@ -775,7 +775,7 @@
         20.6548,
         21.4669
       ],
-      "mean_latency_ms": 5.0277,
+      "mean_latency_ms": 4.6672,
       "error_vs_own_no_attack": 1.024
     },
     {
@@ -789,15 +789,15 @@
         14.3097,
         15.01
       ],
-      "mean_latency_ms": 7.0254,
+      "mean_latency_ms": 7.1636,
       "error_vs_own_no_attack": 1.047
     }
   ],
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "b4ec8f77e65d",
-    "git_dirty": true,
-    "generated_at": "2026-08-03T21:42:02+00:00",
+    "git_commit": "659471545824",
+    "git_dirty": false,
+    "generated_at": "2026-08-04T04:33:30+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
