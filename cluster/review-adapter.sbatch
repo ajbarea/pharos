@@ -59,6 +59,16 @@ export MKL_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
 export CC="${CC:-/usr/bin/gcc}"
 export CXX="${CXX:-/usr/bin/g++}"
 
+# HF_HOME points at the shared home filesystem rather than a node-local temp dir, so
+# a model downloaded by one job is reused by the next instead of being refetched.
+#
+# HF_TOKEN is passed through from the environment and never written here. Requests
+# work without it, but unauthenticated ones are rate limited, which shows up as a job
+# that stalls rather than fails. This file was the one job in `cluster/` that did not
+# say so, and it is the one submitted as a 24-task array: every task logged "sending
+# unauthenticated requests to the HF Hub", 24 chances to be throttled inside a GPU
+# allocation. Read-only, fine-grained, and separate from any local token: see
+# docs/cluster.md.
 export HF_HOME="${HF_HOME:-$HOME/.cache/huggingface}"
 export HF_HUB_DISABLE_TELEMETRY=1
 
