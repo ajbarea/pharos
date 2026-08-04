@@ -52,7 +52,16 @@ def _git(*args: str) -> str | None:
             [executable, *args],
             capture_output=True,
             text=True,
-            timeout=5,
+            # 5s was enough on a laptop and not on a shared filesystem: four array
+            # tasks starting together on the cluster each ran `git status` against the
+            # same NFS-mounted checkout, and one timed out and stamped its artifact
+            # `git_dirty: null`. The tree was clean, but the artifact could no longer
+            # say so, which is the one thing this stamp exists to record. Reading a
+            # git index is not a 5-second operation on local disk and can be on a
+            # contended mount, so the bound is generous rather than tight -- the cost
+            # of waiting is a few seconds on a job that trains a LoRA, and the cost of
+            # giving up is an artifact whose provenance is unverifiable.
+            timeout=30,
             check=False,
         )
     except (OSError, subprocess.SubprocessError) as exc:
