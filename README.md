@@ -189,11 +189,16 @@ make teacher-fleet      # whether adapters inherit their teachers, across 24 of 
    was removed in August 2026 for reporting 1.0 at every seed by construction.
 3. **Simulated analysts.** Done. This step existed to ask whether the rule survives
    being learned from a reviewer's decisions rather than from clean labels, and
-   finding 10 answers it: an adapter trained on a reviewer's decisions reproduces
-   that reviewer's standard exactly, so a wrong analyst yields a wrong agent while a
-   merely careless one is largely repaired by training. `pharos.analyst` supplies the
-   reviewer as a specified policy, and finding 7 reports what a review stream is
-   worth: not scarce, but carrying the reviewer's standard rather than the world's,
+   finding 10 answers it across 24 teachers crossing standard with carefulness: an
+   adapter inherits a wrong standard almost exactly and cannot inherit a teacher's
+   noise, so a wrong analyst yields a wrong agent while a merely careless one is
+   partly repaired by training. Which of the two a teacher makes decides the sign:
+   the correct standard is improved upon, the strictest is made worse. And fidelity
+   to the teacher is not an acceptance criterion, because the adapter that reproduces
+   its teacher perfectly scores below answering "escalate" to everything.
+   `pharos.analyst` supplies the reviewer as a specified policy, and finding 7 reports
+   what a review stream is worth: not scarce, but carrying the reviewer's standard
+   rather than the world's,
    so a reviewer who over-escalates teaches targets below the majority floor. The
    compartment ruling *is* movable, by an authority rather than by the reviewer, at a
    cost of 52.5% of the stream.
