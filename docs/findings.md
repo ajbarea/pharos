@@ -197,7 +197,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 
 **8 of 22** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
-**Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`, `fleet_sensitivity`.
+**Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`, `fleet_sensitivity`, `learnability_replication`.
 
 Assessed by their script but not yet in the committed artifact (6 of these), which needs a rerun rather than an edit:
 
@@ -533,8 +533,9 @@ document, not just this one, so it is recorded here where the evidence is.
     identical runs. Both may well be true; neither is established by these two runs.
 
     A controlled replication -- two runs at the same recorded `--events`, on the same
-    commit -- is queued. The table below is retained as the record of what was seen,
-    not as evidence for what caused it.
+    commit -- **has now been run, and is reported below.** The table immediately
+    following is retained as the record of what was seen in runs A and B, not as
+    evidence for what caused it.
 
 The two runs used the same 600 evaluation tasks, verified identical by task id and
 ground truth, the same model, and temperature 0.0 with seed 7 on both. They may not have
@@ -560,6 +561,120 @@ zero-shot 0.5234; Run B puts eight shots at 0.5492, above its zero-shot 0.5126. 
 ambiguity: a genuine reversal between identical runs would be the stronger form of the
 power argument, and a reversal between differently-worded corpora would be a fact about
 two corpora.
+
+### 5c. The generator defect behind 5b, and the fix
+
+`src/pharos/generate.py`, `tests/test_generate.py`
+
+The confound named in 5b was a defect in the generator, not a fact about decoding. It
+is recorded here because the manuscript's self-audit section cites this page as the
+long-form record of it.
+
+`generate()` drew **every** event before rendering **any** of them, from one
+`random.Random(seed)`. Event drawing consumes a variable number of values, so rendering
+began at a stream position set by `n_events`. Measured against the pre-fix generator at
+seed 7:
+
+| Compared corpora | Report ids | Fact assignment | Governed label | Rendered text |
+| --- | --- | --- | --- | --- |
+| 40 vs 80 events | 100% | 21% | 52% | **0%** |
+| 200 vs 600 events | 100% | 16% | 52% | **0%** |
+| 200 vs 800 events | 100% | 14% | 52% | **0%** |
+| 632 vs 800 events | 100% | 15% | 50% | **0%** |
+
+**No report was worded identically across two corpus sizes, at any pair.** The checks a
+reader would think to run -- do the task ids line up, does the ground truth agree --
+pass at 100%, which is why this survived as long as it did. Any two model-backed
+measurements taken at different `--events` were comparing different corpora.
+
+The fix derives a stream per event from `sha256(f"{seed}:{index}:{purpose}")`, so a
+smaller corpus is an exact prefix of a larger one, field for field including text.
+`tests/test_generate.py::test_a_smaller_corpus_is_an_exact_prefix_of_a_larger_one`
+asserts every field; it fails on the first report against the pre-fix generator.
+
+!!! warning "The corpus changed, so this page currently spans two of them"
+    The gate was re-run first and still passes, at a surface baseline of 0.6545 against
+    a ceiling of 0.72 (it was 0.6559 before), and the class-conditional channel mix is
+    unchanged to within a tenth of a point, so the corpus remains usable and remains
+    the same instrument. Individual findings' numbers moved anyway, and two conclusions
+    moved with them ([3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it)
+    and [17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)).
+
+    **Re-derived on the corrected corpus (2026-08-03):** the model-free measurements,
+    the six-model sweep, label fidelity, federation eligibility, decode stability, and
+    rule learnability.
+
+    **Still on the pre-fix corpus:** `adapter_learnability` and the eight
+    `review_adapter-*` artifacts, which are LoRA fine-tuning runs and need a cluster
+    A100 rather than the local 8 GB card, and `edge_cost`, which times the agent on
+    hardware and wants a quiet machine rather than one running everything else.
+    **Findings 6, 10 and 14 rest on those**, so until they are re-run, any comparison
+    between one of them and a finding above it is a comparison across two corpora --
+    which is the exact confound
+    [5b](#5b-the-intervals-above-understate-the-uncertainty-measured-by-replication)
+    was withdrawn for. Do not draw one.
+
+    `external_gate_validation` is unaffected: it runs the gate against three public
+    corpora and never calls this generator.
+
+!!! danger "How this was found, which is the part worth keeping"
+    Not by inspection. The property was asserted in a test whose three load-bearing
+    assertions -- `fact_ids`, `label`, `text` -- had been deleted, leaving three that
+    pass whatever the generator does. The suite was green at 508 passing and 94.45%
+    branch coverage with the defect fully present, and the manuscript already described
+    the fix as shipped. A test named for a property it no longer checks is worse than no
+    test, because it answers the question a reviewer would otherwise ask.
+
+### 5d. The controlled replication, and what it settles
+
+`results/learnability.json`, `results/learnability_replication.json`
+
+Runs A and B could not separate decode variation from a corpus difference. Runs C and D
+can, because the generator defect that confounded A and B is
+[fixed](#5c-the-generator-defect-behind-5b-and-the-fix) and both were run at
+`--events 800`, seed 7, 600 evaluation tasks, temperature 0, on commits whose
+corpus-defining code and prompt path are **byte-identical** (`git diff` over
+`generate.py`, `labels.py`, `world.py`, `tasks.py`, `scenarios/` and
+`measure_rule_learnability.py` is empty between them). The only difference between C
+and D is when they ran.
+
+| Shots | Run C | Run D | Difference | Unparsed C -> D |
+| --- | --- | --- | --- | --- |
+| 0 | 0.4815 | **0.5067** | **+0.0252** | 4 -> 0 |
+| 2 | 0.4329 | **0.4549** | **+0.0220** | 41 -> 35 |
+| 4 | 0.4356 | 0.4356 | 0.0000 | 10 -> 10 |
+| 8 | 0.4849 | 0.4849 | 0.0000 | 4 -> 4 |
+
+**Reproduction is per-condition, not global.** Four and eight shots return *bit-identical
+confusion matrices* -- 183/330/74/3 and 188/307/101/0, every cell -- while zero and two
+shots move by more than two points. Finding 9's claim that a single-pass measurement
+reproduces exactly is therefore true of half these conditions and false of the other
+half, in one run of one script.
+
+**The two that moved are exactly the two whose unparsed count changed**, and the
+verdicts moved with them: at zero shots, 14 items crossed from false positive to true
+negative on top of the 4 that became parseable. Four conditions is not enough to call
+that a mechanism, and it is enough to say the variation is not uniform decode noise --
+it is concentrated in the conditions where the model's output format was itself
+unstable.
+
+!!! danger "The headline comparison changes sign between two controlled runs"
+    Eight shots against zero is **+0.0034 in run C and -0.0218 in run D**. The
+    comparison finding 5 withdraws does not merely fail to reach significance; its
+    *direction* is not stable across two runs that differ in nothing but the hour they
+    were executed.
+
+    The largest per-condition move is 0.0252, which is **seven times** the 0.0034 gap
+    that a reader might have called a lift. This is the evidence 5b reached for and did
+    not have: the withdrawal of the eight-shot lift is not caution, it is required. A
+    difference smaller than the measurement's own controlled run-to-run variation is not
+    a small effect, it is not an effect.
+
+**What this does *not* say.** Two runs bound nothing tightly, and this is two runs. It
+establishes that variation at this magnitude occurs, not its distribution. The six-point
+precaution stated below was set before this measurement and survives it comfortably; the
+useful sharpening is that the variation is condition-dependent, so a per-condition
+interval computed within a single run does not capture it.
 
 **What survives untouched.** The finding is that in-context learning does not close the
 gap, and every value in both runs sits between 0.45 and 0.55 against a stated-rule
@@ -634,69 +749,6 @@ the adapter experiment is the thing that decides. What the ceiling establishes i
 where the bottleneck sits: a model that reaches F1 1.000 when told the rule is not
 short of capability, it is short of the rule, so rule *acquisition* is the whole
 question.
-
-### 5c. The generator defect behind 5b, and the fix
-
-`src/pharos/generate.py`, `tests/test_generate.py`
-
-The confound named in 5b was a defect in the generator, not a fact about decoding. It
-is recorded here because the manuscript's self-audit section cites this page as the
-long-form record of it.
-
-`generate()` drew **every** event before rendering **any** of them, from one
-`random.Random(seed)`. Event drawing consumes a variable number of values, so rendering
-began at a stream position set by `n_events`. Measured against the pre-fix generator at
-seed 7:
-
-| Compared corpora | Report ids | Fact assignment | Governed label | Rendered text |
-| --- | --- | --- | --- | --- |
-| 40 vs 80 events | 100% | 21% | 52% | **0%** |
-| 200 vs 600 events | 100% | 16% | 52% | **0%** |
-| 200 vs 800 events | 100% | 14% | 52% | **0%** |
-| 632 vs 800 events | 100% | 15% | 50% | **0%** |
-
-**No report was worded identically across two corpus sizes, at any pair.** The checks a
-reader would think to run -- do the task ids line up, does the ground truth agree --
-pass at 100%, which is why this survived as long as it did. Any two model-backed
-measurements taken at different `--events` were comparing different corpora.
-
-The fix derives a stream per event from `sha256(f"{seed}:{index}:{purpose}")`, so a
-smaller corpus is an exact prefix of a larger one, field for field including text.
-`tests/test_generate.py::test_a_smaller_corpus_is_an_exact_prefix_of_a_larger_one`
-asserts every field; it fails on the first report against the pre-fix generator.
-
-!!! warning "The corpus changed, so this page currently spans two of them"
-    The gate was re-run first and still passes, at a surface baseline of 0.6545 against
-    a ceiling of 0.72 (it was 0.6559 before), and the class-conditional channel mix is
-    unchanged to within a tenth of a point, so the corpus remains usable and remains
-    the same instrument. Individual findings' numbers moved anyway, and two conclusions
-    moved with them ([3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it)
-    and [17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)).
-
-    **Re-derived on the corrected corpus (2026-08-03):** the model-free measurements,
-    the six-model sweep, label fidelity, federation eligibility, decode stability, and
-    rule learnability.
-
-    **Still on the pre-fix corpus:** `adapter_learnability` and the eight
-    `review_adapter-*` artifacts, which are LoRA fine-tuning runs and need a cluster
-    A100 rather than the local 8 GB card, and `edge_cost`, which times the agent on
-    hardware and wants a quiet machine rather than one running everything else.
-    **Findings 6, 10 and 14 rest on those**, so until they are re-run, any comparison
-    between one of them and a finding above it is a comparison across two corpora --
-    which is the exact confound
-    [5b](#5b-the-intervals-above-understate-the-uncertainty-measured-by-replication)
-    was withdrawn for. Do not draw one.
-
-    `external_gate_validation` is unaffected: it runs the gate against three public
-    corpora and never calls this generator.
-
-!!! danger "How this was found, which is the part worth keeping"
-    Not by inspection. The property was asserted in a test whose three load-bearing
-    assertions -- `fact_ids`, `label`, `text` -- had been deleted, leaving three that
-    pass whatever the generator does. The suite was green at 508 passing and 94.45%
-    branch coverage with the defect fully present, and the manuscript already described
-    the fix as shipped. A test named for a property it no longer checks is worse than no
-    test, because it answers the question a reviewer would otherwise ask.
 
 ## 6. Gradient learning does close the gap, on clean labels
 
