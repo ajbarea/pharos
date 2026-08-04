@@ -124,10 +124,12 @@ the system it serves.
 
 ## What has been measured
 
-Ten findings so far, each reproducible from a named script and each backed by a
+Eighteen findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
-remeasurement at larger n, and a third was retracted outright after a generator bug.
+remeasurement at larger n, a third was retracted outright after a generator bug, and a
+second generator defect in August 2026 moved every corpus-dependent number and withdrew
+two more claims.
 [Findings](https://ajbarea.github.io/pharos/findings/) carries the numbers, the
 corrections, and the caveats.
 
@@ -168,6 +170,10 @@ make edge        # what the agent costs on laptop-class hardware (needs Ollama)
 make budget      # what a privacy budget buys against the linkage channel (no model)
 make correlated  # what the cliff costs when analysts are not independent (no model)
 make difficulty  # whether item difficulty and a wrong standard are separable (no model)
+
+# Sensitivity: whether a finding survives a parameter nobody chose on principle
+make fleet-sensitivity  # findings 12, 16 and 17 across fleets of 5 to 51 (no model)
+make teacher-fleet      # whether adapters inherit their teachers, across 24 of them
 ```
 
 ## Build order
@@ -175,8 +181,12 @@ make difficulty  # whether item difficulty and a wrong standard are separable (n
 1. **Corpus and gate.** Done: the label algebra, the generator, and the acceptance
    gate.
 2. **Tasks and scorers.** `pharos.tasks` carries the triage task and `pharos.detect`
-   the labelling path. Still owed are the plant registry, the remaining specialist
-   scorers, and an adversarial-input pass over each.
+   the labelling path. `pharos.plants`, `pharos.scorers` and `pharos.adversarial`
+   supply the registry, the specialist scorers and the perturbation primitives. Still
+   owed is the adversarial *evaluation*: the perturbations are tested to change the
+   text they return while leaving ground truth alone, and nothing yet puts a perturbed
+   prompt in front of a model and compares verdicts. A harness that appeared to do so
+   was removed in August 2026 for reporting 1.0 at every seed by construction.
 3. **Simulated analysts.** Done. This step existed to ask whether the rule survives
    being learned from a reviewer's decisions rather than from clean labels, and
    finding 10 answers it: an adapter trained on a reviewer's decisions reproduces
@@ -199,8 +209,8 @@ make difficulty  # whether item difficulty and a wrong standard are separable (n
    per-analyst metric reports zero (finding 13).
 
 5. **Edge cost.** Done: finding 14 prices the agent on the 8 GB card the earlier
-   findings already used. 57.1 MiB per personalization round, 4.8 s to wake a node,
-   0.335 s per warm decision, 1.8 GB resident for the 3B model.
+   findings already used. 57.1 MiB per personalization round, 3.7 s to wake a node,
+   0.321 s per warm decision over 199 timed calls, 1.8 GB resident for the 3B model.
 
 **The open problem, stated as precisely as the measurements allow.** A reliability
 estimate computed *under* secure aggregation rather than recovered from pooled
