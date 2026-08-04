@@ -84,7 +84,13 @@ if [ -n "${HF_TOKEN:-}" ] || [ -f "${HF_HOME:-$HOME/.cache/huggingface}/token" ]
   log "  credentials present"
 else
   log "  none found. Downloads will work but are rate limited."
-  log "  Fix:  hf auth login   (fine-grained, READ-only -- Pharos never uploads)"
+  # `hf` ships with huggingface_hub, which arrives via the `train` extra -- and the
+  # sync above is `--all-groups`, which does not install extras. So bare `hf` is not
+  # on PATH at this point in a fresh checkout, and telling anyone to run it produces
+  # a command-not-found rather than a login prompt.
+  log "  Fix:  uv run --extra train hf auth login"
+  log "        (fine-grained, READ-only -- Pharos never uploads)"
+  log "  Or:   export HF_TOKEN=... in ~/.bashrc, which needs nothing installed"
 fi
 
 log "Add to ~/.bashrc if absent:"
