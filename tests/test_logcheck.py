@@ -58,6 +58,11 @@ def test_the_model_free_sweep_covers_the_model_free_measurements():
         # sensitivity sweep is not something a commit needs re-derived to be accepted.
         # `make fleet-sensitivity` runs it, and its own artifact carries the invariants.
         "measure_fleet_sensitivity.py": "re-runs three swept scripts; minutes, not seconds",
+        # Model-free and CPU-only, but it runs the gate seven times, which CI already
+        # does for the gate table, and its result is a *comparison between two machines*
+        # rather than a number. One machine's half of it carries no signal on its own,
+        # so running it here would spend two minutes to learn nothing.
+        "measure_gate_determinism.py": "one half of a two-machine comparison; CI is one machine",
         "measure_edge_cost.py": "reads artifacts produced by GPU jobs",
         "measure_teacher_fleet.py": "reads adapter artifacts produced by cluster jobs",
         "train_adapter.py": "needs a CUDA GPU",

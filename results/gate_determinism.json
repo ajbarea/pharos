@@ -1,0 +1,50 @@
+{
+  "machine": {
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "python": "3.14.4",
+    "libc": "glibc 2.39"
+  },
+  "n_events": 400,
+  "baselines": {
+    "1": {
+      "hex": "0x1.469207b303cc3p-1",
+      "decimal": 0.6378328710578888
+    },
+    "7": {
+      "hex": "0x1.4f17d9f0f1710p-1",
+      "decimal": 0.654478846227649
+    },
+    "11": {
+      "hex": "0x1.4caf5531a1dfep-1",
+      "decimal": 0.6497751830183345
+    },
+    "23": {
+      "hex": "0x1.4a9fa7973af20p-1",
+      "decimal": 0.6457493183238263
+    },
+    "101": {
+      "hex": "0x1.52225c5c1a5c1p-1",
+      "decimal": 0.6604184019499187
+    },
+    "202": {
+      "hex": "0x1.4685707c2f010p-1",
+      "decimal": 0.6377368117896385
+    },
+    "303": {
+      "hex": "0x1.4b405bec08496p-1",
+      "decimal": 0.6469753957391216
+    }
+  },
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "2c9d2dcf488c",
+    "git_dirty": true,
+    "generated_at": "2026-08-04T13:48:51+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "n_seeds": 7,
+    "n_events": 400
+  }
+}
