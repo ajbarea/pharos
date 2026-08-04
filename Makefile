@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty fleet-sensitivity teacher-fleet logcheck docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty secure authority fleet-sensitivity teacher-fleet logcheck docs-tables explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -88,6 +88,14 @@ difficulty:                ## Whether item difficulty and a wrong standard are s
 	@mkdir -p results
 	uv run python scripts/measure_difficulty_confound.py --out results/difficulty_confound.json
 
+secure:                    ## Whether reliability can be estimated under secure aggregation (no model)
+	@mkdir -p results
+	uv run python scripts/measure_secure_reliability.py --out results/secure_reliability.json
+
+authority:                 ## What an authority of record costs, in audited items (no model)
+	@mkdir -p results
+	uv run python scripts/measure_authority_anchors.py --out results/authority_anchors.json
+
 logcheck:                  ## Run the model-free measurements and summarise what they logged
 	uv run python scripts/logcheck.py
 
@@ -125,5 +133,7 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_privacy_budget.py
 	uv run python scripts/measure_correlated_fleets.py
 	uv run python scripts/measure_difficulty_confound.py
+	uv run python scripts/measure_secure_reliability.py
+	uv run python scripts/measure_authority_anchors.py
 	uv run python scripts/logcheck.py
 	uv run python scripts/sync_docs_tables.py --check

@@ -168,6 +168,20 @@ jobs:
       # artifact, and this step runs without `--out`.
       - name: Test whether difficulty and a wrong standard are separable
         run: uv run python scripts/measure_difficulty_confound.py
+      # Finding 18's equivalence claim is the one thing here that a refactor of either
+      # estimator would break silently: the federated and centralized posteriors have
+      # to stay within 1e-6 of each other, and nothing else in the suite compares them
+      # on the regenerated corpus. The readership headcounts move with the clearance
+      # structure for the same reason the tag sweep above does.
+      - name: Check the estimate still matches under secure aggregation
+        run: uv run python scripts/measure_secure_reliability.py
+      # The anchor thresholds are a property of the corpus and the analyst policies, so
+      # a generator change moves the price this finding quotes. Also the live guard on
+      # convergence: an anchored EM run that stops converging is a real defect, and it
+      # was one -- the movement check compared against a posterior the clamp was about
+      # to overwrite, so every anchored run burned the full iteration cap.
+      - name: Price the authority of record
+        run: uv run python scripts/measure_authority_anchors.py
       # Fails on a warning the project does not expect, and on an expected warning
       # that stopped firing. The second case is the subtle one: a finding that quietly
       # stops reporting itself looks identical to a clean run.

@@ -1,0 +1,192 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "cbf60a42e624",
+    "git_dirty": true,
+    "generated_at": "2026-08-04T21:48:34+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "seed": 7
+  },
+  "fleet": 9,
+  "events": 200,
+  "wrong_threshold": 2,
+  "mask_seed": 4242,
+  "grid": [
+    {
+      "n_wrong": 0,
+      "share_wrong": 0.0,
+      "central": 1.0,
+      "federated": 1.0,
+      "max_posterior_gap": 1.1102230246251565e-16,
+      "label_disagreements": 0,
+      "central_iterations": 1,
+      "federated_iterations": 1,
+      "both_converged": true
+    },
+    {
+      "n_wrong": 1,
+      "share_wrong": 0.1111,
+      "central": 1.0,
+      "federated": 1.0,
+      "max_posterior_gap": 8.723523076476306e-21,
+      "label_disagreements": 0,
+      "central_iterations": 2,
+      "federated_iterations": 2,
+      "both_converged": true
+    },
+    {
+      "n_wrong": 2,
+      "share_wrong": 0.2222,
+      "central": 1.0,
+      "federated": 1.0,
+      "max_posterior_gap": 1.1102230246251565e-16,
+      "label_disagreements": 0,
+      "central_iterations": 3,
+      "federated_iterations": 3,
+      "both_converged": true
+    },
+    {
+      "n_wrong": 3,
+      "share_wrong": 0.3333,
+      "central": 1.0,
+      "federated": 1.0,
+      "max_posterior_gap": 6.952486166751973e-17,
+      "label_disagreements": 0,
+      "central_iterations": 3,
+      "federated_iterations": 3,
+      "both_converged": true
+    },
+    {
+      "n_wrong": 4,
+      "share_wrong": 0.4444,
+      "central": 1.0,
+      "federated": 1.0,
+      "max_posterior_gap": 7.86422269236556e-15,
+      "label_disagreements": 0,
+      "central_iterations": 4,
+      "federated_iterations": 4,
+      "both_converged": true
+    },
+    {
+      "n_wrong": 5,
+      "share_wrong": 0.5556,
+      "central": 0.6598,
+      "federated": 0.6598,
+      "max_posterior_gap": 3.785860513971784e-14,
+      "label_disagreements": 0,
+      "central_iterations": 6,
+      "federated_iterations": 6,
+      "both_converged": true
+    },
+    {
+      "n_wrong": 6,
+      "share_wrong": 0.6667,
+      "central": 0.6598,
+      "federated": 0.6598,
+      "max_posterior_gap": 2.220446049250313e-15,
+      "label_disagreements": 0,
+      "central_iterations": 3,
+      "federated_iterations": 3,
+      "both_converged": true
+    },
+    {
+      "n_wrong": 7,
+      "share_wrong": 0.7778,
+      "central": 0.6598,
+      "federated": 0.6598,
+      "max_posterior_gap": 1.1102230246251565e-16,
+      "label_disagreements": 0,
+      "central_iterations": 3,
+      "federated_iterations": 3,
+      "both_converged": true
+    },
+    {
+      "n_wrong": 8,
+      "share_wrong": 0.8889,
+      "central": 0.6598,
+      "federated": 0.6598,
+      "max_posterior_gap": 3.809393723420779e-22,
+      "label_disagreements": 0,
+      "central_iterations": 2,
+      "federated_iterations": 2,
+      "both_converged": true
+    },
+    {
+      "n_wrong": 9,
+      "share_wrong": 1.0,
+      "central": 0.6598,
+      "federated": 0.6598,
+      "max_posterior_gap": 2.154359045787784e-23,
+      "label_disagreements": 0,
+      "central_iterations": 1,
+      "federated_iterations": 1,
+      "both_converged": true
+    }
+  ],
+  "worst_posterior_gap": 3.785860513971784e-14,
+  "label_disagreements": 0,
+  "central_cliff_at": 5,
+  "federated_cliff_at": 5,
+  "linkage_fleet": 200,
+  "fleet_seed": 11,
+  "readership": {
+    "labels_probed": 14,
+    "exact_headcounts": 14,
+    "compartment_sets_determined": 13,
+    "headcounts": {
+      "2 | SENSOR": 43,
+      "2 | LEGAL": 34,
+      "1 | SENSOR": 67,
+      "3 | LEGAL,LIAISON,SENSOR": 5,
+      "3 | PARTNER": 25,
+      "2 | LEGAL,SENSOR": 19,
+      "3 | LIAISON,SENSOR": 15,
+      "3 | PARTNER,SENSOR": 10,
+      "3 | LEGAL,PARTNER,SENSOR": 6,
+      "3 | LEGAL,LIAISON": 9,
+      "3 | LIAISON,PARTNER,SENSOR": 6,
+      "0 | (none)": 200,
+      "3 | LEGAL,PARTNER": 10,
+      "3 | LIAISON": 32
+    },
+    "truth": {
+      "2 | SENSOR": 43,
+      "2 | LEGAL": 34,
+      "1 | SENSOR": 67,
+      "3 | LEGAL,LIAISON,SENSOR": 5,
+      "3 | PARTNER": 25,
+      "2 | LEGAL,SENSOR": 19,
+      "3 | LIAISON,SENSOR": 15,
+      "3 | PARTNER,SENSOR": 10,
+      "3 | LEGAL,PARTNER,SENSOR": 6,
+      "3 | LEGAL,LIAISON": 9,
+      "3 | LIAISON,PARTNER,SENSOR": 6,
+      "0 | (none)": 200,
+      "3 | LEGAL,PARTNER": 10,
+      "3 | LIAISON": 32
+    },
+    "prior_expectation": {
+      "2 | SENSOR": 50.0,
+      "2 | LEGAL": 50.0,
+      "1 | SENSOR": 75.0,
+      "3 | LEGAL,LIAISON,SENSOR": 6.25,
+      "3 | PARTNER": 25.0,
+      "2 | LEGAL,SENSOR": 25.0,
+      "3 | LIAISON,SENSOR": 12.5,
+      "3 | PARTNER,SENSOR": 12.5,
+      "3 | LEGAL,PARTNER,SENSOR": 6.25,
+      "3 | LEGAL,LIAISON": 12.5,
+      "3 | LIAISON,PARTNER,SENSOR": 6.25,
+      "0 | (none)": 200.0,
+      "3 | LEGAL,PARTNER": 12.5,
+      "3 | LIAISON": 25.0
+    }
+  },
+  "validity": {
+    "n": 200,
+    "quotable": true,
+    "concerns": []
+  }
+}

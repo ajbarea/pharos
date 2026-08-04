@@ -360,8 +360,25 @@ _METRIC_META: dict[str, tuple[str, str]] = {
     "gate.probe_auc": ("1", "AUC of one surface probe against the class label"),
     "gate.surface_baseline": ("1", "Best surface-feature AUC, the score to report against"),
     "generate.reports": ("{report}", "Reports rendered for a generated corpus"),
+    "authority.cell": (
+        "1",
+        "Agreement on unanchored tasks at one fleet composition and anchor budget",
+    ),
     "inference.cc_rasch": ("{iteration}", "EM iterations CC-Rasch ran before settling"),
     "inference.dawid_skene": ("1", "Estimated prevalence of the significant class"),
+    "inference.federated_dawid_skene": (
+        "1",
+        "Estimated prevalence, with the server holding only per-task sums",
+    ),
+    "secagg.reveal": ("{client}", "Clients whose masked shares composed one revealed sum"),
+    "secure.composition": (
+        "1",
+        "Federated-estimator agreement with the world at one fleet composition",
+    ),
+    "secure.readership_exact": (
+        "{label}",
+        "Source-joins whose analyst headcount the aggregate discloses exactly",
+    ),
     "inference.glad": ("{iteration}", "EM iterations GLAD ran before settling"),
     "learnability.accuracy": ("1", "Share of evaluation tasks answered correctly"),
     "ledger.routing": ("{decision}", "Routing decisions recorded in the ledger"),

@@ -2669,3 +2669,82 @@ def test_every_make_command_the_repository_tells_you_to_run_exists():
     assert referenced, "no `make <target>` instructions found; the pattern has gone stale"
     missing = {k: sorted(v) for k, v in referenced.items() if k not in targets}
     assert not missing, f"instructions naming targets that do not exist: {missing}"
+
+
+def test_secure_readership_block_matches_the_artifact():
+    """Every row the aggregate discloses, and the bold that marks it exact."""
+    sdt = _docs_module()
+    import json as _json
+
+    table = sdt.secure_readership()
+    payload = _json.loads((sdt.RESULTS / "secure_reliability.json").read_text(encoding="utf-8"))
+    readership = payload["readership"]
+
+    for key, count in readership["headcounts"].items():
+        assert key.replace("|", "\\|") in table
+        # Exact headcounts are bolded, and the finding's whole claim is that all of
+        # them are. A row that stopped being exact would lose its bold here.
+        if count == readership["truth"][key]:
+            assert f"**{count}**" in table
+    assert str(readership["exact_headcounts"]) in table
+    assert table.count("\n| ") >= len(readership["headcounts"])
+
+
+def test_authority_price_block_matches_the_artifact():
+    sdt = _docs_module()
+    import json as _json
+
+    table = sdt.authority_price()
+    payload = _json.loads((sdt.RESULTS / "authority_anchors.json").read_text(encoding="utf-8"))
+    needed = payload["anchors_needed"]
+
+    for key, count in needed.items():
+        assert f"| {key} |" in table
+        if count is not None:
+            assert f"| {count} |" in table
+    assert f"{payload['repaired_threshold']:.2f}" in table
+    assert str(payload["events"]) in table
+
+
+def test_a_composition_no_budget_repairs_is_named_rather_than_left_blank(tmp_path, monkeypatch):
+    """An unreached threshold must read as unreached, not as a missing cell."""
+    sdt = _docs_module()
+    import json as _json
+
+    payload = {
+        "anchors_needed": {"5": 5, "9": None},
+        "events": 200,
+        "fleet": 9,
+        "anchor_counts": [0, 50],
+        "repaired_threshold": 0.95,
+    }
+    (tmp_path / "authority_anchors.json").write_text(_json.dumps(payload), encoding="utf-8")
+    monkeypatch.setattr(sdt, "RESULTS", tmp_path)
+
+    table = sdt.authority_price()
+    assert "not reached within 50" in table
+    assert "| 5 | 5 | 2.5% |" in table
+
+
+def test_a_missing_or_empty_artifact_fails_rather_than_emitting_an_empty_table(
+    tmp_path, monkeypatch
+):
+    """A generated block with nothing behind it is how a table silently empties."""
+    sdt = _docs_module()
+    import json as _json
+
+    monkeypatch.setattr(sdt, "RESULTS", tmp_path)
+    # ROOT too: the missing-artifact message names the path relative to it, which is
+    # not a relative path at all once RESULTS lives outside the repo.
+    monkeypatch.setattr(sdt, "ROOT", tmp_path)
+    with pytest.raises(SystemExit):
+        sdt.authority_price()
+    with pytest.raises(SystemExit):
+        sdt.secure_readership()
+
+    (tmp_path / "authority_anchors.json").write_text(_json.dumps({}), encoding="utf-8")
+    (tmp_path / "secure_reliability.json").write_text(_json.dumps({}), encoding="utf-8")
+    with pytest.raises(SystemExit):
+        sdt.authority_price()
+    with pytest.raises(SystemExit):
+        sdt.secure_readership()

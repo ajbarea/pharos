@@ -5,7 +5,14 @@ import statistics
 
 import pytest
 
-from pharos.inference import agreement_with, dawid_skene, weighted_targets
+from pharos.inference import (
+    agreement_with,
+    dawid_skene,
+    federated_dawid_skene,
+    partition_by_contributor,
+    weighted_targets,
+)
+from pharos.secagg import CohortTooSmallError
 
 
 def test_empty_input_infers_nothing():
@@ -365,3 +372,110 @@ def test_cc_rasch_centring_is_a_gauge_transformation():
         assert mean == pytest.approx(INITIAL_CLASS_ABILITY, abs=1e-6), (
             "centring did not fix the free translation"
         )
+
+
+# ------------------------------------------------- Dawid-Skene under a sum -----
+
+
+def _fleet_rows(n_wrong: int, tasks: int = 60, workers: int = 9):
+    """A fleet where `n_wrong` contributors invert the truth on every task."""
+    truth = {f"T-{i}": i % 3 == 0 for i in range(tasks)}
+    rows = []
+    for w in range(workers):
+        wrong = w < n_wrong
+        for task, value in truth.items():
+            rows.append((task, f"w{w}", (not value) if wrong else value))
+    return rows, truth
+
+
+def test_partition_regroups_without_losing_a_row():
+    rows = [("T-1", "a", True), ("T-2", "a", False), ("T-1", "b", True)]
+    partitioned = partition_by_contributor(rows)
+    assert partitioned == {"a": [("T-1", True), ("T-2", False)], "b": [("T-1", True)]}
+    assert sum(len(v) for v in partitioned.values()) == len(rows)
+
+
+def test_federated_reproduces_the_centralized_estimator():
+    """The port must not change the answer, or nothing downstream is comparable."""
+    rows, _ = _fleet_rows(n_wrong=3)
+    central = dawid_skene(rows)
+    federated = federated_dawid_skene(partition_by_contributor(rows), seed=17)
+
+    assert federated.converged == central.converged
+    for task in central.posterior:
+        assert federated.posterior[task] == pytest.approx(central.posterior[task], abs=1e-9)
+    assert federated.labels() == central.labels()
+
+
+def test_federated_inherits_the_cliff_rather_than_escaping_it():
+    """Finding 18's prediction: moving the computation does not move the failure."""
+    minority_rows, truth = _fleet_rows(n_wrong=4)
+    majority_rows, _ = _fleet_rows(n_wrong=5)
+
+    minority = federated_dawid_skene(partition_by_contributor(minority_rows), seed=17)
+    majority = federated_dawid_skene(partition_by_contributor(majority_rows), seed=17)
+
+    assert agreement_with(minority.labels(), truth) == 1.0
+    # Past the majority crossing the estimator ratifies the wrong standard, and does
+    # so with no sign of trouble: it converges just as happily.
+    assert agreement_with(majority.labels(), truth) == 0.0
+    assert majority.converged
+
+
+def test_the_result_carries_no_per_contributor_reliability():
+    """The server never learns a confusion matrix, so it must not report one."""
+    rows, _ = _fleet_rows(n_wrong=2)
+    federated = federated_dawid_skene(partition_by_contributor(rows), seed=17)
+    assert not hasattr(federated, "error_rates")
+    assert not hasattr(federated, "reliability")
+
+
+def test_readership_counts_what_the_server_can_actually_see():
+    """A per-task mean needs its denominator, so the denominator is disclosed."""
+    rows = [("T-1", "a", True), ("T-1", "b", True), ("T-1", "c", False), ("T-2", "a", True)]
+    federated = federated_dawid_skene(partition_by_contributor(rows), seed=17)
+    assert federated.readership == {"T-1": 3, "T-2": 1}
+
+
+def test_anchors_are_clamped_and_never_revised():
+    """The authority's ruling is exogenous: EM may not talk it out of one."""
+    rows, truth = _fleet_rows(n_wrong=5)
+    anchored = sorted(truth)[:20]
+    anchors = {task: truth[task] for task in anchored}
+
+    federated = federated_dawid_skene(partition_by_contributor(rows), seed=17, anchors=anchors)
+    assert federated.anchored == frozenset(anchored)
+    for task in anchored:
+        assert federated.labels()[task] == truth[task]
+
+
+def test_anchors_repair_a_bare_majority_on_tasks_they_did_not_rule_on():
+    """Finding 19's mechanism, scored only where the authority stayed silent."""
+    rows, truth = _fleet_rows(n_wrong=5)
+    anchors = {task: truth[task] for task in sorted(truth)[:20]}
+
+    without = federated_dawid_skene(partition_by_contributor(rows), seed=17)
+    with_authority = federated_dawid_skene(partition_by_contributor(rows), seed=17, anchors=anchors)
+
+    unruled = {t: v for t, v in truth.items() if t not in anchors}
+    before = agreement_with({t: v for t, v in without.labels().items() if t in unruled}, unruled)
+    after = agreement_with(
+        {t: v for t, v in with_authority.labels().items() if t in unruled}, unruled
+    )
+    assert before == 0.0
+    assert after == 1.0
+
+
+def test_empty_input_infers_nothing_federated():
+    federated = federated_dawid_skene({}, seed=1)
+    assert federated.posterior == {}
+    assert federated.labels() == {}
+    assert federated.readership == {}
+    assert federated.converged
+
+
+def test_a_fleet_below_the_aggregation_floor_is_refused():
+    """Two contributors cannot be aggregated, and the estimator must not pretend."""
+    rows = [("T-1", "a", True), ("T-1", "b", False)]
+    with pytest.raises(CohortTooSmallError):
+        federated_dawid_skene(partition_by_contributor(rows), seed=1)

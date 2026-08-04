@@ -1,0 +1,655 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "cbf60a42e624",
+    "git_dirty": true,
+    "generated_at": "2026-08-04T21:47:11+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "seed": 7
+  },
+  "fleet": 9,
+  "events": 200,
+  "anchor_seed": 909,
+  "mask_seed": 4242,
+  "repaired_threshold": 0.95,
+  "anchor_counts": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    8,
+    12,
+    20,
+    30,
+    50,
+    80,
+    100,
+    120,
+    150,
+    180
+  ],
+  "compositions": [
+    4,
+    5,
+    6,
+    7,
+    9
+  ],
+  "grid": [
+    {
+      "n_wrong": 4,
+      "anchors": 0,
+      "anchor_share": 0.0,
+      "scored_tasks": 97,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 1,
+      "anchor_share": 0.005,
+      "scored_tasks": 97,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 2,
+      "anchor_share": 0.01,
+      "scored_tasks": 96,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 3,
+      "anchor_share": 0.015,
+      "scored_tasks": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 5,
+      "anchor_share": 0.025,
+      "scored_tasks": 93,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 8,
+      "anchor_share": 0.04,
+      "scored_tasks": 91,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 12,
+      "anchor_share": 0.06,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 20,
+      "anchor_share": 0.1,
+      "scored_tasks": 86,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 30,
+      "anchor_share": 0.15,
+      "scored_tasks": 83,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 50,
+      "anchor_share": 0.25,
+      "scored_tasks": 76,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 80,
+      "anchor_share": 0.4,
+      "scored_tasks": 58,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 100,
+      "anchor_share": 0.5,
+      "scored_tasks": 51,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 120,
+      "anchor_share": 0.6,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 150,
+      "anchor_share": 0.75,
+      "scored_tasks": 25,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 4,
+      "anchors": 180,
+      "anchor_share": 0.9,
+      "scored_tasks": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 0,
+      "anchor_share": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 1,
+      "anchor_share": 0.005,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 2,
+      "anchor_share": 0.01,
+      "scored_tasks": 96,
+      "agreement": 0.6667,
+      "repaired": false
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 3,
+      "anchor_share": 0.015,
+      "scored_tasks": 95,
+      "agreement": 0.6632,
+      "repaired": false
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 5,
+      "anchor_share": 0.025,
+      "scored_tasks": 93,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 8,
+      "anchor_share": 0.04,
+      "scored_tasks": 91,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 12,
+      "anchor_share": 0.06,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 20,
+      "anchor_share": 0.1,
+      "scored_tasks": 86,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 30,
+      "anchor_share": 0.15,
+      "scored_tasks": 83,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 50,
+      "anchor_share": 0.25,
+      "scored_tasks": 76,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 80,
+      "anchor_share": 0.4,
+      "scored_tasks": 58,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 100,
+      "anchor_share": 0.5,
+      "scored_tasks": 51,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 120,
+      "anchor_share": 0.6,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 150,
+      "anchor_share": 0.75,
+      "scored_tasks": 25,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 5,
+      "anchors": 180,
+      "anchor_share": 0.9,
+      "scored_tasks": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 0,
+      "anchor_share": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 1,
+      "anchor_share": 0.005,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 2,
+      "anchor_share": 0.01,
+      "scored_tasks": 96,
+      "agreement": 0.6667,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 3,
+      "anchor_share": 0.015,
+      "scored_tasks": 95,
+      "agreement": 0.6632,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 5,
+      "anchor_share": 0.025,
+      "scored_tasks": 93,
+      "agreement": 0.6667,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 8,
+      "anchor_share": 0.04,
+      "scored_tasks": 91,
+      "agreement": 0.6593,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 12,
+      "anchor_share": 0.06,
+      "scored_tasks": 89,
+      "agreement": 0.6629,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 20,
+      "anchor_share": 0.1,
+      "scored_tasks": 86,
+      "agreement": 0.6628,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 30,
+      "anchor_share": 0.15,
+      "scored_tasks": 83,
+      "agreement": 0.6506,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 50,
+      "anchor_share": 0.25,
+      "scored_tasks": 76,
+      "agreement": 0.6579,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 80,
+      "anchor_share": 0.4,
+      "scored_tasks": 58,
+      "agreement": 0.6379,
+      "repaired": false
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 100,
+      "anchor_share": 0.5,
+      "scored_tasks": 51,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 120,
+      "anchor_share": 0.6,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 150,
+      "anchor_share": 0.75,
+      "scored_tasks": 25,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 6,
+      "anchors": 180,
+      "anchor_share": 0.9,
+      "scored_tasks": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 0,
+      "anchor_share": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 1,
+      "anchor_share": 0.005,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 2,
+      "anchor_share": 0.01,
+      "scored_tasks": 96,
+      "agreement": 0.6667,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 3,
+      "anchor_share": 0.015,
+      "scored_tasks": 95,
+      "agreement": 0.6632,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 5,
+      "anchor_share": 0.025,
+      "scored_tasks": 93,
+      "agreement": 0.6667,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 8,
+      "anchor_share": 0.04,
+      "scored_tasks": 91,
+      "agreement": 0.6593,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 12,
+      "anchor_share": 0.06,
+      "scored_tasks": 89,
+      "agreement": 0.6629,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 20,
+      "anchor_share": 0.1,
+      "scored_tasks": 86,
+      "agreement": 0.6628,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 30,
+      "anchor_share": 0.15,
+      "scored_tasks": 83,
+      "agreement": 0.6506,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 50,
+      "anchor_share": 0.25,
+      "scored_tasks": 76,
+      "agreement": 0.6579,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 80,
+      "anchor_share": 0.4,
+      "scored_tasks": 58,
+      "agreement": 0.6379,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 100,
+      "anchor_share": 0.5,
+      "scored_tasks": 51,
+      "agreement": 0.6667,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 120,
+      "anchor_share": 0.6,
+      "scored_tasks": 37,
+      "agreement": 0.7027,
+      "repaired": false
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 150,
+      "anchor_share": 0.75,
+      "scored_tasks": 25,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 7,
+      "anchors": 180,
+      "anchor_share": 0.9,
+      "scored_tasks": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 0,
+      "anchor_share": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 1,
+      "anchor_share": 0.005,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 2,
+      "anchor_share": 0.01,
+      "scored_tasks": 96,
+      "agreement": 0.6667,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 3,
+      "anchor_share": 0.015,
+      "scored_tasks": 95,
+      "agreement": 0.6632,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 5,
+      "anchor_share": 0.025,
+      "scored_tasks": 93,
+      "agreement": 0.6667,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 8,
+      "anchor_share": 0.04,
+      "scored_tasks": 91,
+      "agreement": 0.6593,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 12,
+      "anchor_share": 0.06,
+      "scored_tasks": 89,
+      "agreement": 0.6629,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 20,
+      "anchor_share": 0.1,
+      "scored_tasks": 86,
+      "agreement": 0.6628,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 30,
+      "anchor_share": 0.15,
+      "scored_tasks": 83,
+      "agreement": 0.6506,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 50,
+      "anchor_share": 0.25,
+      "scored_tasks": 76,
+      "agreement": 0.6579,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 80,
+      "anchor_share": 0.4,
+      "scored_tasks": 58,
+      "agreement": 0.6379,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 100,
+      "anchor_share": 0.5,
+      "scored_tasks": 51,
+      "agreement": 0.6667,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 120,
+      "anchor_share": 0.6,
+      "scored_tasks": 37,
+      "agreement": 0.7027,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 150,
+      "anchor_share": 0.75,
+      "scored_tasks": 25,
+      "agreement": 0.68,
+      "repaired": false
+    },
+    {
+      "n_wrong": 9,
+      "anchors": 180,
+      "anchor_share": 0.9,
+      "scored_tasks": 8,
+      "agreement": 1.0,
+      "repaired": true
+    }
+  ],
+  "anchors_needed": {
+    "4": 0,
+    "5": 5,
+    "6": 100,
+    "7": 150,
+    "9": 180
+  },
+  "validity": {
+    "n": 200,
+    "quotable": true,
+    "concerns": []
+  }
+}
