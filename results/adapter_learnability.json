@@ -1,14 +1,18 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "f8f6dd815f75",
+    "git_commit": "8c118c757f73",
     "git_dirty": false,
-    "generated_at": "2026-07-31T22:26:20+00:00",
+    "generated_at": "2026-08-04T13:09:30+00:00",
     "python": "3.13.14",
     "platform": "Linux-6.18.34-1.el9.x86_64-x86_64-with-glibc2.34",
     "executable": ".venv/bin/python3",
     "model": "Qwen/Qwen2.5-3B-Instruct",
     "seed": 7
+  },
+  "lora": {
+    "trainable_params": 29933568,
+    "total_params": 3115872256
   },
   "hyperparameters": {
     "lora_rank": 16,
@@ -31,31 +35,42 @@
     "n_train": 1140,
     "n_eval": 60,
     "train_balance": {
-      "significant": 353,
-      "routine": 787
+      "significant": 348,
+      "routine": 792
     },
     "eval_balance": {
       "significant": 20,
       "routine": 40
     },
-    "events_disjoint": true
+    "events_disjoint": true,
+    "eval_seed": null,
+    "cross_corpus": false
   },
-  "training_loss": 0.2968755877668122,
+  "training_loss": 0.29716952679235775,
   "base": {
     "label": "base",
     "n": 60,
     "confusion": {
-      "tp": 15,
-      "fp": 32,
-      "tn": 3,
-      "fn": 2
+      "tp": 18,
+      "fp": 31,
+      "tn": 2,
+      "fn": 0
     },
-    "unparsed": 8,
-    "accuracy": 0.3,
-    "majority_accuracy": 0.7167,
-    "precision": 0.3191,
-    "recall": 0.8824,
-    "f1": 0.4688
+    "unparsed": 9,
+    "accuracy": 0.3333,
+    "majority_accuracy": 0.7,
+    "precision": 0.3673,
+    "recall": 1.0,
+    "f1": 0.5373,
+    "validity": {
+      "n": 60,
+      "quotable": false,
+      "concerns": [
+        "9/60 answers were unparsable (15%); every other number describes only the remainder",
+        "accuracy 0.392 does not beat the majority floor 0.647: this is not evidence of capability",
+        "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
+      ]
+    }
   },
   "adapter": {
     "label": "adapter",
@@ -71,7 +86,16 @@
     "majority_accuracy": 0.6667,
     "precision": 1.0,
     "recall": 1.0,
-    "f1": 1.0
+    "f1": 1.0,
+    "validity": {
+      "n": 60,
+      "quotable": false,
+      "concerns": [
+        "score is saturated (no errors in 60): the rule of three bounds the true error rate only at 5.0%, and a ceiling cannot rank anything above it. Report n alongside the score"
+      ]
+    }
   },
+  "teacher": null,
+  "adapter_vs_teacher": null,
   "ceiling_f1": 1.0
 }
