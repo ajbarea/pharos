@@ -197,7 +197,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 
 **8 of 22** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
-**Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`.
+**Carrying no validity assessment, which is a gap rather than a pass:** `fl_benchmarks`, `fleet_sensitivity`.
 
 Assessed by their script but not yet in the committed artifact (6 of these), which needs a rerun rather than an edit:
 
@@ -441,31 +441,37 @@ examples instead is the cheap form of that question.
 
 | Condition | Shots | Precision | Recall | F1 | Accuracy | 95% interval | Unparsed |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Zero-shot floor | 0 | 0.372 | 0.874 | 0.522 | 0.513 | [0.472, 0.553] | 3 |
-| Labelled examples | 2 | 0.352 | 0.906 | 0.507 | **0.453** | [0.413, 0.496] | 20 |
-| Labelled examples | 4 | 0.356 | 0.957 | 0.518 | 0.452 | [0.410, 0.492] | 3 |
-| Labelled examples | 8 | 0.402 | 0.962 | 0.567 | 0.549 | [0.507, 0.588] | 1 |
+| Zero-shot floor | 0 | 0.368 | 0.899 | 0.522 | 0.482 | [0.441, 0.523] | 4 |
+| Labelled examples | 2 | 0.365 | 0.978 | 0.532 | **0.433** | [0.392, 0.476] | 41 |
+| Labelled examples | 4 | 0.357 | 0.984 | 0.524 | 0.436 | [0.396, 0.476] | 10 |
+| Labelled examples | 8 | 0.380 | 1.000 | 0.550 | 0.485 | [0.444, 0.527] | 4 |
 | **Rule stated, checklist prompt (ceiling)** | n/a | **1.000** | **1.000** | **1.000** | **1.000** | | |
 
-**Examples close 9% of the gap to the ceiling**, and no condition comes near its own
-majority-class accuracy, which sits at 0.693. The floor is not close: the best
-condition is 0.14 below it. Every row is marked unquotable by `pharos.validity` for
-exactly that reason, which is the correct reading: none of these numbers is evidence
-of capability.
+**Examples close none of the gap to the ceiling**, and no condition comes near its own
+majority-class accuracy, which sits at 0.685. The floor is not close: the best
+condition is 0.20 below it, and on the corrected corpus **every** condition now sits
+below the majority floor rather than merely short of the ceiling. Every row is marked
+unquotable by `pharos.validity` for exactly that reason, which is the correct reading:
+none of these numbers is evidence of capability.
+
+**Eight shots against zero is +0.003, which is the finding.** Their intervals overlap
+almost completely, [0.444, 0.527] against [0.441, 0.523]. This is the third
+independent measurement of that comparison and the second on which the lift is
+absent; the one run that showed a lift was measured on the pre-fix corpus and is
+discussed in [5b](#5b-the-intervals-above-understate-the-uncertainty-measured-by-replication).
 
 **Two shots looks *worse* than none, and we decline the comparison anyway.** The gap
-runs the opposite way to what a reader expects, 0.453 against 0.513, and it is the
-closest any pair here comes to separating. On this run it does separate, by 0.0592
-against a difference half-width of 0.0579 -- a margin of **0.0013**.
+runs the opposite way to what a reader expects, 0.433 against 0.482, and it is the
+closest any pair here comes to separating, at 0.049 against overlapping intervals.
 
-That margin is not worth anything, and the reason is measured rather than argued. The
-replication below re-ran this identical measurement and moved one condition's accuracy
-by 0.062, which is **48 times** the margin by which this comparison clears its own
-criterion. A test whose verdict flips on a quantity far smaller than the measurement's
-own run-to-run variation is not testing anything. The previous run of this same
-measurement put the gap at 0.0551 against 0.0576 and the same criterion returned
-*false*. So the reported verdict on "do two examples hurt" has already changed sign
-once, on data that differs only by which afternoon it was collected.
+That comparison has now returned three different verdicts across three runs, and the
+reason to decline it is measured rather than argued. One run separated it by a margin
+of 0.0013 -- the pair cleared its own criterion by roughly a thousandth. Another put
+the gap at 0.0551 against a half-width of 0.0576 and the criterion returned *false*.
+This one does not separate at all. A test whose verdict flips on a quantity far
+smaller than the measurement's own run-to-run variation is not testing anything, and
+"do two examples hurt" has changed sign twice on data differing only by which
+afternoon it was collected and which corpus generator produced it.
 
 We therefore report the direction and decline the difference, which is what the earlier
 run's arithmetic said and what this run's replication says for a better reason.

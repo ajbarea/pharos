@@ -1,12 +1,12 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "b4ec8f77e65d",
+    "git_commit": "dd338495d360",
     "git_dirty": false,
-    "generated_at": "2026-08-02T17:54:06+00:00",
+    "generated_at": "2026-08-04T00:59:23+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
+    "executable": ".venv/bin/python3",
     "model": "qwen2.5:7b-instruct",
     "model_key": "qwen2.5-7b",
     "endpoint": "http://localhost:11434/api/generate",
@@ -25,32 +25,32 @@
   "rows": [
     {
       "shots": 0,
-      "tp": 159,
-      "fp": 268,
-      "tn": 147,
-      "fn": 23,
-      "unparsed": 3,
-      "precision": 0.3724,
-      "recall": 0.8736,
-      "f1": 0.5222,
-      "accuracy": 0.5126,
-      "majority": 0.6951,
+      "tp": 169,
+      "fp": 290,
+      "tn": 118,
+      "fn": 19,
+      "unparsed": 4,
+      "precision": 0.3682,
+      "recall": 0.8989,
+      "f1": 0.5224,
+      "accuracy": 0.4815,
+      "majority": 0.6846,
       "accuracy_interval": {
         "label": "0-shot",
         "n_tasks": 600,
         "repeats": 1,
-        "unparsed": 3,
+        "unparsed": 4,
         "single_run": {
-          "point": 0.5126,
-          "low": 0.4723,
-          "high": 0.5535,
+          "point": 0.4815,
+          "low": 0.4413,
+          "high": 0.5228,
           "level": 0.95,
           "resamples": 2000
         },
-        "consensus": 0.51,
-        "consensus_gain": -0.0026,
+        "consensus": 0.4783,
+        "consensus_gain": -0.0032,
         "variance": {
-          "between_task": 0.249842,
+          "between_task": 0.249659,
           "within_task": 0.0,
           "within_share": 0.0
         }
@@ -59,38 +59,38 @@
         "n": 600,
         "quotable": false,
         "concerns": [
-          "accuracy 0.513 does not beat the majority floor 0.695: this is not evidence of capability"
+          "accuracy 0.482 does not beat the majority floor 0.685: this is not evidence of capability"
         ]
       }
     },
     {
       "shots": 2,
-      "tp": 163,
-      "fp": 300,
-      "tn": 100,
-      "fn": 17,
-      "unparsed": 20,
-      "precision": 0.3521,
-      "recall": 0.9056,
-      "f1": 0.507,
-      "accuracy": 0.4534,
-      "majority": 0.6897,
+      "tp": 180,
+      "fp": 313,
+      "tn": 62,
+      "fn": 4,
+      "unparsed": 41,
+      "precision": 0.3651,
+      "recall": 0.9783,
+      "f1": 0.5318,
+      "accuracy": 0.4329,
+      "majority": 0.6708,
       "accuracy_interval": {
         "label": "2-shot",
         "n_tasks": 600,
         "repeats": 1,
-        "unparsed": 20,
+        "unparsed": 41,
         "single_run": {
-          "point": 0.4534,
-          "low": 0.413,
-          "high": 0.4957,
+          "point": 0.4329,
+          "low": 0.3921,
+          "high": 0.476,
           "level": 0.95,
           "resamples": 2000
         },
-        "consensus": 0.4383,
-        "consensus_gain": -0.0151,
+        "consensus": 0.4033,
+        "consensus_gain": -0.0296,
         "variance": {
-          "between_task": 0.247833,
+          "between_task": 0.2455,
           "within_task": 0.0,
           "within_share": 0.0
         }
@@ -99,38 +99,38 @@
         "n": 600,
         "quotable": false,
         "concerns": [
-          "accuracy 0.453 does not beat the majority floor 0.690: this is not evidence of capability"
+          "accuracy 0.433 does not beat the majority floor 0.671: this is not evidence of capability"
         ]
       }
     },
     {
       "shots": 4,
-      "tp": 176,
-      "fp": 319,
-      "tn": 94,
-      "fn": 8,
-      "unparsed": 3,
-      "precision": 0.3556,
-      "recall": 0.9565,
-      "f1": 0.5184,
-      "accuracy": 0.4523,
-      "majority": 0.6918,
+      "tp": 183,
+      "fp": 330,
+      "tn": 74,
+      "fn": 3,
+      "unparsed": 10,
+      "precision": 0.3567,
+      "recall": 0.9839,
+      "f1": 0.5236,
+      "accuracy": 0.4356,
+      "majority": 0.6847,
       "accuracy_interval": {
         "label": "4-shot",
         "n_tasks": 600,
         "repeats": 1,
-        "unparsed": 3,
+        "unparsed": 10,
         "single_run": {
-          "point": 0.4523,
-          "low": 0.4104,
-          "high": 0.4925,
+          "point": 0.4356,
+          "low": 0.3956,
+          "high": 0.4764,
           "level": 0.95,
           "resamples": 2000
         },
-        "consensus": 0.45,
-        "consensus_gain": -0.0023,
+        "consensus": 0.4283,
+        "consensus_gain": -0.0073,
         "variance": {
-          "between_task": 0.247721,
+          "between_task": 0.245852,
           "within_task": 0.0,
           "within_share": 0.0
         }
@@ -139,38 +139,38 @@
         "n": 600,
         "quotable": false,
         "concerns": [
-          "accuracy 0.452 does not beat the majority floor 0.692: this is not evidence of capability"
+          "accuracy 0.436 does not beat the majority floor 0.685: this is not evidence of capability"
         ]
       }
     },
     {
       "shots": 8,
-      "tp": 177,
-      "fp": 263,
-      "tn": 152,
-      "fn": 7,
-      "unparsed": 1,
-      "precision": 0.4023,
-      "recall": 0.962,
-      "f1": 0.5673,
-      "accuracy": 0.5492,
-      "majority": 0.6928,
+      "tp": 188,
+      "fp": 307,
+      "tn": 101,
+      "fn": 0,
+      "unparsed": 4,
+      "precision": 0.3798,
+      "recall": 1.0,
+      "f1": 0.5505,
+      "accuracy": 0.4849,
+      "majority": 0.6846,
       "accuracy_interval": {
         "label": "8-shot",
         "n_tasks": 600,
         "repeats": 1,
-        "unparsed": 1,
+        "unparsed": 4,
         "single_run": {
-          "point": 0.5492,
-          "low": 0.5075,
-          "high": 0.5883,
+          "point": 0.4849,
+          "low": 0.4437,
+          "high": 0.5268,
           "level": 0.95,
           "resamples": 2000
         },
-        "consensus": 0.5483,
-        "consensus_gain": -0.0009,
+        "consensus": 0.4817,
+        "consensus_gain": -0.0032,
         "variance": {
-          "between_task": 0.247575,
+          "between_task": 0.249772,
           "within_task": 0.0,
           "within_share": 0.0
         }
@@ -179,7 +179,8 @@
         "n": 600,
         "quotable": false,
         "concerns": [
-          "accuracy 0.549 does not beat the majority floor 0.693: this is not evidence of capability"
+          "accuracy 0.485 does not beat the majority floor 0.685: this is not evidence of capability",
+          "recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone"
         ]
       }
     }

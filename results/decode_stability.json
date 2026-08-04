@@ -1,12 +1,12 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "b33f1193527f",
-    "git_dirty": true,
-    "generated_at": "2026-08-02T15:37:31+00:00",
+    "git_commit": "dd338495d360",
+    "git_dirty": false,
+    "generated_at": "2026-08-04T01:11:07+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
-    "executable": "/home/ajbar/ajsoftworks/pharos/.venv/bin/python",
+    "executable": ".venv/bin/python3",
     "model": "qwen2.5:7b-instruct",
     "model_key": "qwen2.5-7b",
     "endpoint": "http://localhost:11434/api/generate",
@@ -29,27 +29,30 @@
       "num_predict": 320,
       "n_tasks": 30,
       "repeats": 3,
-      "unstable_tasks": 2,
-      "unstable_share": 0.0667,
+      "unstable_tasks": 1,
+      "unstable_share": 0.0333,
       "tasks_with_an_unparsed_call": 0
     }
   ],
   "repeat_one_prompt_task_ids": {
     "rule-stated-8": [],
     "rule-withheld-320": [
-      "TR-0000",
-      "TR-0023"
+      "TR-0029"
     ]
   },
   "repeat_whole_pass": [
     {
       "regime": "rule-stated-8",
       "differing": 0,
+      "n_tasks": 30,
+      "rate_upper_bound_95": 0.095,
       "task_ids": []
     },
     {
       "regime": "rule-withheld-320",
       "differing": 0,
+      "n_tasks": 30,
+      "rate_upper_bound_95": 0.095,
       "task_ids": []
     }
   ],

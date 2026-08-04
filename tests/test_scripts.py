@@ -2284,8 +2284,20 @@ def test_the_random_slip_row_is_the_only_one_allowed_to_stall():
     assert not mdc.carries_the_claim(row(0, 0.15)), "the slip row is a foil, and stalls"
 
     # And the sweep really is those four, so the classification above is exhaustive.
-    assert {(n, s) for _, n, s in mdc.COMPOSITIONS} == {(0, 0.0), (0, 0.15), (3, 0.0), (5, 0.0)}
-    assert sum(1 for _, n, s in mdc.COMPOSITIONS if not mdc.carries_the_claim(row(n, s))) == 1
+    # `compositions` derives the grid from the fleet size rather than naming literals,
+    # so the default is asserted at the default fleet. A third of nine is three and a
+    # bare majority is five, which is exactly the set this test has always pinned.
+    default = mdc.compositions(mdc.FLEET)
+    assert {(n, s) for _, n, s in default} == {(0, 0.0), (0, 0.15), (3, 0.0), (5, 0.0)}
+    assert sum(1 for _, n, s in default if not mdc.carries_the_claim(row(n, s))) == 1
+
+    # And the shape holds at any fleet: one control, one slip foil, a minority and a
+    # bare majority, with the majority always at floor(fleet/2)+1.
+    for fleet in (5, 15, 25, 51):
+        swept = mdc.compositions(fleet)
+        assert len(swept) == 4
+        assert {n for _, n, s in swept} >= {0, fleet // 2 + 1}
+        assert sum(1 for _, n, s in swept if not mdc.carries_the_claim(row(n, s))) == 1
 
 
 def test_a_correct_fleet_finds_no_difficulty_where_a_wrong_one_does():

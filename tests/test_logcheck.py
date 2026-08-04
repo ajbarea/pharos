@@ -52,6 +52,12 @@ def test_the_model_free_sweep_covers_the_model_free_measurements():
         "measure_teacher_transfer.py": "calls a model",
         "measure_triage_lift.py": "calls a model",
         "measure_federation_eligibility.py": "deterministic; emits no measurement events",
+        # Model-free and CPU-only, so it does not belong with the entries above, but it
+        # re-runs three of the swept scripts across five fleet sizes and takes roughly
+        # twenty minutes. Logcheck runs inside the blocking `shortcut-gate` job, and a
+        # sensitivity sweep is not something a commit needs re-derived to be accepted.
+        # `make fleet-sensitivity` runs it, and its own artifact carries the invariants.
+        "measure_fleet_sensitivity.py": "re-runs three swept scripts; minutes, not seconds",
         "measure_edge_cost.py": "reads artifacts produced by GPU jobs",
         "train_adapter.py": "needs a CUDA GPU",
         "validate_gate_externally.py": "downloads corpora from the network",
