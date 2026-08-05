@@ -68,7 +68,7 @@ scattered through it, and nothing in the grouping is a claim about how they rela
 | **Measurement design** | [9. Repeating one prompt measures the wrong thing](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing) · [17. Item difficulty does not separate the two](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst) |
 | **Disclosure and identity** | [11. The stream still names the analyst](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst) · [12. Reliability needs identity where it matters](#12-reliability-cannot-be-estimated-without-identity-where-it-matters) · [13. A tag can replace identity](#13-a-reliability-tag-can-replace-identity-and-the-leak-metric-cannot-tell-you-when) · [16. The cliff assumes independent fleets](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently) |
 | **Cost of running it** | [14. What the agent costs on its hardware](#14-what-the-agent-costs-on-the-hardware-it-is-meant-to-run-on) · [15. The budget is spent on the wrong variable](#15-the-standard-privacy-mechanism-spends-the-budget-on-the-wrong-variable) · [19. What an authority of record costs](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) |
-| **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) · [20. Audit where the fleet splits](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise) |
+| **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) · [20. Audit where the fleet splits](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise) · [21. Where that policy stops working](#21-the-corpus-the-audit-policy-cannot-handle-built-on-purpose) |
 
 ## What these sizes can resolve
 
@@ -179,6 +179,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `analyst_review` | 40 | yes | - |
 | `audit_policy` | 200 | yes | - |
 | `authority_anchors` | 200 | yes | - |
+| `blind_spot` | 200 | yes | - |
 | `consensus_reliability` | 200 | yes | - |
 | `correlated_fleets` | 60 | yes | - |
 | `decode_stability` | 30 | yes | - |
@@ -232,7 +233,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**25 of 56** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**25 of 57** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 Exempt, because there is no sampling question to answer:
 
@@ -2356,3 +2357,102 @@ does six-of-nine slip from 20 items to 30. That is the reassuring direction, and
 worth stating precisely why: the anchors are exogenous, so what they contribute is
 information the fleet does not already contain, and a fifth of that being wrong still
 leaves four fifths pulling against a majority that was uniformly wrong.
+
+## 21. The corpus the audit policy cannot handle, built on purpose
+
+`scripts/measure_blind_spot.py`, `results/blind_spot.json`
+
+[Finding 20](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise)
+carried a scope condition: its policy ties the oracle *because* every wrong standard
+measured to that point was a shifted escalation threshold, which keys on how much
+evidence a task shows. Two reviewers differing on that axis disagree exactly on the
+boundary items, so "the fleet is split" and "the fleet is wrong" were the same set by
+construction. That is a property of the generator, not of the world. The honest way to
+find out what the policy is worth is to remove it.
+
+**A wrong standard of a different shape.** A reviewer who discounts a *channel* rather
+than misjudging a quantity: they read every report and decline to credit the ones
+arriving through one compartment. Nothing about them is noisy or inconsistent. PARTNER
+is the honest choice here and the choice is asserted in the script rather than trusted
+--- mean evidence shown is 1.88 on tasks carrying it against 1.72 on tasks that do not,
+where SENSOR would be 2.00 against 0.48 and would smuggle the difficulty confound
+straight back in.
+
+A fleet-wide PARTNER blind spot changes **20 verdicts of 200, every one on a task
+showing all three defining facts.** The corrupted slice is the *unambiguous* end of the
+corpus --- precisely where a threshold-shifted reviewer is always right, and where a
+fleet is otherwise unanimous and correct.
+
+### The advantage does not degrade. It disappears at unanimity.
+
+<!-- BEGIN GENERATED: blind-spot -->
+| Blind of 9 | `uniform` | `margin` | `posterior` | `consensus` | `oracle` |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 0 | 0 | 0 | 0 | 0 |
+| 3 | 0 | 0 | 0 | 0 | 0 |
+| 5 | 0 | 0 | 0 | 0 | 0 |
+| 7 | -- | 12 | 12 | -- | 12 |
+| 8 | -- | 12 | 12 | -- | 12 |
+| 9 | -- | -- | -- | -- | 12 |
+
+Audited items needed to repair; `--` is not reached within 95. Below: the share of a 20-item audit landing on a genuinely corrupted task.
+
+| Blind of 9 | `uniform` | `margin` | `posterior` | `consensus` | `oracle` |
+| --- | --- | --- | --- | --- | --- |
+| 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 3 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 5 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 7 | 0.10 | 1.00 | 1.00 | 0.00 | 1.00 |
+| 8 | 0.10 | 1.00 | 1.00 | 0.00 | 1.00 |
+| 9 | 0.10 | 0.15 | 0.20 | 0.15 | 1.00 |
+<!-- END GENERATED: blind-spot -->
+
+While a sighted minority remains, at seven and eight of nine, the corrupted tasks still
+draw dissent and `margin` still finds them: **every one of its twenty picks lands on a
+corrupted task**, and it repairs where uniform never does inside the sweep. At nine of
+nine the signal does not weaken, it ceases to exist --- there is nobody left to
+disagree --- and `margin`'s hit rate falls to **0.15**, next to uniform's 0.10. Chance.
+
+**The oracle is unaffected, and that is what makes this a policy failure rather than a
+hard case.** It still selects corrupted tasks at 1.00 and still repairs the estimate at
+12 items. The tasks remain fixable; what is gone is any observable signal pointing at
+them.
+
+!!! note "The prediction was half right, and the half it got wrong matters"
+    The script predicted the advantage would be lost **and then invert** --- that
+    uniform would start beating the targeted policy. The advantage is lost, abruptly and
+    exactly at unanimity as predicted. It does not invert: at nine of nine both policies
+    fail, and `margin` sits a hair above uniform rather than below it.
+
+    "Both failed" and "the targeted policy did worse" are different claims, and the
+    first version of this script reported them with one boolean that called the former
+    an inversion. The artifact now records a three-valued verdict. That is the same
+    two-valued-API failure this repository has already had decide a finding once.
+
+!!! danger "What this costs finding 20, stated plainly"
+    Finding 20's advice --- audit where the fleet splits --- is **safe only inside its
+    stated condition**, and this is what falling outside it looks like: not graceful
+    degradation, but a policy that scores at chance while an oracle on the same data
+    scores perfectly. A deployment cannot tell from the inside which regime it is in,
+    because the observable that would distinguish them is the one that has vanished.
+
+    The transferable version is therefore a *pair*: audit where the fleet splits, and
+    separately maintain some source of exogenous ground truth that does not depend on
+    the fleet disagreeing with itself. A shared blind spot in a fleet trained by one
+    pipeline is not an exotic hypothetical --- it is
+    [finding 16](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently)'s
+    house-style correlation taken to its limit.
+
+!!! warning "A confound found while building this, and worth naming"
+    The first run measured nothing at all, and reported success while doing it. Blinding
+    a compartment selects tasks *carrying* that compartment, and carrying a compartment
+    is what makes a task unreleasable --- so under the fail-closed default every affected
+    task was escalated on disclosure grounds, contributed no verdict, and the blind spot
+    reached the aggregator on exactly zero tasks. The blind spot was perfectly correlated
+    with the release gate.
+
+    Running the fleet under
+    [finding 2](#2-the-design-is-bimodal-on-one-policy-ruling)'s compartment-shedding
+    ruling puts all 200 tasks in the stream and all 20 corrupted verdicts with them.
+    That two independent mechanisms keyed on the same field is exactly the kind of thing
+    a generated benchmark hides until something is measured against it.

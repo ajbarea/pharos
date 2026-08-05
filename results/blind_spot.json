@@ -1,0 +1,2444 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "3f1e74990dce",
+    "git_dirty": true,
+    "generated_at": "2026-08-05T02:12:20+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "seed": 7
+  },
+  "fleet": 9,
+  "events": 200,
+  "blind_compartment": "PARTNER",
+  "affected_verdicts": 20,
+  "affected_mean_evidence": 3.0,
+  "corpus_mean_evidence": 1.75,
+  "shares": [
+    0,
+    3,
+    5,
+    7,
+    8,
+    9
+  ],
+  "budgets": [
+    0,
+    2,
+    5,
+    8,
+    12,
+    20,
+    30,
+    45,
+    60,
+    80,
+    95
+  ],
+  "repaired_threshold": 0.95,
+  "thresholds": {
+    "uniform": {
+      "0": 0,
+      "3": 0,
+      "5": 0,
+      "7": null,
+      "8": null,
+      "9": null
+    },
+    "margin": {
+      "0": 0,
+      "3": 0,
+      "5": 0,
+      "7": 12,
+      "8": 12,
+      "9": null
+    },
+    "posterior": {
+      "0": 0,
+      "3": 0,
+      "5": 0,
+      "7": 12,
+      "8": 12,
+      "9": null
+    },
+    "consensus": {
+      "0": 0,
+      "3": 0,
+      "5": 0,
+      "7": null,
+      "8": null,
+      "9": null
+    },
+    "oracle": {
+      "0": 0,
+      "3": 0,
+      "5": 0,
+      "7": 12,
+      "8": 12,
+      "9": 12
+    }
+  },
+  "audit_hit_rate": {
+    "0": {
+      "uniform": 0.0,
+      "margin": 0.0,
+      "posterior": 0.0,
+      "consensus": 0.0,
+      "oracle": 0.0
+    },
+    "3": {
+      "uniform": 0.0,
+      "margin": 0.0,
+      "posterior": 0.0,
+      "consensus": 0.0,
+      "oracle": 0.0
+    },
+    "5": {
+      "uniform": 0.0,
+      "margin": 0.0,
+      "posterior": 0.0,
+      "consensus": 0.0,
+      "oracle": 0.0
+    },
+    "7": {
+      "uniform": 0.1,
+      "margin": 1.0,
+      "posterior": 1.0,
+      "consensus": 0.0,
+      "oracle": 1.0
+    },
+    "8": {
+      "uniform": 0.1,
+      "margin": 1.0,
+      "posterior": 1.0,
+      "consensus": 0.0,
+      "oracle": 1.0
+    },
+    "9": {
+      "uniform": 0.1,
+      "margin": 0.15,
+      "posterior": 0.2,
+      "consensus": 0.15,
+      "oracle": 1.0
+    }
+  },
+  "advantage_at_unanimity": "lost",
+  "grid": [
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "uniform",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "margin",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "posterior",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "consensus",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 0,
+      "policy": "oracle",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "uniform",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "margin",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "posterior",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "consensus",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 3,
+      "policy": "oracle",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "uniform",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "margin",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "posterior",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "consensus",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 0,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 5,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 8,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 12,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 5,
+      "policy": "oracle",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 2,
+      "agreement": 0.899,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 5,
+      "agreement": 0.8974,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 8,
+      "agreement": 0.8958,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 12,
+      "agreement": 0.8936,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 20,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 30,
+      "agreement": 0.8941,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 45,
+      "agreement": 0.8839,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 60,
+      "agreement": 0.8786,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 80,
+      "agreement": 0.875,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "uniform",
+      "budget": 95,
+      "agreement": 0.8571,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 2,
+      "agreement": 0.9091,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 5,
+      "agreement": 0.9231,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 8,
+      "agreement": 0.9375,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 12,
+      "agreement": 0.9574,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "margin",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 2,
+      "agreement": 0.9091,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 5,
+      "agreement": 0.9231,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 8,
+      "agreement": 0.9375,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 12,
+      "agreement": 0.9574,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "posterior",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 2,
+      "agreement": 0.899,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 5,
+      "agreement": 0.8974,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 8,
+      "agreement": 0.8958,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 12,
+      "agreement": 0.8936,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 20,
+      "agreement": 0.8889,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 30,
+      "agreement": 0.8824,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 45,
+      "agreement": 0.871,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 60,
+      "agreement": 0.8571,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 80,
+      "agreement": 0.8333,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "consensus",
+      "budget": 95,
+      "agreement": 0.8095,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 2,
+      "agreement": 0.9091,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 5,
+      "agreement": 0.9231,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 8,
+      "agreement": 0.9375,
+      "repaired": false
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 12,
+      "agreement": 0.9574,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 7,
+      "policy": "oracle",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 2,
+      "agreement": 0.899,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 5,
+      "agreement": 0.8974,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 8,
+      "agreement": 0.8958,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 12,
+      "agreement": 0.8936,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 20,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 30,
+      "agreement": 0.8941,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 45,
+      "agreement": 0.8839,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 60,
+      "agreement": 0.8786,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 80,
+      "agreement": 0.875,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "uniform",
+      "budget": 95,
+      "agreement": 0.8571,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 2,
+      "agreement": 0.9091,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 5,
+      "agreement": 0.9231,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 8,
+      "agreement": 0.9375,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 12,
+      "agreement": 0.9574,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "margin",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 2,
+      "agreement": 0.9091,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 5,
+      "agreement": 0.9231,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 8,
+      "agreement": 0.9375,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 12,
+      "agreement": 0.9574,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "posterior",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 2,
+      "agreement": 0.899,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 5,
+      "agreement": 0.8974,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 8,
+      "agreement": 0.8958,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 12,
+      "agreement": 0.8936,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 20,
+      "agreement": 0.8889,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 30,
+      "agreement": 0.8824,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 45,
+      "agreement": 0.871,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 60,
+      "agreement": 0.8571,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 80,
+      "agreement": 0.8333,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "consensus",
+      "budget": 95,
+      "agreement": 0.8095,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 2,
+      "agreement": 0.9091,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 5,
+      "agreement": 0.9231,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 8,
+      "agreement": 0.9375,
+      "repaired": false
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 12,
+      "agreement": 0.9574,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 8,
+      "policy": "oracle",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 2,
+      "agreement": 0.899,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 5,
+      "agreement": 0.8974,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 8,
+      "agreement": 0.8958,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 12,
+      "agreement": 0.8936,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 20,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 30,
+      "agreement": 0.8941,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 45,
+      "agreement": 0.8839,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 60,
+      "agreement": 0.8786,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 80,
+      "agreement": 0.875,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "uniform",
+      "budget": 95,
+      "agreement": 0.8571,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 2,
+      "agreement": 0.899,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 5,
+      "agreement": 0.8974,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 8,
+      "agreement": 0.8958,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 12,
+      "agreement": 0.8989,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 20,
+      "agreement": 0.9056,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 30,
+      "agreement": 0.9059,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 45,
+      "agreement": 0.9097,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 60,
+      "agreement": 0.9071,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 80,
+      "agreement": 0.8917,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "margin",
+      "budget": 95,
+      "agreement": 0.8857,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 2,
+      "agreement": 0.899,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 5,
+      "agreement": 0.8974,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 8,
+      "agreement": 0.901,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 12,
+      "agreement": 0.8989,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 20,
+      "agreement": 0.9111,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 30,
+      "agreement": 0.9118,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 45,
+      "agreement": 0.9161,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 60,
+      "agreement": 0.9071,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 80,
+      "agreement": 0.9083,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "posterior",
+      "budget": 95,
+      "agreement": 0.9238,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 2,
+      "agreement": 0.899,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 5,
+      "agreement": 0.8974,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 8,
+      "agreement": 0.8958,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 12,
+      "agreement": 0.8989,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 20,
+      "agreement": 0.9056,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 30,
+      "agreement": 0.9059,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 45,
+      "agreement": 0.9097,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 60,
+      "agreement": 0.9071,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 80,
+      "agreement": 0.8917,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "consensus",
+      "budget": 95,
+      "agreement": 0.8857,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 0,
+      "agreement": 0.9,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 2,
+      "agreement": 0.9091,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 5,
+      "agreement": 0.9231,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 8,
+      "agreement": 0.9375,
+      "repaired": false
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 12,
+      "agreement": 0.9574,
+      "repaired": true
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 20,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 30,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 45,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 60,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 80,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "n_blind": 9,
+      "policy": "oracle",
+      "budget": 95,
+      "agreement": 1.0,
+      "repaired": true
+    }
+  ],
+  "validity": {
+    "n": 200,
+    "quotable": true,
+    "concerns": []
+  }
+}

@@ -142,7 +142,7 @@ the system it serves.
 
 ## What has been measured
 
-Twenty-one findings so far, each reproducible from a named script and each backed by a
+Twenty-two findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, a third was retracted outright after a generator bug, and a
@@ -174,6 +174,7 @@ corrections, and the caveats.
 | 18 | The estimate moves under secure aggregation, and the cliff does not move with it |
 | 19 | An authority of record repairs the cliff, and its price explodes |
 | 20 | Audit where the fleet splits, and the prediction that said otherwise |
+| 21 | The corpus the audit policy cannot handle, built on purpose |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -194,6 +195,7 @@ make difficulty  # whether item difficulty and a wrong standard are separable (n
 make secure      # whether reliability can be estimated under secure aggregation (no model)
 make authority   # what an authority of record costs, in audited items (no model)
 make audit       # which items to rule on, and what a fallible authority buys (no model)
+make blindspot   # where that policy stops working, built on purpose (no model)
 
 # Sensitivity: whether a finding survives a parameter nobody chose on principle
 make fleet-sensitivity  # findings 12, 16 and 17 across fleets of 5 to 51 (no model)
@@ -280,15 +282,28 @@ make teacher-fleet      # whether adapters inherit their teachers, across 24 of 
    authority is robust: an auditor wrong one time in ten buys the same repair as a
    perfect one.
 
-**The open problem, stated as precisely as the measurements now allow.** Finding 20's
-winning policy ties the oracle *because* this corpus's difficulty structure is discrete
-and known, so the items the fleet splits on and the items it gets wrong are the same
-set by construction. The conditional claim -- when a wrong standard shows up as
-boundary disagreement, audit the disagreement -- is what travels. What is untested is
-the case the condition excludes: a wrong standard held *unanimously*, where the signal
-this policy reads does not exist. Constructing a corpus in which the blind spot and the
-hard items come apart is the next thing worth building, and it is a generator question
-rather than an estimator one.
+9. **Where that policy stops working.** Built, and it is finding 20's negative
+   control. A reviewer who discounts a *channel* rather than misjudging a quantity
+   corrupts a slice picked out by provenance instead of by difficulty -- 20 verdicts of
+   200, every one on a task showing all three defining facts, which is the unambiguous
+   end of the corpus. While a sighted minority remains the disagreement signal still
+   points at them and every one of the policy's picks lands on a corrupted task. At
+   unanimity the signal does not weaken, it ceases to exist, and the policy's hit rate
+   falls to 0.15 against uniform's 0.10. Chance. The oracle still scores 1.000 on the
+   same data, so the tasks are still fixable and what failed is the policy.
+
+   Finding 20's advice is therefore **safe only inside its stated condition**, and
+   falling outside it is not graceful degradation. A deployment cannot tell from the
+   inside which regime it is in, because the observable that would distinguish them is
+   the one that has gone.
+
+**The open problem, stated as precisely as the measurements now allow.** Every repair
+in this repository ultimately rests on an exogenous label, and finding 21 shows the
+cheap way of deciding *where* to spend those labels has a regime in which it is worth
+nothing. What is unmeasured is whether a fleet can detect which regime it is in --- a
+shared blind spot leaves no disagreement, but it may leave something else, and nothing
+here has looked. That is a detection question rather than a selection one, and it is
+the next thing worth building.
 
 ## License
 
