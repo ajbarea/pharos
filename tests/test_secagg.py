@@ -9,6 +9,7 @@ from pharos.secagg import (
     MODULUS,
     SCALE,
     CohortTooSmallError,
+    IncompleteCohortError,
     SecureAggregator,
     ServerView,
     decode,
@@ -108,3 +109,49 @@ def test_the_total_is_reproducible_across_seeds_and_orders():
 def test_min_participants_default_is_three():
     """Two is not enough and the constant says so, so a change here is deliberate."""
     assert MIN_PARTICIPANTS == 3
+
+
+def test_min_participants_cannot_be_argued_below_the_floor():
+    """A floor that is a settable keyword is not a floor.
+
+    `secure_sum(..., min_participants=1)` used to return one client's vector verbatim,
+    inside the type whose entire job is to not be one client's vector.
+    """
+    with pytest.raises(ValueError, match="below the 3 floor"):
+        secure_sum([[7.5]], seed=1, min_participants=1)
+    with pytest.raises(ValueError, match="below the 3 floor"):
+        SecureAggregator(length=1, seed=1, min_participants=2)
+
+
+def test_a_short_cohort_is_refused_rather_than_silently_wrong():
+    """Masks are derived per cohort, so a dropout leaves them uncancelled.
+
+    Three clients submitting under `cohort=5` used to return a confident
+    `(-267720907167.4, ...)` for a true `(3.0, 3.0)` and pass the participant floor.
+    """
+    aggregator = SecureAggregator(length=2, seed=3)
+    for index in range(3):
+        aggregator.submit(index, [1.0, 1.0], cohort=5)
+    with pytest.raises(IncompleteCohortError, match="3 of 5"):
+        aggregator.reveal()
+
+
+def test_a_client_outside_the_cohort_is_refused():
+    aggregator = SecureAggregator(length=1, seed=3)
+    with pytest.raises(ValueError, match="outside a cohort"):
+        aggregator.submit(99, [1.0], cohort=3)
+
+
+def test_the_cohort_cannot_change_mid_round():
+    aggregator = SecureAggregator(length=1, seed=3)
+    aggregator.submit(0, [1.0], cohort=3)
+    with pytest.raises(ValueError, match="cohort changed"):
+        aggregator.submit(1, [1.0], cohort=4)
+
+
+def test_encode_refuses_what_the_ring_cannot_hold():
+    """2^40 used to encode to 0.0, and a sum of large terms to a wrong negative."""
+    assert encode(1.0) > 0
+    for value in (2.0**40, -(2.0**40), 1e30):
+        with pytest.raises(ValueError, match="fixed-point ring"):
+            encode(value)

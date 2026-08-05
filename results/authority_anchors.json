@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "cbf60a42e624",
+    "git_commit": "6333d7cc6b34",
     "git_dirty": true,
-    "generated_at": "2026-08-04T21:47:11+00:00",
+    "generated_at": "2026-08-05T09:06:01+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -648,8 +648,18 @@
     "9": 180
   },
   "validity": {
-    "n": 200,
-    "quotable": true,
-    "concerns": []
+    "n": 8,
+    "quotable": false,
+    "concerns": [
+      "n=8 is below 30; treat differences as provisional"
+    ]
+  },
+  "scored_tasks_min": 8,
+  "scored_tasks_at_threshold": {
+    "4": 97,
+    "5": 93,
+    "6": 51,
+    "7": 25,
+    "9": 8
   }
 }

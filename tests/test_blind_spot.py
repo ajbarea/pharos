@@ -3,11 +3,18 @@
 import random
 
 import pytest
-from measure_blind_spot import BLIND, BUDGETS, ORTHOGONALITY_SLACK, SHARES, blind_fleet
+from measure_blind_spot import (
+    BLIND,
+    BUDGETS,
+    CHANNEL_ENTANGLEMENT_SLACK,
+    SHARES,
+    blind_fleet,
+)
 
 from pharos.analyst import AnalystPolicy, evidence_shown
 from pharos.disclosure import DROP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.labels import Compartment
 from pharos.tasks import build_triage_tasks
 
 EVENTS = 200
@@ -46,20 +53,56 @@ def test_the_blind_spot_actually_corrupts_something(tasks):
     assert all(t.significant for t in changed)
 
 
-def test_the_corrupted_slice_is_not_the_boundary_slice(tasks):
-    """The whole point: corruption picked by provenance, not by difficulty.
+def _channel_means(tasks, compartment):
+    carrying = [t for t in tasks if any(compartment in r.label.compartments for r in t.sources)]
+    rest = [t for t in tasks if t not in set(carrying)]
+    with_it = sum(len(evidence_shown(t)) for t in carrying) / len(carrying)
+    without = sum(len(evidence_shown(t)) for t in rest) / len(rest)
+    return with_it, without
 
-    Finding 20's policy works because a threshold error hits the boundary items. If
-    this blind spot hit them too, finding 21 would be measuring the same confound it
-    was built to escape.
+
+def test_the_affected_slice_is_always_max_difficulty_for_every_channel(tasks):
+    """The property the old guard was written against, shown to be vacuous.
+
+    Blinding only removes evidence and the threshold is 3 of 3, so a verdict can flip
+    only on a task whose visible evidence was exactly 3. The affected mean is therefore
+    3.00 for EVERY compartment, and a guard comparing it to the corpus mean passes
+    unconditionally. This test exists so that fact is recorded rather than rediscovered.
+    """
+    rng = random.Random(0)
+    reference = AnalystPolicy("r")
+    for compartment in Compartment:
+        blind = AnalystPolicy("b", blind_compartment=compartment)
+        changed = [t for t in tasks if reference.verdict_for(t, rng) != blind.verdict_for(t, rng)]
+        if not changed:
+            continue
+        assert {len(evidence_shown(t)) for t in changed} == {3}
+
+
+def test_the_guard_rejects_the_channel_the_docs_say_is_unusable(tasks):
+    """SENSOR must fail and PARTNER must pass, or the guard discriminates nothing.
+
+    The previous guard passed for every compartment including SENSOR, while the prose
+    claimed the choice was "asserted in the script rather than trusted".
+    """
+    with_p, without_p = _channel_means(tasks, Compartment.PARTNER)
+    with_s, without_s = _channel_means(tasks, Compartment.SENSOR)
+    assert abs(with_p - without_p) <= CHANNEL_ENTANGLEMENT_SLACK
+    assert abs(with_s - without_s) > CHANNEL_ENTANGLEMENT_SLACK
+
+
+def test_the_corrupted_slice_sits_at_the_opposite_extreme_from_the_boundary(tasks):
+    """Anti-correlation, which is the real mechanism -- not orthogonality.
+
+    A threshold error hits boundary items; this blind spot hits the unambiguous end.
+    That opposition is why the fleet is otherwise unanimous on the corrupted slice, and
+    it is what makes the disagreement signal vanish at unanimity.
     """
     reference, blind = AnalystPolicy("r"), AnalystPolicy("b", blind_compartment=BLIND)
     rng = random.Random(0)
     changed = [t for t in tasks if reference.verdict_for(t, rng) != blind.verdict_for(t, rng)]
     affected_mean = sum(len(evidence_shown(t)) for t in changed) / len(changed)
     corpus_mean = sum(len(evidence_shown(t)) for t in tasks) / len(tasks)
-    assert abs(affected_mean - corpus_mean) <= ORTHOGONALITY_SLACK
-    # And it lands on the unambiguous end, which is where a threshold error never does.
     assert affected_mean > corpus_mean
 
 

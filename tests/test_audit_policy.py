@@ -102,6 +102,11 @@ def test_a_fallible_authority_errs_at_roughly_its_rate_and_reproducibly():
 
 def test_threshold_is_the_smallest_repairing_budget():
     def row(budget, repaired):
+        # Every field named, because `Row` gained four when the mechanical baseline
+        # landed and this construction is the one place a new field goes unnoticed.
+        # `measure_secure_reliability.Row` carries a docstring warning about exactly
+        # this call site; the warning was right and this test still had to be caught
+        # by CI rather than by reading it.
         return AuditRow(
             policy="margin",
             n_wrong=6,
@@ -110,6 +115,10 @@ def test_threshold_is_the_smallest_repairing_budget():
             scored_tasks=10,
             agreement=1.0 if repaired else 0.5,
             repaired=repaired,
+            remaining_errors=0 if repaired else 5,
+            hits=0,
+            mechanical=0.5,
+            corrected=3 if repaired else 0,
         )
 
     assert threshold([row(20, True), row(5, False), row(12, True)]) == 12

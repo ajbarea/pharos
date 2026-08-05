@@ -1,11 +1,14 @@
 """The canonical truth-inference estimator, and where it stops working."""
 
 import math
+import random
 import statistics
 
 import pytest
 
 from pharos.inference import (
+    FederatedDawidSkene,
+    _stable_posterior,
     agreement_with,
     dawid_skene,
     federated_dawid_skene,
@@ -479,3 +482,52 @@ def test_a_fleet_below_the_aggregation_floor_is_refused():
     rows = [("T-1", "a", True), ("T-1", "b", False)]
     with pytest.raises(CohortTooSmallError):
         federated_dawid_skene(partition_by_contributor(rows), seed=1)
+
+
+def test_stable_posterior_does_not_overflow_in_either_regime():
+    """Both branches used to use the overflowing form for their own regime.
+
+    `math.exp` raises rather than saturating, so `|log_pos - log_neg| > 709.8` crashed
+    -- reachable from the shipped CLI, which exposes `--fleet`. The two forms are
+    algebraically identical, which is why a hand-check of the algebra could not tell
+    them apart and did not.
+    """
+    assert _stable_posterior(-800.0, 0.0) == 0.0
+    assert _stable_posterior(0.0, -800.0) == 1.0
+    assert _stable_posterior(-1e308, 0.0) == 0.0
+    assert _stable_posterior(0.0, -1e308) == 1.0
+    assert _stable_posterior(0.0, 0.0) == 0.5
+
+
+def test_stable_posterior_matches_a_log_sum_exp_reference():
+    """Correctness, not merely absence of a crash."""
+
+    def reference(log_pos: float, log_neg: float) -> float:
+        shift = max(log_pos, log_neg)
+        pos, neg = math.exp(log_pos - shift), math.exp(log_neg - shift)
+        return pos / (pos + neg)
+
+    rng = random.Random(0)
+    worst = max(
+        abs(_stable_posterior(lp, ln) - reference(lp, ln))
+        for lp, ln in ((rng.uniform(-5000, 0), rng.uniform(-5000, 0)) for _ in range(20000))
+    )
+    assert worst == 0.0
+
+
+def test_the_federated_result_type_pins_its_fields():
+    """`hasattr` on a slots dataclass is False for any name, so it tests nothing.
+
+    The earlier check asserted `not hasattr(result, "error_rates")` -- which also
+    passes for `erorr_rates`, and would pass for a future `per_client_rates` field.
+    Pinning the slots is what actually holds the no-per-contributor-data property.
+    """
+    assert set(FederatedDawidSkene.__slots__) == {
+        "posterior",
+        "prevalence",
+        "iterations",
+        "converged",
+        "participants",
+        "readership",
+        "anchored",
+    }

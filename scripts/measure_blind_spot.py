@@ -45,7 +45,14 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from measure_audit_policy import DEPLOYABLE, POLICY_SEED, evaluate, observe, select
+from measure_audit_policy import (
+    DEPLOYABLE,
+    POLICY_SEED,
+    baseline_errors,
+    evaluate,
+    observe,
+    select,
+)
 from measure_authority_anchors import REPAIRED
 from measure_secure_reliability import contributions_for
 
@@ -63,9 +70,7 @@ SEED = 7
 EVENTS = 200
 FLEET = 9
 
-#: The channel the blind fleet discounts. Chosen for orthogonality to difficulty and
-#: asserted below rather than trusted, because the whole experiment is void if the
-#: replacement confound is the one it was built to remove.
+#: The channel the blind fleet discounts.
 BLIND = Compartment.PARTNER
 
 #: How much of the fleet carries the blind spot. The interesting end is the top: a
@@ -75,11 +80,20 @@ SHARES = (0, 3, 5, 7, 8, 9)
 #: Budgets swept. Capped under the auditable pool, as in finding 20.
 BUDGETS = (0, 2, 5, 8, 12, 20, 30, 45, 60, 80, 95)
 
-#: How far the mean evidence on blind-affected tasks may sit from the corpus mean
-#: before the channel is judged to have reintroduced the difficulty confound. The
-#: affected tasks here sit *above* the mean, which is the opposite of the boundary
-#: items a threshold error hits, so the guard is two-sided and generous.
-ORTHOGONALITY_SLACK = 1.5
+#: How far the mean evidence on tasks CARRYING the channel may sit from the mean on
+#: tasks that do not, before the channel is judged too entangled with difficulty to
+#: serve as an independent axis.
+#:
+#: This deliberately measures the channel, not the affected slice. An earlier version
+#: guarded `affected_mean` against the corpus mean with a slack of 1.5 -- and that
+#: guard could not fail. Blinding only ever removes evidence, and the threshold is 3 of
+#: 3, so a verdict can flip only on a task whose visible evidence was exactly 3:
+#: `affected_mean` is 3.00 for EVERY compartment, the gap is always 1.25, and SENSOR --
+#: the channel the docs single out as unusable -- passed identically. A guard whose
+#: constant sits just above the only value it can ever see is a guard that was tuned to
+#: pass. The statistic below does discriminate: PARTNER 1.88 vs 1.72, SENSOR 2.00 vs
+#: 0.48.
+CHANNEL_ENTANGLEMENT_SLACK = 0.5
 
 
 def blind_fleet(n_blind: int, size: int) -> tuple[AnalystPolicy, ...]:
@@ -117,6 +131,11 @@ class Row:
     budget: int
     agreement: float
     repaired: bool
+    scored_tasks: int
+    remaining_errors: int
+    hits: int
+    mechanical: float
+    corrected: int
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -125,6 +144,11 @@ class Row:
             "budget": self.budget,
             "agreement": self.agreement,
             "repaired": self.repaired,
+            "scored_tasks": self.scored_tasks,
+            "remaining_errors": self.remaining_errors,
+            "hits": self.hits,
+            "mechanical": self.mechanical,
+            "corrected": self.corrected,
         }
 
 
@@ -161,6 +185,18 @@ def main() -> int:
     affected_mean = (
         sum(len(evidence_shown(t)) for t in affected) / len(affected) if affected else 0.0
     )
+
+    # The statistic that actually distinguishes one channel from another: evidence on
+    # tasks carrying it against tasks that do not. `affected_mean` cannot do this job
+    # -- it is 3.00 for every compartment by construction (see the slack constant).
+    carrying = [t for t in tasks if any(BLIND in r.label.compartments for r in t.sources)]
+    not_carrying = [t for t in tasks if t not in set(carrying)]
+    mean_with = sum(len(evidence_shown(t)) for t in carrying) / len(carrying) if carrying else 0.0
+    mean_without = (
+        sum(len(evidence_shown(t)) for t in not_carrying) / len(not_carrying)
+        if not_carrying
+        else 0.0
+    )
     if not affected:
         get_logger().error(
             "blindspot.no_effect",
@@ -170,20 +206,32 @@ def main() -> int:
             f"a fleet-wide {BLIND.value} blind spot changes no verdict on this corpus; "
             "there is nothing to measure"
         )
-    if abs(affected_mean - corpus_mean) > ORTHOGONALITY_SLACK:
-        get_logger().warning(
-            "blindspot.difficulty_confounded",
+    if abs(mean_with - mean_without) > CHANNEL_ENTANGLEMENT_SLACK:
+        # A hard stop, not a warning. The previous version logged and continued, while
+        # the docs described it as "asserted rather than trusted" -- prose describing
+        # code that did not exist. A channel this entangled with difficulty cannot
+        # support the argument, so producing an artifact from it is worse than failing.
+        get_logger().error(
+            "blindspot.channel_entangled",
             extra={
-                "event": "blindspot.difficulty_confounded",
-                "affected_mean": round(affected_mean, 3),
-                "corpus_mean": round(corpus_mean, 3),
+                "event": "blindspot.channel_entangled",
+                "compartment": BLIND.value,
+                "mean_with": round(mean_with, 3),
+                "mean_without": round(mean_without, 3),
             },
+        )
+        raise SystemExit(
+            f"{BLIND.value} carries mean evidence {mean_with:.2f} against "
+            f"{mean_without:.2f} without it; that channel is too entangled with "
+            "difficulty to serve as an independent axis"
         )
 
     print(
         f"{len(tasks)} tasks, fleet of {args.fleet}, blind spot on {BLIND.value}: "
-        f"{len(affected)} verdicts change, mean evidence {affected_mean:.2f} "
-        f"against a corpus mean of {corpus_mean:.2f}"
+        f"{len(affected)} verdicts change. Channel evidence {mean_with:.2f} carrying "
+        f"vs {mean_without:.2f} not. Affected slice sits at {affected_mean:.2f} against "
+        f"a corpus mean of {corpus_mean:.2f} -- the opposite extreme from the boundary "
+        "items a threshold error hits, which is the anti-correlation this rests on."
     )
 
     rows: list[Row] = []
@@ -196,6 +244,7 @@ def main() -> int:
         flat = contributions_for(blind_fleet(n_blind, args.fleet), tasks, proposals, seed=SEED)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
+        baseline = baseline_errors(partitioned, truth)
         wrong = {t for t, p in view.posterior.items() if (p >= 0.5) != truth[t]}
 
         # The mechanism, measured directly rather than inferred from the outcome: what
@@ -209,17 +258,34 @@ def main() -> int:
         for name in (*DEPLOYABLE, "oracle"):
             found: int | None = None
             for budget in BUDGETS:
-                agreement, _ = evaluate(
-                    partitioned, view, truth, policy=name, budget=budget, error=0.0
+                out = evaluate(
+                    partitioned,
+                    view,
+                    truth,
+                    policy=name,
+                    budget=budget,
+                    error=0.0,
+                    baseline=baseline,
                 )
-                repaired = agreement >= REPAIRED
+                # `repaired` now requires a label to have actually changed. Scoring
+                # over unanchored tasks alone lets a policy climb by deleting the
+                # errors it anchors, and at every share and budget here that is
+                # precisely what happened: not one unanchored corrupted label is
+                # corrected by any policy, so the old threshold table reported a
+                # denominator artifact as a repair.
+                repaired = out.agreement >= REPAIRED and out.corrected > 0
                 rows.append(
                     Row(
                         n_blind=n_blind,
                         policy=name,
                         budget=budget,
-                        agreement=agreement,
+                        agreement=out.agreement,
                         repaired=repaired,
+                        scored_tasks=out.scored,
+                        remaining_errors=out.remaining_errors,
+                        hits=out.hits,
+                        mechanical=out.mechanical,
+                        corrected=out.corrected,
                     )
                 )
                 if repaired and found is None:
@@ -297,6 +363,8 @@ def main() -> int:
         "affected_verdicts": len(affected),
         "affected_mean_evidence": round(affected_mean, 3),
         "corpus_mean_evidence": round(corpus_mean, 3),
+        "channel_mean_with": round(mean_with, 3),
+        "channel_mean_without": round(mean_without, 3),
         "shares": list(SHARES),
         "budgets": list(BUDGETS),
         "repaired_threshold": REPAIRED,
@@ -304,7 +372,10 @@ def main() -> int:
         "audit_hit_rate": {str(k): v for k, v in hit_rate.items()},
         "advantage_at_unanimity": verdict,
         "grid": [r.as_dict() for r in rows],
-        "validity": check_sample_size(len(tasks), label="blind spot").as_dict(),
+        "validity": check_sample_size(
+            min((r.scored_tasks for r in rows), default=0), label="blind spot"
+        ).as_dict(),
+        "scored_tasks_min": min((r.scored_tasks for r in rows), default=0),
     }
     if args.out:
         args.out.write_text(json.dumps(report, indent=2), encoding="utf-8")
