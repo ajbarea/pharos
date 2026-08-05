@@ -3,7 +3,7 @@
 ## Quick Installation
 
 !!! tip "Requirements"
-    Pharos supports **Python 3.12 to 3.14**. Generation and gating require only `numpy` and `scikit-learn`; all other dependencies are optional or for development.
+    Pharos supports **Python 3.12 to 3.14**. Generation and gating require `numpy`, `scikit-learn` and the OpenTelemetry API/SDK — the last is a runtime dependency rather than an extra, because a published number has to be traceable to the run that produced it, and a missing collector degrades to silence rather than to a different result. The trainer, the external validator and the explorer are optional.
 
 ```bash
 make setup     # uv sync --all-groups

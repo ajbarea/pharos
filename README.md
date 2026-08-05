@@ -45,7 +45,11 @@ make gate      # generate a corpus and decide whether it is usable
 
 `make gate` exits non-zero when the corpus is not usable, so it can block CI.
 
-Python 3.12 to 3.14. Generation and gating need only `numpy` and `scikit-learn`.
+Python 3.12 to 3.14. Generation and gating need `numpy`, `scikit-learn` and the
+OpenTelemetry API/SDK, which are runtime dependencies rather than an extra because a
+published number has to be traceable to the run that produced it. A missing collector
+degrades to silence, never to a different result. Everything else — the trainer, the
+external validator, the explorer — is optional.
 
 ## What is here
 
