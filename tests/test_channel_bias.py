@@ -213,3 +213,23 @@ def test_the_healthy_fleet_and_the_other_channels_are_both_reported():
         assert fired <= {payload["blind_channel"]}, (
             f"a channel other than the blinded one fired at {entry['n_blind']} blind: {fired}"
         )
+
+
+def test_the_sweep_reaches_the_shares_the_finding_makes_claims_about():
+    """The finding's useful claim is early detection, so the sweep has to test early.
+
+    It did not. `SHARES` ran (0, 5, 7, 9), whose lowest non-zero entry is already the
+    majority, while the write-up claimed a house style is catchable *before* it becomes
+    one and tied that to finding 16. A share the sweep never runs cannot support a
+    sentence about that share, and this asserts the sweep still reaches below the
+    majority so the claim cannot quietly lose its evidence again.
+    """
+    from measure_channel_bias import SHARES
+
+    fleet = 9
+    below_majority = [n for n in SHARES if 0 < n <= fleet // 2]
+    assert below_majority, (
+        f"SHARES={SHARES} tests no share below a majority of {fleet}; the early-detection "
+        "claim would rest on nothing"
+    )
+    assert 1 in SHARES, "the single-blind-analyst claim needs a single blind analyst"

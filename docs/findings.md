@@ -2613,6 +2613,10 @@ and destroying only the association under test.
 | Blind of 9 | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` ‡ |
 | --- | --- | --- | --- | --- |
 | 0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| 1 | -1.8 | -1.2 | 1.7 | **8.1** |
+| 2 | -1.8 | -1.2 | 1.7 | **8.1** |
+| 3 | -1.8 | -1.2 | 1.7 | **8.1** |
+| 4 | -1.8 | -1.2 | 1.7 | **8.1** |
 | 5 | -1.8 | -1.2 | 1.7 | **8.1** |
 | 7 | -1.8 | -1.2 | 1.7 | **8.1** |
 | 9 | -1.8 | -1.2 | 1.7 | **8.1** |
@@ -2631,11 +2635,19 @@ the fleet's verdict rather than its spread, so the disappearance of dissent cost
 nothing.
 
 !!! success "One blind analyst in nine is as detectable as all nine"
-    The z-score is **identical at every share from 1 to 9**, and that is not a bug: a
-    blind spot scales a single fixed pattern of depressed rates, so the observed gap and
-    the permutation null scale together and the ratio cancels. Detection therefore does
-    not get harder as the habit spreads, and --- more usefully --- does not require the
-    habit to have spread at all.
+    The z-score is **8.07 at every share from 1 to 9**, identical to three decimal
+    places, and that is not a bug: a blind spot scales a single fixed pattern of
+    depressed rates, so the observed gap and the permutation null scale together and the
+    ratio cancels. The gap itself moves exactly as the share does --- $-0.028$ at one
+    analyst, $-0.250$ at nine, in the ratio $1:9$. Detection therefore does not get
+    harder as the habit spreads, and --- more usefully --- does not require the habit to
+    have spread at all.
+
+    This sentence was published before it was measured. The sweep ran
+    $\{0, 5, 7, 9\}$, so the lowest share it tested was already the majority, and every
+    claim here about catching a habit *early* rested on shares nobody had run. The sweep
+    now runs $\{0, 1, 2, 3, 4, 5, 7, 9\}$ and the claim survives it. It would have been
+    equally publishable had it not.
 
     That matters against
     [finding 16](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently),

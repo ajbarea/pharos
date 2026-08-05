@@ -1,7 +1,9 @@
-"""Specialist task scorers module for Pharos.
+"""Scoring a triage verdict against a plant signature, and an attribution against its sources.
 
-Provides fine-grained evaluation metrics for LLM performance on triage tasks,
-fact extraction accuracy, and provenance attribution.
+Two scorers, and the triage one is not accuracy. It reports over- and under-escalation
+separately, because they are different failures: finding 3b measures recall at exactly
+1.000 in every model tested while precision is what moves, so a single correct/incorrect
+number would hide the only variable.
 """
 
 from __future__ import annotations
@@ -40,7 +42,7 @@ class ProvenanceScoreResult:
 
 
 class SpecialistScorer:
-    """Suite of specialist scorers for Pharos tasks."""
+    """Holds the plant registry both scorers read their signatures from."""
 
     def __init__(self, registry: PlantRegistry | None = None) -> None:
         if registry is None:

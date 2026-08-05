@@ -77,7 +77,12 @@ EVENTS = 200
 FLEET = 9
 
 #: Blind-spot shares to sweep. Nine is the case finding 21 leaves open.
-SHARES = (0, 5, 7, 9)
+#: Blind shares swept. The low end is not decoration: the claim this finding is
+#: actually useful for is that a house style is catchable *before* it becomes the
+#: majority, which ties it to finding 16. That claim was published while the sweep
+#: started at 5 of 9 -- already the majority -- so it rested on nothing. A share the
+#: sweep never runs cannot support a sentence about that share.
+SHARES = (0, 1, 2, 3, 4, 5, 7, 9)
 
 #: Permutation trials for the null. Matches the gate's trial count so the two nulls are
 #: read the same way.
