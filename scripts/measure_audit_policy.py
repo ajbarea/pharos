@@ -253,6 +253,10 @@ class Row:
     scored_tasks: int
     agreement: float
     repaired: bool
+    remaining_errors: int
+    hits: int
+    mechanical: float
+    corrected: int
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -263,7 +267,53 @@ class Row:
             "scored_tasks": self.scored_tasks,
             "agreement": self.agreement,
             "repaired": self.repaired,
+            "remaining_errors": self.remaining_errors,
+            "hits": self.hits,
+            "mechanical": self.mechanical,
+            "corrected": self.corrected,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class Outcome:
+    """What one audit budget actually bought, separated from what it merely hid.
+
+    Agreement over unanchored tasks was finding 19's scoring rule and it has a failure
+    the rule was not designed for. Excluding an anchored task removes it from the
+    denominator, so anchoring a *wrong* item raises agreement **without correcting
+    anything**. A policy that targets errors perfectly therefore climbs toward 1.000 by
+    deletion alone, and both findings 19 and 20 read that climb as repair.
+
+    `mechanical` is what the score would be if not one unanchored label changed:
+    the baseline errors minus the ones anchored away, over the surviving pool. So
+    `corrected` -- baseline errors, less those anchored away, less those still wrong --
+    is the only number here that counts a label the authority actually fixed.
+    """
+
+    agreement: float
+    scored: int
+    remaining_errors: int
+    hits: int
+    mechanical: float
+    corrected: int
+
+    @property
+    def genuine(self) -> bool:
+        """Whether any unanchored label was actually corrected."""
+        return self.corrected > 0
+
+
+def baseline_errors(
+    partitioned: dict[str, list[tuple[str, bool]]], truth: dict[str, bool]
+) -> tuple[int, int]:
+    """The pool the estimator covers, and how many of it it gets wrong, at zero anchors.
+
+    The pool is *not* the corpus. The estimator only produces labels for tasks some
+    contributor reported on, and every rate here has to be read against that.
+    """
+    estimate = federated_dawid_skene(partitioned, seed=MASK_SEED)
+    labels = estimate.labels()
+    return len(labels), sum(1 for task, value in labels.items() if value != truth[task])
 
 
 def evaluate(
@@ -274,24 +324,52 @@ def evaluate(
     policy: str,
     budget: int,
     error: float,
-) -> tuple[float, int]:
-    """Agreement on the tasks the authority did NOT rule on, and how many those were.
+    baseline: tuple[int, int] | None = None,
+) -> Outcome:
+    """What one policy at one budget bought, and what it only appeared to buy.
 
-    Finding 19's scoring rule, carried over unchanged and for the same reason: counting
-    an anchored task would measure how many answers were supplied rather than what they
-    bought, and would manufacture a curve that rises with the budget by construction.
+    `baseline` is `(pool, errors)` at zero anchors, from `baseline_errors`. It is the
+    reference the mechanical score is computed against; passed in rather than recomputed
+    because it is the same for every budget of a given fleet and costs an EM run.
     """
     anchored = select(policy, view, truth, budget, seed=POLICY_SEED)
     anchors = authority_ruling(anchored, truth, error=error, seed=POLICY_SEED)
     estimate = federated_dawid_skene(partitioned, seed=MASK_SEED, anchors=anchors)
     scored = {t: v for t, v in truth.items() if t not in anchors}
     labels = {t: v for t, v in estimate.labels().items() if t not in anchors}
-    return round(agreement_with(labels, scored), 4), len(labels)
+    agreement = round(agreement_with(labels, scored), 4)
+    remaining = sum(1 for task, value in labels.items() if value != scored[task])
+
+    if baseline is None:
+        baseline = baseline_errors(partitioned, truth)
+    pool, errors = baseline
+    # How many of the anchors landed on a task the estimator was getting wrong. Those
+    # are the ones whose removal flatters the score without changing an estimate.
+    zero = federated_dawid_skene(partitioned, seed=MASK_SEED).labels()
+    hits = sum(1 for task in anchors if task in zero and zero[task] != truth[task])
+    surviving = pool - sum(1 for task in anchors if task in zero)
+    mechanical = round((surviving - (errors - hits)) / surviving, 4) if surviving else 0.0
+    return Outcome(
+        agreement=agreement,
+        scored=len(labels),
+        remaining_errors=remaining,
+        hits=hits,
+        mechanical=mechanical,
+        corrected=(errors - hits) - remaining,
+    )
 
 
 def threshold(rows: Sequence[Row]) -> int | None:
-    """The smallest budget at which a policy repairs, or None within what was swept."""
-    return next((r.budget for r in sorted(rows, key=lambda r: r.budget) if r.repaired), None)
+    """Smallest budget that clears the bar AND actually corrected something.
+
+    `repaired` alone is a score crossing, and a score can cross by deletion: anchoring
+    a wrong task removes it from the denominator. Requiring `corrected > 0` is what
+    makes this a threshold for repair rather than for successful targeting.
+    """
+    return next(
+        (r.budget for r in sorted(rows, key=lambda r: r.budget) if r.repaired and r.corrected > 0),
+        None,
+    )
 
 
 def main() -> int:
@@ -333,20 +411,32 @@ def main() -> int:
             flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
             partitioned = partition_by_contributor(flat)
             view = observe(partitioned)
+            baseline = baseline_errors(partitioned, truth)
 
             cells, block = [], []
             for budget in BUDGETS:
-                agreement, scored = evaluate(
-                    partitioned, view, truth, policy=name, budget=budget, error=0.0
+                out = evaluate(
+                    partitioned,
+                    view,
+                    truth,
+                    policy=name,
+                    budget=budget,
+                    error=0.0,
+                    baseline=baseline,
                 )
+                agreement = out.agreement
                 row = Row(
                     policy=name,
                     n_wrong=n_wrong,
                     budget=budget,
                     error=0.0,
-                    scored_tasks=scored,
+                    scored_tasks=out.scored,
                     agreement=agreement,
                     repaired=agreement >= REPAIRED,
+                    remaining_errors=out.remaining_errors,
+                    hits=out.hits,
+                    mechanical=out.mechanical,
+                    corrected=out.corrected,
                 )
                 rows.append(row)
                 block.append(row)
@@ -392,21 +482,32 @@ def main() -> int:
         flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
+        baseline = baseline_errors(partitioned, truth)
         cells, per_error = [], {}
         for error in AUTHORITY_ERROR:
             block = []
             for budget in BUDGETS:
-                agreement, scored = evaluate(
-                    partitioned, view, truth, policy=best, budget=budget, error=error
+                out = evaluate(
+                    partitioned,
+                    view,
+                    truth,
+                    policy=best,
+                    budget=budget,
+                    error=error,
+                    baseline=baseline,
                 )
                 row = Row(
                     policy=best,
                     n_wrong=n_wrong,
                     budget=budget,
                     error=error,
-                    scored_tasks=scored,
-                    agreement=agreement,
-                    repaired=agreement >= REPAIRED,
+                    scored_tasks=out.scored,
+                    agreement=out.agreement,
+                    repaired=out.agreement >= REPAIRED,
+                    remaining_errors=out.remaining_errors,
+                    hits=out.hits,
+                    mechanical=out.mechanical,
+                    corrected=out.corrected,
                 )
                 rows.append(row)
                 block.append(row)
@@ -432,7 +533,14 @@ def main() -> int:
         "best_deployable": best,
         "fallible_authority": {str(k): v for k, v in fallible.items()},
         "grid": [r.as_dict() for r in rows],
-        "validity": check_sample_size(len(tasks), label="audit policy").as_dict(),
+        # The corpus is 200; the estimator covers ~97 and anchoring shrinks that
+        # further, to 2 in the worst published cell. Scoring validity on len(tasks)
+        # reported quotable: true for thresholds resting on a handful of tasks, which
+        # is exactly what this gate exists to prevent.
+        "validity": check_sample_size(
+            min((r.scored_tasks for r in rows), default=0), label="audit policy"
+        ).as_dict(),
+        "scored_tasks_min": min((r.scored_tasks for r in rows), default=0),
     }
     if args.out:
         args.out.write_text(json.dumps(report, indent=2), encoding="utf-8")

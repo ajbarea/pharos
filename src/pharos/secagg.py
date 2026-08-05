@@ -70,8 +70,31 @@ class CohortTooSmallError(ValueError):
     """
 
 
+class IncompleteCohortError(ValueError):
+    """Raised when fewer clients submitted than the round declared.
+
+    Distinct from `CohortTooSmallError`: that one means the round was too small to be
+    an aggregate at all, this one means the round was the right size and somebody
+    dropped, so the masks have not cancelled. The remedies differ -- widen the cohort
+    versus re-run or implement dropout recovery -- and one exception type for both
+    would send a caller to the wrong one.
+    """
+
+
+#: Largest magnitude `encode` will accept. The ring is 2^64 and values are scaled by
+#: 2^24, so a single term must stay under 2^39 to be representable and the sum under
+#: 2^63. Enforced because the failure is silent: 2^40 encodes to 0.0 and 40 terms of
+#: 1.4e10 sum to a confidently wrong negative number.
+MAX_MAGNITUDE = (MODULUS // 2) // SCALE
+
+
 def encode(value: float) -> int:
     """One real to one ring element, two's complement for negatives."""
+    if not -MAX_MAGNITUDE < value < MAX_MAGNITUDE:
+        raise ValueError(
+            f"{value} exceeds the +/-{MAX_MAGNITUDE} the fixed-point ring can hold; "
+            "encoding it would wrap silently"
+        )
     return round(value * SCALE) % MODULUS
 
 
@@ -147,10 +170,21 @@ class SecureAggregator:
     min_participants: int = MIN_PARTICIPANTS
     _total: list[int] = field(init=False, repr=False)
     _submitted: set[int] = field(init=False, repr=False)
+    _cohort: int | None = field(init=False, repr=False, default=None)
 
     def __post_init__(self) -> None:
+        # The floor is a property of the protocol, and a keyword that can be set to 1
+        # is not a floor. `secure_sum(..., min_participants=1)` used to return one
+        # client's vector verbatim, inside the type whose entire job is to not be one
+        # client's vector.
+        if self.min_participants < MIN_PARTICIPANTS:
+            raise ValueError(
+                f"min_participants={self.min_participants} is below the "
+                f"{MIN_PARTICIPANTS} floor; a sum over fewer is not an aggregate"
+            )
         self._total = [0] * self.length
         self._submitted = set()
+        self._cohort: int | None = None
 
     def submit(self, client_index: int, vector: Sequence[float], *, cohort: int) -> None:
         """Add one client's masked share to the running total.
@@ -164,6 +198,17 @@ class SecureAggregator:
             raise ValueError(f"expected {self.length} coordinates, got {len(vector)}")
         if client_index in self._submitted:
             raise ValueError(f"client {client_index} submitted twice")
+        if cohort < self.min_participants:
+            raise CohortTooSmallError(f"cohort={cohort} is below the {self.min_participants} floor")
+        if not 0 <= client_index < cohort:
+            raise ValueError(f"client_index {client_index} is outside a cohort of {cohort}")
+        if self._cohort is None:
+            self._cohort = cohort
+        elif cohort != self._cohort:
+            raise ValueError(
+                f"cohort changed from {self._cohort} to {cohort} mid-round; "
+                "masks are derived per cohort and would not cancel"
+            )
 
         share = [encode(v) for v in vector]
         for peer in range(cohort):
@@ -180,12 +225,27 @@ class SecureAggregator:
         self._submitted.add(client_index)
 
     def reveal(self) -> ServerView:
-        """The sum, once enough clients have contributed to make it one."""
+        """The sum, once every declared client has contributed to make it one.
+
+        The participant floor is not the only thing that has to hold. Masks are derived
+        against a declared cohort, so if fewer than that arrive the pair terms do not
+        cancel and the total is noise wearing a number's shape -- three clients
+        submitting under `cohort=5` used to return `(-267720907167.4, ...)` for a true
+        `(3.0, 3.0)`, pass the floor, and hand back a confident `ServerView`. The module
+        says dropout recovery is not implemented; that has to mean *refused*, not
+        *silently wrong*.
+        """
         participants = len(self._submitted)
         if participants < self.min_participants:
             raise CohortTooSmallError(
                 f"{participants} participants is below the {self.min_participants} floor; "
                 "a sum over fewer is an individual contribution wearing a total's name"
+            )
+        if self._cohort is not None and participants != self._cohort:
+            raise IncompleteCohortError(
+                f"{participants} of {self._cohort} declared clients submitted; "
+                "the pairwise masks have not cancelled and the total is meaningless. "
+                "Dropout recovery is not implemented"
             )
         record_routine("secagg.reveal", float(participants), coordinates=self.length)
         return ServerView(tuple(decode(t) for t in self._total), participants)

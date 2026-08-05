@@ -250,9 +250,10 @@ make teacher-fleet      # whether adapters inherit their teachers, across 24 of 
    compute the estimate *under* aggregation instead, and Dawid-Skene splits along
    exactly the seam a secure sum offers: its M step is per contributor and stays local,
    its E step is a product over contributors and so a sum in logs. Finding 18 reports
-   the port as exact -- worst posterior disagreement 3.8e-14 over ten fleet
-   compositions, zero label disagreements -- and reports that **the cliff does not move
-   with it**. That was the prediction, and it localises the failure to
+   the port as exact **to the fixed-point resolution the protocol quantizes at**
+   (~1e-7 for nine contributors; measured at 3.8e-14 on this corpus, over ten
+   wrong-standard compositions of one nine-analyst fleet, zero label disagreements) --
+   and reports that **the cliff does not move with it**. That was the prediction, and it localises the failure to
    non-identifiability rather than to pooling or to a leak.
 
    What replaces the leak is smaller and task-shaped rather than person-shaped: a
@@ -289,8 +290,11 @@ make teacher-fleet      # whether adapters inherit their teachers, across 24 of 
    end of the corpus. While a sighted minority remains the disagreement signal still
    points at them and every one of the policy's picks lands on a corrupted task. At
    unanimity the signal does not weaken, it ceases to exist, and the policy's hit rate
-   falls to 0.15 against uniform's 0.10. Chance. The oracle still scores 1.000 on the
-   same data, so the tasks are still fixable and what failed is the policy.
+   falls to 0.15 against uniform's 0.10 -- chance, and `posterior` at 0.20 is no better
+   in kind. The oracle still *selects* corrupted tasks at 1.000 on the same data, so
+   what failed is the policy's ability to see them. (An earlier version added "so the
+   tasks are still fixable"; that was withdrawn -- see the retraction in the findings
+   page. Nothing in this experiment repairs anything.)
 
    Finding 20's advice is therefore **safe only inside its stated condition**, and
    falling outside it is not graceful degradation. A deployment cannot tell from the

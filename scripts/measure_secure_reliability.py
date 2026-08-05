@@ -42,6 +42,7 @@ Needs no model and no network.
 
 import argparse
 import json
+import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -84,6 +85,12 @@ MASK_SEED = 4242
 
 #: Agreement gap that counts as the cliff, matching finding 12's threshold.
 CLIFF_GAP = 0.01
+
+#: How far the federated and centralized posteriors may drift before the equivalence
+#: claim is broken. Four orders of magnitude above the fixed-point resolution the
+#: protocol quantizes at (~2.7e-7 for nine contributors) and far below anything that
+#: could move a label.
+EQUIVALENCE_BOUND = 1e-3
 
 
 def fleet_of(n_wrong: int, size: int) -> tuple[AnalystPolicy, ...]:
@@ -391,6 +398,29 @@ def main() -> int:
     if args.out:
         args.out.write_text(json.dumps(report, indent=2), encoding="utf-8")
         print(f"\nwrote {args.out}")
+
+    # The CI step for this script says the two estimators "have to stay within 1e-6 of
+    # each other, and nothing else in the suite compares them on the regenerated
+    # corpus". That was true of the comment and false of the code: main() printed the
+    # gap and returned 0 regardless, so an injected 0.3 divergence exited clean. The
+    # one claim a refactor would break silently is now the one that fails the build.
+    if worst_gap > EQUIVALENCE_BOUND or disagreements:
+        get_logger().error(
+            "secure.equivalence_broken",
+            extra={
+                "event": "secure.equivalence_broken",
+                "worst_gap": worst_gap,
+                "label_disagreements": disagreements,
+                "bound": EQUIVALENCE_BOUND,
+            },
+        )
+        print(
+            f"\nFAILED: federated and centralized estimators diverged -- worst gap "
+            f"{worst_gap:.2e} against a {EQUIVALENCE_BOUND:.0e} bound, "
+            f"{disagreements} label disagreements",
+            file=sys.stderr,
+        )
+        return 1
     return 0
 
 

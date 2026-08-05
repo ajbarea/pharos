@@ -273,21 +273,38 @@ class FederatedDawidSkene:
 def _stable_posterior(log_pos: float, log_neg: float) -> float:
     """P(significant) from two log-likelihoods, without leaving log space.
 
-    The centralized implementation multiplies probabilities directly and falls back to
-    0.5 when the product underflows to zero on both sides. This cannot underflow, so a
-    fleet wide enough to underflow a product of per-contributor likelihoods would make
-    the two disagree, and there this one is right.
+    Two algebraically identical forms of the logistic, each safe in one regime and
+    overflowing in the other. `math.exp` raises rather than saturating, so picking the
+    wrong one is a crash and not a rounding error:
 
-    **That regime is not measured.** Finding 18 compares the two at a fleet of nine,
-    where they agree to 3.8e-14, and sweeps the wrong-standard share rather than the
-    fleet size. So the equivalence claim is scoped to the size it was run at, and the
-    crossover point is unknown rather than absent.
+        difference > 0   (posterior heading to 0)   use exp(-difference)
+        difference <= 0  (posterior heading to 1)   use exp(difference)
+
+    **Both branches used to be the overflowing form for their own regime**, so any
+    input with `|log_pos - log_neg| > 709.8` raised `OverflowError`. That is reachable
+    from the shipped CLI, which exposes `--fleet`: around a fleet of 195 on a 60-task
+    corpus the gap clears 709.8 and this crashed, while the centralized estimator it
+    claims to improve on was still exact there. The defect survived a hand-check
+    because both forms are algebraically equal and the check verified the algebra --
+    which is the one property that cannot distinguish them.
+
+    Against the centralized estimator there are therefore two regimes, and the earlier
+    docstring named only the flattering one:
+
+    * `|log_pos - log_neg| > 709.8`, from about a fleet of 195: centralized correct,
+      this one used to raise. Now correct.
+    * both logs below -745 with a small gap, from about a fleet of 1100: centralized
+      falls back to 0.5 and is wrong; this one is right. That is the genuine advantage,
+      and it is reached second, by a factor of five in fleet size.
+
+    Finding 18 measures a fleet of nine, so neither regime appears in it and the
+    equivalence claim stays scoped to the size it was run at.
     """
     difference = log_neg - log_pos
     if difference > 0:
-        return 1.0 / (1.0 + math.exp(difference))
-    scaled = math.exp(-difference)
-    return scaled / (1.0 + scaled)
+        scaled = math.exp(-difference)
+        return scaled / (1.0 + scaled)
+    return 1.0 / (1.0 + math.exp(difference))
 
 
 def federated_dawid_skene(

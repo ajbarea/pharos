@@ -222,7 +222,22 @@ def main() -> int:
         "compositions": list(COMPOSITIONS),
         "grid": [r.as_dict() for r in rows],
         "anchors_needed": breakeven,
-        "validity": check_sample_size(len(tasks), label="authority anchors").as_dict(),
+        # The corpus is 200 but the estimator only covers the ~97 tasks some
+        # contributor reported on, and anchoring shrinks that further -- to 8 at a
+        # budget of 180. Scoring validity on len(tasks) reported quotable: true for
+        # prices resting on a handful of tasks, which is what this gate exists to stop.
+        "validity": check_sample_size(
+            min((r.scored_tasks for r in rows), default=0), label="authority anchors"
+        ).as_dict(),
+        "scored_tasks_min": min((r.scored_tasks for r in rows), default=0),
+        "scored_tasks_at_threshold": {
+            str(n): next(
+                (r.scored_tasks for r in rows if r.n_wrong == n and r.anchors == count),
+                None,
+            )
+            for n, count in breakeven.items()
+            if count is not None
+        },
     }
     if args.out:
         args.out.write_text(json.dumps(report, indent=2), encoding="utf-8")

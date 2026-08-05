@@ -12,8 +12,11 @@ verdicts already committed to `results/`, so both reproduce exactly and run in C
 Finding 9 is a measurement-design result and retracts an earlier version of itself.
 Finding 11 calls no model either -- it is a property of the corpus's label structure
 and of who can read what -- so it also reproduces exactly and runs in CI. Findings 18
-and 19 are the same kind: they are properties of an estimator and a protocol over the
-committed corpus, call nothing, and reproduce bit-for-bit.
+to 21 are the same kind: they are properties of an estimator and a protocol over the
+committed corpus and call nothing. The masked **aggregate** is bit-identical by
+construction, being integer; the EM around it is float and runs through `libm`, so it
+reproduces to float tolerance rather than bit-for-bit. This project has already
+retracted an unqualified "bit-identical" twice, and this is the scope that survives.
 
 Every artifact in `results/` carries the version, commit, platform, model, and seed
 behind it, so any number here traces back to the run and the machine that produced
@@ -177,9 +180,9 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | --- | --- | --- | --- |
 | `adapter_learnability` | 60 | **no** | **base**: 9/60 answers were unparsable (15%); every other number describes only the remainder; accuracy 0.392 does not beat the majority floor 0.647: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `analyst_review` | 40 | yes | - |
-| `audit_policy` | 200 | yes | - |
-| `authority_anchors` | 200 | yes | - |
-| `blind_spot` | 200 | yes | - |
+| `audit_policy` | 2 | **no** | n=2 is below 30; treat differences as provisional |
+| `authority_anchors` | 8 | **no** | n=8 is below 30; treat differences as provisional |
+| `blind_spot` | 105 | yes | - |
 | `consensus_reliability` | 200 | yes | - |
 | `correlated_fleets` | 60 | yes | - |
 | `decode_stability` | 30 | yes | - |
@@ -233,7 +236,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**25 of 57** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**27 of 57** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 Exempt, because there is no sampling question to answer:
 
@@ -2227,7 +2230,7 @@ Threshold for 'repaired' is agreement ≥ 0.95 on unanchored tasks, over a corpu
 <!-- END GENERATED: authority-price -->
 
 At a bare majority an authority ruling on **five items in two hundred** restores the
-estimate on the other 195. One analyst further and the same repair costs **half the
+estimate on the **93** that remain scorable. One analyst further and the same repair costs **half the
 round**; two further, three quarters. The mechanism is visible in the M step: an
 anchored task constrains every contributor's confusion matrix, but the unanchored
 majority still outvotes it, so the anchors have to reach a share that dominates the
@@ -2301,13 +2304,20 @@ of the raw votes gives the identical answer at every cell.
     item the fleet splits on. Disagreement is not orthogonal to the failure. It is the
     failure's signature.
 
-    **`consensus` is not merely worse, it is harmful.** It needs 80 items where
-    `margin` needs 20, and on the way there it drives agreement *below* the
-    no-anchor baseline --- from 0.660 down to 0.108, and to 0.000 at seven-of-nine
-    before it finally flips. Anchoring the items both standards already agree about
-    tells the estimator its contributors are reliable, which makes it trust the wrong
-    majority harder on the boundary items it never audited. A badly chosen audit does
-    not just waste budget; it corrupts the estimate it was meant to repair.
+    **`consensus` is much worse --- it needs 80 items where `margin` needs 20.**
+
+    !!! danger "Retracted 2026-08-05: it is not *harmful*, only useless"
+        This paragraph used to claim that a badly chosen audit "corrupts the estimate
+        it was meant to repair", and read the fall from 0.660 to 0.108 as evidence of
+        it. An independent review checked label by label: `consensus` changes **zero**
+        unanchored labels at budgets 2 through 60, and at 80 and 95 every change it
+        makes is a *correction*. The fall is exactly $(64-b)/(97-b)$ --- pure
+        denominator, the same scoring artifact retracted in finding 21.
+
+        The stated mechanism (that anchoring agreed items makes the estimator trust the
+        wrong majority harder) did not happen; the estimate is untouched. A badly
+        chosen audit wastes the budget and does nothing else, which is a duller claim
+        and the one the data supports.
 
 !!! warning "Why it ties the oracle, and what that costs the claim"
     `margin`'s selection is a **subset of the items the fleet gets wrong** at every
@@ -2333,8 +2343,8 @@ which means roughly half its budget went to tasks that could not repay it.
 
 Restricting the same uniform draw to the auditable pool is by itself a large
 improvement --- six-of-nine falls from 100 items to 45 --- before any policy is applied.
-Read finding 19's "50% of the round" as 50% of the corpus and closer to all of what was
-actually auditable.
+Read finding 19's "50% of the round" as 50% of the corpus and **47.4%** of what was
+actually auditable -- about half either way.
 
 ### A fallible authority
 
@@ -2373,27 +2383,65 @@ find out what the policy is worth is to remove it.
 **A wrong standard of a different shape.** A reviewer who discounts a *channel* rather
 than misjudging a quantity: they read every report and decline to credit the ones
 arriving through one compartment. Nothing about them is noisy or inconsistent. PARTNER
-is the honest choice here and the choice is asserted in the script rather than trusted
---- mean evidence shown is 1.88 on tasks carrying it against 1.72 on tasks that do not,
-where SENSOR would be 2.00 against 0.48 and would smuggle the difficulty confound
-straight back in.
+is the channel, and the script now *refuses to run* on a channel too entangled with
+difficulty --- mean evidence 1.88 on tasks carrying PARTNER against 1.72 on tasks that
+do not, where SENSOR is 2.00 against 0.48 and is rejected outright.
+
+!!! warning "Corrected 2026-08-05: the mechanism is anti-correlation, not orthogonality"
+    This finding originally claimed the blind spot picks its slice "by provenance
+    instead of by difficulty". That is wrong, and structurally so. Blinding only ever
+    *removes* evidence and the rule needs 3 of 3, so a verdict can flip only on a task
+    whose visible evidence was exactly 3 --- meaning the affected slice sits at
+    $3.00$ mean evidence **for every compartment**, PARTNER and SENSOR alike. It is a
+    difficulty stratum, and the easiest one.
+
+    The old guard compared that affected mean to the corpus mean with a slack of 1.5
+    against a gap that is always 1.25, so it could not fail, and passed for the very
+    channel the text singled out as unusable. Prose calling it "asserted rather than
+    trusted" described code that did not exist.
+
+    What actually makes the experiment work is **anti-correlation**: the corrupted
+    slice sits at the *opposite* difficulty extreme from the boundary items a threshold
+    error hits, which is exactly why the fleet is otherwise unanimous there. That is
+    both true and the stronger argument. The guard now tests the statistic that
+    discriminates --- evidence on tasks carrying the channel against tasks that do not
+    --- and rejects SENSOR, LIAISON and LEGAL while passing PARTNER.
 
 A fleet-wide PARTNER blind spot changes **20 verdicts of 200, every one on a task
 showing all three defining facts.** The corrupted slice is the *unambiguous* end of the
 corpus --- precisely where a threshold-shifted reviewer is always right, and where a
 fleet is otherwise unanimous and correct.
 
+!!! danger "Retracted 2026-08-05: the repair table below measured nothing being repaired"
+    An independent review reproduced this artifact and checked it label by label.
+    Agreement here is scored over *unanchored* tasks, which means anchoring a task the
+    estimator gets **wrong** removes an error from the denominator and raises the score
+    **without correcting anything**. Every "budget to repair" cell in the first published
+    version of this finding was that artifact: at 7-of-9 blind with `margin` at 12
+    items, the reported $0.9574$ is $180/188$ with **8 of the 20 corrupted labels still
+    wrong**. Not one unanchored corrupted label is corrected here by any policy at any
+    share.
+
+    `repaired` now requires a label to have actually changed (`corrected > 0`), and
+    under that definition **nothing in this finding repairs at all** --- the threshold
+    table is dashes end to end, which is the honest result. The claim that the oracle
+    "still repairs the estimate at 12 items, so the tasks remain fixable" is
+    **withdrawn**.
+
+    The finding is unaffected, because it never rested on that table. The hit-rate
+    collapse below is the result, and it is measured directly.
+
 ### The advantage does not degrade. It disappears at unanimity.
 
 <!-- BEGIN GENERATED: blind-spot -->
 | Blind of 9 | `uniform` | `margin` | `posterior` | `consensus` | `oracle` |
 | --- | --- | --- | --- | --- | --- |
-| 0 | 0 | 0 | 0 | 0 | 0 |
-| 3 | 0 | 0 | 0 | 0 | 0 |
-| 5 | 0 | 0 | 0 | 0 | 0 |
-| 7 | -- | 12 | 12 | -- | 12 |
-| 8 | -- | 12 | 12 | -- | 12 |
-| 9 | -- | -- | -- | -- | 12 |
+| 0 | -- | -- | -- | -- | -- |
+| 3 | -- | -- | -- | -- | -- |
+| 5 | -- | -- | -- | -- | -- |
+| 7 | -- | -- | -- | -- | -- |
+| 8 | -- | -- | -- | -- | -- |
+| 9 | -- | -- | -- | -- | -- |
 
 Audited items needed to repair; `--` is not reached within 95. Below: the share of a 20-item audit landing on a genuinely corrupted task.
 
@@ -2413,10 +2461,14 @@ corrupted task**, and it repairs where uniform never does inside the sweep. At n
 nine the signal does not weaken, it ceases to exist --- there is nobody left to
 disagree --- and `margin`'s hit rate falls to **0.15**, next to uniform's 0.10. Chance.
 
-**The oracle is unaffected, and that is what makes this a policy failure rather than a
-hard case.** It still selects corrupted tasks at 1.00 and still repairs the estimate at
-12 items. The tasks remain fixable; what is gone is any observable signal pointing at
-them.
+**The oracle is unaffected in the only respect that is measured here: it still selects
+corrupted tasks at 1.00 while every deployable policy falls to chance.** That is what
+makes this a *policy* failure rather than a hard case --- the corrupted items remain
+perfectly identifiable to something that can see the answer, and become invisible to
+everything that cannot. What is gone is the observable, not the tasks.
+
+Whether those tasks are *fixable* by anchoring is not something this experiment shows,
+and an earlier version of this paragraph claimed it was. See the retraction above.
 
 !!! note "The prediction was half right, and the half it got wrong matters"
     The script predicted the advantage would be lost **and then invert** --- that

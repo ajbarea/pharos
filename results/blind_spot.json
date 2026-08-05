@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "3f1e74990dce",
+    "git_commit": "6333d7cc6b34",
     "git_dirty": true,
-    "generated_at": "2026-08-05T02:12:20+00:00",
+    "generated_at": "2026-08-05T09:02:47+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -39,44 +39,44 @@
   "repaired_threshold": 0.95,
   "thresholds": {
     "uniform": {
-      "0": 0,
-      "3": 0,
-      "5": 0,
+      "0": null,
+      "3": null,
+      "5": null,
       "7": null,
       "8": null,
       "9": null
     },
     "margin": {
-      "0": 0,
-      "3": 0,
-      "5": 0,
-      "7": 12,
-      "8": 12,
+      "0": null,
+      "3": null,
+      "5": null,
+      "7": null,
+      "8": null,
       "9": null
     },
     "posterior": {
-      "0": 0,
-      "3": 0,
-      "5": 0,
-      "7": 12,
-      "8": 12,
+      "0": null,
+      "3": null,
+      "5": null,
+      "7": null,
+      "8": null,
       "9": null
     },
     "consensus": {
-      "0": 0,
-      "3": 0,
-      "5": 0,
+      "0": null,
+      "3": null,
+      "5": null,
       "7": null,
       "8": null,
       "9": null
     },
     "oracle": {
-      "0": 0,
-      "3": 0,
-      "5": 0,
-      "7": 12,
-      "8": 12,
-      "9": 12
+      "0": null,
+      "3": null,
+      "5": null,
+      "7": null,
+      "8": null,
+      "9": null
     }
   },
   "audit_hit_rate": {
@@ -130,2315 +130,3966 @@
       "policy": "uniform",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "uniform",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "margin",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "posterior",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "consensus",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 0,
       "policy": "oracle",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "uniform",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "margin",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "posterior",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "consensus",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 3,
       "policy": "oracle",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "uniform",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "margin",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "posterior",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "consensus",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 0,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 2,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 5,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 8,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 12,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 5,
       "policy": "oracle",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 0,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 2,
       "agreement": 0.899,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.899,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 5,
       "agreement": 0.8974,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8974,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 8,
       "agreement": 0.8958,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8958,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 12,
       "agreement": 0.8936,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8936,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 20,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 30,
       "agreement": 0.8941,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.8941,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 45,
       "agreement": 0.8839,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.8839,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 60,
       "agreement": 0.8786,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 17,
+      "hits": 3,
+      "mechanical": 0.8786,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 80,
       "agreement": 0.875,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.875,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "uniform",
       "budget": 95,
       "agreement": 0.8571,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.8571,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 2,
       "agreement": 0.9091,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9091,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 5,
       "agreement": 0.9231,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.9231,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 8,
       "agreement": 0.9375,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 12,
+      "hits": 8,
+      "mechanical": 0.9375,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 12,
       "agreement": 0.9574,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 8,
+      "hits": 12,
+      "mechanical": 0.9574,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "margin",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 2,
       "agreement": 0.9091,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9091,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 5,
       "agreement": 0.9231,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.9231,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 8,
       "agreement": 0.9375,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 12,
+      "hits": 8,
+      "mechanical": 0.9375,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 12,
       "agreement": 0.9574,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 8,
+      "hits": 12,
+      "mechanical": 0.9574,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "posterior",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 2,
       "agreement": 0.899,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.899,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 5,
       "agreement": 0.8974,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8974,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 8,
       "agreement": 0.8958,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8958,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 12,
       "agreement": 0.8936,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8936,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 20,
       "agreement": 0.8889,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8889,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 30,
       "agreement": 0.8824,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8824,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 45,
       "agreement": 0.871,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.871,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 60,
       "agreement": 0.8571,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8571,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 80,
       "agreement": 0.8333,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8333,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "consensus",
       "budget": 95,
       "agreement": 0.8095,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8095,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 2,
       "agreement": 0.9091,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9091,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 5,
       "agreement": 0.9231,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.9231,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 8,
       "agreement": 0.9375,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 12,
+      "hits": 8,
+      "mechanical": 0.9375,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 12,
       "agreement": 0.9574,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 8,
+      "hits": 12,
+      "mechanical": 0.9574,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 7,
       "policy": "oracle",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 2,
       "agreement": 0.899,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.899,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 5,
       "agreement": 0.8974,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8974,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 8,
       "agreement": 0.8958,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8958,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 12,
       "agreement": 0.8936,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8936,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 20,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 30,
       "agreement": 0.8941,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.8941,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 45,
       "agreement": 0.8839,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.8839,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 60,
       "agreement": 0.8786,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 17,
+      "hits": 3,
+      "mechanical": 0.8786,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 80,
       "agreement": 0.875,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.875,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "uniform",
       "budget": 95,
       "agreement": 0.8571,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.8571,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 2,
       "agreement": 0.9091,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9091,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 5,
       "agreement": 0.9231,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.9231,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 8,
       "agreement": 0.9375,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 12,
+      "hits": 8,
+      "mechanical": 0.9375,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 12,
       "agreement": 0.9574,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 8,
+      "hits": 12,
+      "mechanical": 0.9574,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "margin",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 2,
       "agreement": 0.9091,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9091,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 5,
       "agreement": 0.9231,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.9231,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 8,
       "agreement": 0.9375,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 12,
+      "hits": 8,
+      "mechanical": 0.9375,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 12,
       "agreement": 0.9574,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 8,
+      "hits": 12,
+      "mechanical": 0.9574,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "posterior",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 2,
       "agreement": 0.899,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.899,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 5,
       "agreement": 0.8974,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8974,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 8,
       "agreement": 0.8958,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8958,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 12,
       "agreement": 0.8936,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8936,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 20,
       "agreement": 0.8889,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8889,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 30,
       "agreement": 0.8824,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8824,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 45,
       "agreement": 0.871,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.871,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 60,
       "agreement": 0.8571,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8571,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 80,
       "agreement": 0.8333,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8333,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "consensus",
       "budget": 95,
       "agreement": 0.8095,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8095,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 2,
       "agreement": 0.9091,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9091,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 5,
       "agreement": 0.9231,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.9231,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 8,
       "agreement": 0.9375,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 12,
+      "hits": 8,
+      "mechanical": 0.9375,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 12,
       "agreement": 0.9574,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 8,
+      "hits": 12,
+      "mechanical": 0.9574,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 8,
       "policy": "oracle",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 2,
       "agreement": 0.899,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.899,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 5,
       "agreement": 0.8974,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8974,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 8,
       "agreement": 0.8958,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8958,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 12,
       "agreement": 0.8936,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8936,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 20,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 30,
       "agreement": 0.8941,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.8941,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 45,
       "agreement": 0.8839,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.8839,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 60,
       "agreement": 0.8786,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 17,
+      "hits": 3,
+      "mechanical": 0.8786,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 80,
       "agreement": 0.875,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.875,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "uniform",
       "budget": 95,
       "agreement": 0.8571,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.8571,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 2,
       "agreement": 0.899,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.899,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 5,
       "agreement": 0.8974,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8974,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 8,
       "agreement": 0.8958,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8958,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 12,
       "agreement": 0.8989,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 19,
+      "hits": 1,
+      "mechanical": 0.8989,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 20,
       "agreement": 0.9056,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 17,
+      "hits": 3,
+      "mechanical": 0.9056,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 30,
       "agreement": 0.9059,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 16,
+      "hits": 4,
+      "mechanical": 0.9059,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 45,
       "agreement": 0.9097,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 14,
+      "hits": 6,
+      "mechanical": 0.9097,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 60,
       "agreement": 0.9071,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 13,
+      "hits": 7,
+      "mechanical": 0.9071,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 80,
       "agreement": 0.8917,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 13,
+      "hits": 7,
+      "mechanical": 0.8917,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "margin",
       "budget": 95,
       "agreement": 0.8857,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 12,
+      "hits": 8,
+      "mechanical": 0.8857,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 2,
       "agreement": 0.899,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.899,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 5,
       "agreement": 0.8974,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8974,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 8,
       "agreement": 0.901,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 19,
+      "hits": 1,
+      "mechanical": 0.901,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 12,
       "agreement": 0.8989,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 19,
+      "hits": 1,
+      "mechanical": 0.8989,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 20,
       "agreement": 0.9111,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 16,
+      "hits": 4,
+      "mechanical": 0.9111,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 30,
       "agreement": 0.9118,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.9118,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 45,
       "agreement": 0.9161,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 13,
+      "hits": 7,
+      "mechanical": 0.9161,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 60,
       "agreement": 0.9071,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 13,
+      "hits": 7,
+      "mechanical": 0.9071,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 80,
       "agreement": 0.9083,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 11,
+      "hits": 9,
+      "mechanical": 0.9083,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "posterior",
       "budget": 95,
       "agreement": 0.9238,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 8,
+      "hits": 12,
+      "mechanical": 0.9238,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 2,
       "agreement": 0.899,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.899,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 5,
       "agreement": 0.8974,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8974,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 8,
       "agreement": 0.8958,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.8958,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 12,
       "agreement": 0.8989,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 19,
+      "hits": 1,
+      "mechanical": 0.8989,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 20,
       "agreement": 0.9056,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 17,
+      "hits": 3,
+      "mechanical": 0.9056,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 30,
       "agreement": 0.9059,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 16,
+      "hits": 4,
+      "mechanical": 0.9059,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 45,
       "agreement": 0.9097,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 14,
+      "hits": 6,
+      "mechanical": 0.9097,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 60,
       "agreement": 0.9071,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 13,
+      "hits": 7,
+      "mechanical": 0.9071,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 80,
       "agreement": 0.8917,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 13,
+      "hits": 7,
+      "mechanical": 0.8917,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "consensus",
       "budget": 95,
       "agreement": 0.8857,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 12,
+      "hits": 8,
+      "mechanical": 0.8857,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 0,
       "agreement": 0.9,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 200,
+      "remaining_errors": 20,
+      "hits": 0,
+      "mechanical": 0.9,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 2,
       "agreement": 0.9091,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 198,
+      "remaining_errors": 18,
+      "hits": 2,
+      "mechanical": 0.9091,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 5,
       "agreement": 0.9231,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 195,
+      "remaining_errors": 15,
+      "hits": 5,
+      "mechanical": 0.9231,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 8,
       "agreement": 0.9375,
-      "repaired": false
+      "repaired": false,
+      "scored_tasks": 192,
+      "remaining_errors": 12,
+      "hits": 8,
+      "mechanical": 0.9375,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 12,
       "agreement": 0.9574,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 188,
+      "remaining_errors": 8,
+      "hits": 12,
+      "mechanical": 0.9574,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 20,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 180,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 30,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 170,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 45,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 155,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 140,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 80,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 120,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     },
     {
       "n_blind": 9,
       "policy": "oracle",
       "budget": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false,
+      "scored_tasks": 105,
+      "remaining_errors": 0,
+      "hits": 20,
+      "mechanical": 1.0,
+      "corrected": 0
     }
   ],
   "validity": {
-    "n": 200,
+    "n": 105,
     "quotable": true,
     "concerns": []
-  }
+  },
+  "scored_tasks_min": 105
 }
