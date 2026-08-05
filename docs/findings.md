@@ -71,7 +71,7 @@ scattered through it, and nothing in the grouping is a claim about how they rela
 | **Measurement design** | [9. Repeating one prompt measures the wrong thing](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing) · [17. Item difficulty does not separate the two](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst) |
 | **Disclosure and identity** | [11. The stream still names the analyst](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst) · [12. Reliability needs identity where it matters](#12-reliability-cannot-be-estimated-without-identity-where-it-matters) · [13. A tag can replace identity](#13-a-reliability-tag-can-replace-identity-and-the-leak-metric-cannot-tell-you-when) · [16. The cliff assumes independent fleets](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently) |
 | **Cost of running it** | [14. What the agent costs on its hardware](#14-what-the-agent-costs-on-the-hardware-it-is-meant-to-run-on) · [15. The budget is spent on the wrong variable](#15-the-standard-privacy-mechanism-spends-the-budget-on-the-wrong-variable) · [19. What an authority of record costs](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) |
-| **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) · [20. Audit where the fleet splits](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise) · [21. Where that policy stops working](#21-the-corpus-the-audit-policy-cannot-handle-built-on-purpose) |
+| **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) · [20. Audit where the fleet splits](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise) · [21. Where that policy stops working](#21-the-corpus-the-audit-policy-cannot-handle-built-on-purpose) · [22. The trace it leaves anyway](#22-the-trace-a-blind-spot-leaves-after-it-stops-leaving-disagreement) |
 
 ## What these sizes can resolve
 
@@ -181,8 +181,9 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `adapter_learnability` | 60 | **no** | **base**: 9/60 answers were unparsable (15%); every other number describes only the remainder; accuracy 0.392 does not beat the majority floor 0.647: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `analyst_review` | 40 | yes | - |
 | `audit_policy` | 2 | **no** | n=2 is below 30; treat differences as provisional |
-| `authority_anchors` | 8 | **no** | n=8 is below 30; treat differences as provisional |
+| `authority_anchors` | 11 | **no** | n=11 is below 30; treat differences as provisional |
 | `blind_spot` | 105 | yes | - |
+| `channel_bias` | 200 | yes | - |
 | `consensus_reliability` | 200 | yes | - |
 | `correlated_fleets` | 60 | yes | - |
 | `decode_stability` | 30 | yes | - |
@@ -236,7 +237,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**27 of 57** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**27 of 58** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 Exempt, because there is no sampling question to answer:
 
@@ -1811,19 +1812,33 @@ reproduces finding 12's central result on a different fleet distribution.
     nine was not chosen on principle. P(wrong majority), independent against one
     culture:
 
-    | Fleet | rate 0.1: independent | one culture | understatement | rate 0.3: independent | one culture | understatement |
+    | Fleet | rate 0.1: independent (exact) | one culture | understatement | rate 0.3: independent | one culture | understatement |
     | --- | --- | --- | --- | --- | --- | --- |
-    | 5 | 0.009 | 0.100 | 12x | 0.163 | 0.300 | 2x |
-    | **9** (committed) | 0.001 | 0.100 | **112x** | 0.099 | 0.300 | 3x |
-    | 15 | 0.000 | 0.100 | unbounded | 0.050 | 0.300 | 6x |
-    | 25 | 0.000 | 0.100 | unbounded | 0.018 | 0.300 | 17x |
-    | 51 | 0.000 | 0.100 | unbounded | 0.001 | 0.300 | **214x** |
+    | 5 | 8.56e-03 | 0.100 | 12x | 0.163 | 0.300 | 2x |
+    | **9** (committed) | 8.91e-04 | 0.100 | **112x** | 0.099 | 0.300 | 3x |
+    | 15 | 3.36e-05 | 0.100 | **2,974x** | 0.050 | 0.300 | 6x |
+    | 25 | 1.62e-07 | 0.100 | **616,966x** | 0.018 | 0.300 | 17x |
+    | 51 | 1.98e-13 | 0.100 | **5.0e11x** | 0.001 | 0.300 | **214x** |
 
     **The understatement grows monotonically with fleet size, at every rate.** The
     mechanism is not subtle: independent draws concentrate as the fleet grows, so
     P(wrong majority) falls toward zero, while a shared culture is a single coin
-    whatever the headcount. By 15 analysts the independent probability at a 10% error
-    rate rounds to zero at three decimals and the ratio stops being finite.
+    whatever the headcount.
+
+    !!! warning "Corrected 2026-08-05: these were published as "unbounded", and they are not"
+        The three widest fleets carried `unbounded` here, on the stated grounds that
+        the independent probability "rounds to zero at three decimals and the ratio
+        stops being finite". It does not stop being finite --- the *display* rounded to
+        zero and the artifact divided by that rounded value, so the ratio was recorded
+        as null. The same rounding put 111.1 in the artifact where the exact binomial
+        gives 112.2, which is the value the prose had already been corrected to.
+
+        `measure_fleet_sensitivity.py` now computes the ratio from the exact binomial
+        and records `exact_independent` beside the rounded rate. The corrected numbers
+        are larger than the claim they replace, and they make the argument stronger
+        rather than weaker: an understatement of 616,966x at 25 analysts is a sharper
+        statement than "unbounded", which reads as a limit artifact and invites exactly
+        the dismissal it deserved.
 
     So the reported 112x is not the headline number, it is the **smallest** the
     understatement gets in any fleet a deployment would plausibly field. This is the
@@ -2206,56 +2221,85 @@ the build order has owed since step 3, and this prices it.
 counting it would measure how many answers the authority supplied rather than what they
 bought. Every number below is computed **only over unanchored tasks**.
 
-| Wrong of 9 | 0 | 5 | 12 | 50 | 80 | 100 | 150 | 180 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 4 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
-| **5** | 0.660 | **1.000** | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
-| **6** | 0.660 | 0.667 | 0.663 | 0.658 | 0.638 | **1.000** | 1.000 | 1.000 |
-| **7** | 0.660 | 0.667 | 0.663 | 0.658 | 0.638 | 0.667 | **1.000** | 1.000 |
-| **9** | 0.660 | 0.667 | 0.663 | 0.658 | 0.638 | 0.667 | 0.680 | **1.000** |
+<!-- BEGIN GENERATED: authority-grid -->
+| Wrong of 9 | 0 | 1 | 2 | 3 | 5 | 8 | 12 | 20 | 30 | 50 | 80 | 100 | 120 | 150 | 180 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 4 | **1.000** | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| 5 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | **1.000** | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| 6 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | 0.647 | 0.653 | 0.633 | **1.000** | 1.000 | 1.000 | 1.000 |
+| 7 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | 0.647 | 0.653 | 0.633 | 0.652 | 0.692 | **1.000** | 1.000 |
+| 9 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | 0.647 | 0.653 | 0.633 | 0.652 | 0.692 | 0.667 | 0.636 |
+
+Agreement over unanchored tasks only, at anchor seed 909. Bold marks each composition's first budget reaching 0.95; that crossing moves with the draw, which is what the table below reports.
+<!-- END GENERATED: authority-grid -->
 
 **The price is not linear and it is not a curve.** It is a second threshold, and it
 moves far faster than the fleet's error does:
 
 <!-- BEGIN GENERATED: authority-price -->
-| Wrong of 9 | Audited items needed | Share of the round |
-| --- | --- | --- |
-| 4 | 0 | 0.0% |
-| 5 | 5 | 2.5% |
-| 6 | 100 | 50.0% |
-| 7 | 150 | 75.0% |
-| 9 | 180 | 90.0% |
+| Wrong of 9 | Audited items needed (median) | Share of the round | Range over 21 draws | Draws that reached it |
+| --- | --- | --- | --- | --- |
+| 4 | 0 | 0.0% | 0 | 21 of 21 |
+| 5 | 12 | 6.0% | 2–30 | 21 of 21 |
+| 6 | 80 | 40.0% | 50–100 | 21 of 21 |
+| 7 | 150 | 75.0% | 120–180 | 21 of 21 |
+| 9 | not reached within 180 | — | — | 0 of 21 |
 
-Threshold for 'repaired' is agreement ≥ 0.95 on unanchored tasks, over a corpus of 200.
+Threshold for 'repaired' is agreement ≥ 0.95 on unanchored tasks, over a corpus of 200. The median is taken over 21 anchor draws with draws that never repair ordered last, so a composition most draws fail to repair reports no number rather than the sweep's upper edge.
 <!-- END GENERATED: authority-price -->
 
-At a bare majority an authority ruling on **five items in two hundred** restores the
-estimate on the **93** that remain scorable. One analyst further and the same repair costs **half the
-round**; two further, three quarters. The mechanism is visible in the M step: an
-anchored task constrains every contributor's confusion matrix, but the unanchored
-majority still outvotes it, so the anchors have to reach a share that dominates the
-estimate rather than merely inform it.
+At a bare majority an authority ruling on a **median of twelve items in two hundred**
+restores the estimate on the **93** that remain scorable. One analyst further and the
+same repair costs **two fifths of the round**; two further, three quarters. The
+mechanism is visible in the M step: an anchored task constrains every contributor's
+confusion matrix, but the unanchored majority still outvotes it, so the anchors have to
+reach a share that dominates the estimate rather than merely inform it.
 
 !!! danger "A partial budget is briefly worse than none"
-    The curve is not monotone. At 6 of 9 wrong, 80 anchors scores **0.638** against
+    The curve is not monotone. At 6 of 9 wrong, 80 anchors scores **0.633** against
     **0.660** with no anchors at all. A programme that funds an audit at a fraction of
     what the crossing requires does not buy a fraction of the benefit; it buys slightly
     less than nothing until it clears the threshold. This is the practical warning in
     the finding, and it is the reason to report the threshold rather than a rate.
 
+!!! warning "Retracted: this finding published a single draw, and the price moved"
+    Earlier versions of this section reported one number per composition, read off one
+    anchor draw: 5 items at a bare majority, 100 at six wrong, 150 at seven, and **180
+    at unanimity**. Those were not reproducible. Making the draw *nested* across
+    budgets --- so that a larger budget audits a superset rather than a fresh sample,
+    which is the property the targeted policies in
+    [finding 20](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise)
+    have by construction --- changed which items each seed picks and moved the
+    bare-majority price from 5 to 30, with no change to the method being priced.
+
+    A quantity that mobile under a re-draw is not a price, so the sweep now runs 21
+    draws and the table reports the median with its range. The bare-majority price
+    ranges **2 to 30 items across draws**, a factor of fifteen, and reporting any single
+    one of those as *the* answer overstates the precision by that much. The spread is
+    the finding the point estimate was hiding.
+
+    The unanimity row's 180 does not survive at all: across all 21 draws, **no budget up
+    to 180 of 200 repairs the unanimous fleet**. The earlier 1.000 came from one draw
+    clearing the bar on the twenty tasks left unanchored, which `validity.small_n`
+    flags. The corrected result agrees with what the design predicted, and the
+    prediction is now stated as measured rather than as an aside.
+
 !!! note "What the unanimity row is and is not"
     At 9 of 9 the fleet is unanimous, so there is no disagreement to estimate from and
-    the estimator has nothing to work with. The 1.000 at 180 anchors is real but it is
-    not assistance: the authority has ruled on 90% of the round, and what the remaining
-    10% gets is the benefit of having learned that every contributor is inverted. An
-    authority auditing nine items in ten has not been helped by a fleet. It is carried
-    as the control that shows where the mechanism stops being a mechanism.
+    the estimator has nothing to work with. No affordable budget repairs it, and that is
+    the point of carrying the row: it shows where the mechanism stops being a mechanism.
+    An authority that has to rule on nine items in ten has not been assisted by a fleet
+    even when the remaining tenth comes out right, so the row is a control rather than a
+    result.
 
     Anchors are drawn uniformly and without regard to difficulty. An authority that
     audited the *hardest* items would score better and would be assuming the question:
     knowing which items are hard is knowing where the fleet is wrong, which is what the
     estimate was meant to establish. Uniform is the honest floor; a targeted policy can
-    only beat it.
+    only beat it. The draw is nested across budgets so that a column of the sweep moves
+    the budget alone: with a fresh sample per budget, two adjacent cells differ in both
+    how many items were audited and which, and a threshold read off that comparison
+    cannot say which of the two it is measuring.
 
 ## 20. Audit where the fleet splits, and the prediction that said otherwise
 
@@ -2278,17 +2322,35 @@ than merely better than the floor.
 <!-- BEGIN GENERATED: audit-policy -->
 | Wrong of 9 | `uniform` | `margin` | `posterior` | `consensus` | `oracle` † |
 | --- | --- | --- | --- | --- | --- |
-| 5 | 5 | **2** | 2 | 80 | 2 |
-| 6 | 45 | **20** | 20 | 80 | 20 |
-| 7 | 80 | **30** | 30 | 95 | 30 |
+| 5 | 8 (2–20) | **2** | 2 | 80 | 2 |
+| 6 | 45 (30–60) | **20** | 20 | 80 | 20 |
+| 7 | 80 (60–80) | **30** | 30 | 95 | 30 |
 
 Items an authority must rule on to repair the estimate, out of **97 auditable** tasks (200 in the corpus). Lower is better; bold is the winning deployable policy. † `oracle` reads ground truth and is a bound rather than a method.
+
+`uniform` is a draw, not a rule: its cell is the median over 21 draws with the full range in brackets. The other policies select from the aggregate and have no draw to vary.
 <!-- END GENERATED: audit-policy -->
 
 **Uncertainty sampling wins, and it ties the oracle exactly.** Auditing the tasks the
-fleet splits on repairs six-of-nine at **20** items against uniform's 45, and
+fleet splits on repairs six-of-nine at **20** items against uniform's median 45, and
 seven-of-nine at **30** against 80. Scoring against the estimator's posterior instead
 of the raw votes gives the identical answer at every cell.
+
+!!! note "How much of that margin is the policy, and how much is the draw"
+    `margin` is deterministic given the aggregate; `uniform` is a sample, so the
+    comparison is only as good as the baseline's spread. Over 21 draws it is wide, and
+    the margin does not survive everywhere:
+
+    - At **five** wrong, uniform's *best* draw needs **2** items --- exactly what
+      `margin` needs. The bare-majority advantage is a median effect, not a guarantee,
+      and a single lucky audit would have shown no advantage at all.
+    - At **six** and **seven** wrong it holds against every draw: uniform's best is 30
+      and 60 against `margin`'s 20 and 30, so no draw of the baseline reaches the
+      targeted policy.
+
+    The claim that survives is therefore the one about the compositions where the price
+    had exploded, which is also where it matters. Reporting the baseline as a point
+    estimate would have made all three look alike.
 
 !!! danger "The prediction this script was written to test was wrong"
     It predicted that uncertainty sampling would **lose**, and lose to the policy that
@@ -2321,10 +2383,14 @@ of the raw votes gives the identical answer at every cell.
 
 !!! warning "Why it ties the oracle, and what that costs the claim"
     `margin`'s selection is a **subset of the items the fleet gets wrong** at every
-    budget tested --- 20 of 20, and 30 of 30 --- which is why it matches the oracle
-    exactly rather than approaching it. That is a property of a corpus whose difficulty
-    structure is discrete and known, where the hard items and the reviewer's blind spot
-    coincide by construction.
+    budget that fits inside that set: the estimator gets **33** of the auditable 97
+    wrong at zero anchors, and up to a budget of 33 every item `margin` picks is one of
+    them --- 20 of 20 at a budget of 20, 30 of 30 at 30. Above 33 neither `margin` nor
+    the oracle can keep the property, because there are only 33 wrong items to pick;
+    both saturate there. That is why it matches the oracle exactly rather than
+    approaching it, and it is a property of a corpus whose difficulty structure is
+    discrete and known, where the hard items and the reviewer's blind spot coincide by
+    construction.
     [Finding 17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)
     already names that coincidence and reports what it costs a different estimator.
 
@@ -2508,3 +2574,91 @@ and an earlier version of this paragraph claimed it was. See the retraction abov
     ruling puts all 200 tasks in the stream and all 20 corrupted verdicts with them.
     That two independent mechanisms keyed on the same field is exactly the kind of thing
     a generated benchmark hides until something is measured against it.
+
+## 22. The trace a blind spot leaves after it stops leaving disagreement
+
+`scripts/measure_channel_bias.py`, `results/channel_bias.json`
+
+[Finding 21](#21-the-corpus-the-audit-policy-cannot-handle-built-on-purpose) ended
+badly and left a specific question. A fleet unanimously sharing a channel blind spot is
+corrupted on a slice of the corpus, every deployable audit policy falls to chance on it,
+and an oracle on the same data still finds every affected item --- so the tasks are
+identifiable in principle and invisible in practice. **A deployment cannot tell which
+regime it is in.**
+
+That conclusion had a hidden premise. Every signal used to that point was built from
+*disagreement*, and unanimity is the absence of disagreement. But disagreement is not
+the only observable. The fleet's verdict **rate** is one too, and it can be conditioned
+on public structure rather than on who said what.
+
+**The statistic is a conditional independence test.** For an unbiased fleet, whether a
+task happens to carry a particular channel should say nothing about the verdict once you
+already know how much evidence the task shows:
+
+$$V \perp C \mid E$$
+
+with $V$ the fleet's significant-rate, $C$ whether the task carries the channel, and $E$
+the count of defining facts visible. A shared blind spot breaks exactly that: at a fixed
+evidence level, tasks whose evidence arrives through the discounted channel are called
+routine more often. **Conditioning on $E$ is what makes it a test rather than a
+correlation** --- channels are not spread evenly across difficulty here, and an
+unconditioned comparison would report an effect for any channel, which is the confound
+finding 21 had to retract a claim over.
+
+Significance is a within-stratum permutation null, matching the gate's idiom: channel
+labels are shuffled *inside* each evidence level, preserving the difficulty distribution
+and destroying only the association under test.
+
+<!-- BEGIN GENERATED: channel-bias -->
+| Blind of 9 | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` ‡ |
+| --- | --- | --- | --- | --- |
+| 0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| 5 | -1.8 | -1.2 | 1.7 | **8.1** |
+| 7 | -1.8 | -1.2 | 1.7 | **8.1** |
+| 9 | -1.8 | -1.2 | 1.7 | **8.1** |
+
+| Control | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` |
+| --- | --- | --- | --- | --- |
+| threshold error (not channel-linked) | 0.0 | 0.0 | 0.0 | 0.0 |
+
+Standard deviations above a within-stratum permutation null over 200 trials; bold is a detection at z ≥ 3. ‡ is the channel the fleet actually discounts.
+<!-- END GENERATED: channel-bias -->
+
+**It survives unanimity.** At nine of nine blind --- precisely where finding 21's
+policies score at chance --- the discounted channel stands at **z = 8.1** against its
+permutation null, and no other channel clears 1.8. The statistic reads the *level* of
+the fleet's verdict rather than its spread, so the disappearance of dissent costs it
+nothing.
+
+!!! success "One blind analyst in nine is as detectable as all nine"
+    The z-score is **identical at every share from 1 to 9**, and that is not a bug: a
+    blind spot scales a single fixed pattern of depressed rates, so the observed gap and
+    the permutation null scale together and the ratio cancels. Detection therefore does
+    not get harder as the habit spreads, and --- more usefully --- does not require the
+    habit to have spread at all.
+
+    That matters against
+    [finding 16](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently),
+    whose warning is that a shared training pipeline drives a fleet toward a common
+    error far faster than independent draws suggest. A house style is catchable here
+    *before* it becomes the majority, which is the only point at which catching it is
+    cheap.
+
+!!! note "Both negative controls are clean, and one of them could have voided the finding"
+    A detector that fires on everything detects nothing, so two fleets must produce no
+    detection.
+
+    - **An unbiased fleet**: z = 0.00 on every channel.
+    - **A fleet holding a threshold error** --- finding 12's wrong standard, which is
+      real, fleet-wide, and *not channel-linked*: z = 0.00 on every channel.
+
+    The second is the load-bearing one. Had it fired, the statistic would be reading
+    generic error rather than channel bias, and the finding would say nothing about
+    blind spots specifically.
+
+**What this does not claim.** It detects a blind spot aligned with a *known, public*
+partition of the corpus --- here the compartment a report arrived through. A shared error
+that follows no observable partition would leave no trace in this statistic either, and
+nothing here says how to find one. What has changed is narrower and still worth having:
+the specific regime finding 21 left as undetectable is detectable, cheaply, from data the
+aggregator already holds.

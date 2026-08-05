@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "6333d7cc6b34",
+    "git_commit": "0b046ef4796b",
     "git_dirty": true,
-    "generated_at": "2026-08-05T09:03:11+00:00",
+    "generated_at": "2026-08-05T16:00:33+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -38,6 +38,29 @@
   ],
   "repaired_threshold": 0.95,
   "policy_seed": 4242,
+  "uniform_seeds": [
+    4242,
+    4243,
+    4244,
+    4245,
+    4246,
+    4247,
+    4248,
+    4249,
+    4250,
+    4251,
+    4252,
+    4253,
+    4254,
+    4255,
+    4256,
+    4257,
+    4258,
+    4259,
+    4260,
+    4261,
+    4262
+  ],
   "deployable": [
     "uniform",
     "margin",
@@ -46,7 +69,7 @@
   ],
   "thresholds": {
     "uniform": {
-      "5": 5,
+      "5": 8,
       "6": 45,
       "7": 80
     },
@@ -69,6 +92,32 @@
       "5": 2,
       "6": 20,
       "7": 30
+    }
+  },
+  "uniform_spread": {
+    "5": {
+      "n_wrong": 5,
+      "seeds": 21,
+      "reached": 21,
+      "median": 8,
+      "lowest": 2,
+      "highest": 20
+    },
+    "6": {
+      "n_wrong": 6,
+      "seeds": 21,
+      "reached": 21,
+      "median": 45,
+      "lowest": 30,
+      "highest": 60
+    },
+    "7": {
+      "n_wrong": 7,
+      "seeds": 21,
+      "reached": 21,
+      "median": 80,
+      "lowest": 60,
+      "highest": 80
     }
   },
   "best_deployable": "margin",
@@ -112,11 +161,11 @@
       "budget": 2,
       "error": 0.0,
       "scored_tasks": 95,
-      "agreement": 0.6632,
+      "agreement": 0.6526,
       "repaired": false,
-      "remaining_errors": 32,
-      "hits": 1,
-      "mechanical": 0.6632,
+      "remaining_errors": 33,
+      "hits": 0,
+      "mechanical": 0.6526,
       "corrected": 0
     },
     {
@@ -125,12 +174,12 @@
       "budget": 5,
       "error": 0.0,
       "scored_tasks": 92,
-      "agreement": 1.0,
-      "repaired": true,
-      "remaining_errors": 0,
-      "hits": 3,
-      "mechanical": 0.6739,
-      "corrected": 30
+      "agreement": 0.6413,
+      "repaired": false,
+      "remaining_errors": 33,
+      "hits": 0,
+      "mechanical": 0.6413,
+      "corrected": 0
     },
     {
       "policy": "uniform",
@@ -138,12 +187,12 @@
       "budget": 8,
       "error": 0.0,
       "scored_tasks": 89,
-      "agreement": 1.0,
-      "repaired": true,
-      "remaining_errors": 0,
-      "hits": 3,
-      "mechanical": 0.6629,
-      "corrected": 30
+      "agreement": 0.6404,
+      "repaired": false,
+      "remaining_errors": 32,
+      "hits": 1,
+      "mechanical": 0.6404,
+      "corrected": 0
     },
     {
       "policy": "uniform",
@@ -154,9 +203,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 4,
-      "mechanical": 0.6588,
-      "corrected": 29
+      "hits": 3,
+      "mechanical": 0.6471,
+      "corrected": 30
     },
     {
       "policy": "uniform",
@@ -167,9 +216,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 6,
-      "mechanical": 0.6494,
-      "corrected": 27
+      "hits": 5,
+      "mechanical": 0.6364,
+      "corrected": 28
     },
     {
       "policy": "uniform",
@@ -180,9 +229,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 12,
-      "mechanical": 0.6866,
-      "corrected": 21
+      "hits": 10,
+      "mechanical": 0.6567,
+      "corrected": 23
     },
     {
       "policy": "uniform",
@@ -193,9 +242,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 15,
-      "mechanical": 0.6538,
-      "corrected": 18
+      "hits": 16,
+      "mechanical": 0.6731,
+      "corrected": 17
     },
     {
       "policy": "uniform",
@@ -206,9 +255,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 21,
-      "mechanical": 0.6757,
-      "corrected": 12
+      "hits": 19,
+      "mechanical": 0.6216,
+      "corrected": 14
     },
     {
       "policy": "uniform",
@@ -219,9 +268,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 29,
-      "mechanical": 0.7647,
-      "corrected": 4
+      "hits": 28,
+      "mechanical": 0.7059,
+      "corrected": 5
     },
     {
       "policy": "uniform",
@@ -232,9 +281,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 33,
-      "mechanical": 1.0,
-      "corrected": 0
+      "hits": 32,
+      "mechanical": 0.5,
+      "corrected": 1
     },
     {
       "policy": "uniform",
@@ -255,11 +304,11 @@
       "budget": 2,
       "error": 0.0,
       "scored_tasks": 95,
-      "agreement": 0.6632,
+      "agreement": 0.6526,
       "repaired": false,
-      "remaining_errors": 32,
-      "hits": 1,
-      "mechanical": 0.6632,
+      "remaining_errors": 33,
+      "hits": 0,
+      "mechanical": 0.6526,
       "corrected": 0
     },
     {
@@ -268,11 +317,11 @@
       "budget": 5,
       "error": 0.0,
       "scored_tasks": 92,
-      "agreement": 0.6739,
+      "agreement": 0.6413,
       "repaired": false,
-      "remaining_errors": 30,
-      "hits": 3,
-      "mechanical": 0.6739,
+      "remaining_errors": 33,
+      "hits": 0,
+      "mechanical": 0.6413,
       "corrected": 0
     },
     {
@@ -281,11 +330,11 @@
       "budget": 8,
       "error": 0.0,
       "scored_tasks": 89,
-      "agreement": 0.6629,
+      "agreement": 0.6404,
       "repaired": false,
-      "remaining_errors": 30,
-      "hits": 3,
-      "mechanical": 0.6629,
+      "remaining_errors": 32,
+      "hits": 1,
+      "mechanical": 0.6404,
       "corrected": 0
     },
     {
@@ -294,11 +343,11 @@
       "budget": 12,
       "error": 0.0,
       "scored_tasks": 85,
-      "agreement": 0.6588,
+      "agreement": 0.6471,
       "repaired": false,
-      "remaining_errors": 29,
-      "hits": 4,
-      "mechanical": 0.6588,
+      "remaining_errors": 30,
+      "hits": 3,
+      "mechanical": 0.6471,
       "corrected": 0
     },
     {
@@ -307,11 +356,11 @@
       "budget": 20,
       "error": 0.0,
       "scored_tasks": 77,
-      "agreement": 0.6494,
+      "agreement": 0.6364,
       "repaired": false,
-      "remaining_errors": 27,
-      "hits": 6,
-      "mechanical": 0.6494,
+      "remaining_errors": 28,
+      "hits": 5,
+      "mechanical": 0.6364,
       "corrected": 0
     },
     {
@@ -320,11 +369,11 @@
       "budget": 30,
       "error": 0.0,
       "scored_tasks": 67,
-      "agreement": 0.6866,
+      "agreement": 0.6567,
       "repaired": false,
-      "remaining_errors": 21,
-      "hits": 12,
-      "mechanical": 0.6866,
+      "remaining_errors": 23,
+      "hits": 10,
+      "mechanical": 0.6567,
       "corrected": 0
     },
     {
@@ -336,9 +385,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 15,
-      "mechanical": 0.6538,
-      "corrected": 18
+      "hits": 16,
+      "mechanical": 0.6731,
+      "corrected": 17
     },
     {
       "policy": "uniform",
@@ -349,9 +398,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 21,
-      "mechanical": 0.6757,
-      "corrected": 12
+      "hits": 19,
+      "mechanical": 0.6216,
+      "corrected": 14
     },
     {
       "policy": "uniform",
@@ -362,9 +411,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 29,
-      "mechanical": 0.7647,
-      "corrected": 4
+      "hits": 28,
+      "mechanical": 0.7059,
+      "corrected": 5
     },
     {
       "policy": "uniform",
@@ -375,9 +424,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 33,
-      "mechanical": 1.0,
-      "corrected": 0
+      "hits": 32,
+      "mechanical": 0.5,
+      "corrected": 1
     },
     {
       "policy": "uniform",
@@ -398,11 +447,11 @@
       "budget": 2,
       "error": 0.0,
       "scored_tasks": 95,
-      "agreement": 0.6632,
+      "agreement": 0.6526,
       "repaired": false,
-      "remaining_errors": 32,
-      "hits": 1,
-      "mechanical": 0.6632,
+      "remaining_errors": 33,
+      "hits": 0,
+      "mechanical": 0.6526,
       "corrected": 0
     },
     {
@@ -411,11 +460,11 @@
       "budget": 5,
       "error": 0.0,
       "scored_tasks": 92,
-      "agreement": 0.6739,
+      "agreement": 0.6413,
       "repaired": false,
-      "remaining_errors": 30,
-      "hits": 3,
-      "mechanical": 0.6739,
+      "remaining_errors": 33,
+      "hits": 0,
+      "mechanical": 0.6413,
       "corrected": 0
     },
     {
@@ -424,11 +473,11 @@
       "budget": 8,
       "error": 0.0,
       "scored_tasks": 89,
-      "agreement": 0.6629,
+      "agreement": 0.6404,
       "repaired": false,
-      "remaining_errors": 30,
-      "hits": 3,
-      "mechanical": 0.6629,
+      "remaining_errors": 32,
+      "hits": 1,
+      "mechanical": 0.6404,
       "corrected": 0
     },
     {
@@ -437,11 +486,11 @@
       "budget": 12,
       "error": 0.0,
       "scored_tasks": 85,
-      "agreement": 0.6588,
+      "agreement": 0.6471,
       "repaired": false,
-      "remaining_errors": 29,
-      "hits": 4,
-      "mechanical": 0.6588,
+      "remaining_errors": 30,
+      "hits": 3,
+      "mechanical": 0.6471,
       "corrected": 0
     },
     {
@@ -450,11 +499,11 @@
       "budget": 20,
       "error": 0.0,
       "scored_tasks": 77,
-      "agreement": 0.6494,
+      "agreement": 0.6364,
       "repaired": false,
-      "remaining_errors": 27,
-      "hits": 6,
-      "mechanical": 0.6494,
+      "remaining_errors": 28,
+      "hits": 5,
+      "mechanical": 0.6364,
       "corrected": 0
     },
     {
@@ -463,11 +512,11 @@
       "budget": 30,
       "error": 0.0,
       "scored_tasks": 67,
-      "agreement": 0.6866,
+      "agreement": 0.6567,
       "repaired": false,
-      "remaining_errors": 21,
-      "hits": 12,
-      "mechanical": 0.6866,
+      "remaining_errors": 23,
+      "hits": 10,
+      "mechanical": 0.6567,
       "corrected": 0
     },
     {
@@ -476,11 +525,11 @@
       "budget": 45,
       "error": 0.0,
       "scored_tasks": 52,
-      "agreement": 0.6538,
+      "agreement": 0.6731,
       "repaired": false,
-      "remaining_errors": 18,
-      "hits": 15,
-      "mechanical": 0.6538,
+      "remaining_errors": 17,
+      "hits": 16,
+      "mechanical": 0.6731,
       "corrected": 0
     },
     {
@@ -489,11 +538,11 @@
       "budget": 60,
       "error": 0.0,
       "scored_tasks": 37,
-      "agreement": 0.6757,
+      "agreement": 0.6216,
       "repaired": false,
-      "remaining_errors": 12,
-      "hits": 21,
-      "mechanical": 0.6757,
+      "remaining_errors": 14,
+      "hits": 19,
+      "mechanical": 0.6216,
       "corrected": 0
     },
     {
@@ -505,9 +554,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 29,
-      "mechanical": 0.7647,
-      "corrected": 4
+      "hits": 28,
+      "mechanical": 0.7059,
+      "corrected": 5
     },
     {
       "policy": "uniform",
@@ -518,9 +567,9 @@
       "agreement": 1.0,
       "repaired": true,
       "remaining_errors": 0,
-      "hits": 33,
-      "mechanical": 1.0,
-      "corrected": 0
+      "hits": 32,
+      "mechanical": 0.5,
+      "corrected": 1
     },
     {
       "policy": "margin",

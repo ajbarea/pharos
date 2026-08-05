@@ -81,9 +81,24 @@ COMPOSITIONS = (4, 5, 6, 7, 9)
 #: wide margin, and the exact threshold is reported so a reader can move it.
 REPAIRED = 0.95
 
-#: Seed for choosing which tasks the authority rules on. Distinct from the corpus seed
+#: Seeds for choosing which tasks the authority rules on. Distinct from the corpus seed
 #: so the anchor draw cannot correlate with corpus structure by accident.
-ANCHOR_SEED = 909
+#:
+#: Plural, and that is the point. This measured one draw, and one draw is not a price.
+#: Making the draw nested across budgets -- a change to *which* items a given seed
+#: picks, not to the method -- moved the five-wrong threshold from 5 anchors to 30 and
+#: turned the nine-wrong threshold from "180" into "not reached", with nothing else
+#: touched. A number that mobile under a re-draw has to be reported with its spread,
+#: so the sweep runs every seed and the headline is the median over them.
+#:
+#: Odd count on purpose: the median is then an observed draw rather than an average of
+#: two, which matters because the quantity is censored -- a draw that never repairs has
+#: no finite threshold to average.
+ANCHOR_SEEDS = tuple(909 + i for i in range(21))
+
+#: The draw whose full agreement grid is printed and published. One seed's grid is what
+#: a reader can follow; the spread is what the claim rests on.
+ANCHOR_SEED = ANCHOR_SEEDS[0]
 
 
 def choose_anchors(task_ids: Sequence[str], count: int, *, seed: int) -> tuple[str, ...]:
@@ -93,9 +108,73 @@ def choose_anchors(task_ids: Sequence[str], count: int, *, seed: int) -> tuple[s
     look better and would be assuming the thing in question: knowing which items are
     hard is knowing where the fleet is wrong, which is what the estimate was supposed
     to establish. Uniform is the honest floor, and a targeted policy can only beat it.
+
+    Nested across budgets, which `random.sample` is not. One shuffled order is drawn
+    and sliced, so the draw at budget `b` is a subset of the draw at any larger budget
+    -- the same property `select` gives the targeted policies by construction, and the
+    reason `tests/test_audit_policy.py` could only assert nesting for those. A fresh
+    `sample` per budget returns a uniform subset of the right size, so each cell was
+    individually honest, but the sweep then moved two things at once: a threshold read
+    off it could sit where a *different set of items* was audited rather than where
+    more of them were. Slicing one order isolates the budget, and each prefix is still
+    a uniform random subset of its size.
     """
-    rng = Random(seed)  # noqa: S311
-    return tuple(sorted(rng.sample(list(task_ids), count))) if count else ()
+    if not count:
+        return ()
+    order = list(task_ids)
+    # `sample` raised on an oversized count; a slice would quietly return fewer and
+    # report a budget that was never spent, so the loudness is kept explicitly.
+    if count > len(order):
+        raise ValueError(f"anchor budget {count} exceeds the {len(order)} available tasks")
+    Random(seed).shuffle(order)  # noqa: S311
+    return tuple(sorted(order[:count]))
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class ThresholdSpread:
+    """What the audited-items price looks like across draws, rather than in one.
+
+    `reached` is the censoring: a draw that never repairs within the sweep has no
+    finite threshold, and averaging it in at the sweep's maximum would report the
+    experiment's edge as a measurement. So the median is taken over the ordered draws
+    with unreached ones sorted last, which yields `None` when more than half of them
+    never repair -- the honest answer being "usually not reached", not a number.
+    """
+
+    n_wrong: int
+    seeds: int
+    reached: int
+    median: int | None
+    lowest: int | None
+    highest: int | None
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "n_wrong": self.n_wrong,
+            "seeds": self.seeds,
+            "reached": self.reached,
+            "median": self.median,
+            "lowest": self.lowest,
+            "highest": self.highest,
+        }
+
+
+def summarize_thresholds(n_wrong: int, thresholds: Sequence[int | None]) -> ThresholdSpread:
+    """Median and range of a censored threshold, over one draw per seed."""
+    if not thresholds:
+        raise ValueError("no draws to summarize")
+    reached = sorted(t for t in thresholds if t is not None)
+    # Unreached sort after every finite value, so the median lands on `None` exactly
+    # when at least half the draws failed to repair.
+    ordered: list[int | None] = [*reached, *([None] * (len(thresholds) - len(reached)))]
+    return ThresholdSpread(
+        n_wrong=n_wrong,
+        seeds=len(thresholds),
+        reached=len(reached),
+        median=ordered[(len(ordered) - 1) // 2],
+        lowest=reached[0] if reached else None,
+        highest=reached[-1] if reached else None,
+    )
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -142,6 +221,7 @@ def main() -> int:
 
     rows: list[Row] = []
     breakeven: dict[int, int | None] = {}
+    spreads: dict[int, ThresholdSpread] = {}
 
     for n_wrong in COMPOSITIONS:
         if n_wrong > args.fleet:
@@ -149,56 +229,70 @@ def main() -> int:
         flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
         partitioned = partition_by_contributor(flat)
         cells: list[str] = []
-        first_repaired: int | None = None
+        per_seed: list[int | None] = []
 
-        for count in ANCHOR_COUNTS:
-            anchored = choose_anchors(task_ids, count, seed=ANCHOR_SEED)
-            anchors = {t: truth[t] for t in anchored}
-            estimate = federated_dawid_skene(partitioned, seed=MASK_SEED, anchors=anchors)
+        for anchor_seed in ANCHOR_SEEDS:
+            primary = anchor_seed == ANCHOR_SEED
+            first_repaired: int | None = None
 
-            # The whole methodology: an anchored task's label was supplied, so it is
-            # removed from the denominator. What remains is what the anchor bought.
-            scored = {t: v for t, v in truth.items() if t not in anchors}
-            labels = {t: v for t, v in estimate.labels().items() if t not in anchors}
-            agreement = round(agreement_with(labels, scored), 4)
-            repaired = agreement >= REPAIRED
-            if repaired and first_repaired is None:
-                first_repaired = count
+            for count in ANCHOR_COUNTS:
+                anchored = choose_anchors(task_ids, count, seed=anchor_seed)
+                anchors = {t: truth[t] for t in anchored}
+                estimate = federated_dawid_skene(partitioned, seed=MASK_SEED, anchors=anchors)
 
-            rows.append(
-                Row(
+                # The whole methodology: an anchored task's label was supplied, so it is
+                # removed from the denominator. What remains is what the anchor bought.
+                scored = {t: v for t, v in truth.items() if t not in anchors}
+                labels = {t: v for t, v in estimate.labels().items() if t not in anchors}
+                agreement = round(agreement_with(labels, scored), 4)
+                repaired = agreement >= REPAIRED
+                if repaired and first_repaired is None:
+                    first_repaired = count
+
+                if not primary:
+                    continue
+                rows.append(
+                    Row(
+                        n_wrong=n_wrong,
+                        anchors=count,
+                        anchor_share=round(count / len(tasks), 4),
+                        scored_tasks=len(labels),
+                        agreement=agreement,
+                        repaired=repaired,
+                    )
+                )
+                cells.append(f"{agreement:>6.3f}")
+                record(
+                    "authority.cell",
+                    agreement,
                     n_wrong=n_wrong,
                     anchors=count,
-                    anchor_share=round(count / len(tasks), 4),
-                    scored_tasks=len(labels),
-                    agreement=agreement,
-                    repaired=repaired,
+                    scored=len(labels),
                 )
-            )
-            cells.append(f"{agreement:>6.3f}")
-            record(
-                "authority.cell",
-                agreement,
-                n_wrong=n_wrong,
-                anchors=count,
-                scored=len(labels),
-            )
 
-        breakeven[n_wrong] = first_repaired
+            per_seed.append(first_repaired)
+            if primary:
+                breakeven[n_wrong] = first_repaired
+
+        spreads[n_wrong] = summarize_thresholds(n_wrong, per_seed)
         print(f"  {n_wrong:>6}{''.join(cells)}")
 
     print()
-    print(f"  {'wrong':>6}  anchors needed to reach {REPAIRED:.2f}")
-    print("  " + "-" * 40)
-    for n_wrong, count in breakeven.items():
-        if count is None:
-            print(f"  {n_wrong:>6}  not reached within {max(ANCHOR_COUNTS)}")
+    print(f"  {'wrong':>6}  anchors needed to reach {REPAIRED:.2f}, over {len(ANCHOR_SEEDS)} draws")
+    print("  " + "-" * 56)
+    needed: dict[int, int | None] = {}
+    for n_wrong, spread in spreads.items():
+        needed[n_wrong] = spread.median
+        censored = spread.seeds - spread.reached
+        tail = f"  [{spread.lowest}-{spread.highest}]" if spread.reached else ""
+        tail += f"  ({censored} of {spread.seeds} never reached)" if censored else ""
+        if spread.median is None:
+            print(f"  {n_wrong:>6}  not reached within {max(ANCHOR_COUNTS)}{tail}")
         else:
-            print(
-                f"  {n_wrong:>6}  {count} of {len(tasks)} ({count / len(tasks):.1%} of the round)"
-            )
+            share = spread.median / len(tasks)
+            print(f"  {n_wrong:>6}  median {spread.median} of {len(tasks)} ({share:.1%}){tail}")
 
-    unrepaired = [n for n, c in breakeven.items() if c is None]
+    unrepaired = [n for n, c in needed.items() if c is None]
     if unrepaired:
         # Loud, because a composition no affordable authority repairs is the honest
         # limit of this mechanism and is the thing a proposal must not overstate.
@@ -216,12 +310,18 @@ def main() -> int:
         "fleet": args.fleet,
         "events": args.events,
         "anchor_seed": ANCHOR_SEED,
+        "anchor_seeds": list(ANCHOR_SEEDS),
         "mask_seed": MASK_SEED,
         "repaired_threshold": REPAIRED,
         "anchor_counts": list(ANCHOR_COUNTS),
         "compositions": list(COMPOSITIONS),
+        # One seed's agreement grid, the one a reader can follow cell by cell. The
+        # claim does not rest on it; `anchors_needed` is the median over every draw.
         "grid": [r.as_dict() for r in rows],
-        "anchors_needed": breakeven,
+        "grid_anchor_seed": ANCHOR_SEED,
+        "anchors_needed": needed,
+        "anchors_needed_primary_draw": breakeven,
+        "anchors_needed_spread": {str(n): s.as_dict() for n, s in spreads.items()},
         # The corpus is 200 but the estimator only covers the ~97 tasks some
         # contributor reported on, and anchoring shrinks that further -- to 8 at a
         # budget of 180. Scoring validity on len(tasks) reported quotable: true for
@@ -235,7 +335,7 @@ def main() -> int:
                 (r.scored_tasks for r in rows if r.n_wrong == n and r.anchors == count),
                 None,
             )
-            for n, count in breakeven.items()
+            for n, count in needed.items()
             if count is not None
         },
     }

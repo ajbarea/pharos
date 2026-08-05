@@ -360,6 +360,10 @@ _METRIC_META: dict[str, tuple[str, str]] = {
     "gate.probe_auc": ("1", "AUC of one surface probe against the class label"),
     "gate.surface_baseline": ("1", "Best surface-feature AUC, the score to report against"),
     "generate.reports": ("{report}", "Reports rendered for a generated corpus"),
+    "channelbias.z": (
+        "1",
+        "Standard deviations above the permutation null for one channel's verdict gap",
+    ),
     "blindspot.threshold": (
         "{task}",
         "Audited items needed to repair, at one blind-spot share and policy",
@@ -371,6 +375,10 @@ _METRIC_META: dict[str, tuple[str, str]] = {
     "audit.fallible": (
         "{task}",
         "Audited items needed to repair, at one authority error rate",
+    ),
+    "audit.uniform_spread": (
+        "{task}",
+        "Median audited items the uniform baseline needs, over its draws (-1 if never)",
     ),
     "authority.cell": (
         "1",

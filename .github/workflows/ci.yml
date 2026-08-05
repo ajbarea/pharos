@@ -195,6 +195,12 @@ jobs:
       # everywhere. It also asserts the blind channel is still orthogonal to difficulty.
       - name: Check the audit policy still fails where it should
         run: uv run python scripts/measure_blind_spot.py
+      # Finding 22 is finding 21's answer, and it fails in the way that matters: the
+      # script's two negative controls must stay clean. If an unbiased fleet or a
+      # fleet with a non-channel-linked threshold error starts scoring a detection,
+      # the statistic is reading generic error and the finding is void.
+      - name: Detect a blind spot that leaves no disagreement
+        run: uv run python scripts/measure_channel_bias.py
       # Fails on a warning the project does not expect, and on an expected warning
       # that stopped firing. The second case is the subtle one: a finding that quietly
       # stops reporting itself looks identical to a clean run.

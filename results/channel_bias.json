@@ -1,0 +1,236 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "0b046ef4796b",
+    "git_dirty": true,
+    "generated_at": "2026-08-05T10:34:08+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "seed": 7
+  },
+  "fleet": 9,
+  "events": 200,
+  "trials": 200,
+  "detection_z": 3.0,
+  "blind_channel": "PARTNER",
+  "shares": [
+    0,
+    5,
+    7,
+    9
+  ],
+  "sweep": [
+    {
+      "n_blind": 0,
+      "detections": [
+        {
+          "channel": "SENSOR",
+          "delta": 0.0,
+          "null_mean": 0.0,
+          "null_sd": 0.0,
+          "z": 0.0,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "LIAISON",
+          "delta": 0.0,
+          "null_mean": 0.0,
+          "null_sd": 0.0,
+          "z": 0.0,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "LEGAL",
+          "delta": 0.0,
+          "null_mean": 0.0,
+          "null_sd": 0.0,
+          "z": 0.0,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "PARTNER",
+          "delta": 0.0,
+          "null_mean": 0.0,
+          "null_sd": 0.0,
+          "z": 0.0,
+          "detected": false,
+          "strata": 4
+        }
+      ]
+    },
+    {
+      "n_blind": 5,
+      "detections": [
+        {
+          "channel": "SENSOR",
+          "delta": 0.1001,
+          "null_mean": -0.007,
+          "null_sd": 0.0602,
+          "z": -1.78,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "LIAISON",
+          "delta": 0.0421,
+          "null_mean": -0.0003,
+          "null_sd": 0.0349,
+          "z": -1.21,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "LEGAL",
+          "delta": -0.0422,
+          "null_mean": -0.0033,
+          "null_sd": 0.0224,
+          "z": 1.74,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "PARTNER",
+          "delta": -0.1389,
+          "null_mean": -0.0015,
+          "null_sd": 0.017,
+          "z": 8.07,
+          "detected": true,
+          "strata": 4
+        }
+      ]
+    },
+    {
+      "n_blind": 7,
+      "detections": [
+        {
+          "channel": "SENSOR",
+          "delta": 0.1401,
+          "null_mean": -0.0098,
+          "null_sd": 0.0843,
+          "z": -1.78,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "LIAISON",
+          "delta": 0.0589,
+          "null_mean": -0.0004,
+          "null_sd": 0.0488,
+          "z": -1.21,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "LEGAL",
+          "delta": -0.0591,
+          "null_mean": -0.0046,
+          "null_sd": 0.0314,
+          "z": 1.74,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "PARTNER",
+          "delta": -0.1944,
+          "null_mean": -0.0021,
+          "null_sd": 0.0238,
+          "z": 8.07,
+          "detected": true,
+          "strata": 4
+        }
+      ]
+    },
+    {
+      "n_blind": 9,
+      "detections": [
+        {
+          "channel": "SENSOR",
+          "delta": 0.1801,
+          "null_mean": -0.0126,
+          "null_sd": 0.1083,
+          "z": -1.78,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "LIAISON",
+          "delta": 0.0758,
+          "null_mean": -0.0005,
+          "null_sd": 0.0628,
+          "z": -1.21,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "LEGAL",
+          "delta": -0.076,
+          "null_mean": -0.0059,
+          "null_sd": 0.0404,
+          "z": 1.74,
+          "detected": false,
+          "strata": 4
+        },
+        {
+          "channel": "PARTNER",
+          "delta": -0.25,
+          "null_mean": -0.0027,
+          "null_sd": 0.0306,
+          "z": 8.07,
+          "detected": true,
+          "strata": 4
+        }
+      ]
+    }
+  ],
+  "threshold_control": [
+    {
+      "channel": "SENSOR",
+      "delta": 0.0,
+      "null_mean": 0.0,
+      "null_sd": 0.0,
+      "z": 0.0,
+      "detected": false,
+      "strata": 4
+    },
+    {
+      "channel": "LIAISON",
+      "delta": 0.0,
+      "null_mean": 0.0,
+      "null_sd": 0.0,
+      "z": 0.0,
+      "detected": false,
+      "strata": 4
+    },
+    {
+      "channel": "LEGAL",
+      "delta": 0.0,
+      "null_mean": 0.0,
+      "null_sd": 0.0,
+      "z": 0.0,
+      "detected": false,
+      "strata": 4
+    },
+    {
+      "channel": "PARTNER",
+      "delta": 0.0,
+      "null_mean": 0.0,
+      "null_sd": 0.0,
+      "z": 0.0,
+      "detected": false,
+      "strata": 4
+    }
+  ],
+  "detected_at_unanimity": [
+    "PARTNER"
+  ],
+  "controls_clean": true,
+  "validity": {
+    "n": 200,
+    "quotable": true,
+    "concerns": []
+  }
+}

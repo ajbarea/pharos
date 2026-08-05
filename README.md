@@ -142,7 +142,7 @@ the system it serves.
 
 ## What has been measured
 
-Twenty-two findings so far, each reproducible from a named script and each backed by a
+Twenty-three findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, a third was retracted outright after a generator bug, and a
@@ -175,6 +175,7 @@ corrections, and the caveats.
 | 19 | An authority of record repairs the cliff, and its price explodes |
 | 20 | Audit where the fleet splits, and the prediction that said otherwise |
 | 21 | The corpus the audit policy cannot handle, built on purpose |
+| 22 | The trace a blind spot leaves after it stops leaving disagreement |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -196,6 +197,7 @@ make secure      # whether reliability can be estimated under secure aggregation
 make authority   # what an authority of record costs, in audited items (no model)
 make audit       # which items to rule on, and what a fallible authority buys (no model)
 make blindspot   # where that policy stops working, built on purpose (no model)
+make channel-bias # whether a unanimous blind spot leaves any trace at all (no model)
 
 # Sensitivity: whether a finding survives a parameter nobody chose on principle
 make fleet-sensitivity  # findings 12, 16 and 17 across fleets of 5 to 51 (no model)
@@ -301,13 +303,30 @@ make teacher-fleet      # whether adapters inherit their teachers, across 24 of 
    inside which regime it is in, because the observable that would distinguish them is
    the one that has gone.
 
-**The open problem, stated as precisely as the measurements now allow.** Every repair
-in this repository ultimately rests on an exogenous label, and finding 21 shows the
-cheap way of deciding *where* to spend those labels has a regime in which it is worth
-nothing. What is unmeasured is whether a fleet can detect which regime it is in --- a
-shared blind spot leaves no disagreement, but it may leave something else, and nothing
-here has looked. That is a detection question rather than a selection one, and it is
-the next thing worth building.
+10. **Detecting the regime.** Done, and it answers finding 21. Every signal up to that
+   point was built from disagreement, and unanimity is the absence of disagreement --
+   but the fleet's verdict *rate* is an observable too, and it can be conditioned on
+   public structure. Testing whether the verdict rate is independent of a channel given
+   the evidence count finds the discounted channel at **z = 8.1** at nine of nine blind,
+   exactly where every audit policy scores at chance, with no other channel above 1.8.
+
+   Two properties make it worth having. **One blind analyst in nine is as detectable as
+   all nine** -- the z is invariant because signal and null scale together -- so a house
+   style is catchable before it becomes the majority, which is finding 16's warning.
+   And it reads only per-task vote sums and public corpus structure, so it survives the
+   secure-aggregation protocol of finding 18: no identity, no ground truth.
+
+   Both negative controls are clean, including the load-bearing one: a fleet-wide
+   *threshold* error, which is real and not channel-linked, scores 0.0 everywhere. Had
+   it fired, the statistic would be reading generic error rather than channel bias.
+
+**The open problem, stated as precisely as the measurements now allow.** Finding 22
+detects a blind spot aligned with a **known, public partition** of the corpus. A shared
+error that follows no observable partition would leave no trace in it either, and
+nothing here says how to find one. That is the honest residue: the class of failure this
+repository can now catch is the class that is *correlated with something already
+written down*, and whether that covers the failures a real watch floor produces is a
+question about operational data rather than about this generator.
 
 ## License
 

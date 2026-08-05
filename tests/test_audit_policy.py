@@ -57,7 +57,13 @@ def test_selection_is_nested_as_the_budget_grows():
         {f"T-{i}": 4.0 for i in range(20)},
         {f"T-{i}": 0.1 * (i % 9) for i in range(20)},
     )
-    for policy in ("margin", "posterior", "consensus"):
+    # `uniform` is in this list now. It used to be excluded, because `choose_anchors`
+    # called `random.sample` afresh per budget: every cell was a uniform subset of the
+    # right size, but consecutive budgets audited different items, so the baseline
+    # column moved selection and budget together while the targeted columns moved only
+    # budget. The baseline now slices one shuffled order, and the sweep compares like
+    # with like.
+    for policy in ("uniform", "margin", "posterior", "consensus"):
         small = set(select(policy, view, {}, 3, seed=1))
         large = set(select(policy, view, {}, 7, seed=1))
         assert small <= large, policy
@@ -131,3 +137,162 @@ def test_the_sweep_stays_inside_the_auditable_pool():
     assert BUDGETS[0] == 0
     assert list(BUDGETS) == sorted(BUDGETS)
     assert AUTHORITY_ERROR[0] == 0.0, "the first rate must reproduce finding 19"
+
+
+# ------------------------------------ the mechanical baseline (review correction) -----
+
+
+def _tiny_fleet():
+    """Three contributors, four tasks, one of which the majority gets wrong."""
+    truth = {"a": True, "b": True, "c": False, "d": False}
+    partitioned = {
+        "x": [("a", True), ("b", True), ("c", True), ("d", False)],
+        "y": [("a", True), ("b", True), ("c", True), ("d", False)],
+        "z": [("a", True), ("b", False), ("c", False), ("d", False)],
+    }
+    return partitioned, truth
+
+
+def test_baseline_errors_counts_the_pool_the_estimator_covers_not_the_corpus():
+    from measure_audit_policy import baseline_errors
+
+    partitioned, truth = _tiny_fleet()
+    pool, errors = baseline_errors(partitioned, truth)
+    assert pool == 4
+    # Task "c" is reported True by a majority and is False in truth.
+    assert errors >= 1
+
+
+def test_an_outcome_reports_what_was_corrected_not_merely_what_was_removed():
+    """The defect this class exists for: anchoring a wrong task flatters the score.
+
+    Excluding an anchored task removes it from the denominator, so a policy that
+    targets errors climbs toward 1.000 without changing a single label. `mechanical` is
+    that climb; `corrected` is what is left over once it is subtracted.
+    """
+    from measure_audit_policy import baseline_errors, evaluate, observe
+
+    partitioned, truth = _tiny_fleet()
+    baseline = baseline_errors(partitioned, truth)
+    view = observe(partitioned)
+
+    zero = evaluate(
+        partitioned, view, truth, policy="oracle", budget=0, error=0.0, baseline=baseline
+    )
+    assert zero.hits == 0
+    assert zero.corrected == 0
+    assert zero.agreement == pytest.approx(zero.mechanical, abs=1e-9)
+
+    one = evaluate(
+        partitioned, view, truth, policy="oracle", budget=1, error=0.0, baseline=baseline
+    )
+    # The oracle anchors a task the estimator gets wrong, so it leaves the pool.
+    assert one.hits == 1
+    assert one.scored == zero.scored - 1
+    # `corrected` may be NEGATIVE, and on this fleet it is: clamping one task perturbs
+    # the M step and flips another. That is the metric doing its job -- raw agreement
+    # cannot distinguish "the audit helped", "the audit changed nothing and the score
+    # rose by deletion", and "the audit actively hurt", and this separates all three.
+    assert one.corrected == (baseline[1] - one.hits) - one.remaining_errors
+    assert not one.genuine
+
+
+def test_genuine_is_false_when_the_score_rose_only_by_deletion():
+    from measure_audit_policy import Outcome
+
+    deletion_only = Outcome(
+        agreement=0.95, scored=20, remaining_errors=5, hits=5, mechanical=0.95, corrected=0
+    )
+    real = Outcome(
+        agreement=1.0, scored=20, remaining_errors=0, hits=5, mechanical=0.75, corrected=5
+    )
+    assert not deletion_only.genuine
+    assert real.genuine
+
+
+def test_evaluate_computes_its_own_baseline_when_none_is_given():
+    from measure_audit_policy import evaluate, observe
+
+    partitioned, truth = _tiny_fleet()
+    view = observe(partitioned)
+    out = evaluate(partitioned, view, truth, policy="uniform", budget=0, error=0.0)
+    assert out.scored == 4
+    assert out.corrected == 0
+
+
+def test_margin_picks_only_wrong_items_until_it_runs_out_of_them():
+    """The published reason `margin` ties the oracle, asserted against the artifact.
+
+    This was prose --- "a subset of the items the fleet gets wrong at every budget
+    tested --- 20 of 20, 30 of 30" --- typed beside a run and true of no artifact field
+    anyone checked. It was also overstated: the property cannot hold above the number of
+    items the estimator gets wrong, because there is nothing left to pick. `hits` is the
+    count of anchors landing on a task the zero-anchor estimate got wrong, so the claim
+    is exactly `hits == budget` below the saturation point and `hits == errors` above it.
+    """
+    import json
+    from pathlib import Path
+
+    payload = json.loads(
+        (Path(__file__).resolve().parents[1] / "results" / "audit_policy.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    grid = [r for r in payload["grid"] if r["policy"] == "margin"]
+    assert grid, "no margin rows in the artifact"
+
+    # The wrong-set size per composition: the largest `hits` any budget achieves, since
+    # margin exhausts the set before the sweep ends.
+    saturation = {}
+    for row in grid:
+        saturation[row["n_wrong"]] = max(saturation.get(row["n_wrong"], 0), row["hits"])
+
+    for row in grid:
+        errors = saturation[row["n_wrong"]]
+        expected = min(row["budget"], errors)
+        assert row["hits"] == expected, (
+            f"margin at {row['n_wrong']} wrong, budget {row['budget']}: "
+            f"{row['hits']} hits, expected {expected}"
+        )
+
+    # And the claim only says something where the budgets actually fit inside the wrong
+    # set. If a corpus change pushed saturation below the budgets the docs cite, the
+    # sentence would be vacuously true and this test would stop testing it.
+    cited = (20, 30)
+    for n_wrong, errors in saturation.items():
+        assert errors >= max(cited), (
+            f"composition {n_wrong} gets only {errors} wrong, below the cited budgets "
+            f"{cited}; the published subset claim no longer has room to hold"
+        )
+
+
+def test_the_uniform_baseline_is_reported_as_a_spread_not_a_draw():
+    """A point estimate here would credit the policy with whatever the draw supplied."""
+    import json
+    from pathlib import Path
+
+    payload = json.loads(
+        (Path(__file__).resolve().parents[1] / "results" / "audit_policy.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    spread = payload["uniform_spread"]
+    assert spread, "the artifact carries no uniform spread"
+    assert len(payload["uniform_seeds"]) >= 21
+
+    for key, draw in spread.items():
+        # The headline uniform threshold must be the median, not one draw.
+        assert payload["thresholds"]["uniform"][key] == draw["median"]
+        if draw["reached"]:
+            assert draw["lowest"] <= draw["median"] <= draw["highest"]
+
+    # The spread is load-bearing: at least one composition must have a baseline whose
+    # best draw ties the winning policy, because that is the caveat the docs state. If
+    # this stops being true the caveat is wrong and should be rewritten, not deleted.
+    best = payload["best_deployable"]
+    ties = [
+        key
+        for key, draw in spread.items()
+        if draw["reached"] and draw["lowest"] <= payload["thresholds"][best][key]
+    ]
+    assert ties, "no composition where a uniform draw matches the winner; the caveat is stale"

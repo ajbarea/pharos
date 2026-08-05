@@ -70,3 +70,50 @@ def test_compose_handles_a_regime_that_was_never_drawn():
     assert compose(0.2, [0.7], []) == pytest.approx(0.7)
     assert compose(0.0, [], []) == 0.0
     assert compose(0.5, [0.7], [0.9]) == pytest.approx(0.8)
+
+
+# ------------------------------------------- the understatement ratio (finding 16) -----
+
+
+def test_understatement_uses_the_exact_binomial_not_the_rounded_rate():
+    """111.1 came from dividing by a four-decimal rounded 0.0009; the exact is 112.2.
+
+    The prose had already been corrected to 112 while the artifact still said 111.1,
+    so tracing the published number to its evidence found the retracted value.
+    """
+    from measure_fleet_sensitivity import understatement
+
+    assert understatement(0.1, 9) == 112.2
+
+
+def test_understatement_is_finite_where_the_docs_said_unbounded():
+    """The independent rate prints as 0.0000 past fleet 9; it is not zero.
+
+    These three were published as "unbounded" on the stated grounds that the ratio
+    "stops being finite". It does not, and the true values are a stronger claim.
+    """
+    from measure_fleet_sensitivity import understatement
+
+    assert understatement(0.1, 15) == 2974.0
+    assert understatement(0.1, 25) == 616966.3
+    assert understatement(0.1, 51) is not None
+
+
+def test_understatement_grows_monotonically_with_fleet_size():
+    """The finding's actual claim, which the rounding had obscured."""
+    from measure_fleet_sensitivity import understatement
+
+    values = [understatement(0.1, n) for n in (5, 9, 15, 25, 51)]
+    # Narrowed by comprehension rather than by an `all(... is not None)` assert, which
+    # reads as a guard to a person and not to a type checker.
+    finite = [v for v in values if v is not None]
+    assert len(finite) == len(values)
+    assert finite == sorted(finite)
+
+
+def test_understatement_is_none_only_when_the_exact_probability_is_zero():
+    """A rate of 0 makes a wrong majority genuinely impossible, not merely unlikely."""
+    from measure_fleet_sensitivity import understatement
+
+    assert understatement(0.0, 9) is None
+    assert understatement(0.5, 9) is not None

@@ -216,6 +216,16 @@ unresolved-import = "ignore"
 # scripts rely on -- verdict parsing, example balancing, prompt construction, loss
 # masking, the probe's features and statistics -- is covered by tests/test_scripts.py,
 # which is where a silent bug would actually live.
+# Not cosmetic: this is what arms the floor.
+#
+# pytest-cov decides the exit status with `should_fail_under(total, fail_under,
+# precision)`, which compares `round(total, precision)` -- while the "FAIL Required
+# test coverage of 92% not reached" line it prints compares the raw total. At the
+# default precision of 0, any total in [91.5, 92.0) prints FAIL and exits 0. That is
+# not hypothetical: this suite sat at 91.74% and `make ci` reported success, in CI
+# too, because 91.74 rounds to 92. Two decimals make the printed verdict and the
+# exit status the same comparison.
+precision = 2
 exclude_also = [
     "if __name__ == .__main__.:",
     "def main\\(",

@@ -1,7 +1,15 @@
 """Findings 18 and 19: the estimator under a sum, and what an authority costs."""
 
 import pytest
-from measure_authority_anchors import ANCHOR_COUNTS, COMPOSITIONS, REPAIRED, choose_anchors
+from measure_authority_anchors import (
+    ANCHOR_COUNTS,
+    ANCHOR_SEED,
+    ANCHOR_SEEDS,
+    COMPOSITIONS,
+    REPAIRED,
+    choose_anchors,
+    summarize_thresholds,
+)
 from measure_secure_reliability import (
     CLIFF_GAP,
     Readership,
@@ -123,6 +131,69 @@ def test_anchor_draw_is_reproducible_and_sized():
     assert choose_anchors(ids, 0, seed=909) == ()
     # A different seed draws a different set, so the sweep is not reading one draw.
     assert first != choose_anchors(ids, 8, seed=5)
+
+
+def test_the_anchor_draw_grows_rather_than_being_redrawn():
+    """Budget must be the only thing moving across a column of the sweep."""
+    ids = [f"T-{i}" for i in range(50)]
+    previous: set[str] = set()
+    for count in (0, 1, 8, 20, 50):
+        current = set(choose_anchors(ids, count, seed=909))
+        assert len(current) == count
+        assert previous <= current, f"budget {count} redrew rather than extended"
+        previous = current
+
+
+def test_a_budget_past_the_pool_is_refused_rather_than_silently_clipped():
+    """A slice would report a budget that was never spent."""
+    with pytest.raises(ValueError, match="exceeds"):
+        choose_anchors(["a", "b"], 3, seed=909)
+
+
+def test_the_threshold_is_summarized_over_draws_not_read_off_one():
+    spread = summarize_thresholds(5, [30, 5, 12, 20, 8])
+    assert (spread.median, spread.lowest, spread.highest) == (12, 5, 30)
+    assert (spread.reached, spread.seeds) == (5, 5)
+
+
+def test_a_draw_that_never_repairs_is_censored_rather_than_counted_as_the_maximum():
+    """Sorting unreached last is the whole convention, so it is pinned on both sides."""
+    # Two of five never repair: the median is still an observed price, and it is the
+    # third of five once the unreached draws are ordered last -- pulled upward by the
+    # censoring rather than computed over the reached draws alone, which would report
+    # 50 and quietly drop the evidence that two draws did worse than any number here.
+    mostly = summarize_thresholds(6, [50, None, 20, None, 80])
+    assert mostly.median == 80
+    assert (mostly.lowest, mostly.highest) == (20, 80)
+    assert mostly.reached == 3
+
+    # Three of five never repair: "usually not reached" is the answer, not a number.
+    mostly_not = summarize_thresholds(7, [50, None, None, None, 80])
+    assert mostly_not.median is None
+    # The draws that did repair are still reported; the range is not erased by the
+    # median being censored, because "never, except twice at 50-80" is the finding.
+    assert (mostly_not.lowest, mostly_not.highest) == (50, 80)
+    assert mostly_not.reached == 2
+
+
+def test_a_composition_no_draw_repairs_reports_nothing_rather_than_a_bound():
+    spread = summarize_thresholds(9, [None, None, None])
+    assert (spread.median, spread.lowest, spread.highest) == (None, None, None)
+    assert spread.reached == 0
+    assert spread.as_dict()["seeds"] == 3
+
+
+def test_summarizing_no_draws_is_refused():
+    """An empty sweep must not summarize to `not reached`, which looks like a result."""
+    with pytest.raises(ValueError, match="no draws"):
+        summarize_thresholds(5, [])
+
+
+def test_the_seed_sweep_is_odd_and_the_published_grid_is_one_of_its_draws():
+    """An even count would make the median an average of two censored-ordered draws."""
+    assert len(ANCHOR_SEEDS) % 2 == 1
+    assert len(set(ANCHOR_SEEDS)) == len(ANCHOR_SEEDS)
+    assert ANCHOR_SEED in ANCHOR_SEEDS
 
 
 def test_the_anchor_sweep_is_wide_enough_to_price_every_composition():

@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "6333d7cc6b34",
+    "git_commit": "0b046ef4796b",
     "git_dirty": true,
-    "generated_at": "2026-08-05T09:06:01+00:00",
+    "generated_at": "2026-08-05T15:54:53+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -12,6 +12,29 @@
   "fleet": 9,
   "events": 200,
   "anchor_seed": 909,
+  "anchor_seeds": [
+    909,
+    910,
+    911,
+    912,
+    913,
+    914,
+    915,
+    916,
+    917,
+    918,
+    919,
+    920,
+    921,
+    922,
+    923,
+    924,
+    925,
+    926,
+    927,
+    928,
+    929
+  ],
   "mask_seed": 4242,
   "repaired_threshold": 0.95,
   "anchor_counts": [
@@ -59,7 +82,7 @@
       "n_wrong": 4,
       "anchors": 2,
       "anchor_share": 0.01,
-      "scored_tasks": 96,
+      "scored_tasks": 97,
       "agreement": 1.0,
       "repaired": true
     },
@@ -67,7 +90,7 @@
       "n_wrong": 4,
       "anchors": 3,
       "anchor_share": 0.015,
-      "scored_tasks": 95,
+      "scored_tasks": 97,
       "agreement": 1.0,
       "repaired": true
     },
@@ -75,7 +98,7 @@
       "n_wrong": 4,
       "anchors": 5,
       "anchor_share": 0.025,
-      "scored_tasks": 93,
+      "scored_tasks": 96,
       "agreement": 1.0,
       "repaired": true
     },
@@ -83,7 +106,7 @@
       "n_wrong": 4,
       "anchors": 8,
       "anchor_share": 0.04,
-      "scored_tasks": 91,
+      "scored_tasks": 95,
       "agreement": 1.0,
       "repaired": true
     },
@@ -91,7 +114,7 @@
       "n_wrong": 4,
       "anchors": 12,
       "anchor_share": 0.06,
-      "scored_tasks": 89,
+      "scored_tasks": 93,
       "agreement": 1.0,
       "repaired": true
     },
@@ -99,7 +122,7 @@
       "n_wrong": 4,
       "anchors": 20,
       "anchor_share": 0.1,
-      "scored_tasks": 86,
+      "scored_tasks": 89,
       "agreement": 1.0,
       "repaired": true
     },
@@ -107,7 +130,7 @@
       "n_wrong": 4,
       "anchors": 30,
       "anchor_share": 0.15,
-      "scored_tasks": 83,
+      "scored_tasks": 85,
       "agreement": 1.0,
       "repaired": true
     },
@@ -115,7 +138,7 @@
       "n_wrong": 4,
       "anchors": 50,
       "anchor_share": 0.25,
-      "scored_tasks": 76,
+      "scored_tasks": 72,
       "agreement": 1.0,
       "repaired": true
     },
@@ -123,7 +146,7 @@
       "n_wrong": 4,
       "anchors": 80,
       "anchor_share": 0.4,
-      "scored_tasks": 58,
+      "scored_tasks": 60,
       "agreement": 1.0,
       "repaired": true
     },
@@ -131,7 +154,7 @@
       "n_wrong": 4,
       "anchors": 100,
       "anchor_share": 0.5,
-      "scored_tasks": 51,
+      "scored_tasks": 46,
       "agreement": 1.0,
       "repaired": true
     },
@@ -139,7 +162,7 @@
       "n_wrong": 4,
       "anchors": 120,
       "anchor_share": 0.6,
-      "scored_tasks": 37,
+      "scored_tasks": 39,
       "agreement": 1.0,
       "repaired": true
     },
@@ -147,7 +170,7 @@
       "n_wrong": 4,
       "anchors": 150,
       "anchor_share": 0.75,
-      "scored_tasks": 25,
+      "scored_tasks": 21,
       "agreement": 1.0,
       "repaired": true
     },
@@ -155,7 +178,7 @@
       "n_wrong": 4,
       "anchors": 180,
       "anchor_share": 0.9,
-      "scored_tasks": 8,
+      "scored_tasks": 11,
       "agreement": 1.0,
       "repaired": true
     },
@@ -179,55 +202,55 @@
       "n_wrong": 5,
       "anchors": 2,
       "anchor_share": 0.01,
-      "scored_tasks": 96,
-      "agreement": 0.6667,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
       "repaired": false
     },
     {
       "n_wrong": 5,
       "anchors": 3,
       "anchor_share": 0.015,
-      "scored_tasks": 95,
-      "agreement": 0.6632,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
       "repaired": false
     },
     {
       "n_wrong": 5,
       "anchors": 5,
       "anchor_share": 0.025,
-      "scored_tasks": 93,
-      "agreement": 1.0,
-      "repaired": true
+      "scored_tasks": 96,
+      "agreement": 0.6562,
+      "repaired": false
     },
     {
       "n_wrong": 5,
       "anchors": 8,
       "anchor_share": 0.04,
-      "scored_tasks": 91,
-      "agreement": 1.0,
-      "repaired": true
+      "scored_tasks": 95,
+      "agreement": 0.6526,
+      "repaired": false
     },
     {
       "n_wrong": 5,
       "anchors": 12,
       "anchor_share": 0.06,
-      "scored_tasks": 89,
-      "agreement": 1.0,
-      "repaired": true
+      "scored_tasks": 93,
+      "agreement": 0.6452,
+      "repaired": false
     },
     {
       "n_wrong": 5,
       "anchors": 20,
       "anchor_share": 0.1,
-      "scored_tasks": 86,
-      "agreement": 1.0,
-      "repaired": true
+      "scored_tasks": 89,
+      "agreement": 0.6292,
+      "repaired": false
     },
     {
       "n_wrong": 5,
       "anchors": 30,
       "anchor_share": 0.15,
-      "scored_tasks": 83,
+      "scored_tasks": 85,
       "agreement": 1.0,
       "repaired": true
     },
@@ -235,7 +258,7 @@
       "n_wrong": 5,
       "anchors": 50,
       "anchor_share": 0.25,
-      "scored_tasks": 76,
+      "scored_tasks": 72,
       "agreement": 1.0,
       "repaired": true
     },
@@ -243,7 +266,7 @@
       "n_wrong": 5,
       "anchors": 80,
       "anchor_share": 0.4,
-      "scored_tasks": 58,
+      "scored_tasks": 60,
       "agreement": 1.0,
       "repaired": true
     },
@@ -251,7 +274,7 @@
       "n_wrong": 5,
       "anchors": 100,
       "anchor_share": 0.5,
-      "scored_tasks": 51,
+      "scored_tasks": 46,
       "agreement": 1.0,
       "repaired": true
     },
@@ -259,7 +282,7 @@
       "n_wrong": 5,
       "anchors": 120,
       "anchor_share": 0.6,
-      "scored_tasks": 37,
+      "scored_tasks": 39,
       "agreement": 1.0,
       "repaired": true
     },
@@ -267,7 +290,7 @@
       "n_wrong": 5,
       "anchors": 150,
       "anchor_share": 0.75,
-      "scored_tasks": 25,
+      "scored_tasks": 21,
       "agreement": 1.0,
       "repaired": true
     },
@@ -275,7 +298,7 @@
       "n_wrong": 5,
       "anchors": 180,
       "anchor_share": 0.9,
-      "scored_tasks": 8,
+      "scored_tasks": 11,
       "agreement": 1.0,
       "repaired": true
     },
@@ -299,79 +322,79 @@
       "n_wrong": 6,
       "anchors": 2,
       "anchor_share": 0.01,
-      "scored_tasks": 96,
-      "agreement": 0.6667,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
       "repaired": false
     },
     {
       "n_wrong": 6,
       "anchors": 3,
       "anchor_share": 0.015,
-      "scored_tasks": 95,
-      "agreement": 0.6632,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
       "repaired": false
     },
     {
       "n_wrong": 6,
       "anchors": 5,
       "anchor_share": 0.025,
-      "scored_tasks": 93,
-      "agreement": 0.6667,
+      "scored_tasks": 96,
+      "agreement": 0.6562,
       "repaired": false
     },
     {
       "n_wrong": 6,
       "anchors": 8,
       "anchor_share": 0.04,
-      "scored_tasks": 91,
-      "agreement": 0.6593,
+      "scored_tasks": 95,
+      "agreement": 0.6526,
       "repaired": false
     },
     {
       "n_wrong": 6,
       "anchors": 12,
       "anchor_share": 0.06,
-      "scored_tasks": 89,
-      "agreement": 0.6629,
+      "scored_tasks": 93,
+      "agreement": 0.6452,
       "repaired": false
     },
     {
       "n_wrong": 6,
       "anchors": 20,
       "anchor_share": 0.1,
-      "scored_tasks": 86,
-      "agreement": 0.6628,
+      "scored_tasks": 89,
+      "agreement": 0.6292,
       "repaired": false
     },
     {
       "n_wrong": 6,
       "anchors": 30,
       "anchor_share": 0.15,
-      "scored_tasks": 83,
-      "agreement": 0.6506,
+      "scored_tasks": 85,
+      "agreement": 0.6471,
       "repaired": false
     },
     {
       "n_wrong": 6,
       "anchors": 50,
       "anchor_share": 0.25,
-      "scored_tasks": 76,
-      "agreement": 0.6579,
+      "scored_tasks": 72,
+      "agreement": 0.6528,
       "repaired": false
     },
     {
       "n_wrong": 6,
       "anchors": 80,
       "anchor_share": 0.4,
-      "scored_tasks": 58,
-      "agreement": 0.6379,
+      "scored_tasks": 60,
+      "agreement": 0.6333,
       "repaired": false
     },
     {
       "n_wrong": 6,
       "anchors": 100,
       "anchor_share": 0.5,
-      "scored_tasks": 51,
+      "scored_tasks": 46,
       "agreement": 1.0,
       "repaired": true
     },
@@ -379,7 +402,7 @@
       "n_wrong": 6,
       "anchors": 120,
       "anchor_share": 0.6,
-      "scored_tasks": 37,
+      "scored_tasks": 39,
       "agreement": 1.0,
       "repaired": true
     },
@@ -387,7 +410,7 @@
       "n_wrong": 6,
       "anchors": 150,
       "anchor_share": 0.75,
-      "scored_tasks": 25,
+      "scored_tasks": 21,
       "agreement": 1.0,
       "repaired": true
     },
@@ -395,7 +418,7 @@
       "n_wrong": 6,
       "anchors": 180,
       "anchor_share": 0.9,
-      "scored_tasks": 8,
+      "scored_tasks": 11,
       "agreement": 1.0,
       "repaired": true
     },
@@ -419,95 +442,95 @@
       "n_wrong": 7,
       "anchors": 2,
       "anchor_share": 0.01,
-      "scored_tasks": 96,
-      "agreement": 0.6667,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 3,
       "anchor_share": 0.015,
-      "scored_tasks": 95,
-      "agreement": 0.6632,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 5,
       "anchor_share": 0.025,
-      "scored_tasks": 93,
-      "agreement": 0.6667,
+      "scored_tasks": 96,
+      "agreement": 0.6562,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 8,
       "anchor_share": 0.04,
-      "scored_tasks": 91,
-      "agreement": 0.6593,
+      "scored_tasks": 95,
+      "agreement": 0.6526,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 12,
       "anchor_share": 0.06,
-      "scored_tasks": 89,
-      "agreement": 0.6629,
+      "scored_tasks": 93,
+      "agreement": 0.6452,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 20,
       "anchor_share": 0.1,
-      "scored_tasks": 86,
-      "agreement": 0.6628,
+      "scored_tasks": 89,
+      "agreement": 0.6292,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 30,
       "anchor_share": 0.15,
-      "scored_tasks": 83,
-      "agreement": 0.6506,
+      "scored_tasks": 85,
+      "agreement": 0.6471,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 50,
       "anchor_share": 0.25,
-      "scored_tasks": 76,
-      "agreement": 0.6579,
+      "scored_tasks": 72,
+      "agreement": 0.6528,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 80,
       "anchor_share": 0.4,
-      "scored_tasks": 58,
-      "agreement": 0.6379,
+      "scored_tasks": 60,
+      "agreement": 0.6333,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 100,
       "anchor_share": 0.5,
-      "scored_tasks": 51,
-      "agreement": 0.6667,
+      "scored_tasks": 46,
+      "agreement": 0.6522,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 120,
       "anchor_share": 0.6,
-      "scored_tasks": 37,
-      "agreement": 0.7027,
+      "scored_tasks": 39,
+      "agreement": 0.6923,
       "repaired": false
     },
     {
       "n_wrong": 7,
       "anchors": 150,
       "anchor_share": 0.75,
-      "scored_tasks": 25,
+      "scored_tasks": 21,
       "agreement": 1.0,
       "repaired": true
     },
@@ -515,7 +538,7 @@
       "n_wrong": 7,
       "anchors": 180,
       "anchor_share": 0.9,
-      "scored_tasks": 8,
+      "scored_tasks": 11,
       "agreement": 1.0,
       "repaired": true
     },
@@ -539,127 +562,176 @@
       "n_wrong": 9,
       "anchors": 2,
       "anchor_share": 0.01,
-      "scored_tasks": 96,
-      "agreement": 0.6667,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 3,
       "anchor_share": 0.015,
-      "scored_tasks": 95,
-      "agreement": 0.6632,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 5,
       "anchor_share": 0.025,
-      "scored_tasks": 93,
-      "agreement": 0.6667,
+      "scored_tasks": 96,
+      "agreement": 0.6562,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 8,
       "anchor_share": 0.04,
-      "scored_tasks": 91,
-      "agreement": 0.6593,
+      "scored_tasks": 95,
+      "agreement": 0.6526,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 12,
       "anchor_share": 0.06,
-      "scored_tasks": 89,
-      "agreement": 0.6629,
+      "scored_tasks": 93,
+      "agreement": 0.6452,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 20,
       "anchor_share": 0.1,
-      "scored_tasks": 86,
-      "agreement": 0.6628,
+      "scored_tasks": 89,
+      "agreement": 0.6292,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 30,
       "anchor_share": 0.15,
-      "scored_tasks": 83,
-      "agreement": 0.6506,
+      "scored_tasks": 85,
+      "agreement": 0.6471,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 50,
       "anchor_share": 0.25,
-      "scored_tasks": 76,
-      "agreement": 0.6579,
+      "scored_tasks": 72,
+      "agreement": 0.6528,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 80,
       "anchor_share": 0.4,
-      "scored_tasks": 58,
-      "agreement": 0.6379,
+      "scored_tasks": 60,
+      "agreement": 0.6333,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 100,
       "anchor_share": 0.5,
-      "scored_tasks": 51,
-      "agreement": 0.6667,
+      "scored_tasks": 46,
+      "agreement": 0.6522,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 120,
       "anchor_share": 0.6,
-      "scored_tasks": 37,
-      "agreement": 0.7027,
+      "scored_tasks": 39,
+      "agreement": 0.6923,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 150,
       "anchor_share": 0.75,
-      "scored_tasks": 25,
-      "agreement": 0.68,
+      "scored_tasks": 21,
+      "agreement": 0.6667,
       "repaired": false
     },
     {
       "n_wrong": 9,
       "anchors": 180,
       "anchor_share": 0.9,
-      "scored_tasks": 8,
-      "agreement": 1.0,
-      "repaired": true
+      "scored_tasks": 11,
+      "agreement": 0.6364,
+      "repaired": false
     }
   ],
+  "grid_anchor_seed": 909,
   "anchors_needed": {
     "4": 0,
-    "5": 5,
+    "5": 12,
+    "6": 80,
+    "7": 150,
+    "9": null
+  },
+  "anchors_needed_primary_draw": {
+    "4": 0,
+    "5": 30,
     "6": 100,
     "7": 150,
-    "9": 180
+    "9": null
+  },
+  "anchors_needed_spread": {
+    "4": {
+      "n_wrong": 4,
+      "seeds": 21,
+      "reached": 21,
+      "median": 0,
+      "lowest": 0,
+      "highest": 0
+    },
+    "5": {
+      "n_wrong": 5,
+      "seeds": 21,
+      "reached": 21,
+      "median": 12,
+      "lowest": 2,
+      "highest": 30
+    },
+    "6": {
+      "n_wrong": 6,
+      "seeds": 21,
+      "reached": 21,
+      "median": 80,
+      "lowest": 50,
+      "highest": 100
+    },
+    "7": {
+      "n_wrong": 7,
+      "seeds": 21,
+      "reached": 21,
+      "median": 150,
+      "lowest": 120,
+      "highest": 180
+    },
+    "9": {
+      "n_wrong": 9,
+      "seeds": 21,
+      "reached": 0,
+      "median": null,
+      "lowest": null,
+      "highest": null
+    }
   },
   "validity": {
-    "n": 8,
+    "n": 11,
     "quotable": false,
     "concerns": [
-      "n=8 is below 30; treat differences as provisional"
+      "n=11 is below 30; treat differences as provisional"
     ]
   },
-  "scored_tasks_min": 8,
+  "scored_tasks_min": 11,
   "scored_tasks_at_threshold": {
     "4": 97,
     "5": 93,
-    "6": 51,
-    "7": 25,
-    "9": 8
+    "6": 60,
+    "7": 21
   }
 }
