@@ -364,6 +364,55 @@ def authority_price() -> str:
     return "\n".join(lines)
 
 
+def audit_policy() -> str:
+    """Finding 20: budget to repair, by selection policy.
+
+    The oracle column is rendered apart from the deployable ones with an explicit
+    marker, because a table that lists it inline invites a reader to quote a number no
+    deployment can have. Finding 12 had to learn that distinction the hard way about a
+    different oracle.
+    """
+    path = RESULTS / "audit_policy.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make audit` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    thresholds = payload.get("thresholds") or {}
+    if not thresholds:
+        _fail("audit_policy.json carries no thresholds; refusing to emit an empty table")
+
+    deployable = list(payload["deployable"])
+    order = [*deployable, "oracle"]
+    compositions = sorted({int(n) for d in thresholds.values() for n in d})
+    best = payload["best_deployable"]
+
+    header = " | ".join(f"`{p}`" + (" †" if p == "oracle" else "") for p in order)
+    lines = [
+        f"| Wrong of {payload['fleet']} | {header} |",
+        "| --- |" + " --- |" * len(order),
+    ]
+    for n in compositions:
+        cells = []
+        for name in order:
+            value = thresholds.get(name, {}).get(str(n))
+            if value is None:
+                cells.append("not reached")
+            elif name == best:
+                cells.append(f"**{value}**")
+            else:
+                cells.append(str(value))
+        lines.append(f"| {n} | " + " | ".join(cells) + " |")
+
+    pool = payload["auditable_pool"]
+    lines += [
+        "",
+        f"Items an authority must rule on to repair the estimate, out of **{pool} "
+        f"auditable** tasks ({payload['events']} in the corpus). Lower is better; bold "
+        f"is the winning deployable policy. † `oracle` reads ground truth and is a "
+        f"bound rather than a method.",
+    ]
+    return "\n".join(lines)
+
+
 #: Block name to builder. A block present in a doc but absent here is an error rather
 #: than a no-op: a marker with nothing behind it is how a table quietly stops updating.
 BLOCKS = {
@@ -372,6 +421,7 @@ BLOCKS = {
     "teacher-fleet": teacher_fleet,
     "secure-readership": secure_readership,
     "authority-price": authority_price,
+    "audit-policy": audit_policy,
 }
 
 #: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --

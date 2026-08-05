@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty secure authority fleet-sensitivity teacher-fleet logcheck docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty secure authority audit fleet-sensitivity teacher-fleet logcheck docs-tables explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -96,6 +96,10 @@ authority:                 ## What an authority of record costs, in audited item
 	@mkdir -p results
 	uv run python scripts/measure_authority_anchors.py --out results/authority_anchors.json
 
+audit:                     ## Which items an authority should rule on, and a fallible one (no model)
+	@mkdir -p results
+	uv run python scripts/measure_audit_policy.py --out results/audit_policy.json
+
 logcheck:                  ## Run the model-free measurements and summarise what they logged
 	uv run python scripts/logcheck.py
 
@@ -135,5 +139,6 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_difficulty_confound.py
 	uv run python scripts/measure_secure_reliability.py
 	uv run python scripts/measure_authority_anchors.py
+	uv run python scripts/measure_audit_policy.py
 	uv run python scripts/logcheck.py
 	uv run python scripts/sync_docs_tables.py --check

@@ -1,0 +1,2775 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "4cf1113fd925",
+    "git_dirty": false,
+    "generated_at": "2026-08-05T01:00:24+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "seed": 7
+  },
+  "fleet": 9,
+  "events": 200,
+  "budgets": [
+    0,
+    2,
+    5,
+    8,
+    12,
+    20,
+    30,
+    45,
+    60,
+    80,
+    95
+  ],
+  "auditable_pool": 97,
+  "compositions": [
+    5,
+    6,
+    7
+  ],
+  "authority_error": [
+    0.0,
+    0.05,
+    0.1,
+    0.2
+  ],
+  "repaired_threshold": 0.95,
+  "policy_seed": 4242,
+  "deployable": [
+    "uniform",
+    "margin",
+    "posterior",
+    "consensus"
+  ],
+  "thresholds": {
+    "uniform": {
+      "5": 5,
+      "6": 45,
+      "7": 80
+    },
+    "margin": {
+      "5": 2,
+      "6": 20,
+      "7": 30
+    },
+    "posterior": {
+      "5": 2,
+      "6": 20,
+      "7": 30
+    },
+    "consensus": {
+      "5": 80,
+      "6": 80,
+      "7": 95
+    },
+    "oracle": {
+      "5": 2,
+      "6": 20,
+      "7": 30
+    }
+  },
+  "best_deployable": "margin",
+  "fallible_authority": {
+    "5": {
+      "0.0": 2,
+      "0.05": 2,
+      "0.1": 2,
+      "0.2": 2
+    },
+    "6": {
+      "0.0": 20,
+      "0.05": 20,
+      "0.1": 20,
+      "0.2": 30
+    },
+    "7": {
+      "0.0": 30,
+      "0.05": 30,
+      "0.1": 30,
+      "0.2": 30
+    }
+  },
+  "grid": [
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6632,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 5,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6632,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6739,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.6629,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.6588,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 0.6494,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 0.6866,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 6,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6632,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6739,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.6629,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.6588,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 0.6494,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 0.6866,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 0.6538,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 0.6757,
+      "repaired": false
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "uniform",
+      "n_wrong": 7,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 0.8312,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 5,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 6,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 0.8312,
+      "repaired": false
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "posterior",
+      "n_wrong": 7,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6526,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6413,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.6292,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.6118,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 0.5714,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 0.5075,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 0.3654,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 0.1081,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 5,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6526,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6413,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.6292,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.6118,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 0.5714,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 0.5075,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 0.3654,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 0.1081,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 6,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6526,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6413,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.6292,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.6118,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 0.5714,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 0.5075,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 0.3654,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 0.1081,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 0.0,
+      "repaired": false
+    },
+    {
+      "policy": "consensus",
+      "n_wrong": 7,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 5,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 6,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 0.8312,
+      "repaired": false
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "oracle",
+      "n_wrong": 7,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 0,
+      "error": 0.05,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 2,
+      "error": 0.05,
+      "scored_tasks": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 5,
+      "error": 0.05,
+      "scored_tasks": 92,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 8,
+      "error": 0.05,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 12,
+      "error": 0.05,
+      "scored_tasks": 85,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 20,
+      "error": 0.05,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 30,
+      "error": 0.05,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 45,
+      "error": 0.05,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 60,
+      "error": 0.05,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 80,
+      "error": 0.05,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 95,
+      "error": 0.05,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 0,
+      "error": 0.1,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 2,
+      "error": 0.1,
+      "scored_tasks": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 5,
+      "error": 0.1,
+      "scored_tasks": 92,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 8,
+      "error": 0.1,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 12,
+      "error": 0.1,
+      "scored_tasks": 85,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 20,
+      "error": 0.1,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 30,
+      "error": 0.1,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 45,
+      "error": 0.1,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 60,
+      "error": 0.1,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 80,
+      "error": 0.1,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 95,
+      "error": 0.1,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 0,
+      "error": 0.2,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 2,
+      "error": 0.2,
+      "scored_tasks": 95,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 5,
+      "error": 0.2,
+      "scored_tasks": 92,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 8,
+      "error": 0.2,
+      "scored_tasks": 89,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 12,
+      "error": 0.2,
+      "scored_tasks": 85,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 20,
+      "error": 0.2,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 30,
+      "error": 0.2,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 45,
+      "error": 0.2,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 60,
+      "error": 0.2,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 80,
+      "error": 0.2,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 5,
+      "budget": 95,
+      "error": 0.2,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 0,
+      "error": 0.05,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 2,
+      "error": 0.05,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 5,
+      "error": 0.05,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 8,
+      "error": 0.05,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 12,
+      "error": 0.05,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 20,
+      "error": 0.05,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 30,
+      "error": 0.05,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 45,
+      "error": 0.05,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 60,
+      "error": 0.05,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 80,
+      "error": 0.05,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 95,
+      "error": 0.05,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 0,
+      "error": 0.1,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 2,
+      "error": 0.1,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 5,
+      "error": 0.1,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 8,
+      "error": 0.1,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 12,
+      "error": 0.1,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 20,
+      "error": 0.1,
+      "scored_tasks": 77,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 30,
+      "error": 0.1,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 45,
+      "error": 0.1,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 60,
+      "error": 0.1,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 80,
+      "error": 0.1,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 95,
+      "error": 0.1,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 0,
+      "error": 0.2,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 2,
+      "error": 0.2,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 5,
+      "error": 0.2,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 8,
+      "error": 0.2,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 12,
+      "error": 0.2,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 20,
+      "error": 0.2,
+      "scored_tasks": 77,
+      "agreement": 0.8312,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 30,
+      "error": 0.2,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 45,
+      "error": 0.2,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 60,
+      "error": 0.2,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 80,
+      "error": 0.2,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 6,
+      "budget": 95,
+      "error": 0.2,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 0,
+      "error": 0.0,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 2,
+      "error": 0.0,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 5,
+      "error": 0.0,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 8,
+      "error": 0.0,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 12,
+      "error": 0.0,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 20,
+      "error": 0.0,
+      "scored_tasks": 77,
+      "agreement": 0.8312,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 30,
+      "error": 0.0,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 45,
+      "error": 0.0,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 60,
+      "error": 0.0,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 80,
+      "error": 0.0,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 95,
+      "error": 0.0,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 0,
+      "error": 0.05,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 2,
+      "error": 0.05,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 5,
+      "error": 0.05,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 8,
+      "error": 0.05,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 12,
+      "error": 0.05,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 20,
+      "error": 0.05,
+      "scored_tasks": 77,
+      "agreement": 0.8312,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 30,
+      "error": 0.05,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 45,
+      "error": 0.05,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 60,
+      "error": 0.05,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 80,
+      "error": 0.05,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 95,
+      "error": 0.05,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 0,
+      "error": 0.1,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 2,
+      "error": 0.1,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 5,
+      "error": 0.1,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 8,
+      "error": 0.1,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 12,
+      "error": 0.1,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 20,
+      "error": 0.1,
+      "scored_tasks": 77,
+      "agreement": 0.8312,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 30,
+      "error": 0.1,
+      "scored_tasks": 67,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 45,
+      "error": 0.1,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 60,
+      "error": 0.1,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 80,
+      "error": 0.1,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 95,
+      "error": 0.1,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 0,
+      "error": 0.2,
+      "scored_tasks": 97,
+      "agreement": 0.6598,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 2,
+      "error": 0.2,
+      "scored_tasks": 95,
+      "agreement": 0.6737,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 5,
+      "error": 0.2,
+      "scored_tasks": 92,
+      "agreement": 0.6957,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 8,
+      "error": 0.2,
+      "scored_tasks": 89,
+      "agreement": 0.7191,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 12,
+      "error": 0.2,
+      "scored_tasks": 85,
+      "agreement": 0.7529,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 20,
+      "error": 0.2,
+      "scored_tasks": 77,
+      "agreement": 0.8312,
+      "repaired": false
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 30,
+      "error": 0.2,
+      "scored_tasks": 67,
+      "agreement": 0.9552,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 45,
+      "error": 0.2,
+      "scored_tasks": 52,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 60,
+      "error": 0.2,
+      "scored_tasks": 37,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 80,
+      "error": 0.2,
+      "scored_tasks": 17,
+      "agreement": 1.0,
+      "repaired": true
+    },
+    {
+      "policy": "margin",
+      "n_wrong": 7,
+      "budget": 95,
+      "error": 0.2,
+      "scored_tasks": 2,
+      "agreement": 1.0,
+      "repaired": true
+    }
+  ],
+  "validity": {
+    "n": 200,
+    "quotable": true,
+    "concerns": []
+  }
+}
