@@ -222,6 +222,17 @@ class AnalystPolicy:
 
     `prohibited` and `purpose` carry the axis the lattice does not: which uses the
     data's owners have ruled out, and which use this release is for.
+
+    `blind_compartment` is a wrong standard of a different *shape*, and it exists
+    because every earlier one had the same shape. `escalation_threshold` keys on how
+    much evidence a task shows, so a reviewer who holds it wrong disagrees with a
+    correct one exactly on the boundary items --- which made "the fleet is split" and
+    "the fleet is wrong" the same set, and finding 20's audit policy tie its own oracle
+    because of it. A reviewer who discounts a *channel* instead misreads a slice picked
+    out by provenance rather than by difficulty. On this corpus PARTNER is the honest
+    choice for that slice: mean evidence shown is 1.88 on tasks carrying it against
+    1.72 on tasks that do not, where SENSOR would be 2.00 against 0.48 and would
+    therefore reintroduce the confound it is meant to remove.
     """
 
     name: str
@@ -234,6 +245,7 @@ class AnalystPolicy:
     escalates: bool = True
     prohibited: frozenset[ProhibitedUse] = frozenset()
     purpose: Purpose = Purpose.FLEET_TRAINING
+    blind_compartment: Compartment | None = None
 
     def __post_init__(self) -> None:
         if not 1 <= self.escalation_threshold <= len(SIGNIFICANT_PATTERN):
@@ -253,8 +265,31 @@ class AnalystPolicy:
         are unsure asks someone; the failure worth modelling is the one that reaches
         the record looking exactly like a considered judgement.
         """
-        held = len(evidence_shown(task)) >= self.escalation_threshold
+        held = len(self.evidence_visible_to(task)) >= self.escalation_threshold
         return not held if rng.random() < self.slip_rate else held
+
+    def evidence_visible_to(self, task: TriageTask) -> frozenset[str]:
+        """The defining facts this reviewer actually credits.
+
+        Identical to `evidence_shown` unless the reviewer discounts a channel, in
+        which case facts reaching them only through that channel are not counted. The
+        reviewer is not lying and has not slipped: they read the page and declined to
+        credit part of it, which is why this failure is invisible to every check that
+        looks for noise or for inconsistency.
+        """
+        if self.blind_compartment is None:
+            return evidence_shown(task)
+        shown: set[str] = set()
+        for report in task.sources:
+            if self.blind_compartment in report.label.compartments:
+                continue
+            shown |= set(report.fact_ids)
+        # Intersected with the defining pattern, exactly as `evidence_shown` does. A
+        # first version of this dropped that step and returned every fact id, which
+        # made the blind reviewer see *more* evidence than a sighted one and changed
+        # 130 of 200 verdicts where the compartment appears on 40 tasks. The number
+        # being implausibly large is what surfaced it.
+        return frozenset(shown & SIGNIFICANT_PATTERN)
 
     @property
     def release_rules(self) -> ReleasePolicy:

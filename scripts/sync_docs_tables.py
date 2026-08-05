@@ -413,6 +413,49 @@ def audit_policy() -> str:
     return "\n".join(lines)
 
 
+def blind_spot() -> str:
+    """Finding 21: where the audit policy stops working.
+
+    Both halves in one block, because either alone misleads. The thresholds say the
+    policy failed; the hit rates say why, and that the oracle did not.
+    """
+    path = RESULTS / "blind_spot.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make blindspot` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    thresholds = payload.get("thresholds") or {}
+    hits = payload.get("audit_hit_rate") or {}
+    if not thresholds or not hits:
+        _fail("blind_spot.json is incomplete; refusing to emit a partial table")
+
+    order = [p for p in thresholds if p != "oracle"] + ["oracle"]
+    shares = sorted({int(n) for d in thresholds.values() for n in d})
+    swept = max(payload["budgets"])
+
+    lines = [
+        "| Blind of {} | ".format(payload["fleet"]) + " | ".join(f"`{p}`" for p in order) + " |",
+        "| --- |" + " --- |" * len(order),
+    ]
+    for n in shares:
+        cells = []
+        for name in order:
+            value = thresholds.get(name, {}).get(str(n))
+            cells.append("--" if value is None else str(value))
+        lines.append(f"| {n} | " + " | ".join(cells) + " |")
+    lines += [
+        "",
+        f"Audited items needed to repair; `--` is not reached within {swept}. "
+        "Below: the share of a 20-item audit landing on a genuinely corrupted task.",
+        "",
+        f"| Blind of {payload['fleet']} | " + " | ".join(f"`{p}`" for p in order) + " |",
+        "| --- |" + " --- |" * len(order),
+    ]
+    for n in shares:
+        row = hits.get(str(n), {})
+        lines.append(f"| {n} | " + " | ".join(f"{row.get(name, 0.0):.2f}" for name in order) + " |")
+    return "\n".join(lines)
+
+
 #: Block name to builder. A block present in a doc but absent here is an error rather
 #: than a no-op: a marker with nothing behind it is how a table quietly stops updating.
 BLOCKS = {
@@ -422,6 +465,7 @@ BLOCKS = {
     "secure-readership": secure_readership,
     "authority-price": authority_price,
     "audit-policy": audit_policy,
+    "blind-spot": blind_spot,
 }
 
 #: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --

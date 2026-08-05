@@ -44,6 +44,7 @@ SCRIPTS = (
     "measure_secure_reliability.py",
     "measure_authority_anchors.py",
     "measure_audit_policy.py",
+    "measure_blind_spot.py",
 )
 
 #: Warnings this project expects to see, each a real finding rather than a defect.
@@ -60,6 +61,9 @@ EXPECTED_WARNINGS = {
     # is announced at WARNING and expected here. If it stops firing, either a corpus
     # change made selection worthless or the comparison broke.
     "audit.policy_beats_uniform",
+    # Finding 21's result: outside its stated condition the targeted policy stops
+    # helping. Expected, because the experiment exists to produce it.
+    "blindspot.policy_advantage_inverted",
     # `inference.glad_did_not_converge` is deliberately NOT here. It was, for about an
     # hour, while this project believed non-convergence was a property of GLAD. It is
     # not: the implementation was missing the Gaussian priors Whitehill et al. specify
@@ -167,6 +171,9 @@ def main() -> int:
         # is announced at WARNING and expected here. If it stops firing, either a corpus
         # change made selection worthless or the comparison broke.
         "audit.policy_beats_uniform",
+        # Finding 21's result: outside its stated condition the targeted policy stops
+        # helping. Expected, because the experiment exists to produce it.
+        "blindspot.policy_advantage_inverted",
     }
     if core_missing:
         print(

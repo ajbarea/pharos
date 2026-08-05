@@ -189,6 +189,12 @@ jobs:
       # that quietly stops being refuted is worth hearing about.
       - name: Compare audit-selection policies
         run: uv run python scripts/measure_audit_policy.py
+      # Finding 21 is the negative control for finding 20, so it fails in the way that
+      # matters most: if a generator change made the blind spot stop corrupting
+      # anything, this exits non-zero rather than quietly reporting that a policy works
+      # everywhere. It also asserts the blind channel is still orthogonal to difficulty.
+      - name: Check the audit policy still fails where it should
+        run: uv run python scripts/measure_blind_spot.py
       # Fails on a warning the project does not expect, and on an expected warning
       # that stopped firing. The second case is the subtle one: a finding that quietly
       # stops reporting itself looks identical to a clean run.
