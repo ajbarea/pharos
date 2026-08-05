@@ -147,3 +147,69 @@ def test_scan_tests_every_channel_so_false_positives_are_visible():
     assert found, "scan returned nothing; every channel was skipped"
     # Truth carries no channel dependence, so nothing may be detected.
     assert not [d for d in found if d.detected]
+
+
+def test_detection_strength_is_invariant_to_how_far_the_blind_spot_spread():
+    """The published claim, and a property of the construction rather than a coincidence.
+
+    Each blind analyst withholds the same verdicts on the same tasks, so the stratified
+    gap is linear in how many of them there are -- and the permutation null is built by
+    shuffling those same numbers, so its spread is linear too. `z` is their ratio and
+    therefore does not move. The manuscript states this as exact; if a change makes it
+    merely approximate, the sentence is wrong and this test says so.
+
+    It also pins the limitation that comes with it: a statistic that does not vary with
+    the number of blind analysts cannot report that number.
+    """
+    import json
+    from pathlib import Path
+
+    payload = json.loads(
+        (Path(__file__).resolve().parents[1] / "results" / "channel_bias.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    blind = payload["blind_channel"]
+    scored = {
+        entry["n_blind"]: next(d for d in entry["detections"] if d["channel"] == blind)
+        for entry in payload["sweep"]
+        if entry["n_blind"] > 0
+    }
+    assert len(scored) >= 3, "too few non-zero shares to test invariance"
+
+    values = {round(d["z"], 6) for d in scored.values()}
+    assert len(values) == 1, f"z is not invariant across shares: {scored}"
+
+    # And the reason: the gap itself is proportional to the blind share, so the
+    # invariance is the ratio of two things that scale together, not a flat effect.
+    fleet = payload["fleet"]
+    largest = max(scored)
+    for n_blind, detection in scored.items():
+        expected = scored[largest]["delta"] * n_blind / largest
+        assert detection["delta"] == pytest.approx(expected, abs=1e-3), (
+            f"the gap at {n_blind} blind is not proportional to the share; "
+            "the invariance claim rests on that proportionality"
+        )
+        assert n_blind <= fleet
+
+
+def test_the_healthy_fleet_and_the_other_channels_are_both_reported():
+    """A detector is only interesting beside its controls, so both must be present."""
+    import json
+    from pathlib import Path
+
+    payload = json.loads(
+        (Path(__file__).resolve().parents[1] / "results" / "channel_bias.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert payload["controls_clean"]
+    zero = next(e for e in payload["sweep"] if e["n_blind"] == 0)
+    assert not [d for d in zero["detections"] if d["detected"]], (
+        "a channel fired with nobody blind; the false-positive control failed"
+    )
+    for entry in payload["sweep"]:
+        fired = {d["channel"] for d in entry["detections"] if d["detected"]}
+        assert fired <= {payload["blind_channel"]}, (
+            f"a channel other than the blinded one fired at {entry['n_blind']} blind: {fired}"
+        )
