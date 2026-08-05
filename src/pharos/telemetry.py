@@ -360,6 +360,14 @@ _METRIC_META: dict[str, tuple[str, str]] = {
     "gate.probe_auc": ("1", "AUC of one surface probe against the class label"),
     "gate.surface_baseline": ("1", "Best surface-feature AUC, the score to report against"),
     "generate.reports": ("{report}", "Reports rendered for a generated corpus"),
+    "audit.cell": (
+        "1",
+        "Agreement on unanchored tasks under one audit-selection policy and budget",
+    ),
+    "audit.fallible": (
+        "{task}",
+        "Audited items needed to repair, at one authority error rate",
+    ),
     "authority.cell": (
         "1",
         "Agreement on unanchored tasks at one fleet composition and anchor budget",

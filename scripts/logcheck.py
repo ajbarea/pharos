@@ -43,6 +43,7 @@ SCRIPTS = (
     "measure_difficulty_confound.py",
     "measure_secure_reliability.py",
     "measure_authority_anchors.py",
+    "measure_audit_policy.py",
 )
 
 #: Warnings this project expects to see, each a real finding rather than a defect.
@@ -55,6 +56,10 @@ EXPECTED_WARNINGS = {
     "budget.no_finite_guarantee",
     "difficulty.manufactured_by_reviewers",
     "difficulty.ability_inverted",
+    # A selection policy beating the uniform floor is the finding, not a defect, so it
+    # is announced at WARNING and expected here. If it stops firing, either a corpus
+    # change made selection worthless or the comparison broke.
+    "audit.policy_beats_uniform",
     # `inference.glad_did_not_converge` is deliberately NOT here. It was, for about an
     # hour, while this project believed non-convergence was a property of GLAD. It is
     # not: the implementation was missing the Gaussian priors Whitehill et al. specify
@@ -158,6 +163,10 @@ def main() -> int:
         "budget.no_finite_guarantee",
         "difficulty.manufactured_by_reviewers",
         "difficulty.ability_inverted",
+        # A selection policy beating the uniform floor is the finding, not a defect, so it
+        # is announced at WARNING and expected here. If it stops firing, either a corpus
+        # change made selection worthless or the comparison broke.
+        "audit.policy_beats_uniform",
     }
     if core_missing:
         print(

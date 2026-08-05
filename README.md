@@ -142,7 +142,7 @@ the system it serves.
 
 ## What has been measured
 
-Twenty findings so far, each reproducible from a named script and each backed by a
+Twenty-one findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, a third was retracted outright after a generator bug, and a
@@ -173,6 +173,7 @@ corrections, and the caveats.
 | 17 | Adding item difficulty does not separate a hard case from a wrong analyst |
 | 18 | The estimate moves under secure aggregation, and the cliff does not move with it |
 | 19 | An authority of record repairs the cliff, and its price explodes |
+| 20 | Audit where the fleet splits, and the prediction that said otherwise |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -192,6 +193,7 @@ make correlated  # what the cliff costs when analysts are not independent (no mo
 make difficulty  # whether item difficulty and a wrong standard are separable (no model)
 make secure      # whether reliability can be estimated under secure aggregation (no model)
 make authority   # what an authority of record costs, in audited items (no model)
+make audit       # which items to rule on, and what a fallible authority buys (no model)
 
 # Sensitivity: whether a finding survives a parameter nobody chose on principle
 make fleet-sensitivity  # findings 12, 16 and 17 across fleets of 5 to 51 (no model)
@@ -262,13 +264,31 @@ make teacher-fleet      # whether adapters inherit their teachers, across 24 of 
    5 audited items in 200 repair a bare majority, 100 repair six of nine, 150 repair
    seven. A partial budget is briefly *worse* than none.
 
-**The open problem, stated as precisely as the measurements now allow.** Not the
-protocol -- that is built and exact -- but the threshold. Findings 16 and 19 together
-say a fleet sharing one house style reaches a wrong majority far more often than an
-i.i.d. draw suggests, and that repairing anything past a bare majority costs half the
-round or more. Whether an audit policy that selects *which* items to rule on can move
-that threshold down is the next thing worth measuring, and unlike its predecessor it is
-a measurement question rather than a cryptographic one.
+8. **Which items to rule on.** Done, and it refuted the prediction written into the
+   script before the run. Finding 20 compares four deployable selection policies
+   against an oracle bound, where deployable means reading only what the aggregator
+   sees: per-task vote sums, contributor counts, and the estimator's posterior.
+   Auditing where the fleet *splits* repairs six-of-nine at 20 items against uniform's
+   45, and ties the oracle exactly. The prediction said the opposite would happen --
+   that a confidently wrong majority would hide in unanimity -- and it was wrong,
+   because reviewers differing by one escalation threshold diverge only on boundary
+   items, which are exactly the items a fleet splits on. The inverted policy is not
+   merely worse but *harmful*, driving agreement below the no-anchor baseline.
+
+   Two things came free. Only **97 of 200** tasks are auditable at all, so finding 19
+   spent about half its uniform budget on tasks that constrain nothing. And a fallible
+   authority is robust: an auditor wrong one time in ten buys the same repair as a
+   perfect one.
+
+**The open problem, stated as precisely as the measurements now allow.** Finding 20's
+winning policy ties the oracle *because* this corpus's difficulty structure is discrete
+and known, so the items the fleet splits on and the items it gets wrong are the same
+set by construction. The conditional claim -- when a wrong standard shows up as
+boundary disagreement, audit the disagreement -- is what travels. What is untested is
+the case the condition excludes: a wrong standard held *unanimously*, where the signal
+this policy reads does not exist. Constructing a corpus in which the blind spot and the
+hard items come apart is the next thing worth building, and it is a generator question
+rather than an estimator one.
 
 ## License
 

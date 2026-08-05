@@ -68,7 +68,7 @@ scattered through it, and nothing in the grouping is a claim about how they rela
 | **Measurement design** | [9. Repeating one prompt measures the wrong thing](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing) · [17. Item difficulty does not separate the two](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst) |
 | **Disclosure and identity** | [11. The stream still names the analyst](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst) · [12. Reliability needs identity where it matters](#12-reliability-cannot-be-estimated-without-identity-where-it-matters) · [13. A tag can replace identity](#13-a-reliability-tag-can-replace-identity-and-the-leak-metric-cannot-tell-you-when) · [16. The cliff assumes independent fleets](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently) |
 | **Cost of running it** | [14. What the agent costs on its hardware](#14-what-the-agent-costs-on-the-hardware-it-is-meant-to-run-on) · [15. The budget is spent on the wrong variable](#15-the-standard-privacy-mechanism-spends-the-budget-on-the-wrong-variable) · [19. What an authority of record costs](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) |
-| **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) |
+| **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) · [20. Audit where the fleet splits](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise) |
 
 ## What these sizes can resolve
 
@@ -177,6 +177,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | --- | --- | --- | --- |
 | `adapter_learnability` | 60 | **no** | **base**: 9/60 answers were unparsable (15%); every other number describes only the remainder; accuracy 0.392 does not beat the majority floor 0.647: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `analyst_review` | 40 | yes | - |
+| `audit_policy` | 200 | yes | - |
 | `authority_anchors` | 200 | yes | - |
 | `consensus_reliability` | 200 | yes | - |
 | `correlated_fleets` | 60 | yes | - |
@@ -231,7 +232,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**25 of 55** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**25 of 56** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 Exempt, because there is no sampling question to answer:
 
@@ -2251,3 +2252,107 @@ estimate rather than merely inform it.
     knowing which items are hard is knowing where the fleet is wrong, which is what the
     estimate was meant to establish. Uniform is the honest floor; a targeted policy can
     only beat it.
+
+## 20. Audit where the fleet splits, and the prediction that said otherwise
+
+`scripts/measure_audit_policy.py`, `results/audit_policy.json`
+
+[Finding 19](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) drew
+its anchors uniformly and said so as a limitation: an authority auditing the *hardest*
+items would be assuming the question, because knowing which items are hard is knowing
+where the fleet is wrong. Uniform is an honest floor and a poor proposal. This prices
+what a selection policy buys on top of it.
+
+**A policy may read only what the aggregator can see** under
+[finding 18](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it)'s
+protocol: per-task vote sums, per-task contributor counts, and the estimator's own
+posterior. It may not read a per-analyst stream, because there is none, and it may not
+read ground truth, because then it is an oracle. The oracle is measured anyway, apart
+from the rest, so that a policy scoring near it is known to be near the ceiling rather
+than merely better than the floor.
+
+<!-- BEGIN GENERATED: audit-policy -->
+| Wrong of 9 | `uniform` | `margin` | `posterior` | `consensus` | `oracle` † |
+| --- | --- | --- | --- | --- | --- |
+| 5 | 5 | **2** | 2 | 80 | 2 |
+| 6 | 45 | **20** | 20 | 80 | 20 |
+| 7 | 80 | **30** | 30 | 95 | 30 |
+
+Items an authority must rule on to repair the estimate, out of **97 auditable** tasks (200 in the corpus). Lower is better; bold is the winning deployable policy. † `oracle` reads ground truth and is a bound rather than a method.
+<!-- END GENERATED: audit-policy -->
+
+**Uncertainty sampling wins, and it ties the oracle exactly.** Auditing the tasks the
+fleet splits on repairs six-of-nine at **20** items against uniform's 45, and
+seven-of-nine at **30** against 80. Scoring against the estimator's posterior instead
+of the raw votes gives the identical answer at every cell.
+
+!!! danger "The prediction this script was written to test was wrong"
+    It predicted that uncertainty sampling would **lose**, and lose to the policy that
+    inverts it. The reasoning: the failure this whole line of work is about is a wrong
+    standard held *confidently* by a majority, so the corrupted items ought to be the
+    ones the fleet agrees on, and a budget spent where the fleet disagrees ought to be
+    spent where the fleet is already right.
+
+    That conflated two different things. A wrong majority means the votes on a
+    corrupted item break the wrong way; it does not mean the item is unanimous. The
+    mistaken reviewers here differ from the correct ones by one escalation threshold,
+    so they diverge only on **boundary** items --- and a boundary item is exactly an
+    item the fleet splits on. Disagreement is not orthogonal to the failure. It is the
+    failure's signature.
+
+    **`consensus` is not merely worse, it is harmful.** It needs 80 items where
+    `margin` needs 20, and on the way there it drives agreement *below* the
+    no-anchor baseline --- from 0.660 down to 0.108, and to 0.000 at seven-of-nine
+    before it finally flips. Anchoring the items both standards already agree about
+    tells the estimator its contributors are reliable, which makes it trust the wrong
+    majority harder on the boundary items it never audited. A badly chosen audit does
+    not just waste budget; it corrupts the estimate it was meant to repair.
+
+!!! warning "Why it ties the oracle, and what that costs the claim"
+    `margin`'s selection is a **subset of the items the fleet gets wrong** at every
+    budget tested --- 20 of 20, and 30 of 30 --- which is why it matches the oracle
+    exactly rather than approaching it. That is a property of a corpus whose difficulty
+    structure is discrete and known, where the hard items and the reviewer's blind spot
+    coincide by construction.
+    [Finding 17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)
+    already names that coincidence and reports what it costs a different estimator.
+
+    So the claim that travels is conditional: **when a wrong standard manifests as
+    boundary disagreement, audit where the fleet splits.** The claim that does *not*
+    travel is that disagreement sampling is optimal in general. Where a wrong standard
+    is genuinely unanimous, the signal this policy reads does not exist, and nothing
+    here says what to do instead.
+
+### Half of finding 19's budget was unspendable
+
+Only **97 of 200** tasks are ever observed by the aggregator at these compositions. The
+rest were rejected by every reviewer, so no contributor's confusion matrix touches them
+and an anchor placed there constrains nothing. Finding 19 drew uniformly from all 200,
+which means roughly half its budget went to tasks that could not repay it.
+
+Restricting the same uniform draw to the auditable pool is by itself a large
+improvement --- six-of-nine falls from 100 items to 45 --- before any policy is applied.
+Read finding 19's "50% of the round" as 50% of the corpus and closer to all of what was
+actually auditable.
+
+### A fallible authority
+
+Finding 19 gave the authority perfect ground truth. Chew and Williams
+([arXiv:2607.15455](https://arxiv.org/abs/2607.15455), July 2026) build their method on
+the opposite assumption, that audit labels are themselves noisy and that auditor
+disagreement reflects genuine ambiguity rather than only random error; they sample the
+audit set by probability rather than selecting it. Sweeping the authority's own error
+rate under the winning policy:
+
+| Wrong of 9 | 0% | 5% | 10% | 20% |
+| --- | --- | --- | --- | --- |
+| 5 | 2 | 2 | 2 | 2 |
+| 6 | 20 | 20 | 20 | 30 |
+| 7 | 30 | 30 | 30 | 30 |
+
+**The threshold is robust to an imperfect authority.** An auditor wrong one time in ten
+buys the same repair as a perfect one at every composition; only at one error in five
+does six-of-nine slip from 20 items to 30. That is the reassuring direction, and it is
+worth stating precisely why: the anchors are exogenous, so what they contribute is
+information the fleet does not already contain, and a fifth of that being wrong still
+leaves four fifths pulling against a majority that was uniformly wrong.
