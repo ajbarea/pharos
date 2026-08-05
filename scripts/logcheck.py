@@ -45,6 +45,7 @@ SCRIPTS = (
     "measure_authority_anchors.py",
     "measure_audit_policy.py",
     "measure_blind_spot.py",
+    "measure_channel_bias.py",
 )
 
 #: Warnings this project expects to see, each a real finding rather than a defect.
@@ -64,6 +65,13 @@ EXPECTED_WARNINGS = {
     # Finding 21's result: outside its stated condition the targeted policy stops
     # helping. Expected, because the experiment exists to produce it.
     "blindspot.policy_advantage_inverted",
+    # Finding 19's limit: the unanimous fleet is not repaired by any budget the sweep
+    # can afford. This did not fire while the draw was re-sampled per budget, because
+    # one draw cleared the bar at 180 of 200 anchors on the twenty tasks left to score.
+    # Across 21 nested draws none does, which is what the unanimity row was carried to
+    # show. It going quiet again would mean a composition started repairing that the
+    # finding says cannot.
+    "authority.not_repaired",
     # `inference.glad_did_not_converge` is deliberately NOT here. It was, for about an
     # hour, while this project believed non-convergence was a property of GLAD. It is
     # not: the implementation was missing the Gaussian priors Whitehill et al. specify

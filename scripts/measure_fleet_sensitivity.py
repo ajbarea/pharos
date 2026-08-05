@@ -32,6 +32,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from measure_correlated_fleets import exact_wrong_majority
+
 from pharos.provenance import run_provenance
 from pharos.telemetry import get_logger, progress, record
 
@@ -120,6 +122,29 @@ def difficulty_row(fleet: int) -> dict[str, Any]:
     }
 
 
+def understatement(rate: float, fleet: int) -> float | None:
+    """How far independence understates P(wrong majority), from the exact binomial.
+
+    Computed from the closed form rather than from the sampled rates the artifact
+    prints, because those are rounded to four decimals and the ratio is a quotient of
+    two small probabilities. Dividing the printed values gave 0.1/0.0009 = 111.1 where
+    the exact 0.1/0.00089092 is 112.2 -- and the prose had already been corrected to
+    112 while the artifact still said 111.1, so a reader tracing the published number
+    to its evidence found the value that had been retracted.
+
+    The rounding also decided whether the ratio existed at all. Past a fleet of about
+    nine the independent probability prints as 0.0000, this returned `None`, and the
+    docs described the understatement as "unbounded". It is not unbounded, only large:
+    2974 at fleet 15 and 616966 at fleet 25, both finite and both a stronger statement
+    than the word they replaced. `None` now means only that the exact probability is
+    genuinely zero, which no fleet size in this sweep produces.
+    """
+    independent = exact_wrong_majority(rate, schools=fleet, fleet=fleet)
+    if not independent:
+        return None
+    return round(exact_wrong_majority(rate, schools=1, fleet=fleet) / independent, 1)
+
+
 def correlated_row(fleet: int, draws: int) -> dict[str, Any]:
     """Finding 16: how far independence understates the wrong-majority probability."""
     payload = _run("measure_correlated_fleets.py", fleet, ("--draws", str(draws)))
@@ -128,15 +153,14 @@ def correlated_row(fleet: int, draws: int) -> dict[str, Any]:
     for rate in sorted({r for r, _ in cells}):
         independent = cells[(rate, "independent")]["wrong_majority_rate"]
         culture = cells[(rate, "one culture")]["wrong_majority_rate"]
+        exact_independent = exact_wrong_majority(rate, schools=fleet, fleet=fleet)
         out["by_rate"].append(
             {
                 "rate": rate,
                 "independent": independent,
                 "one_culture": culture,
-                #: None rather than infinity when independence rounds to zero: the
-                #: ratio is genuinely unbounded there and a sentinel float would be
-                #: quoted as a number by something downstream.
-                "understatement": round(culture / independent, 1) if independent else None,
+                "exact_independent": exact_independent,
+                "understatement": understatement(rate, fleet),
             }
         )
     return out

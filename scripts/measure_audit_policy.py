@@ -48,7 +48,9 @@ it trust the wrong majority harder on the boundary items it never audited.
 
 **So the transferable claim is conditional and must be stated that way.** In this
 corpus `margin` selects a *subset of the items the fleet gets wrong* at every budget
-tested --- 20 of 20, 30 of 30 --- which is why it ties the oracle exactly. That is a
+that fits inside that set --- 20 of 20, 30 of 30, up to the 33 items the estimator gets
+wrong, above which neither it nor the oracle can, since there is nothing left to pick
+--- which is why it ties the oracle exactly. That is a
 property of a corpus whose difficulty structure is discrete and known, where the hard
 items and the reviewer's blind spot coincide by construction. Finding 17 already names
 that coincidence. The claim that travels is *when a wrong standard manifests as
@@ -76,7 +78,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from random import Random
 
-from measure_authority_anchors import REPAIRED, choose_anchors
+from measure_authority_anchors import (
+    REPAIRED,
+    ThresholdSpread,
+    choose_anchors,
+    summarize_thresholds,
+)
 from measure_secure_reliability import MASK_SEED, contributions_for, fleet_of
 
 from pharos.analyst import Proposal
@@ -118,6 +125,14 @@ AUTHORITY_ERROR = (0.0, 0.05, 0.1, 0.2)
 
 #: Seed for the authority's own slips, and for uniform selection.
 POLICY_SEED = 4242
+
+#: Draws of the uniform baseline. The targeted policies are deterministic given the
+#: aggregate, so their thresholds are exact; `uniform` is a sample, and comparing an
+#: exact number against one sample of a variable one is how a policy gets credited with
+#: a margin the draw supplied. Finding 19 measured that spread on the same corpus and
+#: it is wide -- the bare-majority price ranged 2 to 30 items over 21 draws -- so the
+#: baseline column here is reported the same way, as a median with its range.
+UNIFORM_SEEDS = tuple(POLICY_SEED + i for i in range(21))
 
 
 @dataclass(frozen=True, slots=True)
@@ -325,15 +340,20 @@ def evaluate(
     budget: int,
     error: float,
     baseline: tuple[int, int] | None = None,
+    seed: int = POLICY_SEED,
 ) -> Outcome:
     """What one policy at one budget bought, and what it only appeared to buy.
 
     `baseline` is `(pool, errors)` at zero anchors, from `baseline_errors`. It is the
     reference the mechanical score is computed against; passed in rather than recomputed
     because it is the same for every budget of a given fleet and costs an EM run.
+
+    `seed` moves the uniform draw and the authority's slips together, which is what a
+    replication of this cell means: the targeted policies ignore it entirely, because
+    their selection is a function of the aggregate rather than of chance.
     """
-    anchored = select(policy, view, truth, budget, seed=POLICY_SEED)
-    anchors = authority_ruling(anchored, truth, error=error, seed=POLICY_SEED)
+    anchored = select(policy, view, truth, budget, seed=seed)
+    anchors = authority_ruling(anchored, truth, error=error, seed=seed)
     estimate = federated_dawid_skene(partitioned, seed=MASK_SEED, anchors=anchors)
     scored = {t: v for t, v in truth.items() if t not in anchors}
     labels = {t: v for t, v in estimate.labels().items() if t not in anchors}
@@ -445,6 +465,69 @@ def main() -> int:
             thresholds[name][n_wrong] = threshold(block)
             print(f"    {n_wrong:>6}" + "".join(cells))
 
+    # The baseline's threshold is a draw, and the targeted policies' are not. Comparing
+    # one sample against an exact number credits a policy with whatever margin the draw
+    # happened to supply, which is not a small worry here: on the same corpus finding 19
+    # measured this quantity ranging 2 to 30 across draws. So the baseline is re-run per
+    # seed and reported with its spread; the row below is unchanged, and is now the
+    # median draw rather than the only one.
+    uniform_spread: dict[int, ThresholdSpread] = {}
+    print(f"\n  uniform baseline over {len(UNIFORM_SEEDS)} draws")
+    print(f"    {'wrong':>6}  median   range        reached")
+    print("    " + "-" * 44)
+    for n_wrong in COMPOSITIONS:
+        if n_wrong > args.fleet:
+            continue
+        flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
+        partitioned = partition_by_contributor(flat)
+        view = observe(partitioned)
+        baseline = baseline_errors(partitioned, truth)
+        draws: list[int | None] = []
+        for seed in UNIFORM_SEEDS:
+            block: list[Row] = []
+            for budget in BUDGETS:
+                out = evaluate(
+                    partitioned,
+                    view,
+                    truth,
+                    policy="uniform",
+                    budget=budget,
+                    error=0.0,
+                    baseline=baseline,
+                    seed=seed,
+                )
+                block.append(
+                    Row(
+                        policy="uniform",
+                        n_wrong=n_wrong,
+                        budget=budget,
+                        error=0.0,
+                        scored_tasks=out.scored,
+                        agreement=out.agreement,
+                        repaired=out.agreement >= REPAIRED,
+                        remaining_errors=out.remaining_errors,
+                        hits=out.hits,
+                        mechanical=out.mechanical,
+                        corrected=out.corrected,
+                    )
+                )
+            draws.append(threshold(block))
+        spread = summarize_thresholds(n_wrong, draws)
+        uniform_spread[n_wrong] = spread
+        # The comparison row, and everything chosen from it, uses the median draw. The
+        # printed uniform grid above is still one draw, the same way finding 19 prints
+        # one seed's agreement grid beside a median over 21.
+        thresholds["uniform"][n_wrong] = spread.median
+        span = f"{spread.lowest}-{spread.highest}" if spread.reached else "—"
+        median = "none" if spread.median is None else str(spread.median)
+        print(f"    {n_wrong:>6}  {median:>6}   {span:>10}   {spread.reached} of {spread.seeds}")
+        record(
+            "audit.uniform_spread",
+            float(spread.median if spread.median is not None else -1),
+            n_wrong=n_wrong,
+            reached=spread.reached,
+        )
+
     print("\n  budget to repair, by policy (lower is better)")
     print(f"    {'wrong':>6}" + "".join(f"{p:>12}" for p in (*DEPLOYABLE, "oracle")))
     print("    " + "-" * (6 + 12 * (len(DEPLOYABLE) + 1)))
@@ -528,8 +611,12 @@ def main() -> int:
         "authority_error": list(AUTHORITY_ERROR),
         "repaired_threshold": REPAIRED,
         "policy_seed": POLICY_SEED,
+        "uniform_seeds": list(UNIFORM_SEEDS),
         "deployable": list(DEPLOYABLE),
+        # `thresholds["uniform"]` is the median over `uniform_seeds`; every other policy
+        # is deterministic given the aggregate and has one exact value.
         "thresholds": {k: {str(n): v for n, v in d.items()} for k, d in thresholds.items()},
+        "uniform_spread": {str(n): s.as_dict() for n, s in uniform_spread.items()},
         "best_deployable": best,
         "fallible_authority": {str(k): v for k, v in fallible.items()},
         "grid": [r.as_dict() for r in rows],

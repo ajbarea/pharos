@@ -1641,6 +1641,82 @@ def test_unmarked_text_is_left_alone():
     assert updated == text
 
 
+@pytest.mark.parametrize("name", sorted(_docs_module().BLOCKS))
+def test_every_registered_block_builds_a_table_from_its_artifact(name):
+    """Each builder was reachable only through `make docs-tables` until now.
+
+    Seven of the eight ran in no test, so a builder that raised on a regenerated
+    artifact -- a renamed key, a null where a number was assumed, an empty row list --
+    surfaced in CI as a `make` failure with a traceback rather than as a named test.
+    They are cheap to call and they read the committed artifacts, which is exactly the
+    coupling that goes stale.
+    """
+    table = _docs_module().BLOCKS[name]()
+    lines = table.splitlines()
+    assert lines[0].startswith("| "), f"{name} did not emit a table header"
+    assert set(lines[1]) <= set("| -"), f"{name} has no separator row under its header"
+    # A header and a separator with nothing under them is an empty table, and every
+    # builder is documented as refusing to emit one rather than emitting a shell.
+    assert any(line.startswith("| ") for line in lines[2:]), f"{name} emitted no rows"
+
+
+@pytest.mark.parametrize("name", sorted(_docs_module().BLOCKS))
+def test_a_builder_refuses_a_missing_artifact_rather_than_emitting_a_shell(name, monkeypatch):
+    """Every builder promises this in its docstring; none of them was checked.
+
+    The failure it prevents is the one this project's tooling has already hit twice: a
+    guard that passes because it matched nothing. A builder that returned a bare header
+    when its artifact was absent would leave a header and a separator in the published
+    doc, and `--check` would call that current.
+    """
+    sdt = _docs_module()
+    # Under ROOT on purpose: `_fail` reports `path.relative_to(ROOT)`, so a directory
+    # outside the tree would raise ValueError from the error path itself.
+    monkeypatch.setattr(sdt, "RESULTS", sdt.ROOT / "no-such-results-dir")
+    with pytest.raises(SystemExit) as raised:
+        sdt.BLOCKS[name]()
+    assert raised.value.code == 2
+
+
+def test_no_doc_carries_a_block_without_a_builder():
+    """The inverse of `render`'s guard, checked across the whole docs tree.
+
+    `render` refuses an unregistered name when it reaches one, but only for text it is
+    handed. This asserts the property over every file the sync would ever walk.
+    """
+    sdt = _docs_module()
+    referenced = {
+        match.group("name")
+        for path in sorted(sdt.DOCS.rglob("*.md"))
+        for match in sdt._OPENER.finditer(path.read_text(encoding="utf-8"))
+    }
+    assert referenced, "no generated blocks found in docs/; this test went blind"
+    assert referenced <= set(sdt.BLOCKS), f"blocks with no builder: {referenced - set(sdt.BLOCKS)}"
+    unused = set(sdt.BLOCKS) - referenced
+    assert not unused, f"builders no document references: {unused}"
+
+
+def test_the_committed_docs_match_the_committed_artifacts():
+    """`sync_docs_tables.py --check`, as a test rather than only as a CI step.
+
+    The check ran in CI and in `make ci`, which meant a stale table failed the build
+    with a diff-less message at a step most local runs skip. Running it here names the
+    file and the block, and makes `make test` alone sufficient to catch a number that
+    drifted from the artifact it was read off.
+    """
+    sdt = _docs_module()
+    stale = []
+    rendered = 0
+    for path in sorted(sdt.DOCS.rglob("*.md")):
+        original = path.read_text(encoding="utf-8")
+        updated, names = sdt.render(original)
+        rendered += len(names)
+        if names and updated != original:
+            stale.append(f"{path.relative_to(sdt.ROOT)} ({', '.join(names)})")
+    assert rendered, "no generated block was rendered; the check verified nothing"
+    assert not stale, f"stale generated blocks; run `make docs-tables`: {stale}"
+
+
 # ------------------------------------------------- consensus reliability -----
 
 
@@ -2696,14 +2772,36 @@ def test_authority_price_block_matches_the_artifact():
 
     table = sdt.authority_price()
     payload = _json.loads((sdt.RESULTS / "authority_anchors.json").read_text(encoding="utf-8"))
-    needed = payload["anchors_needed"]
+    spreads = payload["anchors_needed_spread"]
 
-    for key, count in needed.items():
+    for key, spread in spreads.items():
         assert f"| {key} |" in table
-        if count is not None:
-            assert f"| {count} |" in table
+        if spread["median"] is not None:
+            assert f"| {spread['median']} |" in table
+        # The range is the reason this table exists; a median published without it is
+        # the shape that got retracted.
+        if spread["reached"]:
+            assert f"{spread['lowest']}" in table and f"{spread['highest']}" in table
+        assert f"{spread['reached']} of {spread['seeds']}" in table
     assert f"{payload['repaired_threshold']:.2f}" in table
     assert str(payload["events"]) in table
+    # The headline column must be the median over draws, not one draw's crossing.
+    assert payload["anchors_needed"] == {k: v["median"] for k, v in spreads.items()}
+
+
+def test_the_published_grid_names_the_draw_it_came_from():
+    """A grid from one seed beside a median over 21 must say which is which."""
+    sdt = _docs_module()
+    import json as _json
+
+    payload = _json.loads((sdt.RESULTS / "authority_anchors.json").read_text(encoding="utf-8"))
+    table = sdt.authority_grid()
+    assert str(payload["grid_anchor_seed"]) in table
+    assert payload["grid_anchor_seed"] in payload["anchor_seeds"]
+    # One bolded cell per composition that repairs: the crossing, not the whole tail.
+    for row in table.splitlines():
+        if row.startswith("| ") and "**" in row:
+            assert row.count("**") == 2, f"more than one crossing marked: {row}"
 
 
 def test_a_composition_no_budget_repairs_is_named_rather_than_left_blank(tmp_path, monkeypatch):
@@ -2713,9 +2811,21 @@ def test_a_composition_no_budget_repairs_is_named_rather_than_left_blank(tmp_pat
 
     payload = {
         "anchors_needed": {"5": 5, "9": None},
+        "anchors_needed_spread": {
+            "5": {"n_wrong": 5, "seeds": 3, "reached": 3, "median": 5, "lowest": 5, "highest": 5},
+            "9": {
+                "n_wrong": 9,
+                "seeds": 3,
+                "reached": 0,
+                "median": None,
+                "lowest": None,
+                "highest": None,
+            },
+        },
         "events": 200,
         "fleet": 9,
         "anchor_counts": [0, 50],
+        "anchor_seeds": [1, 2, 3],
         "repaired_threshold": 0.95,
     }
     (tmp_path / "authority_anchors.json").write_text(_json.dumps(payload), encoding="utf-8")
@@ -2723,7 +2833,10 @@ def test_a_composition_no_budget_repairs_is_named_rather_than_left_blank(tmp_pat
 
     table = sdt.authority_price()
     assert "not reached within 50" in table
-    assert "| 5 | 5 | 2.5% |" in table
+    assert "| 5 | 5 | 2.5% | 5 | 3 of 3 |" in table
+    # A composition no draw repaired has no range to report, and an em dash is not a
+    # zero: "0 of 3" carries the fact, the range column must not invent one.
+    assert "| 9 | not reached within 50 | — | — | 0 of 3 |" in table
 
 
 def test_a_missing_or_empty_artifact_fails_rather_than_emitting_an_empty_table(

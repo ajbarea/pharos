@@ -30,7 +30,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import NoReturn
+from typing import Any, NoReturn
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
@@ -189,6 +189,14 @@ def measurement_health() -> str:
         rows.append((path.stem, f"{validity.get('n', '?')}", f"{mark} | {note}"))
         now_assessed.add(path.stem)
 
+    # The other seven builders refuse an absent artifact; this one globbed and would
+    # have published a header, a separator and "**0 of 0** assessed artifacts are
+    # flagged" over an empty `results/`, which `--check` would then call current. It
+    # is the same defect as a guard that passes because it matched nothing, and it was
+    # found by asserting the refusal these builders all document.
+    if not rows:
+        _fail("no assessed artifact in results/; refusing to emit an empty health table")
+
     lines = [
         "| Artifact | n | Quotable | Why not |",
         "| --- | --- | --- | --- |",
@@ -328,38 +336,110 @@ def secure_readership() -> str:
     return "\n".join(lines)
 
 
+def _authority_payload() -> dict[str, Any]:
+    path = RESULTS / "authority_anchors.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make authority` first")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def authority_grid() -> str:
+    """Finding 19's agreement grid, one row per composition and one column per budget.
+
+    This was typed by hand, at eight of the fifteen budgets the sweep actually runs,
+    and it was wrong: making the anchor draw nested moved every cell and the table did
+    not move with them. A grid transcribed from a run is the most stale-prone shape in
+    the document -- nothing about editing prose forces a reader to check seventy-five
+    numbers -- so it is read off the artifact instead.
+    """
+    payload = _authority_payload()
+    grid = payload.get("grid") or []
+    if not grid:
+        _fail("authority_anchors.json carries no grid; refusing to emit an empty table")
+
+    counts = payload["anchor_counts"]
+    fleet = payload["fleet"]
+    cells = {(row["n_wrong"], row["anchors"]): row for row in grid}
+    compositions = sorted({row["n_wrong"] for row in grid})
+
+    lines = [
+        f"| Wrong of {fleet} | " + " | ".join(str(c) for c in counts) + " |",
+        "| --- " * (len(counts) + 1) + "|",
+    ]
+    for n_wrong in compositions:
+        rendered = []
+        repaired_yet = False
+        for count in counts:
+            row = cells.get((n_wrong, count))
+            if row is None:
+                rendered.append("—")
+                continue
+            # Bold marks the crossing itself, not every cell above it: the finding is
+            # where the threshold falls, and bolding the whole tail hides it.
+            first = row["repaired"] and not repaired_yet
+            repaired_yet = repaired_yet or row["repaired"]
+            rendered.append(f"**{row['agreement']:.3f}**" if first else f"{row['agreement']:.3f}")
+        lines.append(f"| {n_wrong} | " + " | ".join(rendered) + " |")
+
+    lines += [
+        "",
+        f"Agreement over unanchored tasks only, at anchor seed {payload['grid_anchor_seed']}. "
+        f"Bold marks each composition's first budget reaching "
+        f"{payload['repaired_threshold']:.2f}; that crossing moves with the draw, which "
+        "is what the table below reports.",
+    ]
+    return "\n".join(lines)
+
+
 def authority_price() -> str:
     """The audited-items threshold per fleet composition, from finding 19's artifact.
 
     Five numbers that are the entire practical content of the finding, and exactly the
     shape that goes stale: they move whenever the corpus, the anchor draw or the
     repaired threshold moves, and none of those changes touches this page.
+
+    Reported as a median over draws with its range, because the single-draw version of
+    this table was not reproducible: re-deriving the anchor draw moved the five-wrong
+    price from 5 items to 30 and turned the nine-wrong price from 180 into never. The
+    spread column is the finding those numbers were hiding.
     """
-    path = RESULTS / "authority_anchors.json"
-    if not path.exists():
-        _fail(f"{path.relative_to(ROOT)} is missing; run `make authority` first")
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    needed = payload.get("anchors_needed") or {}
-    if not needed:
+    payload = _authority_payload()
+    spreads = payload.get("anchors_needed_spread") or {}
+    if not spreads:
         _fail("authority_anchors.json carries no thresholds; refusing to emit an empty table")
 
     total = payload["events"]
     fleet = payload["fleet"]
     swept = max(payload["anchor_counts"])
+    draws = len(payload["anchor_seeds"])
     lines = [
-        f"| Wrong of {fleet} | Audited items needed | Share of the round |",
-        "| --- | --- | --- |",
+        f"| Wrong of {fleet} | Audited items needed (median) | Share of the round | "
+        f"Range over {draws} draws | Draws that reached it |",
+        "| --- | --- | --- | --- | --- |",
     ]
-    for key in sorted(needed, key=int):
-        count = needed[key]
-        if count is None:
-            lines.append(f"| {key} | not reached within {swept} | — |")
+    for key in sorted(spreads, key=int):
+        spread = spreads[key]
+        reached = f"{spread['reached']} of {spread['seeds']}"
+        span = (
+            (
+                f"{spread['lowest']}–{spread['highest']}"
+                if spread["lowest"] != spread["highest"]
+                else str(spread["lowest"])
+            )
+            if spread["reached"]
+            else "—"
+        )
+        median = spread["median"]
+        if median is None:
+            lines.append(f"| {key} | not reached within {swept} | — | {span} | {reached} |")
             continue
-        lines.append(f"| {key} | {count} | {count / total:.1%} |")
+        lines.append(f"| {key} | {median} | {median / total:.1%} | {span} | {reached} |")
     lines += [
         "",
         f"Threshold for 'repaired' is agreement ≥ {payload['repaired_threshold']:.2f} on "
-        f"unanchored tasks, over a corpus of {total}.",
+        f"unanchored tasks, over a corpus of {total}. The median is taken over {draws} "
+        "anchor draws with draws that never repair ordered last, so a composition most "
+        "draws fail to repair reports no number rather than the sweep's upper edge.",
     ]
     return "\n".join(lines)
 
@@ -390,6 +470,11 @@ def audit_policy() -> str:
         f"| Wrong of {payload['fleet']} | {header} |",
         "| --- |" + " --- |" * len(order),
     ]
+    # The baseline's cell carries its spread inline. Every other policy in this table is
+    # deterministic given the aggregate, so a bare number there is exact; a bare number
+    # in the `uniform` column would be one draw of a quantity that varies by an order of
+    # magnitude, and the margin a policy is credited with is measured against it.
+    spread = payload.get("uniform_spread") or {}
     for n in compositions:
         cells = []
         for name in order:
@@ -400,9 +485,14 @@ def audit_policy() -> str:
                 cells.append(f"**{value}**")
             else:
                 cells.append(str(value))
+            if name == "uniform" and str(n) in spread:
+                draw = spread[str(n)]
+                if draw["reached"]:
+                    cells[-1] += f" ({draw['lowest']}–{draw['highest']})"
         lines.append(f"| {n} | " + " | ".join(cells) + " |")
 
     pool = payload["auditable_pool"]
+    draws = len(payload.get("uniform_seeds") or [])
     lines += [
         "",
         f"Items an authority must rule on to repair the estimate, out of **{pool} "
@@ -410,6 +500,13 @@ def audit_policy() -> str:
         f"is the winning deployable policy. † `oracle` reads ground truth and is a "
         f"bound rather than a method.",
     ]
+    if draws:
+        lines += [
+            "",
+            f"`uniform` is a draw, not a rule: its cell is the median over {draws} draws "
+            "with the full range in brackets. The other policies select from the "
+            "aggregate and have no draw to vary.",
+        ]
     return "\n".join(lines)
 
 
@@ -456,6 +553,52 @@ def blind_spot() -> str:
     return "\n".join(lines)
 
 
+def channel_bias() -> str:
+    """Finding 22: detection z per channel, across the blind-spot sweep."""
+    path = RESULTS / "channel_bias.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make channel-bias` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    sweep = payload.get("sweep") or []
+    if not sweep:
+        _fail("channel_bias.json carries no sweep; refusing to emit an empty table")
+
+    channels = [d["channel"] for d in sweep[0]["detections"]]
+    blind = payload["blind_channel"]
+    lines = [
+        "| Blind of {} | ".format(payload["fleet"])
+        + " | ".join(f"`{c}`" + (" ‡" if c == blind else "") for c in channels)
+        + " |",
+        "| --- |" + " --- |" * len(channels),
+    ]
+    for row in sweep:
+        cells = []
+        for channel in channels:
+            hit = next((d for d in row["detections"] if d["channel"] == channel), None)
+            if hit is None:
+                cells.append("--")
+            elif hit["detected"]:
+                cells.append(f"**{hit['z']:.1f}**")
+            else:
+                cells.append(f"{hit['z']:.1f}")
+        lines.append(f"| {row['n_blind']} | " + " | ".join(cells) + " |")
+
+    control = payload.get("threshold_control") or []
+    lines += [
+        "",
+        "| Control | " + " | ".join(f"`{d['channel']}`" for d in control) + " |",
+        "| --- |" + " --- |" * len(control),
+        "| threshold error (not channel-linked) | "
+        + " | ".join(f"{d['z']:.1f}" for d in control)
+        + " |",
+        "",
+        f"Standard deviations above a within-stratum permutation null over "
+        f"{payload['trials']} trials; bold is a detection at z ≥ "
+        f"{payload['detection_z']:.0f}. ‡ is the channel the fleet actually discounts.",
+    ]
+    return "\n".join(lines)
+
+
 #: Block name to builder. A block present in a doc but absent here is an error rather
 #: than a no-op: a marker with nothing behind it is how a table quietly stops updating.
 BLOCKS = {
@@ -463,9 +606,11 @@ BLOCKS = {
     "measurement-health": measurement_health,
     "teacher-fleet": teacher_fleet,
     "secure-readership": secure_readership,
+    "authority-grid": authority_grid,
     "authority-price": authority_price,
     "audit-policy": audit_policy,
     "blind-spot": blind_spot,
+    "channel-bias": channel_bias,
 }
 
 #: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --

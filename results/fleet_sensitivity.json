@@ -123,30 +123,35 @@
           "rate": 0.1,
           "independent": 0.0086,
           "one_culture": 0.1,
-          "understatement": 11.6
+          "exact_independent": 0.008560000000000002,
+          "understatement": 11.7
         },
         {
           "rate": 0.2,
           "independent": 0.0579,
           "one_culture": 0.2,
+          "exact_independent": 0.05792000000000003,
           "understatement": 3.5
         },
         {
           "rate": 0.3,
           "independent": 0.1631,
           "one_culture": 0.3,
+          "exact_independent": 0.16307999999999997,
           "understatement": 1.8
         },
         {
           "rate": 0.4,
           "independent": 0.3174,
           "one_culture": 0.4,
+          "exact_independent": 0.31744000000000006,
           "understatement": 1.3
         },
         {
           "rate": 0.5,
           "independent": 0.5,
           "one_culture": 0.5,
+          "exact_independent": 0.5,
           "understatement": 1.0
         }
       ]
@@ -158,30 +163,35 @@
           "rate": 0.1,
           "independent": 0.0009,
           "one_culture": 0.1,
-          "understatement": 111.1
+          "exact_independent": 0.0008909200000000002,
+          "understatement": 112.2
         },
         {
           "rate": 0.2,
           "independent": 0.0196,
           "one_culture": 0.2,
+          "exact_independent": 0.01958144000000001,
           "understatement": 10.2
         },
         {
           "rate": 0.3,
           "independent": 0.0988,
           "one_culture": 0.3,
+          "exact_independent": 0.09880865999999996,
           "understatement": 3.0
         },
         {
           "rate": 0.4,
           "independent": 0.2666,
           "one_culture": 0.4,
+          "exact_independent": 0.2665676800000001,
           "understatement": 1.5
         },
         {
           "rate": 0.5,
           "independent": 0.5,
           "one_culture": 0.5,
+          "exact_independent": 0.5,
           "understatement": 1.0
         }
       ]
@@ -193,30 +203,35 @@
           "rate": 0.1,
           "independent": 0.0,
           "one_culture": 0.1,
-          "understatement": null
+          "exact_independent": 3.362488796800002e-05,
+          "understatement": 2974.0
         },
         {
           "rate": 0.2,
           "independent": 0.0042,
           "one_culture": 0.2,
-          "understatement": 47.6
+          "exact_independent": 0.0042397497098240035,
+          "understatement": 47.2
         },
         {
           "rate": 0.3,
           "independent": 0.05,
           "one_culture": 0.3,
+          "exact_independent": 0.050012540053775964,
           "understatement": 6.0
         },
         {
           "rate": 0.4,
           "independent": 0.2131,
           "one_culture": 0.4,
+          "exact_independent": 0.21310318261043207,
           "understatement": 1.9
         },
         {
           "rate": 0.5,
           "independent": 0.5,
           "one_culture": 0.5,
+          "exact_independent": 0.5,
           "understatement": 1.0
         }
       ]
@@ -228,30 +243,35 @@
           "rate": 0.1,
           "independent": 0.0,
           "one_culture": 0.1,
-          "understatement": null
+          "exact_independent": 1.6208341601860662e-07,
+          "understatement": 616966.3
         },
         {
           "rate": 0.2,
           "independent": 0.0004,
           "one_culture": 0.2,
-          "understatement": 500.0
+          "exact_independent": 0.0003690480345558282,
+          "understatement": 541.9
         },
         {
           "rate": 0.3,
           "independent": 0.0175,
           "one_culture": 0.3,
-          "understatement": 17.1
+          "exact_independent": 0.017469740526057674,
+          "understatement": 17.2
         },
         {
           "rate": 0.4,
           "independent": 0.1538,
           "one_culture": 0.4,
+          "exact_independent": 0.15376776897576294,
           "understatement": 2.6
         },
         {
           "rate": 0.5,
           "independent": 0.5,
           "one_culture": 0.5,
+          "exact_independent": 0.5,
           "understatement": 1.0
         }
       ]
@@ -263,30 +283,35 @@
           "rate": 0.1,
           "independent": 0.0,
           "one_culture": 0.1,
-          "understatement": null
+          "exact_independent": 1.982345901456412e-13,
+          "understatement": 504452829985.6
         },
         {
           "rate": 0.2,
           "independent": 0.0,
           "one_culture": 0.2,
-          "understatement": null
+          "exact_independent": 8.128990065206708e-07,
+          "understatement": 246033.0
         },
         {
           "rate": 0.3,
           "independent": 0.0014,
           "one_culture": 0.3,
-          "understatement": 214.3
+          "exact_independent": 0.0013640898739738531,
+          "understatement": 219.9
         },
         {
           "rate": 0.4,
           "independent": 0.0735,
           "one_culture": 0.4,
+          "exact_independent": 0.07352920198662,
           "understatement": 5.4
         },
         {
           "rate": 0.5,
           "independent": 0.5,
           "one_culture": 0.5,
+          "exact_independent": 0.5,
           "understatement": 1.0
         }
       ]
@@ -306,9 +331,9 @@
   },
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "0aa3656916ae",
-    "git_dirty": false,
-    "generated_at": "2026-08-03T23:54:16+00:00",
+    "git_commit": "0b046ef4796b",
+    "git_dirty": true,
+    "generated_at": "2026-08-05T10:03:57+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
