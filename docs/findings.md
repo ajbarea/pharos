@@ -1163,22 +1163,26 @@ identical except for who labelled them. Every adapter is scored twice on the sam
 held-out tasks and the same decode: once against the world, once against **its own
 teacher's answers**.
 
+<!-- BEGIN GENERATED: teacher-inheritance -->
 | Teacher | Standard | Targets matching world | Adapter vs **world** | Adapter vs **teacher** | Inherited error |
 | --- | --- | --- | --- | --- | --- |
-| by-the-book | 3 of 3 | 1.000 | 0.995 | 0.995 | -0.005 |
-| inattentive | 3 of 3, slips 15% | 0.855 | **0.902** | 0.790 | **+0.046** |
-| two-of-three | 2 of 3 | 0.728 | 0.730 | **0.982** | +0.002 |
-| any-one | 1 of 3 | 0.439 | 0.440 | **1.000** | +0.001 |
+| by-the-book | 3 of 3 | 1.0000 | 0.9967 | 0.9967 | -0.0033 |
+| inattentive | 3 of 3, slips 15% | 0.8553 | 0.8967 | 0.7817 | +0.0414 |
+| two-of-three | 2 of 3 | 0.7009 | 0.6933 | 0.9750 | -0.0076 |
+| any-one | 1 of 3 | 0.4465 | 0.4667 | 1.0000 | +0.0202 |
+
+Accuracy on 600 held-out tasks, 1140 training tuples per adapter. The last column is the adapter's agreement with the world minus its teacher's: near zero means the adapter reproduced its teacher's error rate rather than diluting it.
+<!-- END GENERATED: teacher-inheritance -->
 
 Accuracy on **600** held-out tasks whose events are disjoint from training. The base
-model scores accuracy 0.317 with 74 of 600 answers unparsable, so every row is a large
+model scores accuracy 0.320 with 82 of 600 answers unparsable, so every row is a large
 gain over not training at all. The last column is the adapter's agreement with the
 world minus its teacher's, and it is the cleanest statement of the finding.
 
 **A wrong standard is inherited almost exactly.** The two systematically-wrong
-teachers hand over their error rate to within **0.002 and 0.001**: a teacher whose
-targets agree with the world on 0.728 produces an adapter agreeing on 0.730, and one
-at 0.439 produces 0.440. The adapter did not partially absorb the reviewer's rule or
+teachers hand over their error rate to within **0.008 and 0.020**: a teacher whose
+targets agree with the world on 0.701 produces an adapter agreeing on 0.693, and one
+at 0.447 produces 0.467. The adapter did not partially absorb the reviewer's rule or
 average it against its prior; it learned "two of three" and "one of three" and now
 agrees with the world exactly as much as that rule does. This is the concrete form of
 what the noisy-annotation literature calls absorbing an unreliable annotator's errors
@@ -1210,9 +1214,21 @@ the adapter simply became that rule.
 
 So the two error types finding 8 separated at the level of the target stream stay
 separated after training. Carelessness is partly repaired by learning, by nearly four
-points. **Wrongness is preserved by it** to within half a point, which is the more
+points. **Wrongness is preserved by it** to within two points, which is the more
 unsettling half of the result: there is no dilution, no regression toward the model's
 prior, and nothing in the training signal that notices the rule is wrong.
+
+!!! warning "Corrected 2026-08-06: the inheritance was tighter on the page than in the data"
+    Both tables above were hand-typed and every row had drifted. One drift carried the
+    finding's headline: the page said the two systematically-wrong teachers hand over
+    their error rate *"to within 0.002 and 0.001"*. The artifacts say **0.008 and
+    0.020** --- an order of magnitude larger, and the claim that inheritance is an
+    *identity* rests on exactly that gap being small.
+
+    The conclusion survives, because two points of slack across a 600-task evaluation
+    is still inheritance rather than dilution, and the direction is unchanged. But
+    "to within 0.002" was a stronger sentence than anything measured supported, and it
+    was the sentence a reader would quote. Both tables are generated now.
 
 **What this means for the design.** The premise is that a fleet learns analytic
 tradecraft from analyst decisions. It does -- exactly, faithfully, and without any
@@ -1230,17 +1246,21 @@ different corpus instantiation entirely, sharing no events, no vessels and no
 renderings, which is what contamination-resistance guidance asks of a benchmark.
 Repeating the sweep with the evaluation drawn from seed 101 (2h54m, same A100):
 
-| Teacher | Targets vs world | Adapter vs world | Adapter vs teacher | Inherited |
-| --- | --- | --- | --- | --- |
-| by-the-book | 1.000 | 0.988 | 0.988 | -0.012 |
-| inattentive | 0.858 | **0.943** | 0.835 | **+0.086** |
-| two-of-three | 0.728 | 0.708 | 0.997 | -0.020 |
-| any-one | 0.439 | 0.447 | 1.000 | +0.008 |
+<!-- BEGIN GENERATED: teacher-inheritance-xseed -->
+| Teacher | Standard | Targets matching world | Adapter vs **world** | Adapter vs **teacher** | Inherited error |
+| --- | --- | --- | --- | --- | --- |
+| by-the-book | 3 of 3 | 1.0000 | 0.9917 | 0.9917 | -0.0083 |
+| inattentive | 3 of 3, slips 15% | 0.8575 | 0.9483 | 0.8233 | +0.0908 |
+| two-of-three | 2 of 3 | 0.7046 | 0.7033 | 0.9983 | -0.0013 |
+| any-one | 1 of 3 | 0.4534 | 0.4650 | 1.0000 | +0.0116 |
+
+Accuracy on 600 held-out tasks, 1740 training tuples per adapter. The last column is the adapter's agreement with the world minus its teacher's: near zero means the adapter reproduced its teacher's error rate rather than diluting it.
+<!-- END GENERATED: teacher-inheritance-xseed -->
 
 Both conclusions hold on a corpus with zero overlap. The systematically wrong teachers
 are still tracked closely, now within about two points rather than half a point, and
 the careless teacher is still the only one improved upon: 0.943 against its teacher's
-0.835, a gap of 0.108 against a difference half-width of 0.035, resolved on its own
+0.823, a gap of 0.125 against a difference half-width of 0.038, resolved on its own
 terms.
 
 !!! warning "Do not read the two tables as a controlled comparison"
@@ -1248,7 +1268,7 @@ terms.
     on **1,140**. That is not an oversight in either run but a consequence of the
     design: when evaluation comes from a different corpus, nothing has to be held out
     of the training one. So the differences *between* the tables, the filtering effect
-    growing from +0.038 to +0.086 and the inheritance loosening from half a point to
+    growing from +0.041 to +0.091 and the inheritance loosening from two points to
     two, are confounded with 53% more training data and cannot be attributed to
     cross-corpus evaluation. What each table supports on its own is the same pair of
     conclusions, which is the claim being made.
@@ -1378,8 +1398,8 @@ the stream already approved by the per-item gates.
 
 | Ruling | Contributions | Compartment set recovered | Mean anonymity set |
 | --- | --- | --- | --- |
-| shed compartments | 7,053 | **0.205** [0.150, 0.265] | 10.0 |
-| keep compartments | 1,000 | 0.000 [0.000, 0.000] | 16.0 |
+| shed compartments | 6,606 | **0.205** [0.150, 0.265] | 9.98 |
+| keep compartments | 400 | 0.000 [0.000, 0.000] | 16.00 |
 
 Guessing the fleet's most common beat scores 0.105, and the interval excludes it, so
 the attack is doing real work. But the aggregate is the least interesting number here.
@@ -1447,26 +1467,47 @@ a result.
 
 **The controls, each priced in the training volume it destroys.**
 
-| Control | Recovered | Anonymity set | Volume kept | Analysts silenced |
+<!-- BEGIN GENERATED: linkage-controls -->
+| Mitigation | Recovered | Mean anonymity set | Volume kept | Analysts silenced |
 | --- | --- | --- | --- | --- |
-| none | 0.205 | 10.0 | 1.000 | 0 |
-| k-anonymity, k=10 | 0.205 | 10.0 | 0.992 | 0 |
-| k-anonymity, k=25 | 0.130 | 10.0 | 0.845 | 0 |
-| k-anonymity, k=50 | 0.000 | 13.3 | 0.265 | 0 |
-| suppress rarest 25% | 0.130 | 10.1 | 0.925 | 0 |
-| **suppress rarest 50%** | **0.000** | 12.5 | **0.764** | 0 |
-| subsample p=0.5 | 0.185 | 10.1 | 0.511 | 5 |
-| subsample p=0.05 | 0.025 | 8.6 | 0.048 | 108 |
-| **pool contributors** | **0.000** | **200.0** | **1.000** | 0 |
+| no mitigation | 0.205 | 9.98 | 100.0% | 0 |
+| k-anonymity, k=10 | 0.205 | 9.98 | 98.7% | 0 |
+| k-anonymity, k=25 | 0.110 | 10.27 | 83.1% | 0 |
+| k-anonymity, k=50 | **0.000** | 13.32 | 20.2% | 0 |
+| k-anonymity, k=100 | **0.000** | 16.00 | 6.1% | 0 |
+| suppress rarest 25% | 0.110 | 10.27 | 92.0% | 0 |
+| suppress rarest 50% | **0.000** | 11.56 | 74.5% | 0 |
+| suppress rarest 75% | **0.000** | 12.46 | 42.4% | 0 |
+| subsample p=0.5 | 0.170 | 9.28 | 51.1% | 23 |
+| subsample p=0.2 | 0.100 | 8.40 | 19.3% | 64 |
+| subsample p=0.05 | 0.040 | 6.37 | 4.7% | 116 |
+| pool every analyst | **0.000** | 200.00 | 100.0% | 0 |
+
+Bold marks a mitigation that drives recovery to zero. The guessing prior is 0.105, so a row at or below it has closed *this* attack; read the volume and silenced columns for what that cost. Contributions under the two rulings are 6,606 when compartments are shed and 400 when they are kept.
+<!-- END GENERATED: linkage-controls -->
+
+!!! warning "Corrected 2026-08-06: every cell of this table had drifted"
+    The control ladder was hand-typed and had gone stale against the artifact in almost
+    every column. Contributions were published as 7,053 and 1,000 where the measurement
+    says 6,606 and 400; k=25 and the rarity rows were wrong in recovery, anonymity and
+    volume; subsampling at p=0.5 silenced 23 analysts rather than 5, and at p=0.05 it
+    silenced 116 rather than 108.
+
+    Nothing in the argument moved, and that is the uncomfortable part. Every conclusion
+    below still follows: small-k anonymity is a no-op, only the settings that destroy
+    most of the volume close the attack, and pooling closes it at no volume cost while
+    destroying what the fleet is for. A table can be wrong in every cell and still
+    support its own conclusions, which is precisely why the conclusions cannot be the
+    thing that checks it. The ladder is generated now.
 
 Three things fall out of that table, and all of them are statements about this attack
 rather than about the channel.
 
 **Textbook k-anonymity at a small k is a no-op**, because in a fleet of 200 even a
 rare clearance cell has several holders: k=10 changes nothing and costs almost
-nothing. It only bites at k=50, where it takes 73% of the training data with it.
+nothing. It only bites at k=50, where it takes 79.8% of the training data with it.
 Choosing the threshold by rank instead of as an absolute count reaches the same
-protection for under a third of that cost (23.6% of the volume against 73.5%), and is
+protection for a third of that cost (25.5% of the volume against 79.8%), and is
 the version worth deploying.
 
 **Subsampling is dominated on both axes.** At p=0.05 it still leaks while destroying
@@ -1497,7 +1538,7 @@ identity, which neither finding measures.
 privacy mechanism for a fleet, and no amount of per-item correctness makes it one.
 The ruling that makes federation viable at all
 ([finding 2](#2-the-design-is-bimodal-on-one-policy-ruling)) is the same ruling that
-opens this channel: shedding compartments takes contributions from 1,000 to 7,053 and
+opens this channel: shedding compartments takes contributions from 400 to 6,606 and
 recovery from 0.000 to 0.205. Privacy and utility here are one knob, not two, and it
 is the knob finding 2 already identified as the design's hinge.
 
@@ -1776,13 +1817,16 @@ with probability `keep`, and fabricate one on an unreachable task with probabili
 `fabricate`. The second half is what buys deniability and is exactly what subsampling
 lacks.
 
-| keep | fabricate | Recovery | ε per indicator | **ε composed** | Label noise |
+<!-- BEGIN GENERATED: privacy-budget -->
+| Keep | Fabricate | Recovered | Label noise | epsilon per indicator | epsilon composed |
 | --- | --- | --- | --- | --- | --- |
-| 0.9 | 0.0 | 0.205 | ∞ | ∞ | 0.000 |
-| 0.9 | 0.1 | 0.220 | 2.20 | 428.5 | 0.341 |
-| 0.8 | 0.2 | 0.120 | 1.39 | 270.3 | 0.537 |
-| 0.7 | 0.3 | 0.100 | 0.85 | 165.2 | 0.668 |
-| **0.6** | **0.4** | **0.065** | **0.41** | **66.7** | **0.756** |
+| 0.9 | 0.1 | 0.210 | 0.3603 | 2.20 | 435.1 |
+| 0.8 | 0.2 | 0.155 | 0.5602 | 1.39 | 274.5 |
+| 0.7 | 0.3 | 0.095 | 0.6823 | 0.85 | 167.8 |
+| 0.6 | 0.4 | 0.070 | 0.7716 | 0.41 | 67.5 |
+
+Participation noise against a baseline recovery of 0.205 over 200 analysts. `epsilon composed` is the better of basic and advanced composition across 198 indicators at delta = 1e-05. Read the label-noise column beside it: the setting that suppresses the attack corrupts most of the labels, and an epsilon in the hundreds is a budget in name rather than a guarantee.
+<!-- END GENERATED: privacy-budget -->
 
 Recovery here is again what *this* attack achieves, so the column bounds leakage from
 below; the epsilon columns, by contrast, bound it from above for any adversary, which
@@ -1792,7 +1836,7 @@ though its numbers are worse than the ladder's.
 
 **The two epsilon columns are the finding.** Randomized response bounds the likelihood
 ratio for *one* indicator, and the attack observes all of them: two clearances in this
-fleet are separated by as many as **195 tasks**, so the guarantee against an adversary
+fleet are separated by as many as **198 tasks**, so the guarantee against an adversary
 telling one from the other is the budget composed over that set. At the strongest
 setting tested, a per-indicator ε of **0.41** looks excellent and the composed ε is
 **66.7**, which is not a privacy guarantee in any usual sense. It costs **75.6% label
@@ -1806,7 +1850,7 @@ Two smaller results in the table. **Subsampling has infinite epsilon**, which is
 sat in finding 11's ladder as a cost with no protection beside it: dropping
 contributions makes a stream sparser without making any surviving contribution
 deniable. And recovery at `keep=0.9, fabricate=0.1` is *higher* than the baseline,
-0.220 against 0.205, which at 200 analysts is three people and is read as noise rather
+0.210 against 0.205, which at 200 analysts is one person and is read as noise rather
 than as noise-helping-the-attack.
 
 !!! note "What this does not settle"
