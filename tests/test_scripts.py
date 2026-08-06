@@ -1529,13 +1529,59 @@ def test_minimum_detectable_is_twice_the_half_width():
 def test_every_claim_carries_a_finding_and_a_description():
     """A claim with no finding behind it is a number nobody can check."""
     mp = _power_module()
-    assert mp.CLAIMS
-    for claim in mp.CLAIMS:
+    claims = mp._claims()
+    assert claims
+    for claim in claims:
         assert claim.finding and claim.description
         assert claim.n > 0
         assert 0.0 <= claim.effect <= 1.0
         if claim.rate is not None:
             assert 0.0 < claim.rate < 1.0
+
+
+def test_every_number_a_claim_quotes_is_in_the_artifact_it_came_from():
+    """The claims were hand-typed once, and went stale the next time anything moved.
+
+    They fed a *generated* block, which meant the page rendered a hand-written number
+    with all the authority of a measured one. The visible symptom was a claim reading
+    `qwen2.5-3b (0.625) clears the majority floor (0.625)` -- a dead heat, reasoned
+    about at length in the prose -- while the artifact said 0.775 against 0.650, and
+    the 0.625 belonged to a different model in the same table.
+
+    So every numeral a claim quotes has to appear in the artifact behind it. This is
+    the property, not the values: it keeps holding when the corpus is re-measured.
+    """
+    import json as _json
+    import re
+
+    mp = _power_module()
+    quoted = re.compile(r"\((\d\.\d{3})\)")
+
+    # Every value present anywhere in any committed artifact, rounded the way the
+    # descriptions render it. A quoted number absent from this set was typed, not read.
+    measured: set[str] = set()
+
+    def walk(node):
+        if isinstance(node, dict):
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for value in node:
+                walk(value)
+        elif isinstance(node, (int, float)) and not isinstance(node, bool):
+            measured.add(f"{float(node):.3f}")
+
+    for path in (SCRIPTS.parent / "results").glob("*.json"):
+        walk(_json.loads(path.read_text(encoding="utf-8")))
+
+    # 1.000 is the stated-rule ceiling, a definition rather than a measurement.
+    exempt = {"1.000"}
+    for claim in mp._claims():
+        for value in quoted.findall(claim.description):
+            assert value in measured or value in exempt, (
+                f"claim {claim.finding!r} quotes {value}, which appears in no artifact: "
+                f"{claim.description!r}"
+            )
 
 
 def test_class_balance_is_read_from_the_corpus_not_assumed():

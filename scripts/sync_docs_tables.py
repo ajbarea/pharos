@@ -510,6 +510,66 @@ def audit_policy() -> str:
     return "\n".join(lines)
 
 
+def difficulty_confound() -> str:
+    """Finding 17: estimated difficulty by true overlap, per fleet composition.
+
+    Hand-typed until 2026-08-05, and every cell of it had drifted. The item counts
+    were wrong, every difficulty value was wrong, and the prose read a peak off the
+    wrong column: it said the random-slip row "peaks at overlap 0, furthest from the
+    boundary", where the artifact peaks at overlap 1. That last one is why this is
+    generated now rather than corrected in place. A wrong digit is a wrong digit; a
+    wrong *peak* is the argument the finding makes.
+    """
+    path = RESULTS / "difficulty_confound.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make difficulty` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    rows = payload.get("rows") or []
+    if not rows:
+        _fail("difficulty_confound.json carries no rows; refusing to emit an empty table")
+
+    overlaps: list[str] = sorted((str(k) for k in rows[0]["difficulty_by_overlap"]), key=int)
+    boundary = payload.get("near_boundary_overlap", "2")
+    converged = set(payload.get("converged_rows") or [])
+
+    def head(o: str) -> str:
+        return f"**ovl={o}**" if o == boundary else f"ovl={o}"
+
+    lines = [
+        "| Fleet | " + " | ".join(head(o) for o in overlaps) + " | Spread | Converged |",
+        "| --- |" + " --- |" * (len(overlaps) + 2),
+    ]
+    for row in rows:
+        by_overlap = row["difficulty_by_overlap"]
+        peak = max(by_overlap, key=lambda o: by_overlap[o])
+        cells = []
+        for o in overlaps:
+            value = f"{by_overlap[o]:.3f}"
+            cells.append(
+                f"**{value}**" if o == peak and len(set(by_overlap.values())) > 1 else value
+            )
+        iters = row.get("iterations")
+        settled = "yes" if row["composition"] in converged else "**no**"
+        lines.append(
+            f"| {row['composition']} | "
+            + " | ".join(cells)
+            + f" | {row['difficulty_spread']:.3f} | {settled}, {iters} iter |"
+        )
+
+    items = payload.get("items_by_overlap") or {}
+    lines += [
+        "",
+        "| Signature facts present | " + " | ".join(head(o) for o in overlaps) + " |",
+        "| --- |" + " --- |" * len(overlaps),
+        "| Items | " + " | ".join(str(items.get(o, "--")) for o in overlaps) + " |",
+        "",
+        "Estimated item difficulty by true signature overlap, under fleets differing only "
+        "in composition. **Bold** in each row marks that row's own peak, read from the "
+        "artifact rather than asserted in prose.",
+    ]
+    return "\n".join(lines)
+
+
 def blind_spot() -> str:
     """Finding 21: where the audit policy stops working.
 
@@ -632,6 +692,7 @@ BLOCKS = {
     "authority-price": authority_price,
     "audit-policy": audit_policy,
     "blind-spot": blind_spot,
+    "difficulty-confound": difficulty_confound,
     "channel-bias": channel_bias,
 }
 
