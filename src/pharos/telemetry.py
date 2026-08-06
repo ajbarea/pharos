@@ -360,9 +360,9 @@ _METRIC_META: dict[str, tuple[str, str]] = {
     "gate.probe_auc": ("1", "AUC of one surface probe against the class label"),
     "gate.surface_baseline": ("1", "Best surface-feature AUC, the score to report against"),
     "generate.reports": ("{report}", "Reports rendered for a generated corpus"),
-    "channelbias.z": (
+    "channelbias.p_value": (
         "1",
-        "Standard deviations above the permutation null for one channel's verdict gap",
+        "One-sided permutation p-value for one channel's verdict gap, floor 1/(m+1)",
     ),
     "blindspot.threshold": (
         "{task}",

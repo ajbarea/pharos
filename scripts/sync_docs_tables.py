@@ -628,12 +628,16 @@ def channel_bias() -> str:
     levels = payload.get("noise_levels") or [0.0]
 
     def score(hit: dict[str, Any] | None) -> str:
-        """A degenerate null prints as `n/a`, never as a number it does not have."""
+        """The p-value, with the effect beside it where the channel is detected.
+
+        A permutation p-value has no undefined case to print around: a null with no
+        spread returns 1.0, which is a real answer.
+        """
         if hit is None:
             return "--"
-        if hit.get("degenerate") or hit.get("z") is None:
-            return "n/a"
-        return f"**{hit['z']:.2f}**" if hit["detected"] else f"{hit['z']:.2f}"
+        p = hit["p_value"]
+        shown = f"{p:.4f}" if p >= 1e-4 else f"{p:.1e}"
+        return f"**{shown}** ({hit['delta']:+.3f})" if hit["detected"] else shown
 
     lines: list[str] = []
     controls = {entry["slip_rate"]: entry["detections"] for entry in payload["threshold_control"]}
@@ -667,16 +671,18 @@ def channel_bias() -> str:
         lines.append("")
 
     lines += [
-        f"Standard deviations above a within-stratum permutation null over "
-        f"{payload['trials']} trials, reported as the median across "
-        f"{len(payload['permutation_seeds'])} draws of that null; bold is a detection at "
-        f"z ≥ {payload['detection_z']:.0f}. ‡ is the channel the fleet actually discounts.",
+        f"One-sided permutation p-values against a within-stratum null over "
+        f"{payload['permutations']} permutations, computed as (b+1)/(m+1) so the floor "
+        f"is {1 / (payload['permutations'] + 1):.1e} and never zero. Bold is a detection "
+        f"at p ≤ {payload['alpha']}, with the stratified gap beside it. ‡ is the channel "
+        f"the fleet actually discounts.",
         "",
-        "`n/a` is not a pass. At zero verdict noise every analyst is identical and "
-        "deterministic, so each task's rate is fixed by its evidence stratum, every "
-        "permutation of the channel labels returns the same gap, and the null has no "
-        "spread for z to be measured against. Both controls sit in that case, which is "
-        "why the sweep runs at noise levels where they can fail.",
+        "Read the **gap** for extent and the p-value for detection. The gap is linear "
+        "in the blind share; the p-value saturates at its floor once an effect is "
+        "comfortably significant and cannot distinguish shares above that point. "
+        "p = 1.0000 on a noiseless fleet is not a missing value: with every analyst "
+        "deterministic, each task's rate is fixed by its evidence stratum, every "
+        "permutation returns the observed gap, and b = m exactly.",
     ]
     return "\n".join(lines)
 
