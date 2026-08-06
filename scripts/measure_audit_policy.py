@@ -147,6 +147,13 @@ class ServerObservation:
 
     `votes` and `seen` are the two per-task sums the protocol already reveals.
     `posterior` is the estimator's own output, which the server holds by construction.
+    `evidence` and `carries` are public corpus structure -- how much evidence a task
+    shows, and whether it carries a named channel -- which finding 22's detector
+    already reads and is deployable for reading. They are empty unless a caller
+    supplies them, and `observe` never does.
+
+    What must never appear is a per-analyst field. That is the line, and it is asserted
+    on `__slots__` in the tests rather than left to this docstring.
     """
 
     votes: dict[str, float]
@@ -268,8 +275,13 @@ POLICIES: dict[str, Policy] = {
     "oracle": policy_oracle,
 }
 
-#: Which policies may be proposed. `oracle` is excluded by construction; reporting it
-#: inside the same set would let a summary line quote a number no deployment can have.
+#: Which policies may be proposed *in this regime*. Two names in `POLICIES` are absent
+#: for different reasons, and both matter. `oracle` is excluded by construction:
+#: reporting it inside the same set would let a summary line quote a number no
+#: deployment can have. `channel` is excluded because it needs finding 22's detector to
+#: have named a channel first, which has not happened in a fleet holding a *threshold*
+#: error -- there is no channel to name, so it would degrade to an arbitrary draw
+#: wearing a policy's name. `measure_blind_spot` adds it back where the detector fires.
 DEPLOYABLE = ("uniform", "margin", "posterior", "consensus")
 
 

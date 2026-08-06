@@ -52,8 +52,10 @@ belong here.
 - Coverage spans `scripts/` as well as the library, because the scripts produce
   every published number. Orchestration bodies are excluded via
   `[tool.coverage.report] exclude_also`; the pure logic is not.
-- Margin is thin: 298 tests land at 94.2% against a 92% floor, so an uncovered
-  addition fails the build rather than merely lowering a number.
+- Margin over the floor is thin, so an uncovered addition fails the build rather than
+  merely lowering a number. The floor is in the Makefile and the current total is
+  whatever `make test` last printed; neither is repeated here, because a count written
+  down in two places is a count that will disagree with itself.
 
 ### Phase 5 — Gates
 
@@ -67,7 +69,7 @@ belong here.
 ### do_not_run (interactive / long-running)
 
 - `make results` — needs Ollama serving a model; the label-fidelity pass alone is
-  216 sequential model calls. `make review` is *not* in this list: it is model-free
+  hundreds of sequential model calls. `make review` is *not* in this list: it is model-free
   and safe to run.
 - `scripts/sweep_models.sh` — same, across every installed model.
 - `scripts/train_adapter.py` — requires a CUDA GPU; runs as a cluster job.
