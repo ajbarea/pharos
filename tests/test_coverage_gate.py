@@ -69,8 +69,56 @@ def test_the_default_precision_is_what_broke_it():
 
 
 @pytest.mark.parametrize("offset", [-50.0, -0.26, -0.01, 0.0, +0.01, +8.0])
-def test_the_verdict_tracks_the_raw_comparison_on_both_sides(offset):
-    """No band anywhere below the floor may pass, and nothing at or above it may fail."""
+def test_the_verdict_tracks_the_raw_comparison_outside_the_rounding_band(offset):
+    """Outside one rounding step of the floor, exit status and raw comparison agree."""
     (floor,) = {floor for values in declared_floors().values() for floor in values}
     total = floor + offset
     assert should_fail_under(total, floor, configured_precision()) == (total < floor)
+
+
+def test_the_rounding_band_is_real_and_is_the_documented_behaviour():
+    """There *is* a band below the floor that passes, and it is not a defect.
+
+    pytest-cov rounds the total to the configured precision before comparing, so with
+    `precision = 2` and a floor of 92 every total in [91.995, 92.0) rounds to 92.00 and
+    exits zero. An earlier version of the test above asserted that "no band anywhere
+    below the floor may pass", sampled only offsets outside that band, and so reported
+    coverage of a property the code does not have.
+
+    The band is upstream's deliberate design rather than an oversight: the fail-under
+    check was changed in pytest-cov 7.0.0 to use the configured precision precisely so
+    that the exit status agrees with the number `coverage report` prints. A gate that
+    printed 92.00% and then failed would be the worse bug, and was the one `precision`
+    was added here to fix.
+
+    What is worth pinning is that the band is exactly one rounding step wide and that
+    nothing below it passes, so the gate cannot drift further open without this
+    failing.
+    """
+    (floor,) = {floor for values in declared_floors().values() for floor in values}
+    precision = configured_precision()
+    step = 10.0**-precision
+
+    # Inside the band: rounds up to the floor, and passes. This is the documented
+    # behaviour, asserted rather than assumed.
+    assert not should_fail_under(floor - step / 2.5, floor, precision)
+
+    # Immediately below the band: no longer rounds to the floor, and fails.
+    assert should_fail_under(floor - step, floor, precision)
+
+    # The band cannot be wider than one rounding step in the other direction either.
+    assert should_fail_under(floor - step * 2, floor, precision)
+
+
+def test_the_floor_is_not_reachable_by_rounding_from_a_whole_point_below():
+    """The gate's real guarantee, stated in terms a reader can act on.
+
+    Whatever the rounding band does at the fourth decimal place, a run that is a
+    tenth of a point short must fail. That is the property the floor exists to
+    provide, and it is what the coverage number in the README is worth.
+    """
+    (floor,) = {floor for values in declared_floors().values() for floor in values}
+    for shortfall in (0.1, 0.5, 1.0, 5.0):
+        assert should_fail_under(floor - shortfall, floor, configured_precision()), (
+            f"a run {shortfall} points below the floor passed the gate"
+        )
