@@ -565,36 +565,58 @@ def channel_bias() -> str:
 
     channels = [d["channel"] for d in sweep[0]["detections"]]
     blind = payload["blind_channel"]
-    lines = [
-        "| Blind of {} | ".format(payload["fleet"])
-        + " | ".join(f"`{c}`" + (" ‡" if c == blind else "") for c in channels)
-        + " |",
-        "| --- |" + " --- |" * len(channels),
-    ]
-    for row in sweep:
-        cells = []
-        for channel in channels:
-            hit = next((d for d in row["detections"] if d["channel"] == channel), None)
-            if hit is None:
-                cells.append("--")
-            elif hit["detected"]:
-                cells.append(f"**{hit['z']:.1f}**")
-            else:
-                cells.append(f"{hit['z']:.1f}")
-        lines.append(f"| {row['n_blind']} | " + " | ".join(cells) + " |")
+    levels = payload.get("noise_levels") or [0.0]
 
-    control = payload.get("threshold_control") or []
+    def score(hit: dict[str, Any] | None) -> str:
+        """A degenerate null prints as `n/a`, never as a number it does not have."""
+        if hit is None:
+            return "--"
+        if hit.get("degenerate") or hit.get("z") is None:
+            return "n/a"
+        return f"**{hit['z']:.2f}**" if hit["detected"] else f"{hit['z']:.2f}"
+
+    lines: list[str] = []
+    controls = {entry["slip_rate"]: entry["detections"] for entry in payload["threshold_control"]}
+
+    for slip in levels:
+        rows = [r for r in sweep if r["slip_rate"] == slip]
+        if not rows:
+            _fail(f"channel_bias.json has no sweep rows at slip {slip}; refusing a partial table")
+        lines += [
+            f"**Verdict noise {slip:.2f}**",
+            "",
+            "| Blind of {} | ".format(payload["fleet"])
+            + " | ".join(f"`{c}`" + (" ‡" if c == blind else "") for c in channels)
+            + " |",
+            "| --- |" + " --- |" * len(channels),
+        ]
+        for row in rows:
+            cells = [
+                score(next((d for d in row["detections"] if d["channel"] == channel), None))
+                for channel in channels
+            ]
+            lines.append(f"| {row['n_blind']} | " + " | ".join(cells) + " |")
+        lines.append(
+            "| threshold control | "
+            + " | ".join(
+                score(next((d for d in controls.get(slip, []) if d["channel"] == c), None))
+                for c in channels
+            )
+            + " |"
+        )
+        lines.append("")
+
     lines += [
-        "",
-        "| Control | " + " | ".join(f"`{d['channel']}`" for d in control) + " |",
-        "| --- |" + " --- |" * len(control),
-        "| threshold error (not channel-linked) | "
-        + " | ".join(f"{d['z']:.1f}" for d in control)
-        + " |",
-        "",
         f"Standard deviations above a within-stratum permutation null over "
-        f"{payload['trials']} trials; bold is a detection at z ≥ "
-        f"{payload['detection_z']:.0f}. ‡ is the channel the fleet actually discounts.",
+        f"{payload['trials']} trials, reported as the median across "
+        f"{len(payload['permutation_seeds'])} draws of that null; bold is a detection at "
+        f"z ≥ {payload['detection_z']:.0f}. ‡ is the channel the fleet actually discounts.",
+        "",
+        "`n/a` is not a pass. At zero verdict noise every analyst is identical and "
+        "deterministic, so each task's rate is fixed by its evidence stratum, every "
+        "permutation of the channel labels returns the same gap, and the null has no "
+        "spread for z to be measured against. Both controls sit in that case, which is "
+        "why the sweep runs at noise levels where they can fail.",
     ]
     return "\n".join(lines)
 

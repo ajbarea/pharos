@@ -2610,63 +2610,117 @@ labels are shuffled *inside* each evidence level, preserving the difficulty dist
 and destroying only the association under test.
 
 <!-- BEGIN GENERATED: channel-bias -->
+**Verdict noise 0.00**
+
 | Blind of 9 | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` ‡ |
 | --- | --- | --- | --- | --- |
-| 0 | 0.0 | 0.0 | 0.0 | 0.0 |
-| 1 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 2 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 3 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 4 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 5 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 7 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 9 | -1.8 | -1.2 | 1.7 | **8.1** |
+| 0 | n/a | n/a | n/a | n/a |
+| 1 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 2 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 3 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 4 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 5 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 7 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 9 | -1.55 | -1.15 | 2.02 | **8.22** |
+| threshold control | n/a | n/a | n/a | n/a |
 
-| Control | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` |
+**Verdict noise 0.05**
+
+| Blind of 9 | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` ‡ |
 | --- | --- | --- | --- | --- |
-| threshold error (not channel-linked) | 0.0 | 0.0 | 0.0 | 0.0 |
+| 0 | 0.30 | -0.89 | -0.84 | 1.47 |
+| 1 | -0.45 | -1.65 | -0.26 | **3.02** |
+| 2 | -1.03 | -1.89 | 0.46 | **4.80** |
+| 3 | -1.42 | -1.36 | 0.81 | **6.00** |
+| 4 | -1.65 | -1.20 | 0.83 | **6.77** |
+| 5 | -1.73 | -1.51 | 1.78 | **6.76** |
+| 7 | -1.50 | -1.47 | 2.62 | **7.09** |
+| 9 | -1.57 | -1.33 | 2.43 | **7.71** |
+| threshold control | -1.48 | -0.01 | 0.12 | 1.32 |
 
-Standard deviations above a within-stratum permutation null over 200 trials; bold is a detection at z ≥ 3. ‡ is the channel the fleet actually discounts.
+**Verdict noise 0.15**
+
+| Blind of 9 | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` ‡ |
+| --- | --- | --- | --- | --- |
+| 0 | 1.20 | -0.70 | -0.32 | 0.34 |
+| 1 | 0.67 | -0.06 | -0.39 | 0.89 |
+| 2 | 0.17 | 0.10 | -0.12 | 1.93 |
+| 3 | -0.49 | 0.27 | -0.04 | **3.04** |
+| 4 | -1.01 | 0.56 | -0.29 | **4.03** |
+| 5 | -1.25 | -0.09 | 0.88 | **5.10** |
+| 7 | -1.20 | -0.58 | 0.92 | **5.67** |
+| 9 | -1.65 | -0.38 | 1.14 | **5.92** |
+| threshold control | -1.06 | 0.15 | -0.51 | 0.55 |
+
+Standard deviations above a within-stratum permutation null over 200 trials, reported as the median across 21 draws of that null; bold is a detection at z ≥ 3. ‡ is the channel the fleet actually discounts.
+
+`n/a` is not a pass. At zero verdict noise every analyst is identical and deterministic, so each task's rate is fixed by its evidence stratum, every permutation of the channel labels returns the same gap, and the null has no spread for z to be measured against. Both controls sit in that case, which is why the sweep runs at noise levels where they can fail.
 <!-- END GENERATED: channel-bias -->
 
 **It survives unanimity.** At nine of nine blind --- precisely where finding 21's
-policies score at chance --- the discounted channel stands at **z = 8.1** against its
-permutation null, and no other channel clears 1.8. The statistic reads the *level* of
-the fleet's verdict rather than its spread, so the disappearance of dissent costs it
-nothing.
+policies score at chance --- the discounted channel clears the threshold at every noise
+level measured, from **z = 8.22** on a noiseless fleet to **z = 5.92** at a 15% slip
+rate, and no other channel clears 2.5 anywhere. The statistic reads the *level* of the
+fleet's verdict rather than its spread, so the disappearance of dissent costs it
+nothing. That is the finding, and it holds.
 
-!!! success "One blind analyst in nine is as detectable as all nine"
-    The z-score is **8.07 at every share from 1 to 9**, identical to three decimal
-    places, and that is not a bug: a blind spot scales a single fixed pattern of
-    depressed rates, so the observed gap and the permutation null scale together and the
-    ratio cancels. The gap itself moves exactly as the share does --- $-0.028$ at one
-    analyst, $-0.250$ at nine, in the ratio $1:9$. Detection therefore does not get
-    harder as the habit spreads, and --- more usefully --- does not require the habit to
-    have spread at all.
+!!! warning "Corrected 2026-08-05: the invariance was a property of an idealized fleet"
+    This section previously carried a success box reading *"One blind analyst in nine is
+    as detectable as all nine"*, on the strength of z = 8.07 holding identically at every
+    share from 1 to 9. The arithmetic was right and the conclusion was not.
 
-    This sentence was published before it was measured. The sweep ran
-    $\{0, 5, 7, 9\}$, so the lowest share it tested was already the majority, and every
-    claim here about catching a habit *early* rested on shares nobody had run. The sweep
-    now runs $\{0, 1, 2, 3, 4, 5, 7, 9\}$ and the claim survives it. It would have been
-    equally publishable had it not.
+    z is the ratio of the observed gap to the null's spread, and both are linear in the
+    blind share --- but linear *through the origin* only when the baseline gap at zero
+    blind analysts is exactly zero. That is true of a fleet in which every analyst is
+    deterministic and identical, because then each task's verdict rate is fixed by its
+    evidence stratum and there is nothing left to vary within one. It is not true of any
+    fleet that makes mistakes. Every sentence of the original derivation survives the
+    correction; the conclusion does not, because linearity is not linearity through the
+    origin.
 
-    That matters against
-    [finding 16](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently),
-    whose warning is that a shared training pipeline drives a fleet toward a common
-    error far faster than independent draws suggest. A house style is catchable here
-    *before* it becomes the majority, which is the only point at which catching it is
-    cheap.
+    Measured across noise levels, detection degrades with the share exactly as intuition
+    would suggest, and the honest reading is a floor rather than an invariance:
 
-!!! note "Both negative controls are clean, and one of them could have voided the finding"
+    - **No verdict noise**: z = 8.22 at every share from 1 to 9. The published case, and
+      a degenerate one.
+    - **5% slip**: one blind analyst sits *on* the threshold --- median z = 3.02 across
+      21 draws of the null, range 2.70 to 3.23. It straddles z = 3, so it is not
+      reliably detected. Two blind analysts (4.80) are.
+    - **15% slip**, this repo's own `inattentive` rate: one blind analyst scores 0.89 and
+      is **not detected**. Three of nine (3.04) is the floor.
+
+    So the claim that survives is weaker than the one withdrawn and still useful: a
+    channel blind spot is catchable at roughly **a third of the fleet** on a realistically
+    noisy fleet, and earlier on a quiet one --- in both cases well before unanimity. The
+    tie to
+    [finding 16](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently)
+    holds in that weaker form: a house style driven by a shared pipeline is catchable
+    before it becomes the majority, but not from its first adopter.
+
+    One thing the correction *gains*. The withdrawn invariance came with a stated
+    limitation --- a statistic that does not move with the share cannot report the share.
+    Under noise it does move, monotonically, so the detector carries information about
+    extent after all. That is a better instrument than the one this finding claimed, and
+    sizing the blind spot from it is now an open question rather than a closed door.
+
+!!! note "The negative controls could not fail, and now can"
     A detector that fires on everything detects nothing, so two fleets must produce no
-    detection.
+    detection: an unbiased one, and one holding finding 12's threshold error, which is
+    real, fleet-wide and *not channel-linked*.
 
-    - **An unbiased fleet**: z = 0.00 on every channel.
-    - **A fleet holding a threshold error** --- finding 12's wrong standard, which is
-      real, fleet-wide, and *not channel-linked*: z = 0.00 on every channel.
+    Both were previously reported as **z = 0.00 on every channel**, and read as a clean
+    pass. They were not measurements. Both control fleets were noiseless, so every
+    permutation of the channel labels returned the same stratified gap, the null's
+    standard deviation was exactly zero, and z was undefined --- a case the code divided
+    into a `0.0`. The threshold control was described here as *the load-bearing one*, the
+    one that *could have voided the finding*. It could not have. It had no power to fail
+    at all, and neither had the test asserting it.
 
-    The second is the load-bearing one. Had it fired, the statistic would be reading
-    generic error rather than channel bias, and the finding would say nothing about
-    blind spots specifically.
+    Both controls now run at every noise level. Where they can fail, they do not:
+    across the eight informative control cells the largest score is **1.32**, against a
+    detection threshold of 3.0 and a true-channel score reaching 8.22. Specificity is now
+    evidenced rather than assumed. The zero-noise cells are printed as `n/a` rather than
+    as a number, because that is what a ratio to a zero standard deviation is.
 
 **What this does not claim.** It detects a blind spot aligned with a *known, public*
 partition of the corpus --- here the compartment a report arrived through. A shared error

@@ -1653,11 +1653,22 @@ def test_every_registered_block_builds_a_table_from_its_artifact(name):
     """
     table = _docs_module().BLOCKS[name]()
     lines = table.splitlines()
-    assert lines[0].startswith("| "), f"{name} did not emit a table header"
-    assert set(lines[1]) <= set("| -"), f"{name} has no separator row under its header"
+    # The header is not required to be the first line: a block may open with a caption
+    # or a sub-heading above its table, and channel-bias emits one table per noise
+    # level. What is required is that a header exists, is followed by a separator, and
+    # has rows under it.
+    header = next(
+        (
+            i
+            for i, line in enumerate(lines[:-2])
+            if line.startswith("| ") and set(lines[i + 1]) <= set("| -")
+        ),
+        None,
+    )
+    assert header is not None, f"{name} did not emit a table header with a separator under it"
     # A header and a separator with nothing under them is an empty table, and every
     # builder is documented as refusing to emit one rather than emitting a shell.
-    assert any(line.startswith("| ") for line in lines[2:]), f"{name} emitted no rows"
+    assert any(line.startswith("| ") for line in lines[header + 2 :]), f"{name} emitted no rows"
 
 
 @pytest.mark.parametrize("name", sorted(_docs_module().BLOCKS))

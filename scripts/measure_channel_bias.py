@@ -54,7 +54,7 @@ Needs no model and no network.
 import argparse
 import json
 import statistics
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from random import Random
 
@@ -93,7 +93,23 @@ TRIALS = 200
 #: after seeing the effect is not a threshold.
 DETECTION_Z = 3.0
 
-PERMUTATION_SEED = 90210
+#: The null is a sample, so it is drawn more than once. It was drawn once, and the
+#: single realized null was reused across every blind share, which is what made the
+#: reported z agree across shares to the digit. The agreement was real but it was
+#: partly an artifact of the shared shuffle sequence: re-drawing the null per share
+#: moves z over roughly 7.4 to 8.9. Detection is not in doubt at that spread; the two
+#: decimal places the artifact used to publish were.
+PERMUTATION_SEEDS = tuple(90210 + i for i in range(21))
+PERMUTATION_SEED = PERMUTATION_SEEDS[0]
+
+#: Verdict noise for the sweep. Zero is the idealized fleet this finding was first
+#: measured on and is kept as the reference column, but it is a degenerate case rather
+#: than a clean one: with no noise every analyst is identical and deterministic, each
+#: task's verdict rate is fixed by its evidence stratum, and both the observed
+#: within-stratum gap and every permutation of it are exactly zero. The 0.15 is this
+#: repo's own `inattentive` rate from `pharos.analyst`, so it is the fleet the rest of
+#: the project already treats as realistic rather than a number chosen here.
+NOISE_LEVELS = (0.0, 0.05, 0.15)
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,7 +120,10 @@ class Detection:
     delta: float
     null_mean: float
     null_sd: float
-    z: float
+    z: float | None
+    z_low: float | None
+    z_high: float | None
+    degenerate: bool
     detected: bool
     strata: int
 
@@ -114,7 +133,13 @@ class Detection:
             "delta": round(self.delta, 4),
             "null_mean": round(self.null_mean, 4),
             "null_sd": round(self.null_sd, 4),
-            "z": round(self.z, 2),
+            # Four places, not two. The spread across permutation seeds is around 0.4,
+            # so two decimals published a precision the measurement does not have --
+            # and made a seed-to-seed difference invisible to any test comparing them.
+            "z": None if self.z is None else round(self.z, 4),
+            "z_low": None if self.z_low is None else round(self.z_low, 4),
+            "z_high": None if self.z_high is None else round(self.z_high, 4),
+            "degenerate": self.degenerate,
             "detected": self.detected,
             "strata": self.strata,
         }
@@ -161,44 +186,70 @@ def detect(
     evidence: dict[str, int],
     *,
     trials: int,
-    seed: int,
+    seeds: tuple[int, ...],
 ) -> Detection | None:
     """The observed stratified gap against a within-stratum permutation null.
 
     Shuffling channel membership *within* an evidence level preserves how difficulty is
     distributed and destroys only the association being tested, so a channel that merely
     correlates with difficulty cannot score here.
+
+    The null is drawn once per seed and z is reported as the median over those draws,
+    with the range beside it. Drawing it once and printing the result to two decimals
+    was how this statistic came to publish a seed as though it were a measurement.
+
+    **A null with no spread is refused, not scored zero.** If every permutation returns
+    the same gap the standard deviation is exactly zero and z is undefined. Dividing
+    that case into a `0.0` made a degenerate measurement indistinguishable from a clean
+    one -- which is precisely what both of this finding's negative controls were doing:
+    their fleets are noiseless, so every permutation of them is identical, and the
+    controls reported "no detection" because they *could not* report anything else. A
+    control that cannot fail is not evidence that the statistic is specific.
     """
     observed, strata = stratified_delta(rates, carries, evidence)
     if strata == 0:
         return None
 
-    rng = Random(seed)  # noqa: S311
     by_level: dict[int, list[str]] = {}
     for task in rates:
         by_level.setdefault(evidence[task], []).append(task)
 
-    null: list[float] = []
-    for _ in range(trials):
-        shuffled: dict[str, bool] = {}
-        for tasks_at_level in by_level.values():
-            flags = [carries[t] for t in tasks_at_level]
-            rng.shuffle(flags)
-            shuffled.update(dict(zip(tasks_at_level, flags, strict=True)))
-        null.append(stratified_delta(rates, shuffled, evidence)[0])
+    means: list[float] = []
+    sds: list[float] = []
+    zs: list[float] = []
+    for seed in seeds:
+        rng = Random(seed)  # noqa: S311
+        null: list[float] = []
+        for _ in range(trials):
+            shuffled: dict[str, bool] = {}
+            for tasks_at_level in by_level.values():
+                flags = [carries[t] for t in tasks_at_level]
+                rng.shuffle(flags)
+                shuffled.update(dict(zip(tasks_at_level, flags, strict=True)))
+            null.append(stratified_delta(rates, shuffled, evidence)[0])
+        mean = statistics.fmean(null)
+        sd = statistics.pstdev(null)
+        means.append(mean)
+        sds.append(sd)
+        if sd:
+            # A blind spot depresses the rate on carrying tasks, so the alternative is
+            # one-sided. Reporting |z| would let an *elevated* rate read as the finding.
+            zs.append((mean - observed) / sd)
 
-    mean = statistics.fmean(null)
-    sd = statistics.pstdev(null)
-    # A blind spot depresses the rate on carrying tasks, so the alternative is
-    # one-sided. Reporting |z| would let an *elevated* rate read as the same finding.
-    z = (mean - observed) / sd if sd else 0.0
+    degenerate = not zs
+    ordered = sorted(zs)
+    z = ordered[(len(ordered) - 1) // 2] if ordered else None
     return Detection(
         channel="",
         delta=observed,
-        null_mean=mean,
-        null_sd=sd,
+        null_mean=statistics.fmean(means),
+        null_sd=statistics.fmean(sds),
         z=z,
-        detected=z >= DETECTION_Z,
+        z_low=ordered[0] if ordered else None,
+        z_high=ordered[-1] if ordered else None,
+        degenerate=degenerate,
+        # A degenerate null cannot detect and cannot clear either. It is not a pass.
+        detected=(not degenerate) and z is not None and z >= DETECTION_Z,
         strata=strata,
     )
 
@@ -208,7 +259,7 @@ def scan(
     partitioned: dict[str, list[tuple[str, bool]]],
     *,
     trials: int,
-    seed: int,
+    seeds: tuple[int, ...],
 ) -> list[Detection]:
     """Every channel tested against the same fleet, so false positives are visible."""
     rates = verdict_rates(partitioned)
@@ -221,19 +272,12 @@ def scan(
             task: any(channel in r.label.compartments for r in by_id[task].sources)
             for task in rates
         }
-        result = detect(rates, carries, evidence, trials=trials, seed=seed)
+        result = detect(rates, carries, evidence, trials=trials, seeds=seeds)
         if result is not None:
-            found.append(
-                Detection(
-                    channel=channel.value,
-                    delta=result.delta,
-                    null_mean=result.null_mean,
-                    null_sd=result.null_sd,
-                    z=result.z,
-                    detected=result.detected,
-                    strata=result.strata,
-                )
-            )
+            # `replace` rather than re-listing the fields: this rebuild used to name
+            # every field by hand, so adding one to Detection meant silently dropping it
+            # here unless the author remembered both sites.
+            found.append(replace(result, channel=channel.value))
     return found
 
 
@@ -256,56 +300,99 @@ def main() -> int:
         f"{len(tasks)} tasks, fleet of {args.fleet}, {args.trials} permutation trials, "
         f"detection at z >= {DETECTION_Z}"
     )
-    print("\n  blind-spot sweep: does the trace survive unanimity?")
+
+    def cell(hit: Detection | None) -> str:
+        if hit is None:
+            return f"{'--':>10}"
+        if hit.degenerate:
+            # Printed distinctly from a number, because it is not one.
+            return f"{'n/a':>10}"
+        return f"{hit.z:>10.2f}"
+
+    sweep: list[tuple[float, int, list[Detection]]] = []
+    controls: list[tuple[float, list[Detection]]] = []
     header = "".join(f"{c.value:>10}" for c in Compartment)
-    print(f"    {'blind':>6}{header}")
-    print("    " + "-" * (6 + 10 * len(Compartment)))
 
-    sweep: list[tuple[int, list[Detection]]] = []
-    for n_blind in SHARES:
-        if n_blind > args.fleet:
-            continue
-        flat = contributions_for(blind_fleet(n_blind, args.fleet), tasks, proposals, seed=SEED)
-        found = scan(
+    for slip in NOISE_LEVELS:
+        print(f"\n  blind-spot sweep at slip rate {slip:.2f}")
+        print(f"    {'blind':>6}{header}")
+        print("    " + "-" * (6 + 10 * len(Compartment)))
+        for n_blind in SHARES:
+            if n_blind > args.fleet:
+                continue
+            flat = contributions_for(
+                blind_fleet(n_blind, args.fleet, slip_rate=slip), tasks, proposals, seed=SEED
+            )
+            found = scan(
+                tasks,
+                partition_by_contributor(flat),
+                trials=args.trials,
+                seeds=PERMUTATION_SEEDS,
+            )
+            print(
+                f"    {n_blind:>6}"
+                + "".join(
+                    cell(next((d for d in found if d.channel == c.value), None))
+                    for c in Compartment
+                )
+            )
+            sweep.append((slip, n_blind, found))
+            for d in found:
+                if d.z is not None:
+                    record("channelbias.z", d.z, n_blind=n_blind, channel=d.channel, slip_rate=slip)
+
+        # Control: a wrong standard that is NOT channel-linked. If this fires, the
+        # statistic is reading generic error rather than channel bias and the finding is
+        # void. It is run at every noise level because at slip 0 it *cannot* fire: the
+        # fleet is deterministic, every permutation of it is identical, and the control
+        # was returning "clean" from a null with no variance rather than from evidence.
+        threshold_flat = contributions_for(
+            tuple(
+                AnalystPolicy(
+                    f"wrong-{i}",
+                    escalation_threshold=2,
+                    release_policy=DROP_COMPARTMENTS,
+                    slip_rate=slip,
+                )
+                for i in range(args.fleet)
+            ),
             tasks,
-            partition_by_contributor(flat),
-            trials=args.trials,
-            seed=PERMUTATION_SEED,
+            proposals,
+            seed=SEED,
         )
-        cells = []
-        for channel in Compartment:
-            hit = next((d for d in found if d.channel == channel.value), None)
-            cells.append(f"{'--' if hit is None else f'{hit.z:.1f}':>10}")
-        print(f"    {n_blind:>6}" + "".join(cells))
-        sweep.append((n_blind, found))
-        for d in found:
-            record("channelbias.z", d.z, n_blind=n_blind, channel=d.channel)
+        control = scan(
+            tasks,
+            partition_by_contributor(threshold_flat),
+            trials=args.trials,
+            seeds=PERMUTATION_SEEDS,
+        )
+        print(f"    {'thr-ctl':>6}" + "".join(cell(d) for d in control))
+        controls.append((slip, control))
 
-    # Control: a wrong standard that is NOT channel-linked. If this fires, the statistic
-    # is reading generic error rather than channel bias and the finding is void.
-    threshold_flat = contributions_for(
-        tuple(
-            AnalystPolicy(f"wrong-{i}", escalation_threshold=2, release_policy=DROP_COMPARTMENTS)
-            for i in range(args.fleet)
-        ),
-        tasks,
-        proposals,
-        seed=SEED,
+    # The headline regime stays the noiseless one so the finding is comparable with how
+    # it was first reported, but its controls are known-degenerate there, so the honest
+    # controls come from every level.
+    unanimous = next(
+        (found for slip, share, found in sweep if slip == 0.0 and share == max(SHARES)), None
     )
-    control = scan(
-        tasks,
-        partition_by_contributor(threshold_flat),
-        trials=args.trials,
-        seed=PERMUTATION_SEED,
-    )
-    print("\n  control: a fleet-wide THRESHOLD error, which no channel explains")
-    print(f"    {'':>6}" + "".join(f"{d.channel:>10}" for d in control))
-    print(f"    {'z':>6}" + "".join(f"{d.z:>10.1f}" for d in control))
-
-    unanimous = next((found for share, found in sweep if share == max(SHARES)), None)
     detected_at_unanimity = [d.channel for d in unanimous or [] if d.detected]
-    control_hits = [d.channel for d in control if d.detected]
-    clean_at_zero = [d.channel for share, found in sweep if share == 0 for d in found if d.detected]
+    control_hits = [
+        f"slip={slip}:{d.channel}" for slip, found in controls for d in found if d.detected
+    ]
+    clean_at_zero = [
+        f"slip={slip}:{d.channel}"
+        for slip, share, found in sweep
+        if share == 0
+        for d in found
+        if d.detected
+    ]
+    # A control whose null has no spread has not passed; it has failed to be a test.
+    degenerate_controls = [
+        f"slip={slip}:{d.channel}" for slip, found in controls for d in found if d.degenerate
+    ]
+    informative_controls = [
+        f"slip={slip}:{d.channel}" for slip, found in controls for d in found if not d.degenerate
+    ]
 
     print()
     if truth_blind.value in detected_at_unanimity:
@@ -324,8 +411,18 @@ def main() -> int:
             },
         )
         print(f"  CONTROL FIRED: threshold={control_hits} unbiased={clean_at_zero}")
+    elif not informative_controls:
+        # Distinct from clean, and it used to be reported as clean.
+        get_logger().warning(
+            "channelbias.controls_degenerate",
+            extra={
+                "event": "channelbias.controls_degenerate",
+                "degenerate": degenerate_controls,
+            },
+        )
+        print("  CONTROLS UNINFORMATIVE: every control null had zero spread")
     else:
-        print("  both controls clean: no detection on an unbiased or threshold-wrong fleet")
+        print(f"  controls clean and informative on {len(informative_controls)} of them")
 
     report = {
         "provenance": run_provenance(seed=SEED),
@@ -335,12 +432,19 @@ def main() -> int:
         "detection_z": DETECTION_Z,
         "blind_channel": truth_blind.value,
         "shares": list(SHARES),
+        "noise_levels": list(NOISE_LEVELS),
+        "permutation_seeds": list(PERMUTATION_SEEDS),
         "sweep": [
-            {"n_blind": share, "detections": [d.as_dict() for d in found]} for share, found in sweep
+            {"slip_rate": slip, "n_blind": share, "detections": [d.as_dict() for d in found]}
+            for slip, share, found in sweep
         ],
-        "threshold_control": [d.as_dict() for d in control],
+        "threshold_control": [
+            {"slip_rate": slip, "detections": [d.as_dict() for d in found]}
+            for slip, found in controls
+        ],
         "detected_at_unanimity": detected_at_unanimity,
-        "controls_clean": not (control_hits or clean_at_zero),
+        "controls_clean": not (control_hits or clean_at_zero) and bool(informative_controls),
+        "controls_degenerate": degenerate_controls,
         "validity": check_sample_size(len(tasks), label="channel bias").as_dict(),
     }
     if args.out:
