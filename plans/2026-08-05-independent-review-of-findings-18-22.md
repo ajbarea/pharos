@@ -1,5 +1,33 @@
 # Independent review pass — findings 18-22 and the gate
 
+> **Run 2026-08-06. Historical record; the review happened and this is what it found.**
+> Three independent readers, split by method rather than by question number, none given
+> this file's conclusions. It did not come back clean, which the section at the bottom
+> said would be the suspicious outcome.
+>
+> Landed as PRs #10, #12, #13, #14, #15 and #16. The findings that mattered:
+>
+> - **Two guards that could not fail.** `logcheck` kept its expected-warning list twice
+>   and the second copy had drifted, so a finding could stop announcing its own limit
+>   while the check exited 0. And finding 22's negative controls had no power to fail —
+>   both control fleets are noiseless, so the permutation null had zero variance and z
+>   was a division the code resolved to `0.0`. The finding called one of them the
+>   load-bearing control that could have voided the result.
+> - **The statistic was the wrong instrument.** Question 1 asked whether each guard can
+>   fail; the honest answer for finding 22 was that the *z-score* could not, and a
+>   permutation p-value has no such hole. Three of the mechanisms built to work around
+>   it — a degenerate flag, a refusal path, a median over 21 nulls — deleted themselves.
+> - **`secure_sum` bounded each term and let their total wrap**, with a comment
+>   describing the exact failure it did not prevent.
+> - **Numbers with no artifact behind them**, in quantity: the power claims were
+>   hard-coded inside the script that wrote them, and five hand-typed tables had drifted.
+>   One published `qwen2.5-3b (0.625)` — a score belonging to a different model.
+>
+> Two things the plan got wrong about itself. `/techne:elenchus` is token-heavy rather
+> than billed, so it needed no human to start it. And question 2's yield was far higher
+> than its position suggested: tracing numerals to artifact fields found more than the
+> guard-falsifiability pass did, because prose does not regenerate and nobody re-reads it.
+
 Written 2026-08-05, to be run at the **start of a session**, not the end of one. The
 reason is the whole point of the exercise: an author reviews what they intended, and
 by the end of a long session I have re-read my own reasoning so many times that I am

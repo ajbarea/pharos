@@ -221,9 +221,7 @@ class SecureAggregator:
             raise CohortTooSmallError(f"cohort={cohort} is below the {self.min_participants} floor")
         if not 0 <= client_index < cohort:
             raise ValueError(f"client_index {client_index} is outside a cohort of {cohort}")
-        if self._cohort is None:
-            self._cohort = cohort
-        elif cohort != self._cohort:
+        if self._cohort is not None and cohort != self._cohort:
             raise ValueError(
                 f"cohort changed from {self._cohort} to {cohort} mid-round; "
                 "masks are derived per cohort and would not cancel"
@@ -242,6 +240,14 @@ class SecureAggregator:
                 )
 
         share = [encode(v) for v in vector]
+
+        # The cohort is pinned only once this submission is known to be encodable. It
+        # used to be pinned above, before the magnitude checks could raise, so a client
+        # rejected on its first attempt left the cohort set anyway -- and a legitimate
+        # retry at a different cohort size then hit "cohort changed mid-round" instead
+        # of being accepted. A refused submission should leave no trace.
+        if self._cohort is None:
+            self._cohort = cohort
         for peer in range(cohort):
             if peer == client_index:
                 continue

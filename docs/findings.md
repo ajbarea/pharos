@@ -2323,6 +2323,27 @@ are read into LIAISON" is not obviously the safer of the two.
 
 `scripts/measure_authority_anchors.py`, `results/authority_anchors.json`
 
+!!! warning "Corrected 2026-08-06: the four-wrong row was repairing nothing"
+    This finding scored a repair as `agreement >= 0.95`, full stop. Its two siblings ---
+    the audit-policy sweep of [finding 20](#20-no-audit-policy-beats-the-uniform-floor-once-the-fleet-agrees)
+    and the blind-spot sweep of [finding 21](#21-the-audit-policy-stops-working-exactly-where-it-is-needed)
+    --- both additionally require that some *unanchored* label actually changed, because
+    anchoring a task the estimator gets wrong removes it from the denominator and lifts
+    the score without correcting anything. Finding 21's threshold table was withdrawn
+    over exactly that. This script measures the same quantity on the same corpus and the
+    guard was never mirrored to it.
+
+    Mirroring it moves one published number. The **four-wrong row** reported a price of
+    **0 anchors**, which read as "a minority wrong standard repairs itself for free". It
+    now reads **not reached**, which is the truthful statement: at four of nine wrong the
+    estimator makes no errors to begin with, so there is nothing for an authority to
+    correct and no budget at which a correction occurs. A control row was being published
+    as a result.
+
+    Every other price is unchanged --- 12 at a bare majority, 80 at six of nine, 150 at
+    seven, never at nine --- because in those compositions the anchors were doing real
+    work all along. The correction narrows what the finding claims rather than moving it.
+
 Finding 18 localised the cliff to non-identifiability, and
 [finding 17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)
 already showed no better estimator escapes it from the data alone. What breaks a
@@ -2337,7 +2358,7 @@ bought. Every number below is computed **only over unanchored tasks**.
 <!-- BEGIN GENERATED: authority-grid -->
 | Wrong of 9 | 0 | 1 | 2 | 3 | 5 | 8 | 12 | 20 | 30 | 50 | 80 | 100 | 120 | 150 | 180 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 4 | **1.000** | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| 4 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 | 5 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | **1.000** | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 | 6 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | 0.647 | 0.653 | 0.633 | **1.000** | 1.000 | 1.000 | 1.000 |
 | 7 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | 0.647 | 0.653 | 0.633 | 0.652 | 0.692 | **1.000** | 1.000 |
@@ -2352,7 +2373,7 @@ moves far faster than the fleet's error does:
 <!-- BEGIN GENERATED: authority-price -->
 | Wrong of 9 | Audited items needed (median) | Share of the round | Range over 21 draws | Draws that reached it |
 | --- | --- | --- | --- | --- |
-| 4 | 0 | 0.0% | 0 | 21 of 21 |
+| 4 | not reached within 180 | — | — | 0 of 21 |
 | 5 | 12 | 6.0% | 2–30 | 21 of 21 |
 | 6 | 80 | 40.0% | 50–100 | 21 of 21 |
 | 7 | 150 | 75.0% | 120–180 | 21 of 21 |

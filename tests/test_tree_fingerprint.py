@@ -11,6 +11,7 @@ prompted this file spent its time finding.
 """
 
 import importlib.util
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -42,6 +43,30 @@ def _run(*args: str) -> subprocess.CompletedProcess[str]:
         capture_output=True,
         text=True,
         check=False,
+    )
+
+
+def test_the_stamp_file_is_not_tracked():
+    """It is per-run and per-machine, so committing it makes every gate run a diff.
+
+    It *was* committed, twice, because `.gitignore` only governs untracked files and a
+    `git add -A` had already staged it before the ignore rule was written. Once tracked,
+    the rule does nothing. The symptom is quiet: spurious diffs on every run, and a
+    merge conflict on any branch that ran the gate -- which is what it caused.
+    """
+    git = shutil.which("git")
+    assert git, "git is not on PATH, so this test cannot check what is tracked"
+    tracked = subprocess.run(  # noqa: S603  # fixed argv, resolved executable
+        [git, "ls-files", "--error-unmatch", ".gate-fingerprint"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert tracked.returncode != 0, (
+        ".gate-fingerprint is tracked. It is a per-run stamp, so committing it puts a "
+        "machine-specific value in the repo and conflicts on every branch that gated. "
+        "Run `git rm --cached .gate-fingerprint`; .gitignore alone will not undo it."
     )
 
 

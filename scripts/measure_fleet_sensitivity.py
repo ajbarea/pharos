@@ -10,7 +10,15 @@ Reported as a multiverse rather than a single specification, after Linde et al.
 (arXiv:2605.19745, 2026). Their result is that sweeping the defensible choices mostly
 surfaces *computational failures that otherwise go unreported*, which is what happened
 twice here: Dawid-Skene's agreement with GLAD turns out to hold only at small fleets,
-and the correlated-fleet understatement turns out to grow without bound.
+and the correlated-fleet understatement turns out to grow steeply with fleet size.
+
+That second clause said "grow without bound" until 2026-08-06, which was the claim this
+script's own correction notice had already retracted: the understatement is finite at
+every fleet size measured (2974 at 15, 616966 at 25), and the earlier unbounded reading
+came from dividing by a rounded independent rate that hit zero. The docstring kept
+asserting the withdrawn version while the artifact and the docs carried the correction,
+which is the same prose-outlives-its-retraction failure the findings page has had to fix
+repeatedly.
 
 Three questions, one per finding:
 

@@ -231,6 +231,16 @@ def main() -> int:
         cells: list[str] = []
         per_seed: list[int | None] = []
 
+        # What the fleet gets wrong with no anchors at all. Needed because agreement
+        # alone cannot tell a repair from a deletion: anchoring a task the estimator
+        # gets wrong removes it from the denominator and lifts the score without
+        # correcting anything. Finding 21's threshold table was withdrawn over exactly
+        # that, and `measure_audit_policy` and `measure_blind_spot` both grew a
+        # `corrected > 0` requirement in response. This script measures the same
+        # quantity on the same corpus and did not, which is the unmirrored half.
+        unanchored_estimate = federated_dawid_skene(partitioned, seed=MASK_SEED)
+        baseline_wrong = {t for t, v in unanchored_estimate.labels().items() if truth.get(t) != v}
+
         for anchor_seed in ANCHOR_SEEDS:
             primary = anchor_seed == ANCHOR_SEED
             first_repaired: int | None = None
@@ -245,7 +255,13 @@ def main() -> int:
                 scored = {t: v for t, v in truth.items() if t not in anchors}
                 labels = {t: v for t, v in estimate.labels().items() if t not in anchors}
                 agreement = round(agreement_with(labels, scored), 4)
-                repaired = agreement >= REPAIRED
+
+                # Mirrors the siblings: a label the authority supplied is not a label
+                # the estimator learned, so a threshold reached purely by removing
+                # errors from the denominator is not a repair.
+                still_wrong = {t for t, v in labels.items() if scored.get(t) != v}
+                corrected = len(baseline_wrong - set(anchors) - still_wrong)
+                repaired = agreement >= REPAIRED and corrected > 0
                 if repaired and first_repaired is None:
                     first_repaired = count
 

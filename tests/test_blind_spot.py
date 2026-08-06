@@ -1,11 +1,10 @@
 """Finding 21: the corpus finding 20's policy cannot handle, built on purpose."""
 
-import json
 import random
-from pathlib import Path
 from typing import Any
 
 import pytest
+from conftest import artifact
 from measure_blind_spot import (
     BLIND,
     BUDGETS,
@@ -149,11 +148,7 @@ def test_the_channel_policy_finds_what_disagreement_cannot():
     Both halves are asserted, because the second is what makes the first meaningful:
     the channel policy matches the oracle, and the disagreement-based policies do not.
     """
-    payload = json.loads(
-        (Path(__file__).resolve().parents[1] / "results" / "blind_spot.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    payload = artifact("blind_spot")
     unanimous = str(payload["fleet"])
     rates = payload["audit_hit_rate"][unanimous]
 
@@ -181,11 +176,7 @@ def test_finding_all_of_them_is_not_repairing_any_of_them():
     defeats a policy handed the ground truth is not a selection problem, so no better
     selection rule closes it. That is what keeps item 7 of the LAS alignment open.
     """
-    payload = json.loads(
-        (Path(__file__).resolve().parents[1] / "results" / "blind_spot.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    payload = artifact("blind_spot")
     unanimous = payload["fleet"]
 
     def row(policy: str, budget: int) -> dict[str, Any]:

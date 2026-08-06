@@ -1,6 +1,7 @@
 """Finding 20: which items an authority should rule on, and a fallible one."""
 
 import pytest
+from conftest import artifact
 from measure_audit_policy import (
     AUTHORITY_ERROR,
     BUDGETS,
@@ -259,14 +260,8 @@ def test_margin_picks_only_wrong_items_until_it_runs_out_of_them():
     count of anchors landing on a task the zero-anchor estimate got wrong, so the claim
     is exactly `hits == budget` below the saturation point and `hits == errors` above it.
     """
-    import json
-    from pathlib import Path
 
-    payload = json.loads(
-        (Path(__file__).resolve().parents[1] / "results" / "audit_policy.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    payload = artifact("audit_policy")
     grid = [r for r in payload["grid"] if r["policy"] == "margin"]
     assert grid, "no margin rows in the artifact"
 
@@ -297,14 +292,8 @@ def test_margin_picks_only_wrong_items_until_it_runs_out_of_them():
 
 def test_the_uniform_baseline_is_reported_as_a_spread_not_a_draw():
     """A point estimate here would credit the policy with whatever the draw supplied."""
-    import json
-    from pathlib import Path
 
-    payload = json.loads(
-        (Path(__file__).resolve().parents[1] / "results" / "audit_policy.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    payload = artifact("audit_policy")
     spread = payload["uniform_spread"]
     assert spread, "the artifact carries no uniform spread"
     assert len(payload["uniform_seeds"]) >= 21

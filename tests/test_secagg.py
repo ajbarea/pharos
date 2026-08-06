@@ -192,3 +192,25 @@ def test_a_value_just_inside_the_cohort_bound_still_sums_exactly():
     just_inside = max_magnitude_for(cohort) * 0.999
     view = secure_sum([[just_inside]] * cohort, seed=11)
     assert view.total[0] == pytest.approx(just_inside * cohort, rel=1e-9)
+
+
+def test_a_refused_submission_leaves_no_trace_on_the_round():
+    """A rejected first submission used to pin the cohort anyway, blocking a retry.
+
+    The cohort was recorded before the magnitude checks could raise, so a client whose
+    values were out of range left `_cohort` set on its way out. A legitimate retry at a
+    different cohort size then failed with "cohort changed mid-round" -- a misdiagnosis,
+    because the round had never accepted anything.
+    """
+    aggregator = SecureAggregator(length=1, seed=5)
+
+    over = max_magnitude_for(3) * 2
+    with pytest.raises(ValueError, match="without wrapping the ring"):
+        aggregator.submit(0, [over], cohort=3)
+
+    # The round is untouched: a different cohort is still accepted, and the sum is exact.
+    for index in range(4):
+        aggregator.submit(index, [1.5], cohort=4)
+    view = aggregator.reveal()
+    assert view.total[0] == pytest.approx(6.0)
+    assert view.participants == 4
