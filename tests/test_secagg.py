@@ -5,6 +5,7 @@ import random
 import pytest
 
 from pharos.secagg import (
+    MAX_MAGNITUDE,
     MIN_PARTICIPANTS,
     MODULUS,
     SCALE,
@@ -14,6 +15,7 @@ from pharos.secagg import (
     ServerView,
     decode,
     encode,
+    max_magnitude_for,
     secure_sum,
 )
 
@@ -155,3 +157,38 @@ def test_encode_refuses_what_the_ring_cannot_hold():
     for value in (2.0**40, -(2.0**40), 1e30):
         with pytest.raises(ValueError, match="fixed-point ring"):
             encode(value)
+
+
+def test_the_sum_is_bounded_not_just_each_term():
+    """The guard was one level below the failure its own comment described.
+
+    `MAX_MAGNITUDE` bounds a single encoded term, and its docstring cited "40 terms of
+    1.4e10 sum to a confidently wrong negative number" as the silent failure it
+    prevented. It did not prevent it. Each of those terms is individually under 2^39
+    and passes `encode` cleanly; it is their *total* that leaves the ring.
+    Reproduced before the fix: `secure_sum([[1.4e10]] * 40)` returned
+    -539511627776.0 for a true 560000000000.0, with no exception.
+
+    Summing n terms needs ceil(log2 n) bits of headroom. The bound therefore has to be
+    per cohort, and enforced where the cohort size is known.
+    """
+    with pytest.raises(ValueError, match="without wrapping the ring"):
+        secure_sum([[1.4e10]] * 40, seed=3)
+
+    # The same total split across a cohort small enough to hold it is fine, which is
+    # the point: this bounds the sum, it does not ban large values.
+    assert secure_sum([[1.4e10]] * 3, seed=3).total[0] == pytest.approx(4.2e10)
+
+    # And the bound is the ring divided by the cohort, not a constant.
+    assert max_magnitude_for(1) == MAX_MAGNITUDE
+    assert max_magnitude_for(40) == pytest.approx(MAX_MAGNITUDE / 40)
+    with pytest.raises(ValueError, match="must be positive"):
+        max_magnitude_for(0)
+
+
+def test_a_value_just_inside_the_cohort_bound_still_sums_exactly():
+    """The bound must be tight enough to prevent the wrap and no tighter."""
+    cohort = 8
+    just_inside = max_magnitude_for(cohort) * 0.999
+    view = secure_sum([[just_inside]] * cohort, seed=11)
+    assert view.total[0] == pytest.approx(just_inside * cohort, rel=1e-9)

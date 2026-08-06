@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 from measure_channel_bias import (
-    DETECTION_Z,
+    ALPHA,
     Detection,
     detect,
     scan,
@@ -66,7 +66,7 @@ def test_detect_returns_none_when_no_stratum_is_comparable():
     rates = {"a": 1.0, "b": 1.0}
     evidence = {"a": 3, "b": 3}
     carries = {"a": True, "b": True}
-    assert detect(rates, carries, evidence, trials=10, seeds=(1,)) is None
+    assert detect(rates, carries, evidence, permutations=10, seed=1) is None
 
 
 def test_detect_scores_a_real_depression_and_ignores_a_balanced_one():
@@ -74,20 +74,24 @@ def test_detect_scores_a_real_depression_and_ignores_a_balanced_one():
     evidence = {f"t{i}": 3 for i in range(20)}
     carries = {f"t{i}": i < 10 for i in range(20)}
 
+    # 2000 permutations, not 200: the floor on an achievable p-value is 1 / (m + 1),
+    # so a 200-permutation null bottoms out at 0.005 and could never clear ALPHA no
+    # matter how total the effect. That is a real constraint on the design, pinned in
+    # its own test below.
     depressed = {f"t{i}": (0.0 if i < 10 else 1.0) for i in range(20)}
-    hit = detect(depressed, carries, evidence, trials=200, seeds=(1, 2, 3))
+    hit = detect(depressed, carries, evidence, permutations=2000, seed=1)
     assert hit is not None
     assert hit.delta == -1.0
-    assert hit.z is not None
-    assert hit.z > DETECTION_Z
+    assert hit.p_value <= ALPHA
 
     # The mirror image: carrying tasks scored HIGHER. Same magnitude, opposite sign,
     # and it must not be reported as a blind spot.
     elevated = {f"t{i}": (1.0 if i < 10 else 0.0) for i in range(20)}
-    miss = detect(elevated, carries, evidence, trials=200, seeds=(1, 2, 3))
+    miss = detect(elevated, carries, evidence, permutations=2000, seed=1)
     assert miss is not None
-    assert miss.z is not None
-    assert miss.z < 0
+    # One-sided: an elevated rate is the opposite of the finding, so it must sit at the
+    # far end of the null rather than near its floor.
+    assert miss.p_value > 0.5
     assert not miss.detected
 
 
@@ -96,9 +100,34 @@ def test_no_effect_scores_near_zero():
     evidence = {f"t{i}": 3 for i in range(20)}
     carries = {f"t{i}": i % 2 == 0 for i in range(20)}
     rates = {f"t{i}": 0.5 for i in range(20)}
-    result = detect(rates, carries, evidence, trials=200, seeds=(1, 2, 3))
+    result = detect(rates, carries, evidence, permutations=200, seed=1)
     assert result is not None
     assert not result.detected
+
+
+def test_the_permutation_budget_bounds_what_can_be_detected_at_all():
+    """A p-value cannot go below 1 / (m + 1), so m decides what ALPHA can ever mean.
+
+    This is the constraint that replaces the old z-score's unboundedness, and it is a
+    feature: a z of 40 claimed a precision no finite number of shuffles could support.
+    But it has to be respected when choosing the budget. At 200 permutations the
+    smallest reachable p is about 0.005, so a detection threshold of 0.001 is
+    unreachable and every channel would read as undetected no matter how total the
+    effect. The measurement uses 4200 for exactly this reason.
+    """
+    evidence = {f"t{i}": 3 for i in range(20)}
+    carries = {f"t{i}": i < 10 for i in range(20)}
+    total = {f"t{i}": (0.0 if i < 10 else 1.0) for i in range(20)}
+
+    starved = detect(total, carries, evidence, permutations=200, seed=1)
+    assert starved is not None
+    assert starved.p_value == pytest.approx(1 / 201)
+    assert not starved.detected, "a 200-permutation null cannot resolve ALPHA = 0.001"
+
+    ample = detect(total, carries, evidence, permutations=2000, seed=1)
+    assert ample is not None
+    assert ample.p_value == pytest.approx(1 / 2001)
+    assert ample.detected, "the same total effect, with a budget that can resolve it"
 
 
 def test_verdict_rates_read_only_the_aggregate():
@@ -120,8 +149,8 @@ def test_verdict_rates_read_only_the_aggregate():
 
 
 def test_detection_threshold_is_the_gates_own_convention():
-    """Three sigma, not a number chosen after seeing the effect."""
-    assert DETECTION_Z == 3.0
+    """Three sigma's one-sided tail, not a number chosen after seeing the effect."""
+    assert ALPHA == 0.001
 
 
 def test_detection_serializes_every_field():
@@ -129,11 +158,9 @@ def test_detection_serializes_every_field():
         channel="PARTNER",
         delta=-0.3,
         null_mean=0.0,
-        null_sd=0.04,
-        z=7.5,
-        z_low=7.1,
-        z_high=7.9,
-        degenerate=False,
+        p_value=0.0002,
+        extreme=0,
+        permutations=4200,
         detected=True,
         strata=4,
     )
@@ -141,11 +168,9 @@ def test_detection_serializes_every_field():
         "channel",
         "delta",
         "null_mean",
-        "null_sd",
-        "z",
-        "z_low",
-        "z_high",
-        "degenerate",
+        "p_value",
+        "extreme",
+        "permutations",
         "detected",
         "strata",
     }
@@ -162,7 +187,7 @@ def test_scan_tests_every_channel_so_false_positives_are_visible():
     # should score. Built directly rather than through the analyst policies, because
     # what is under test is the statistic and not the fleet machinery.
     partitioned = {f"a{i}": [(t.task_id, t.significant) for t in tasks] for i in range(3)}
-    found = scan(tasks, partitioned, trials=50, seeds=(1, 2))
+    found = scan(tasks, partitioned, permutations=50, seed=1)
 
     assert {d.channel for d in found} <= {c.value for c in Compartment}
     assert found, "scan returned nothing; every channel was skipped"
@@ -170,17 +195,19 @@ def test_scan_tests_every_channel_so_false_positives_are_visible():
     assert not [d for d in found if d.detected]
 
 
-def test_detection_strength_is_invariant_to_how_far_the_blind_spot_spread():
-    """The published claim, and a property of the construction rather than a coincidence.
+def test_the_effect_is_linear_in_the_share_and_the_p_value_saturates():
+    """Which measure reports extent, and which cannot.
 
-    Each blind analyst withholds the same verdicts on the same tasks, so the stratified
-    gap is linear in how many of them there are -- and the permutation null is built by
-    shuffling those same numbers, so its spread is linear too. `z` is their ratio and
-    therefore does not move. The manuscript states this as exact; if a change makes it
-    merely approximate, the sentence is wrong and this test says so.
+    The gap is linear in how many analysts are blind: each one withholds the same
+    verdicts on the same tasks, so nine of them move the stratified gap nine times as
+    far as one. That makes `delta` the thing to read for *extent*.
 
-    It also pins the limitation that comes with it: a statistic that does not vary with
-    the number of blind analysts cannot report that number.
+    A p-value cannot do that job and must not be asked to. Once an effect is
+    comfortably significant the p-value sits on its own floor, 1 / (m + 1), and stays
+    there no matter how much larger the effect gets -- so equal p-values across shares
+    are a property of the floor rather than evidence that the shares are alike. This
+    used to be reported as a z-score, which did vary, and its invariance across shares
+    was published as a finding. That invariance was an artifact of a noiseless fleet.
     """
     payload = _artifact()
     blind = payload["blind_channel"]
@@ -189,22 +216,28 @@ def test_detection_strength_is_invariant_to_how_far_the_blind_spot_spread():
         for entry in payload["sweep"]
         if entry["n_blind"] > 0 and entry["slip_rate"] == 0.0
     }
-    assert len(scored) >= 3, "too few non-zero shares to test invariance"
+    assert len(scored) >= 3, "too few non-zero shares to test the scaling"
 
-    values = {round(d["z"], 6) for d in scored.values()}
-    assert len(values) == 1, f"z is not invariant across shares: {scored}"
-
-    # And the reason: the gap itself is proportional to the blind share, so the
-    # invariance is the ratio of two things that scale together, not a flat effect.
     fleet = payload["fleet"]
     largest = max(scored)
     for n_blind, detection in scored.items():
         expected = scored[largest]["delta"] * n_blind / largest
         assert detection["delta"] == pytest.approx(expected, abs=1e-3), (
             f"the gap at {n_blind} blind is not proportional to the share; "
-            "the invariance claim rests on that proportionality"
+            "extent is read off this number, so its linearity is the claim"
         )
         assert n_blind <= fleet
+
+    # And the floor is real: no p-value anywhere in the artifact may sit below it.
+    floor = 1.0 / (payload["permutations"] + 1)
+    for entry in payload["sweep"]:
+        for detection in entry["detections"]:
+            # Relative tolerance, because p is serialized to three significant
+            # figures and the floor is not a round number.
+            assert detection["p_value"] >= floor * (1 - 1e-3), (
+                f"p = {detection['p_value']} is below the achievable floor {floor}; "
+                "a permutation p-value cannot be smaller than one draw in m + 1"
+            )
 
 
 def test_the_healthy_fleet_and_the_other_channels_are_both_reported():
@@ -222,41 +255,40 @@ def test_the_healthy_fleet_and_the_other_channels_are_both_reported():
         )
 
 
-def test_at_least_one_control_could_actually_have_fired():
+def test_the_noiseless_control_returns_a_real_answer_rather_than_a_special_case():
     """The controls used to pass because they could not do anything else.
 
-    Both control fleets are noiseless in the original design, so every analyst is
-    identical and deterministic, every task's verdict rate is a function of its evidence
-    stratum alone, and the within-stratum gap is exactly zero for the observed data
-    *and* for all 200 permutations of it. The null's standard deviation is exactly zero,
-    z is undefined, and the old code divided that case into a `0.0` that read as a clean
-    pass. The finding's own text called the threshold control "the load-bearing one" and
-    said it could have voided the finding. It could not.
+    Both control fleets are noiseless, so every analyst is identical and deterministic,
+    each task's verdict rate is a function of its evidence stratum alone, and every
+    permutation of the channel labels returns the observed gap exactly. Under the old
+    z-score the null's standard deviation was zero, z was undefined, and the code
+    divided that case into a `0.0` that read as a clean pass. The finding called the
+    threshold control "the load-bearing one" and said it could have voided the result.
+    It could not.
 
-    A control that cannot fail is not weak evidence of specificity, it is none. So the
-    artifact has to contain at least one control whose null has real spread, and the
-    degenerate ones have to be labelled rather than counted as passes.
+    A permutation p-value has no such hole. Every draw is at least as extreme, so
+    b = m and p = 1.0 -- the correct answer, arrived at by construction. So the test is
+    no longer "is at least one control informative"; it is that the noiseless controls
+    report exactly 1.0, and that the ones with noise, which genuinely could fire, do
+    not.
     """
     payload = _artifact()
 
-    controls = [d for entry in payload["threshold_control"] for d in entry["detections"]]
+    controls = {entry["slip_rate"]: entry["detections"] for entry in payload["threshold_control"]}
     assert controls, "no threshold control in the artifact"
 
-    informative = [d for d in controls if not d["degenerate"]]
-    assert informative, (
-        "every threshold control had a zero-spread null, so none of them tested anything. "
-        "The specificity claim in finding 22 is unevidenced until one of them can fail."
+    for detection in controls.get(0.0, []):
+        assert detection["p_value"] == 1.0, (
+            "a noiseless control did not return p = 1.0; every permutation of a "
+            "deterministic fleet returns the observed gap, so b = m by construction"
+        )
+
+    noisy = [d for slip, found in controls.items() if slip > 0 for d in found]
+    assert noisy, "no control was run on a fleet that could actually produce a null"
+    assert not [d for d in noisy if d["detected"]], (
+        "the threshold control fired: the statistic is reading generic error rather "
+        "than channel bias, and the finding is void"
     )
-    # And the ones that could fire must not have.
-    assert not [d for d in informative if d["detected"]], (
-        "the threshold control fired: the statistic is reading generic error rather than "
-        "channel bias, and the finding is void"
-    )
-    # The degenerate ones are recorded as degenerate rather than silently as z = 0.
-    for d in controls:
-        if d["degenerate"]:
-            assert d["z"] is None, "a degenerate null reported a z it does not have"
-            assert not d["detected"]
 
 
 def test_the_invariance_is_a_property_of_a_noiseless_fleet_and_says_so():

@@ -81,11 +81,30 @@ class IncompleteCohortError(ValueError):
     """
 
 
-#: Largest magnitude `encode` will accept. The ring is 2^64 and values are scaled by
-#: 2^24, so a single term must stay under 2^39 to be representable and the sum under
-#: 2^63. Enforced because the failure is silent: 2^40 encodes to 0.0 and 40 terms of
-#: 1.4e10 sum to a confidently wrong negative number.
+#: Largest magnitude `encode` will accept for a *single* term. The ring is 2^64 and
+#: values are scaled by 2^24, so one term must stay under 2^39 to be representable.
 MAX_MAGNITUDE = (MODULUS // 2) // SCALE
+
+
+def max_magnitude_for(participants: int) -> float:
+    """Per-term bound that keeps the *sum* of `participants` terms inside the ring.
+
+    Bounding each term at `MAX_MAGNITUDE` bounds one term and says nothing about their
+    total, which is the quantity that actually has to stay representable. Summing n
+    terms needs ceil(log2 n) bits of headroom, the standard requirement for modular
+    fixed-point aggregation; without it the accumulator wraps and the protocol returns
+    a confidently wrong number rather than an error.
+
+    The comment on `MAX_MAGNITUDE` used to describe exactly this failure -- "40 terms of
+    1.4e10 sum to a confidently wrong negative number" -- as something it prevented. It
+    did not. Every one of those 40 terms is individually under 2^39, and
+    `secure_sum([[1.4e10]] * 40)` returned -539511627776.0 for a true 560000000000.0,
+    with no exception raised. The guard was placed one level below the failure it
+    described.
+    """
+    if participants < 1:
+        raise ValueError(f"participants must be positive, got {participants}")
+    return MAX_MAGNITUDE / participants
 
 
 def encode(value: float) -> int:
@@ -209,6 +228,18 @@ class SecureAggregator:
                 f"cohort changed from {self._cohort} to {cohort} mid-round; "
                 "masks are derived per cohort and would not cancel"
             )
+
+        # Bound against the *cohort*, not against one term: the accumulator is what
+        # wraps. This is the first point at which the cohort size is known, which is
+        # why the check lives here rather than in `encode`.
+        headroom = max_magnitude_for(cohort)
+        for coordinate, value in enumerate(vector):
+            if not -headroom < value < headroom:
+                raise ValueError(
+                    f"coordinate {coordinate} = {value} exceeds the +/-{headroom} that a "
+                    f"cohort of {cohort} can sum without wrapping the ring; the total, "
+                    "not the term, is the quantity that has to stay representable"
+                )
 
         share = [encode(v) for v in vector]
         for peer in range(cohort):
