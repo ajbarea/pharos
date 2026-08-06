@@ -20,9 +20,19 @@ gate. Today alone, self-review missed:
 - a coverage gate that could not fail, unnoticed across every "gate green" claim I made
 - three published thresholds that were reporting the anchor draw rather than the
   measurement
+- finding 22's claim of early detection, which named shares the sweep had never
+  visited: it measured 0, 5, 7 and 9, so its lowest non-zero point was already a
+  majority of the fleet, and the prose claimed the range 1 through 9. Found by
+  `/techne:docsync`, which asks only whether a claim traces to a measurement and does
+  not need to understand the statistic to catch that it does not
 
-Four of those five were found by a reader who was not me, or by running the thing
-rather than reading it. That is the pattern the review has to exploit.
+Five of those six were found by a reader who was not me, by running the thing rather
+than reading it, or by a check that ignored my reasoning entirely. That is the pattern
+the review has to exploit. Note the shape of the last one: the claim was not wrong, it
+was unmeasured, and re-running the sweep made it *stronger* (detection holds at one
+blind analyst in nine). An unmeasured claim is not a claim that happens to be false; it
+is one whose truth value nobody had, which is why "it turned out fine" is not evidence
+the check was unnecessary.
 
 ## Scope
 
@@ -39,11 +49,20 @@ a diff shows what changed; it does not show what the changed thing now does.
 ## How to run it
 
 `/techne:elenchus` at `high`, which drives `/code-review` and adds the reproduce and
-trace passes. `ultra` is justified for the secagg and gate material if the budget is
-there. It is user-triggered and billed, so AJ starts it; I cannot.
+trace passes. It is token-heavy rather than billed, which is a reason not to fire it
+casually, not a reason it needs a human to start it. The one thing that genuinely
+cannot be self-started is `/code-review ultra`, the multi-agent cloud review; that is
+user-triggered and billed. `ultra` is justified for the secagg and gate material if the
+budget is there, and AJ has to start that one.
+
+Failing either, dispatching independent reader agents directly covers the same five
+questions, and is what was actually done on 2026-08-05.
 
 Dispatch **two to three independent readers**, not one. They must not receive this
-file's conclusions — hand them the code and the claims, not my account of them.
+file's conclusions — hand them the code and the claims, not my account of them. Split
+the five questions across them so no reader is asked to hold all five at once; the
+questions are ordered by yield, not by affinity, so the split should follow method
+(construct-and-run, trace-to-artifact, trace-call-sites) rather than question number.
 
 ## The five questions worth more than a general read
 
