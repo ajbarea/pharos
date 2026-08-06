@@ -1163,22 +1163,26 @@ identical except for who labelled them. Every adapter is scored twice on the sam
 held-out tasks and the same decode: once against the world, once against **its own
 teacher's answers**.
 
+<!-- BEGIN GENERATED: teacher-inheritance -->
 | Teacher | Standard | Targets matching world | Adapter vs **world** | Adapter vs **teacher** | Inherited error |
 | --- | --- | --- | --- | --- | --- |
-| by-the-book | 3 of 3 | 1.000 | 0.995 | 0.995 | -0.005 |
-| inattentive | 3 of 3, slips 15% | 0.855 | **0.902** | 0.790 | **+0.046** |
-| two-of-three | 2 of 3 | 0.728 | 0.730 | **0.982** | +0.002 |
-| any-one | 1 of 3 | 0.439 | 0.440 | **1.000** | +0.001 |
+| by-the-book | 3 of 3 | 1.0000 | 0.9967 | 0.9967 | -0.0033 |
+| inattentive | 3 of 3, slips 15% | 0.8553 | 0.8967 | 0.7817 | +0.0414 |
+| two-of-three | 2 of 3 | 0.7009 | 0.6933 | 0.9750 | -0.0076 |
+| any-one | 1 of 3 | 0.4465 | 0.4667 | 1.0000 | +0.0202 |
+
+Accuracy on 600 held-out tasks, 1140 training tuples per adapter. The last column is the adapter's agreement with the world minus its teacher's: near zero means the adapter reproduced its teacher's error rate rather than diluting it.
+<!-- END GENERATED: teacher-inheritance -->
 
 Accuracy on **600** held-out tasks whose events are disjoint from training. The base
-model scores accuracy 0.317 with 74 of 600 answers unparsable, so every row is a large
+model scores accuracy 0.320 with 82 of 600 answers unparsable, so every row is a large
 gain over not training at all. The last column is the adapter's agreement with the
 world minus its teacher's, and it is the cleanest statement of the finding.
 
 **A wrong standard is inherited almost exactly.** The two systematically-wrong
-teachers hand over their error rate to within **0.002 and 0.001**: a teacher whose
-targets agree with the world on 0.728 produces an adapter agreeing on 0.730, and one
-at 0.439 produces 0.440. The adapter did not partially absorb the reviewer's rule or
+teachers hand over their error rate to within **0.008 and 0.020**: a teacher whose
+targets agree with the world on 0.701 produces an adapter agreeing on 0.693, and one
+at 0.447 produces 0.467. The adapter did not partially absorb the reviewer's rule or
 average it against its prior; it learned "two of three" and "one of three" and now
 agrees with the world exactly as much as that rule does. This is the concrete form of
 what the noisy-annotation literature calls absorbing an unreliable annotator's errors
@@ -1210,9 +1214,21 @@ the adapter simply became that rule.
 
 So the two error types finding 8 separated at the level of the target stream stay
 separated after training. Carelessness is partly repaired by learning, by nearly four
-points. **Wrongness is preserved by it** to within half a point, which is the more
+points. **Wrongness is preserved by it** to within two points, which is the more
 unsettling half of the result: there is no dilution, no regression toward the model's
 prior, and nothing in the training signal that notices the rule is wrong.
+
+!!! warning "Corrected 2026-08-06: the inheritance was tighter on the page than in the data"
+    Both tables above were hand-typed and every row had drifted. One drift carried the
+    finding's headline: the page said the two systematically-wrong teachers hand over
+    their error rate *"to within 0.002 and 0.001"*. The artifacts say **0.008 and
+    0.020** --- an order of magnitude larger, and the claim that inheritance is an
+    *identity* rests on exactly that gap being small.
+
+    The conclusion survives, because two points of slack across a 600-task evaluation
+    is still inheritance rather than dilution, and the direction is unchanged. But
+    "to within 0.002" was a stronger sentence than anything measured supported, and it
+    was the sentence a reader would quote. Both tables are generated now.
 
 **What this means for the design.** The premise is that a fleet learns analytic
 tradecraft from analyst decisions. It does -- exactly, faithfully, and without any
@@ -1230,17 +1246,21 @@ different corpus instantiation entirely, sharing no events, no vessels and no
 renderings, which is what contamination-resistance guidance asks of a benchmark.
 Repeating the sweep with the evaluation drawn from seed 101 (2h54m, same A100):
 
-| Teacher | Targets vs world | Adapter vs world | Adapter vs teacher | Inherited |
-| --- | --- | --- | --- | --- |
-| by-the-book | 1.000 | 0.988 | 0.988 | -0.012 |
-| inattentive | 0.858 | **0.943** | 0.835 | **+0.086** |
-| two-of-three | 0.728 | 0.708 | 0.997 | -0.020 |
-| any-one | 0.439 | 0.447 | 1.000 | +0.008 |
+<!-- BEGIN GENERATED: teacher-inheritance-xseed -->
+| Teacher | Standard | Targets matching world | Adapter vs **world** | Adapter vs **teacher** | Inherited error |
+| --- | --- | --- | --- | --- | --- |
+| by-the-book | 3 of 3 | 1.0000 | 0.9917 | 0.9917 | -0.0083 |
+| inattentive | 3 of 3, slips 15% | 0.8575 | 0.9483 | 0.8233 | +0.0908 |
+| two-of-three | 2 of 3 | 0.7046 | 0.7033 | 0.9983 | -0.0013 |
+| any-one | 1 of 3 | 0.4534 | 0.4650 | 1.0000 | +0.0116 |
+
+Accuracy on 600 held-out tasks, 1740 training tuples per adapter. The last column is the adapter's agreement with the world minus its teacher's: near zero means the adapter reproduced its teacher's error rate rather than diluting it.
+<!-- END GENERATED: teacher-inheritance-xseed -->
 
 Both conclusions hold on a corpus with zero overlap. The systematically wrong teachers
 are still tracked closely, now within about two points rather than half a point, and
 the careless teacher is still the only one improved upon: 0.943 against its teacher's
-0.835, a gap of 0.108 against a difference half-width of 0.035, resolved on its own
+0.823, a gap of 0.125 against a difference half-width of 0.038, resolved on its own
 terms.
 
 !!! warning "Do not read the two tables as a controlled comparison"
@@ -1248,7 +1268,7 @@ terms.
     on **1,140**. That is not an oversight in either run but a consequence of the
     design: when evaluation comes from a different corpus, nothing has to be held out
     of the training one. So the differences *between* the tables, the filtering effect
-    growing from +0.038 to +0.086 and the inheritance loosening from half a point to
+    growing from +0.041 to +0.091 and the inheritance loosening from two points to
     two, are confounded with 53% more training data and cannot be attributed to
     cross-corpus evaluation. What each table supports on its own is the same pair of
     conclusions, which is the claim being made.

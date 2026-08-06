@@ -510,6 +510,69 @@ def audit_policy() -> str:
     return "\n".join(lines)
 
 
+#: Which reviewer each finding-10 adapter was trained by, and what that reviewer's
+#: standard is. Prose about the design rather than a measured quantity, so it stays
+#: here; the agreement numbers beside it are all read from the artifacts.
+TEACHERS = {
+    "by-the-book": "3 of 3",
+    "inattentive": "3 of 3, slips 15%",
+    "two-of-three": "2 of 3",
+    "any-one": "1 of 3",
+}
+
+
+def teacher_inheritance(suffix: str = "") -> str:
+    """Finding 10: what an adapter learns when its teacher is systematically wrong.
+
+    Generated because every row of the hand-typed version had drifted, and one of the
+    drifts carried the finding's headline. The page said the two systematically-wrong
+    teachers "hand over their error rate to within 0.002 and 0.001". The artifacts say
+    -0.0076 and +0.0202 -- an order of magnitude larger, and the claim that inheritance
+    is an *identity* rests on exactly that gap being small.
+
+    The conclusion survives at the true numbers, because two points of slack across a
+    600-task evaluation is still inheritance rather than dilution. But "to within 0.002"
+    was a stronger sentence than anything measured supported, and it was published.
+    """
+    rows = []
+    for teacher, standard in TEACHERS.items():
+        path = RESULTS / f"review_adapter-{teacher}{suffix}.json"
+        if not path.exists():
+            _fail(f"{path.relative_to(ROOT)} is missing; finding 10 needs every teacher")
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        targets = payload["teacher"]["train_target_agreement"]
+        world = payload["adapter"]["accuracy"]
+        against_teacher = payload["adapter_vs_teacher"]["accuracy"]
+        inherited = world - targets
+        rows.append(
+            f"| {teacher} | {standard} | {targets:.4f} | {world:.4f} | "
+            f"{against_teacher:.4f} | {inherited:+.4f} |"
+        )
+
+    first = json.loads(
+        (RESULTS / f"review_adapter-by-the-book{suffix}.json").read_text(encoding="utf-8")
+    )
+    data = first["data"]
+    return "\n".join(
+        [
+            "| Teacher | Standard | Targets matching world | Adapter vs **world** | "
+            "Adapter vs **teacher** | Inherited error |",
+            "| --- | --- | --- | --- | --- | --- |",
+            *rows,
+            "",
+            f"Accuracy on {data['n_eval']} held-out tasks, {data['n_train']} training tuples "
+            f"per adapter. The last column is the adapter's agreement with the world minus "
+            f"its teacher's: near zero means the adapter reproduced its teacher's error rate "
+            f"rather than diluting it.",
+        ]
+    )
+
+
+def teacher_inheritance_xseed() -> str:
+    """The same four teachers, evaluated on a corpus sharing no events."""
+    return teacher_inheritance(suffix="-xseed101")
+
+
 def linkage_controls() -> str:
     """Finding 11: what each mitigation costs and what it leaves recoverable.
 
@@ -840,6 +903,8 @@ BLOCKS = {
     "blind-spot": blind_spot,
     "difficulty-confound": difficulty_confound,
     "label-fidelity": label_fidelity,
+    "teacher-inheritance": teacher_inheritance,
+    "teacher-inheritance-xseed": teacher_inheritance_xseed,
     "linkage-controls": linkage_controls,
     "privacy-budget": privacy_budget,
     "channel-bias": channel_bias,
