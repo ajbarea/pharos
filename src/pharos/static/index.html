@@ -160,6 +160,29 @@
     .viz-svg { display: none; }
     .viz-node { position: relative !important; left: auto !important; top: auto !important; width: 100% !important; max-width: 320px; }
   }
+
+  /* --- Escapes: the argument, one exit per row --- */
+  .escape { border: 1px solid var(--line); border-left-width: 5px; border-radius: 8px; background: var(--card); padding: .85rem 1rem; margin: .7rem 0; }
+  .escape.closes { border-left-color: var(--ok); }
+  .escape.bounded { border-left-color: var(--amber); }
+  .escape.open { border-left-color: var(--bad); }
+  .escape-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+  .escape-objection { font-weight: 700; font-size: .95rem; margin: 0; }
+  /* Redundant encoding, not colour alone: the verdict is spelled out in the badge and
+     carries a glyph, so it survives a greyscale print and a colour-vision deficiency.
+     The left border is a third channel and never the only one. */
+  .verdict { font-family: var(--mono); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: .15rem .45rem; border-radius: 4px; border: 1px solid currentColor; white-space: nowrap; }
+  .verdict.closes { color: var(--ok); }
+  .verdict.bounded { color: var(--amber); }
+  .verdict.open { color: var(--bad); }
+  .escape-findings { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+  .escape-outcome { margin: .5rem 0 0; font-size: .87rem; color: var(--fg); }
+  .escape-readings { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: .6rem; padding-top: .55rem; border-top: 1px dashed var(--line); }
+  .reading { font-size: .78rem; }
+  .reading b { font-family: var(--mono); font-size: .95rem; color: var(--accent); display: block; }
+  .reading span { color: var(--muted); }
+  .reading code { font-size: .68rem; color: var(--muted); }
+  .escape.unmeasured { opacity: .75; border-left-style: dashed; }
 </style>
 
 
@@ -180,6 +203,7 @@
     <button role="tab" id="tab-btn-triage" data-tab="triage" aria-selected="false" aria-controls="tab-triage" tabindex="-1">Run a model</button>
     <button role="tab" id="tab-btn-gate" aria-selected="false" data-tab="gate" aria-controls="tab-gate" tabindex="-1">Shortcut gate</button>
     <button role="tab" id="tab-btn-review" data-tab="review" aria-selected="false" aria-controls="tab-review" tabindex="-1">Analyst review</button>
+    <button role="tab" id="tab-btn-escapes" data-tab="escapes" aria-selected="false" aria-controls="tab-escapes" tabindex="-1">Every exit, priced</button>
     <button role="tab" id="tab-btn-visualizer" data-tab="visualizer" aria-selected="false" aria-controls="tab-visualizer" tabindex="-1" style="border-color: var(--accent); color: var(--accent); font-weight: 600;">✨ Live Fleet Visualizer</button>
   </nav>
 
@@ -288,6 +312,20 @@
   </section>
 
   <!-- ── Live Fleet Visualizer ─────────────────────────────── -->
+  <section id="tab-escapes" role="tabpanel" aria-labelledby="tab-btn-escapes" hidden>
+    <h2>Every exit, priced</h2>
+    <p class="muted">
+      The findings page is twenty-four results in reading order. The argument is not
+      twenty-four things: it is one tension, and a list of exits from it that were each
+      built and measured rather than argued about. Every number below is read from the
+      artifact named beneath it, never typed in.
+    </p>
+    <div id="escapes-tension"></div>
+    <h3>The exits</h3>
+    <div id="escapes-counts" class="grid-metrics"></div>
+    <div id="escapes-list"></div>
+  </section>
+
   <section id="tab-visualizer" role="tabpanel" aria-labelledby="tab-btn-visualizer" hidden>
     <div class="card">
       <h3>✨ Interactive Fleet Triage & Provenance Router Flow</h3>
@@ -466,6 +504,7 @@ function staticAnswer(path, opts) {
 
   switch (route) {
     case '/api/vocabulary': return BUNDLE.vocabulary;
+    case '/api/escapes':    return BUNDLE.escapes;
     case '/api/corpus':     return needSeed('corpus');
     case '/api/gate':       return needSeed('gate');
     case '/api/review': {
@@ -943,11 +982,52 @@ function applyStaticMode() {
     `<span class="mono">uv run python -m pharos.cli serve</span>.`;
 }
 
+// ── Every exit, priced ──────────────────────────────────────────────────────
+//
+// Renders the argument, not the mechanism. The values are strings the server
+// already formatted, so this file never decides how many decimals a measurement
+// deserves -- that belongs beside the measurement, in `pharos.escapes`.
+const VERDICT_GLYPH = { closes: '\u2713', bounded: '\u25D0', open: '\u25CB' };
+
+function renderEscape(item) {
+  const verdict = VERDICT_GLYPH[item.verdict] ? item.verdict : 'open';
+  const findings = item.findings.map(n => 'finding ' + n).join(', ');
+  const readings = item.readings.map(r => `
+      <div class="reading">
+        <b>${r.value === null ? '\u2014' : esc(r.value)}</b>
+        <span>${esc(r.label)}</span><br>
+        <code>${esc(r.artifact)}</code>
+      </div>`).join('');
+  return `
+    <article class="escape ${verdict}${item.measured ? '' : ' unmeasured'}">
+      <div class="escape-head">
+        <p class="escape-objection">&ldquo;${esc(item.objection)}&rdquo;</p>
+        <span class="verdict ${verdict}">${VERDICT_GLYPH[verdict]} ${esc(item.verdict)}</span>
+        <span class="escape-findings">${esc(findings)}</span>
+      </div>
+      <p class="escape-outcome">${esc(item.outcome)}</p>
+      ${readings ? `<div class="escape-readings">${readings}</div>` : ''}
+      ${item.measured ? '' : '<p class="escape-outcome"><em>No artifact on disk for this exit right now, so its numbers are not shown. The exit is listed anyway: a list that quietly shortens when a file is missing would flatter the argument.</em></p>'}
+    </article>`;
+}
+
+async function loadEscapes() {
+  const data = await api('/api/escapes');
+  $('escapes-tension').innerHTML = data.tension.map(renderEscape).join('');
+  $('escapes-list').innerHTML = data.escapes.map(renderEscape).join('');
+  $('escapes-counts').innerHTML = data.verdicts.map(v => `
+    <div class="metric-card">
+      <p class="metric-value">${data.counts[v]}</p>
+      <p class="metric-label">${VERDICT_GLYPH[v]} ${esc(v)}</p>
+    </div>`).join('');
+}
+
 (async () => {
   await loadBundle();
   if (BUNDLE) applyStaticMode();
   loadVocab().catch(() => {});
   loadModels().catch(() => {});
+  loadEscapes().catch(() => {});
 })();
 </script>
 </body>

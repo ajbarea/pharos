@@ -174,6 +174,10 @@ def build_bundle(app: Any) -> dict[str, Any]:
 
     return {
         "provenance": run_provenance(),
+        # The argument, not just the mechanism. Frozen like everything else here: it
+        # reads `results/` at build time, so a page served from Pages shows whatever
+        # the artifacts said at the commit that built it, named in the provenance.
+        "escapes": routes["/api/escapes"](),
         "seeds": list(SEEDS),
         "corpus_events": CORPUS_EVENTS,
         "gate_events": GATE_EVENTS,

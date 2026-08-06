@@ -27,7 +27,7 @@ numpy, scikit-learn, and OpenTelemetry.
 from pathlib import Path
 from typing import Any
 
-from pharos import models
+from pharos import escapes, models
 from pharos.analyst import (
     DEFAULT_CEILING,
     DEFAULT_ENSEMBLE,
@@ -98,6 +98,11 @@ def create_app():
             "compartments": [str(c) for c in Compartment],
             "capacity": [c.name for c in Capacity],
         }
+
+    @app.get("/api/escapes")
+    def api_escapes() -> dict[str, Any]:
+        """The argument the findings make, with every number read from its artifact."""
+        return escapes.argument()
 
     @app.get("/api/corpus")
     def api_corpus(seed: int = 7, events: int = 40, limit: int = 12) -> dict[str, Any]:
