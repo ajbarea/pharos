@@ -54,7 +54,7 @@ LOG = get_logger()
 FLEETS = (5, 9, 15, 25, 51)
 
 
-def _run(script: str, fleet: int, extra: tuple[str, ...] = ()) -> dict[str, Any]:
+def run_at(script: str, fleet: int, extra: tuple[str, ...] = ()) -> dict[str, Any]:
     """One measurement at one fleet size, read back from a temporary artifact.
 
     Shelling out rather than importing: each script owns its own defaults, argument
@@ -89,7 +89,7 @@ def _run(script: str, fleet: int, extra: tuple[str, ...] = ()) -> dict[str, Any]
 
 def consensus_row(fleet: int) -> dict[str, Any]:
     """Finding 12: where the cliff lands, and what it lands on."""
-    payload = _run("measure_consensus_reliability.py", fleet)
+    payload = run_at("measure_consensus_reliability.py", fleet)
     cliff = payload["cliff_at"]
     at = next(r for r in payload["grid"] if r["n_wrong"] == cliff)
     before = next(r for r in payload["grid"] if r["n_wrong"] == cliff - 1)
@@ -109,7 +109,7 @@ def consensus_row(fleet: int) -> dict[str, Any]:
 
 def difficulty_row(fleet: int) -> dict[str, Any]:
     """Finding 17: whether the estimators agree, and whether ability still inverts."""
-    payload = _run("measure_difficulty_confound.py", fleet)
+    payload = run_at("measure_difficulty_confound.py", fleet)
     majority = fleet // 2 + 1
     at = next(r for r in payload["rows"] if r["n_wrong"] == majority)
     return {
@@ -155,7 +155,7 @@ def understatement(rate: float, fleet: int) -> float | None:
 
 def correlated_row(fleet: int, draws: int) -> dict[str, Any]:
     """Finding 16: how far independence understates the wrong-majority probability."""
-    payload = _run("measure_correlated_fleets.py", fleet, ("--draws", str(draws)))
+    payload = run_at("measure_correlated_fleets.py", fleet, ("--draws", str(draws)))
     cells = {(c["rate"], c["structure"]): c for c in payload["cells"]}
     out: dict[str, Any] = {"fleet": fleet, "by_rate": []}
     for rate in sorted({r for r, _ in cells}):

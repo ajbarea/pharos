@@ -1,0 +1,928 @@
+{
+  "fleets": [
+    5,
+    9,
+    15,
+    25
+  ],
+  "repaired_threshold": 0.95,
+  "cliff": [
+    {
+      "fleet": 5,
+      "majority": 3,
+      "majority_share": 0.6,
+      "grid": [
+        {
+          "n_wrong": 1,
+          "share": 0.2,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 2,
+          "share": 0.4,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 3,
+          "share": 0.6,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 4,
+          "share": 0.8,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 5,
+          "share": 1.0,
+          "agreement": 0.6598,
+          "recovers": false
+        }
+      ],
+      "highest_safe": {
+        "n_wrong": 2,
+        "share": 0.4,
+        "agreement": 1.0,
+        "recovers": true
+      },
+      "lowest_broken": {
+        "n_wrong": 3,
+        "share": 0.6,
+        "agreement": 0.6598,
+        "recovers": false
+      },
+      "cliff_is_at_the_majority": true,
+      "survives_a_bare_majority": false,
+      "post_cliff_agreement": 0.6598
+    },
+    {
+      "fleet": 9,
+      "majority": 5,
+      "majority_share": 0.5556,
+      "grid": [
+        {
+          "n_wrong": 1,
+          "share": 0.1111,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 2,
+          "share": 0.2222,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 3,
+          "share": 0.3333,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 4,
+          "share": 0.4444,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 5,
+          "share": 0.5556,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 6,
+          "share": 0.6667,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 7,
+          "share": 0.7778,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 8,
+          "share": 0.8889,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 9,
+          "share": 1.0,
+          "agreement": 0.6598,
+          "recovers": false
+        }
+      ],
+      "highest_safe": {
+        "n_wrong": 4,
+        "share": 0.4444,
+        "agreement": 1.0,
+        "recovers": true
+      },
+      "lowest_broken": {
+        "n_wrong": 5,
+        "share": 0.5556,
+        "agreement": 0.6598,
+        "recovers": false
+      },
+      "cliff_is_at_the_majority": true,
+      "survives_a_bare_majority": false,
+      "post_cliff_agreement": 0.6598
+    },
+    {
+      "fleet": 15,
+      "majority": 8,
+      "majority_share": 0.5333,
+      "grid": [
+        {
+          "n_wrong": 1,
+          "share": 0.0667,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 2,
+          "share": 0.1333,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 3,
+          "share": 0.2,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 4,
+          "share": 0.2667,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 5,
+          "share": 0.3333,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 6,
+          "share": 0.4,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 7,
+          "share": 0.4667,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 8,
+          "share": 0.5333,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 9,
+          "share": 0.6,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 10,
+          "share": 0.6667,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 11,
+          "share": 0.7333,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 12,
+          "share": 0.8,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 13,
+          "share": 0.8667,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 14,
+          "share": 0.9333,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 15,
+          "share": 1.0,
+          "agreement": 0.6598,
+          "recovers": false
+        }
+      ],
+      "highest_safe": {
+        "n_wrong": 8,
+        "share": 0.5333,
+        "agreement": 1.0,
+        "recovers": true
+      },
+      "lowest_broken": {
+        "n_wrong": 9,
+        "share": 0.6,
+        "agreement": 0.6598,
+        "recovers": false
+      },
+      "cliff_is_at_the_majority": false,
+      "survives_a_bare_majority": true,
+      "post_cliff_agreement": 0.6598
+    },
+    {
+      "fleet": 25,
+      "majority": 13,
+      "majority_share": 0.52,
+      "grid": [
+        {
+          "n_wrong": 1,
+          "share": 0.04,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 2,
+          "share": 0.08,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 3,
+          "share": 0.12,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 4,
+          "share": 0.16,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 5,
+          "share": 0.2,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 6,
+          "share": 0.24,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 7,
+          "share": 0.28,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 8,
+          "share": 0.32,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 9,
+          "share": 0.36,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 10,
+          "share": 0.4,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 11,
+          "share": 0.44,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 12,
+          "share": 0.48,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 13,
+          "share": 0.52,
+          "agreement": 1.0,
+          "recovers": true
+        },
+        {
+          "n_wrong": 14,
+          "share": 0.56,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 15,
+          "share": 0.6,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 16,
+          "share": 0.64,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 17,
+          "share": 0.68,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 18,
+          "share": 0.72,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 19,
+          "share": 0.76,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 20,
+          "share": 0.8,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 21,
+          "share": 0.84,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 22,
+          "share": 0.88,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 23,
+          "share": 0.92,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 24,
+          "share": 0.96,
+          "agreement": 0.6598,
+          "recovers": false
+        },
+        {
+          "n_wrong": 25,
+          "share": 1.0,
+          "agreement": 0.6598,
+          "recovers": false
+        }
+      ],
+      "highest_safe": {
+        "n_wrong": 13,
+        "share": 0.52,
+        "agreement": 1.0,
+        "recovers": true
+      },
+      "lowest_broken": {
+        "n_wrong": 14,
+        "share": 0.56,
+        "agreement": 0.6598,
+        "recovers": false
+      },
+      "cliff_is_at_the_majority": false,
+      "survives_a_bare_majority": true,
+      "post_cliff_agreement": 0.6598
+    }
+  ],
+  "cliff_bracket": {
+    "highest_safe_share": 0.5333,
+    "lowest_broken_share": 0.5556,
+    "fleets_where_the_cliff_is_at_the_majority": [
+      5,
+      9
+    ],
+    "fleets_surviving_a_bare_majority": [
+      15,
+      25
+    ],
+    "post_cliff_agreement": [
+      0.6598
+    ]
+  },
+  "audit": [
+    {
+      "fleet": 5,
+      "majority": 3,
+      "compositions": [
+        3,
+        4
+      ],
+      "auditable_pool": 97,
+      "best_deployable": "margin",
+      "uniform_spread": {
+        "3": {
+          "n_wrong": 3,
+          "seeds": 21,
+          "reached": 21,
+          "median": 30,
+          "lowest": 20,
+          "highest": 45
+        },
+        "4": {
+          "n_wrong": 4,
+          "seeds": 21,
+          "reached": 21,
+          "median": 80,
+          "lowest": 60,
+          "highest": 80
+        }
+      },
+      "rows": [
+        {
+          "n_wrong": 3,
+          "nothing_to_repair": false,
+          "is_crossing": true,
+          "margin": 8,
+          "uniform_median": 30,
+          "oracle": 8,
+          "margin_beats_uniform": true,
+          "margin_ties_oracle": true
+        },
+        {
+          "n_wrong": 4,
+          "nothing_to_repair": false,
+          "is_crossing": false,
+          "margin": 30,
+          "uniform_median": 80,
+          "oracle": 30,
+          "margin_beats_uniform": true,
+          "margin_ties_oracle": true
+        }
+      ]
+    },
+    {
+      "fleet": 9,
+      "majority": 5,
+      "compositions": [
+        5,
+        6,
+        7
+      ],
+      "auditable_pool": 97,
+      "best_deployable": "margin",
+      "uniform_spread": {
+        "5": {
+          "n_wrong": 5,
+          "seeds": 21,
+          "reached": 21,
+          "median": 8,
+          "lowest": 2,
+          "highest": 20
+        },
+        "6": {
+          "n_wrong": 6,
+          "seeds": 21,
+          "reached": 21,
+          "median": 45,
+          "lowest": 30,
+          "highest": 60
+        },
+        "7": {
+          "n_wrong": 7,
+          "seeds": 21,
+          "reached": 21,
+          "median": 80,
+          "lowest": 60,
+          "highest": 80
+        }
+      },
+      "rows": [
+        {
+          "n_wrong": 5,
+          "nothing_to_repair": false,
+          "is_crossing": true,
+          "margin": 2,
+          "uniform_median": 8,
+          "oracle": 2,
+          "margin_beats_uniform": true,
+          "margin_ties_oracle": true
+        },
+        {
+          "n_wrong": 6,
+          "nothing_to_repair": false,
+          "is_crossing": false,
+          "margin": 20,
+          "uniform_median": 45,
+          "oracle": 20,
+          "margin_beats_uniform": true,
+          "margin_ties_oracle": true
+        },
+        {
+          "n_wrong": 7,
+          "nothing_to_repair": false,
+          "is_crossing": false,
+          "margin": 30,
+          "uniform_median": 80,
+          "oracle": 30,
+          "margin_beats_uniform": true,
+          "margin_ties_oracle": true
+        }
+      ]
+    },
+    {
+      "fleet": 15,
+      "majority": 8,
+      "compositions": [
+        8,
+        10,
+        12
+      ],
+      "auditable_pool": 97,
+      "best_deployable": "margin",
+      "uniform_spread": {
+        "8": {
+          "n_wrong": 8,
+          "seeds": 21,
+          "reached": 0,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "10": {
+          "n_wrong": 10,
+          "seeds": 21,
+          "reached": 21,
+          "median": 45,
+          "lowest": 30,
+          "highest": 60
+        },
+        "12": {
+          "n_wrong": 12,
+          "seeds": 21,
+          "reached": 20,
+          "median": 80,
+          "lowest": 80,
+          "highest": 95
+        }
+      },
+      "rows": [
+        {
+          "n_wrong": 8,
+          "nothing_to_repair": true,
+          "is_crossing": true,
+          "margin": null,
+          "uniform_median": null,
+          "oracle": null,
+          "margin_beats_uniform": false,
+          "margin_ties_oracle": true
+        },
+        {
+          "n_wrong": 10,
+          "nothing_to_repair": false,
+          "is_crossing": false,
+          "margin": 20,
+          "uniform_median": 45,
+          "oracle": 20,
+          "margin_beats_uniform": true,
+          "margin_ties_oracle": true
+        },
+        {
+          "n_wrong": 12,
+          "nothing_to_repair": false,
+          "is_crossing": false,
+          "margin": 30,
+          "uniform_median": 80,
+          "oracle": 30,
+          "margin_beats_uniform": true,
+          "margin_ties_oracle": true
+        }
+      ]
+    },
+    {
+      "fleet": 25,
+      "majority": 13,
+      "compositions": [
+        13,
+        17,
+        19
+      ],
+      "auditable_pool": 97,
+      "best_deployable": "margin",
+      "uniform_spread": {
+        "13": {
+          "n_wrong": 13,
+          "seeds": 21,
+          "reached": 0,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "17": {
+          "n_wrong": 17,
+          "seeds": 21,
+          "reached": 21,
+          "median": 45,
+          "lowest": 30,
+          "highest": 60
+        },
+        "19": {
+          "n_wrong": 19,
+          "seeds": 21,
+          "reached": 21,
+          "median": 80,
+          "lowest": 60,
+          "highest": 80
+        }
+      },
+      "rows": [
+        {
+          "n_wrong": 13,
+          "nothing_to_repair": true,
+          "is_crossing": true,
+          "margin": null,
+          "uniform_median": null,
+          "oracle": null,
+          "margin_beats_uniform": false,
+          "margin_ties_oracle": true
+        },
+        {
+          "n_wrong": 17,
+          "nothing_to_repair": false,
+          "is_crossing": false,
+          "margin": 20,
+          "uniform_median": 45,
+          "oracle": 20,
+          "margin_beats_uniform": true,
+          "margin_ties_oracle": true
+        },
+        {
+          "n_wrong": 19,
+          "nothing_to_repair": false,
+          "is_crossing": false,
+          "margin": 30,
+          "uniform_median": 80,
+          "oracle": 30,
+          "margin_beats_uniform": true,
+          "margin_ties_oracle": true
+        }
+      ]
+    }
+  ],
+  "blind": [
+    {
+      "fleet": 5,
+      "shares": [
+        0,
+        2,
+        3,
+        4,
+        5
+      ],
+      "hit_rate_at_unanimity": {
+        "uniform": 0.1,
+        "margin": 0.15,
+        "posterior": 0.2,
+        "consensus": 0.15,
+        "channel": 1.0,
+        "oracle": 1.0
+      },
+      "disagreement_policies_at_chance": true,
+      "oracle_finds_all": true,
+      "channel_ties_oracle": true,
+      "channel_corrected": 0,
+      "oracle_corrected": 0,
+      "channel_remaining_errors": 0
+    },
+    {
+      "fleet": 9,
+      "shares": [
+        0,
+        3,
+        5,
+        7,
+        8,
+        9
+      ],
+      "hit_rate_at_unanimity": {
+        "uniform": 0.1,
+        "margin": 0.15,
+        "posterior": 0.2,
+        "consensus": 0.15,
+        "channel": 1.0,
+        "oracle": 1.0
+      },
+      "disagreement_policies_at_chance": true,
+      "oracle_finds_all": true,
+      "channel_ties_oracle": true,
+      "channel_corrected": 0,
+      "oracle_corrected": 0,
+      "channel_remaining_errors": 0
+    },
+    {
+      "fleet": 15,
+      "shares": [
+        0,
+        5,
+        8,
+        12,
+        14,
+        15
+      ],
+      "hit_rate_at_unanimity": {
+        "uniform": 0.1,
+        "margin": 0.15,
+        "posterior": 0.15,
+        "consensus": 0.15,
+        "channel": 1.0,
+        "oracle": 1.0
+      },
+      "disagreement_policies_at_chance": true,
+      "oracle_finds_all": true,
+      "channel_ties_oracle": true,
+      "channel_corrected": 0,
+      "oracle_corrected": 0,
+      "channel_remaining_errors": 0
+    },
+    {
+      "fleet": 25,
+      "shares": [
+        0,
+        8,
+        13,
+        19,
+        24,
+        25
+      ],
+      "hit_rate_at_unanimity": {
+        "uniform": 0.1,
+        "margin": 0.15,
+        "posterior": 0.15,
+        "consensus": 0.15,
+        "channel": 1.0,
+        "oracle": 1.0
+      },
+      "disagreement_policies_at_chance": true,
+      "oracle_finds_all": true,
+      "channel_ties_oracle": true,
+      "channel_corrected": 0,
+      "oracle_corrected": 0,
+      "channel_remaining_errors": 0
+    }
+  ],
+  "channel": [
+    {
+      "fleet": 5,
+      "permutations": 4200,
+      "p_floor": 0.000238,
+      "shares": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "detected_at_unanimity": [
+        "PARTNER"
+      ],
+      "controls_clean": true,
+      "blinded_detected_at_every_noise_level": true,
+      "no_other_channel_detected": true,
+      "detection_floor_by_slip_rate": {
+        "0.0": 1,
+        "0.05": 1,
+        "0.15": 2
+      }
+    },
+    {
+      "fleet": 9,
+      "permutations": 4200,
+      "p_floor": 0.000238,
+      "shares": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "detected_at_unanimity": [
+        "PARTNER"
+      ],
+      "controls_clean": true,
+      "blinded_detected_at_every_noise_level": true,
+      "no_other_channel_detected": true,
+      "detection_floor_by_slip_rate": {
+        "0.0": 1,
+        "0.05": 2,
+        "0.15": 4
+      }
+    },
+    {
+      "fleet": 15,
+      "permutations": 4200,
+      "p_floor": 0.000238,
+      "shares": [
+        0,
+        1,
+        2,
+        5,
+        7,
+        8,
+        12,
+        15
+      ],
+      "detected_at_unanimity": [
+        "PARTNER"
+      ],
+      "controls_clean": true,
+      "blinded_detected_at_every_noise_level": true,
+      "no_other_channel_detected": true,
+      "detection_floor_by_slip_rate": {
+        "0.0": 1,
+        "0.05": 2,
+        "0.15": 5
+      }
+    },
+    {
+      "fleet": 25,
+      "permutations": 4200,
+      "p_floor": 0.000238,
+      "shares": [
+        0,
+        1,
+        2,
+        8,
+        12,
+        13,
+        19,
+        25
+      ],
+      "detected_at_unanimity": [
+        "PARTNER"
+      ],
+      "controls_clean": true,
+      "blinded_detected_at_every_noise_level": true,
+      "no_other_channel_detected": true,
+      "detection_floor_by_slip_rate": {
+        "0.0": 1,
+        "0.05": 2,
+        "0.15": 8
+      }
+    }
+  ],
+  "invariants": {
+    "selection_beats_uniform_wherever_a_repair_is_needed": true,
+    "selection_ties_the_oracle_bound": true,
+    "disagreement_collapses_at_unanimity": true,
+    "provenance_recovers_every_corrupted_item": true,
+    "no_policy_repairs_an_unanchored_label": true,
+    "blinded_channel_detected_and_controls_silent": true,
+    "the_cliff_is_at_the_majority_at_every_fleet": false,
+    "post_cliff_agreement_is_constant": true
+  },
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "6fce850b4400",
+    "git_dirty": true,
+    "generated_at": "2026-08-06T19:40:45+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "fleets": [
+      5,
+      9,
+      15,
+      25
+    ],
+    "permutations": 4200
+  }
+}

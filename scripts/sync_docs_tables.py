@@ -890,9 +890,54 @@ def channel_bias() -> str:
     return "\n".join(lines)
 
 
+def governance_sensitivity() -> str:
+    """Finding 24: where each governance finding's crossing lands as the fleet grows."""
+    path = RESULTS / "governance_sensitivity.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make governance-sensitivity` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    cliff = payload.get("cliff") or []
+    if not cliff:
+        _fail("governance_sensitivity.json carries no cliff scan; refusing an empty table")
+
+    bracket = payload["cliff_bracket"]
+    lines = [
+        "| Fleet | Bare majority | Recovers up to | Breaks at | Breaking share | "
+        "Survives a bare majority |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in cliff:
+        safe = row["highest_safe"]
+        broke = row["lowest_broken"]
+        survives = "**yes**" if row["survives_a_bare_majority"] else "no"
+        safe_at = safe["n_wrong"] if safe else "--"
+        broke_at = broke["n_wrong"] if broke else "--"
+        broke_share = f"{broke['share']:.3f}" if broke else "--"
+        lines.append(
+            f"| {row['fleet']} | {row['majority']} | {safe_at} | {broke_at} "
+            f"| {broke_share} | {survives} |"
+        )
+
+    depths = bracket["post_cliff_agreement"]
+    lines += [
+        "",
+        f"Every composition from 1 to the fleet size, one EM fit each, with recovery at "
+        f"agreement ≥ {payload['repaired_threshold']}. The breaking share is bracketed by "
+        f"**{bracket['highest_safe_share']:.4f} < s ≤ {bracket['lowest_broken_share']:.4f}**; "
+        "four fleet sizes bound it and none of them resolves it further.",
+        "",
+        f"Agreement past the crossing is {', '.join(f'{d:.4f}' for d in depths)} at every "
+        f"fleet and every composition above it, so the cliff's **depth** does not move "
+        f"where its **location** does. The failure has no gradient: a fleet is identified "
+        f"or it is not.",
+    ]
+    return "\n".join(lines)
+
+
 #: Block name to builder. A block present in a doc but absent here is an error rather
 #: than a no-op: a marker with nothing behind it is how a table quietly stops updating.
 BLOCKS = {
+    "governance-sensitivity": governance_sensitivity,
     "power-claims": power_claims,
     "measurement-health": measurement_health,
     "teacher-fleet": teacher_fleet,
