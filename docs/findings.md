@@ -111,15 +111,15 @@ earlier version of this section, and it understated two claims.
 <!-- BEGIN GENERATED: power-claims -->
 | Finding | n | Gap it rests on | vs | Verdict | Claim |
 | --- | --- | --- | --- | --- | --- |
-| 3b | 40 | 0.000 | constant | unresolved (needs n>2000) | qwen2.5-3b (0.625) clears the majority floor (0.625) |
-| 3b | 40 | 0.200 | constant | **resolved** | mistral-7b (0.425) is below the majority floor (0.625) |
-| 5 | 600 | 0.009 | condition | unresolved (needs n>2000) | 8 shots (0.514) beats 0 shots (0.523) -- REFUTED at n=600 |
-| 5 | 600 | 0.055 | condition | unresolved (needs n≥2000) | 2 shots (0.468) is worse than 0 shots (0.523) -- direction only |
-| 5 | 600 | 0.486 | constant | **resolved** | 8 shots (0.514) is below the stated-rule ceiling (1.000) |
-| 5 | 600 | 0.179 | constant | **resolved** | 8 shots (0.514) is below the majority floor (0.693) |
-| 6 | 60 | 0.531 | condition | **resolved** | adapter (1.000) beats the base model (0.469) |
-| 10 | 600 | 0.560 | condition | **resolved** | any-one adapter matches teacher (1.000) not world (0.440) |
-| 10 | 600 | 0.112 | condition | **resolved** | inattentive adapter (0.902) beats its own teacher (0.790) |
+| 3b | 40 | 0.125 | constant | unresolved (needs n≥120) | qwen2.5-3b (0.775) clears the majority floor (0.650) |
+| 3b | 40 | 0.154 | constant | **resolved** | mistral-7b (0.487) is below the majority floor (0.641) |
+| 5 | 2400 | 0.003 | condition | unresolved (needs n>2000) | 8 shots (0.485) beats 0 shots (0.481) -- REFUTED at n=2400 |
+| 5 | 2400 | 0.049 | condition | **resolved** | 2 shots (0.433) is worse than 0 shots (0.481) -- direction only |
+| 5 | 2400 | 0.515 | constant | **resolved** | 8 shots (0.485) is below the stated-rule ceiling (1.000) |
+| 5 | 2400 | 0.200 | constant | **resolved** | 8 shots (0.485) is below the majority floor (0.685) |
+| 6 | 60 | 0.463 | condition | **resolved** | adapter (1.000) beats the base model (0.537) |
+| 10 | 600 | 0.533 | condition | **resolved** | any-one adapter matches teacher (1.000) not world (0.467) |
+| 10 | 600 | 0.059 | condition | unresolved (needs n≥1000) | inattentive adapter (0.923) beats its own teacher (0.864) |
 | 11 | 200 | 0.100 | constant | **resolved** | linkage recovery (0.205) beats the guessing prior (0.105) |
 | 11 | 50 | 0.820 | condition | **resolved** | RESTRICTED analysts (0.820) are recovered where OPEN (0.000) are not |
 
@@ -139,20 +139,36 @@ that are not are mostly ones it already declines to make. Two deserve naming:
     inconsistency was in this section, not in finding 3b, and the corrected
     accounting reconciles the two. No measurement was rerun and no score changed.
 
-- **"qwen2.5-3b clears the majority floor" has a gap of exactly zero.** It ties the
-  floor at 0.625. No sample size resolves a tie, so that is not a claim awaiting
-  more data -- it is permanently unresolvable as posed, and
-  [finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) states it
-  as unresolved rather than as a negative.
+!!! warning "Corrected 2026-08-05: this table was reading a hand-typed copy of itself"
+    Every claim above used to be written out by hand --- the effect size and the
+    quoted scores together --- in a table inside `scripts/measure_power.py`. It was
+    prose wearing a data structure's clothes, and it fed a *generated* block, so the
+    page rendered it faithfully and it went stale silently when the corpus was
+    re-measured on 2026-08-04.
+
+    The visible symptom was the bullet that used to sit here, reporting
+    `qwen2.5-3b (0.625) clears the majority floor (0.625)` and reasoning at length
+    about a dead heat that no sample size could resolve. The 0.625 belonged to
+    **qwen2.5-14b**, a different model in the same table. The artifact says
+    qwen2.5-3b scores **0.775** against a floor of **0.650** --- not a tie, a gap of
+    0.125, unresolved at n=40 and resolvable at n=120. Everything the old bullet
+    concluded about ties being permanently unresolvable was sound reasoning applied
+    to two numbers that were never measured together.
+
+    The claims are now read from the artifacts, so only the *shape* of each claim is
+    written down. Three of the eleven remain unresolved at the size they were run,
+    and the table above says which and what each would need.
+
 - **"8 shots beats 0 shots" was bought, and the claim died.** This table used to say
   it needed n≈600, an order of magnitude more than the 30 it was measured at. We ran
-  600. The lift is not there:
-  [finding 5](#5-in-context-learning-does-not-close-the-gap) now reports 8 shots at
-  0.514 against a zero-shot 0.523, and the row above records the refutation rather
-  than deleting it. The companion claim, that 2 shots is *worse* than 0, is the
-  closest thing to a resolved difference here and still is not one.
+  it. The lift is not there:
+  [finding 5](#5-in-context-learning-does-not-close-the-gap) reports 8 shots at
+  0.485 against a zero-shot 0.481, a gap of 0.004 that would need more than 2000
+  tasks to separate, and the row above records the refutation rather than deleting
+  it. The companion claim, that 2 shots is *worse* than 0, is the closest thing to a
+  resolved difference here and still is not one.
 
-That second point is why this section is not a limitation. A static benchmark with 30
+That bullet is why this section is not a limitation. A static benchmark with 30
 items is stuck with 30; a generator is limited only by compute, and 600 tasks is
 roughly two hours of local inference. The table is therefore a purchase order rather
 than a disclaimer, and the two purchases it has prompted so far both ended in a
@@ -1884,10 +1900,10 @@ built for an unrelated reason. The significant class is a conjunction of three f
 and three of the ten background patterns carry **two** of those three. Those routine
 items sit one fact from the boundary:
 
-| Signature facts present | 0 | 1 | **2** | 3 |
-| --- | --- | --- | --- | --- |
-| Items | 21 | 63 | **52** | 64 |
-| Class | routine | routine | **routine, near-boundary** | significant |
+Items whose signature overlap puts them one fact from the boundary are counted in the
+generated table below, beside the difficulty each fleet estimates for them. Overlap 2 is
+the near-boundary class: routine under the correct rule, and exactly the class a
+two-of-three reviewer gets wrong.
 
 The 52 near-boundary items are also **exactly** the items a reviewer holding a
 two-of-three standard gets wrong. "This item is ambiguous" and "this reviewer applies
@@ -1896,12 +1912,20 @@ the wrong rule" predict identical data.
 **The control decides it.** Estimated difficulty by true overlap, under fleets that
 differ only in composition:
 
+<!-- BEGIN GENERATED: difficulty-confound -->
 | Fleet | ovl=0 | ovl=1 | **ovl=2** | ovl=3 | Spread | Converged |
 | --- | --- | --- | --- | --- | --- | --- |
-| **correct (control)** | 1.090 | 1.090 | **1.090** | 1.090 | **1.00** | yes, 1 iter |
-| correct, 15% random slip | 2.227 | 1.677 | 1.701 | 2.038 | 1.33 | yes, 9 iters |
-| 3 of 9 wrong standard | 0.942 | 0.942 | **2.563** | 0.942 | 2.72 | yes, 6 iters |
-| 5 of 9 wrong standard | 0.933 | 0.933 | **4.398** | 0.933 | 4.72 | yes, 38 iters |
+| correct fleet (control) | 1.085 | 1.085 | 1.085 | 1.085 | 1.000 | yes, 1 iter |
+| correct, 15% random slip | 1.578 | **2.120** | 1.954 | 1.683 | 1.343 | yes, 10 iter |
+| 3 of 9 wrong standard | 0.911 | 0.911 | **2.318** | 0.911 | 2.543 | yes, 6 iter |
+| 5 of 9 wrong standard | 0.885 | 0.885 | **3.421** | 0.885 | 3.867 | yes, 25 iter |
+
+| Signature facts present | ovl=0 | ovl=1 | **ovl=2** | ovl=3 |
+| --- | --- | --- | --- | --- |
+| Items | 40 | 39 | 52 | 69 |
+
+Estimated item difficulty by true signature overlap, under fleets differing only in composition. **Bold** in each row marks that row's own peak, read from the artifact rather than asserted in prose.
+<!-- END GENERATED: difficulty-confound -->
 
 **A correct fleet finds no difficulty structure at all.** Spread 1.0, flat across the
 corpus, because the correct rule resolves a two-of-three item unambiguously: two is not
@@ -1942,13 +1966,23 @@ confident, well separated, and backwards. The inversion holds at every corpus si
 swept below, which is more than can be said for the CC-Rasch row.
 
 **Random error is not exempt, and has a different signature.** The 15%-slip row inflates
-difficulty with no wrong standard anywhere, but the shape is inverted: it peaks at
-overlap 0, *furthest* from the boundary, and stays nearly flat across the rest. Any
-annotator error inflates apparent difficulty; only systematic error inflates it *at the
-boundary*, and only systematic error inflates one band while leaving the others at the
-control value. That difference is the one hopeful result here, and it is a shape rather
-than a magnitude: the slip row's spread of 1.33 is smaller than 3-of-9's 2.72, but a
-single summary number cannot tell you which band carries it.
+difficulty with no wrong standard anywhere, but the shape is different in the way that
+matters: it is elevated across *every* band, 1.58 to 2.12, rather than concentrated on
+one. The systematic rows do the opposite --- three of the four bands sit at or below the
+control value and a single band carries the whole effect.
+
+That is the discriminating shape, and it is not "which band peaks". This section
+previously said the slip row peaks at overlap 0, *furthest* from the boundary, and drew
+the contrast from that. It peaks at overlap 1, and the claim was never measured: it was
+written beside a run and never re-read against the artifact. The contrast survives the
+correction because it never depended on which band happened to be highest --- random
+error raises the floor everywhere, systematic error raises one band and leaves the rest
+flat. Any annotator error inflates apparent difficulty; only systematic error inflates it
+*at the boundary* while leaving the others at the control value.
+
+It is a shape rather than a magnitude: the slip row's spread of 1.343 is smaller than
+3-of-9's 2.543, but a single summary number cannot tell you which band carries it, and
+the peak alone cannot either.
 
 !!! warning "This section published different numbers, and the reason is worth recording"
     Every magnitude above changed on 2026-08-02. The first version of this measurement
@@ -1970,7 +2004,7 @@ single summary number cannot tell you which band carries it.
     the structure still appears only when reviewers hold a wrong standard, it is still
     localised on precisely the band a two-of-three reviewer errs on, and the ability
     estimate still inverts at the majority. What changed is that the effect is smaller
-    than first reported -- an inversion of 1.42x rather than 31x -- and that nothing
+    than first reported -- an inversion of 1.95x rather than 31x -- and that nothing
     needs withdrawing for want of convergence, because everything now converges.
 
     The lesson is narrower than "check your implementation". It is that a *negative*
@@ -2610,63 +2644,117 @@ labels are shuffled *inside* each evidence level, preserving the difficulty dist
 and destroying only the association under test.
 
 <!-- BEGIN GENERATED: channel-bias -->
+**Verdict noise 0.00**
+
 | Blind of 9 | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` ‡ |
 | --- | --- | --- | --- | --- |
-| 0 | 0.0 | 0.0 | 0.0 | 0.0 |
-| 1 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 2 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 3 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 4 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 5 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 7 | -1.8 | -1.2 | 1.7 | **8.1** |
-| 9 | -1.8 | -1.2 | 1.7 | **8.1** |
+| 0 | n/a | n/a | n/a | n/a |
+| 1 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 2 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 3 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 4 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 5 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 7 | -1.55 | -1.15 | 2.02 | **8.22** |
+| 9 | -1.55 | -1.15 | 2.02 | **8.22** |
+| threshold control | n/a | n/a | n/a | n/a |
 
-| Control | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` |
+**Verdict noise 0.05**
+
+| Blind of 9 | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` ‡ |
 | --- | --- | --- | --- | --- |
-| threshold error (not channel-linked) | 0.0 | 0.0 | 0.0 | 0.0 |
+| 0 | 0.30 | -0.89 | -0.84 | 1.47 |
+| 1 | -0.45 | -1.65 | -0.26 | **3.02** |
+| 2 | -1.03 | -1.89 | 0.46 | **4.80** |
+| 3 | -1.42 | -1.36 | 0.81 | **6.00** |
+| 4 | -1.65 | -1.20 | 0.83 | **6.77** |
+| 5 | -1.73 | -1.51 | 1.78 | **6.76** |
+| 7 | -1.50 | -1.47 | 2.62 | **7.09** |
+| 9 | -1.57 | -1.33 | 2.43 | **7.71** |
+| threshold control | -1.48 | -0.01 | 0.12 | 1.32 |
 
-Standard deviations above a within-stratum permutation null over 200 trials; bold is a detection at z ≥ 3. ‡ is the channel the fleet actually discounts.
+**Verdict noise 0.15**
+
+| Blind of 9 | `SENSOR` | `LIAISON` | `LEGAL` | `PARTNER` ‡ |
+| --- | --- | --- | --- | --- |
+| 0 | 1.20 | -0.70 | -0.32 | 0.34 |
+| 1 | 0.67 | -0.06 | -0.39 | 0.89 |
+| 2 | 0.17 | 0.10 | -0.12 | 1.93 |
+| 3 | -0.49 | 0.27 | -0.04 | **3.04** |
+| 4 | -1.01 | 0.56 | -0.29 | **4.03** |
+| 5 | -1.25 | -0.09 | 0.88 | **5.10** |
+| 7 | -1.20 | -0.58 | 0.92 | **5.67** |
+| 9 | -1.65 | -0.38 | 1.14 | **5.92** |
+| threshold control | -1.06 | 0.15 | -0.51 | 0.55 |
+
+Standard deviations above a within-stratum permutation null over 200 trials, reported as the median across 21 draws of that null; bold is a detection at z ≥ 3. ‡ is the channel the fleet actually discounts.
+
+`n/a` is not a pass. At zero verdict noise every analyst is identical and deterministic, so each task's rate is fixed by its evidence stratum, every permutation of the channel labels returns the same gap, and the null has no spread for z to be measured against. Both controls sit in that case, which is why the sweep runs at noise levels where they can fail.
 <!-- END GENERATED: channel-bias -->
 
 **It survives unanimity.** At nine of nine blind --- precisely where finding 21's
-policies score at chance --- the discounted channel stands at **z = 8.1** against its
-permutation null, and no other channel clears 1.8. The statistic reads the *level* of
-the fleet's verdict rather than its spread, so the disappearance of dissent costs it
-nothing.
+policies score at chance --- the discounted channel clears the threshold at every noise
+level measured, from **z = 8.22** on a noiseless fleet to **z = 5.92** at a 15% slip
+rate, and no other channel clears 2.5 anywhere. The statistic reads the *level* of the
+fleet's verdict rather than its spread, so the disappearance of dissent costs it
+nothing. That is the finding, and it holds.
 
-!!! success "One blind analyst in nine is as detectable as all nine"
-    The z-score is **8.07 at every share from 1 to 9**, identical to three decimal
-    places, and that is not a bug: a blind spot scales a single fixed pattern of
-    depressed rates, so the observed gap and the permutation null scale together and the
-    ratio cancels. The gap itself moves exactly as the share does --- $-0.028$ at one
-    analyst, $-0.250$ at nine, in the ratio $1:9$. Detection therefore does not get
-    harder as the habit spreads, and --- more usefully --- does not require the habit to
-    have spread at all.
+!!! warning "Corrected 2026-08-05: the invariance was a property of an idealized fleet"
+    This section previously carried a success box reading *"One blind analyst in nine is
+    as detectable as all nine"*, on the strength of z = 8.07 holding identically at every
+    share from 1 to 9. The arithmetic was right and the conclusion was not.
 
-    This sentence was published before it was measured. The sweep ran
-    $\{0, 5, 7, 9\}$, so the lowest share it tested was already the majority, and every
-    claim here about catching a habit *early* rested on shares nobody had run. The sweep
-    now runs $\{0, 1, 2, 3, 4, 5, 7, 9\}$ and the claim survives it. It would have been
-    equally publishable had it not.
+    z is the ratio of the observed gap to the null's spread, and both are linear in the
+    blind share --- but linear *through the origin* only when the baseline gap at zero
+    blind analysts is exactly zero. That is true of a fleet in which every analyst is
+    deterministic and identical, because then each task's verdict rate is fixed by its
+    evidence stratum and there is nothing left to vary within one. It is not true of any
+    fleet that makes mistakes. Every sentence of the original derivation survives the
+    correction; the conclusion does not, because linearity is not linearity through the
+    origin.
 
-    That matters against
-    [finding 16](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently),
-    whose warning is that a shared training pipeline drives a fleet toward a common
-    error far faster than independent draws suggest. A house style is catchable here
-    *before* it becomes the majority, which is the only point at which catching it is
-    cheap.
+    Measured across noise levels, detection degrades with the share exactly as intuition
+    would suggest, and the honest reading is a floor rather than an invariance:
 
-!!! note "Both negative controls are clean, and one of them could have voided the finding"
+    - **No verdict noise**: z = 8.22 at every share from 1 to 9. The published case, and
+      a degenerate one.
+    - **5% slip**: one blind analyst sits *on* the threshold --- median z = 3.02 across
+      21 draws of the null, range 2.70 to 3.23. It straddles z = 3, so it is not
+      reliably detected. Two blind analysts (4.80) are.
+    - **15% slip**, this repo's own `inattentive` rate: one blind analyst scores 0.89 and
+      is **not detected**. Three of nine (3.04) is the floor.
+
+    So the claim that survives is weaker than the one withdrawn and still useful: a
+    channel blind spot is catchable at roughly **a third of the fleet** on a realistically
+    noisy fleet, and earlier on a quiet one --- in both cases well before unanimity. The
+    tie to
+    [finding 16](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently)
+    holds in that weaker form: a house style driven by a shared pipeline is catchable
+    before it becomes the majority, but not from its first adopter.
+
+    One thing the correction *gains*. The withdrawn invariance came with a stated
+    limitation --- a statistic that does not move with the share cannot report the share.
+    Under noise it does move, monotonically, so the detector carries information about
+    extent after all. That is a better instrument than the one this finding claimed, and
+    sizing the blind spot from it is now an open question rather than a closed door.
+
+!!! note "The negative controls could not fail, and now can"
     A detector that fires on everything detects nothing, so two fleets must produce no
-    detection.
+    detection: an unbiased one, and one holding finding 12's threshold error, which is
+    real, fleet-wide and *not channel-linked*.
 
-    - **An unbiased fleet**: z = 0.00 on every channel.
-    - **A fleet holding a threshold error** --- finding 12's wrong standard, which is
-      real, fleet-wide, and *not channel-linked*: z = 0.00 on every channel.
+    Both were previously reported as **z = 0.00 on every channel**, and read as a clean
+    pass. They were not measurements. Both control fleets were noiseless, so every
+    permutation of the channel labels returned the same stratified gap, the null's
+    standard deviation was exactly zero, and z was undefined --- a case the code divided
+    into a `0.0`. The threshold control was described here as *the load-bearing one*, the
+    one that *could have voided the finding*. It could not have. It had no power to fail
+    at all, and neither had the test asserting it.
 
-    The second is the load-bearing one. Had it fired, the statistic would be reading
-    generic error rather than channel bias, and the finding would say nothing about
-    blind spots specifically.
+    Both controls now run at every noise level. Where they can fail, they do not:
+    across the eight informative control cells the largest score is **1.32**, against a
+    detection threshold of 3.0 and a true-channel score reaching 8.22. Specificity is now
+    evidenced rather than assumed. The zero-noise cells are printed as `n/a` rather than
+    as a number, because that is what a ratio to a zero standard deviation is.
 
 **What this does not claim.** It detects a blind spot aligned with a *known, public*
 partition of the corpus --- here the compartment a report arrived through. A shared error

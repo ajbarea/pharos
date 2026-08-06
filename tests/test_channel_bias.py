@@ -1,5 +1,9 @@
 """Finding 22: the trace a shared blind spot leaves after it stops leaving disagreement."""
 
+import json
+from pathlib import Path
+from typing import Any
+
 import pytest
 from measure_channel_bias import (
     DETECTION_Z,
@@ -13,6 +17,15 @@ from measure_channel_bias import (
 from pharos.generate import GeneratorConfig, generate
 from pharos.labels import Compartment
 from pharos.tasks import build_triage_tasks
+
+
+def _artifact() -> dict[str, Any]:
+    """The committed measurement. Loaded in one place so the path is stated once."""
+    return json.loads(
+        (Path(__file__).resolve().parents[1] / "results" / "channel_bias.json").read_text(
+            encoding="utf-8"
+        )
+    )
 
 
 def test_stratified_delta_conditions_on_difficulty():
@@ -53,7 +66,7 @@ def test_detect_returns_none_when_no_stratum_is_comparable():
     rates = {"a": 1.0, "b": 1.0}
     evidence = {"a": 3, "b": 3}
     carries = {"a": True, "b": True}
-    assert detect(rates, carries, evidence, trials=10, seed=1) is None
+    assert detect(rates, carries, evidence, trials=10, seeds=(1,)) is None
 
 
 def test_detect_scores_a_real_depression_and_ignores_a_balanced_one():
@@ -62,16 +75,18 @@ def test_detect_scores_a_real_depression_and_ignores_a_balanced_one():
     carries = {f"t{i}": i < 10 for i in range(20)}
 
     depressed = {f"t{i}": (0.0 if i < 10 else 1.0) for i in range(20)}
-    hit = detect(depressed, carries, evidence, trials=200, seed=1)
+    hit = detect(depressed, carries, evidence, trials=200, seeds=(1, 2, 3))
     assert hit is not None
     assert hit.delta == -1.0
+    assert hit.z is not None
     assert hit.z > DETECTION_Z
 
     # The mirror image: carrying tasks scored HIGHER. Same magnitude, opposite sign,
     # and it must not be reported as a blind spot.
     elevated = {f"t{i}": (1.0 if i < 10 else 0.0) for i in range(20)}
-    miss = detect(elevated, carries, evidence, trials=200, seed=1)
+    miss = detect(elevated, carries, evidence, trials=200, seeds=(1, 2, 3))
     assert miss is not None
+    assert miss.z is not None
     assert miss.z < 0
     assert not miss.detected
 
@@ -81,7 +96,7 @@ def test_no_effect_scores_near_zero():
     evidence = {f"t{i}": 3 for i in range(20)}
     carries = {f"t{i}": i % 2 == 0 for i in range(20)}
     rates = {f"t{i}": 0.5 for i in range(20)}
-    result = detect(rates, carries, evidence, trials=200, seed=1)
+    result = detect(rates, carries, evidence, trials=200, seeds=(1, 2, 3))
     assert result is not None
     assert not result.detected
 
@@ -116,6 +131,9 @@ def test_detection_serializes_every_field():
         null_mean=0.0,
         null_sd=0.04,
         z=7.5,
+        z_low=7.1,
+        z_high=7.9,
+        degenerate=False,
         detected=True,
         strata=4,
     )
@@ -125,6 +143,9 @@ def test_detection_serializes_every_field():
         "null_mean",
         "null_sd",
         "z",
+        "z_low",
+        "z_high",
+        "degenerate",
         "detected",
         "strata",
     }
@@ -141,7 +162,7 @@ def test_scan_tests_every_channel_so_false_positives_are_visible():
     # should score. Built directly rather than through the analyst policies, because
     # what is under test is the statistic and not the fleet machinery.
     partitioned = {f"a{i}": [(t.task_id, t.significant) for t in tasks] for i in range(3)}
-    found = scan(tasks, partitioned, trials=50, seed=1)
+    found = scan(tasks, partitioned, trials=50, seeds=(1, 2))
 
     assert {d.channel for d in found} <= {c.value for c in Compartment}
     assert found, "scan returned nothing; every channel was skipped"
@@ -161,19 +182,12 @@ def test_detection_strength_is_invariant_to_how_far_the_blind_spot_spread():
     It also pins the limitation that comes with it: a statistic that does not vary with
     the number of blind analysts cannot report that number.
     """
-    import json
-    from pathlib import Path
-
-    payload = json.loads(
-        (Path(__file__).resolve().parents[1] / "results" / "channel_bias.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    payload = _artifact()
     blind = payload["blind_channel"]
     scored = {
         entry["n_blind"]: next(d for d in entry["detections"] if d["channel"] == blind)
         for entry in payload["sweep"]
-        if entry["n_blind"] > 0
+        if entry["n_blind"] > 0 and entry["slip_rate"] == 0.0
     }
     assert len(scored) >= 3, "too few non-zero shares to test invariance"
 
@@ -195,14 +209,7 @@ def test_detection_strength_is_invariant_to_how_far_the_blind_spot_spread():
 
 def test_the_healthy_fleet_and_the_other_channels_are_both_reported():
     """A detector is only interesting beside its controls, so both must be present."""
-    import json
-    from pathlib import Path
-
-    payload = json.loads(
-        (Path(__file__).resolve().parents[1] / "results" / "channel_bias.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    payload = _artifact()
     assert payload["controls_clean"]
     zero = next(e for e in payload["sweep"] if e["n_blind"] == 0)
     assert not [d for d in zero["detections"] if d["detected"]], (
@@ -213,6 +220,63 @@ def test_the_healthy_fleet_and_the_other_channels_are_both_reported():
         assert fired <= {payload["blind_channel"]}, (
             f"a channel other than the blinded one fired at {entry['n_blind']} blind: {fired}"
         )
+
+
+def test_at_least_one_control_could_actually_have_fired():
+    """The controls used to pass because they could not do anything else.
+
+    Both control fleets are noiseless in the original design, so every analyst is
+    identical and deterministic, every task's verdict rate is a function of its evidence
+    stratum alone, and the within-stratum gap is exactly zero for the observed data
+    *and* for all 200 permutations of it. The null's standard deviation is exactly zero,
+    z is undefined, and the old code divided that case into a `0.0` that read as a clean
+    pass. The finding's own text called the threshold control "the load-bearing one" and
+    said it could have voided the finding. It could not.
+
+    A control that cannot fail is not weak evidence of specificity, it is none. So the
+    artifact has to contain at least one control whose null has real spread, and the
+    degenerate ones have to be labelled rather than counted as passes.
+    """
+    payload = _artifact()
+
+    controls = [d for entry in payload["threshold_control"] for d in entry["detections"]]
+    assert controls, "no threshold control in the artifact"
+
+    informative = [d for d in controls if not d["degenerate"]]
+    assert informative, (
+        "every threshold control had a zero-spread null, so none of them tested anything. "
+        "The specificity claim in finding 22 is unevidenced until one of them can fail."
+    )
+    # And the ones that could fire must not have.
+    assert not [d for d in informative if d["detected"]], (
+        "the threshold control fired: the statistic is reading generic error rather than "
+        "channel bias, and the finding is void"
+    )
+    # The degenerate ones are recorded as degenerate rather than silently as z = 0.
+    for d in controls:
+        if d["degenerate"]:
+            assert d["z"] is None, "a degenerate null reported a z it does not have"
+            assert not d["detected"]
+
+
+def test_the_invariance_is_a_property_of_a_noiseless_fleet_and_says_so():
+    """The exact invariance needs a condition the finding did not originally state.
+
+    z is a ratio of the observed gap to the null's spread, and both are linear in the
+    blind share -- but linear *through the origin* only when the baseline gap is exactly
+    zero, which requires a fleet with no verdict noise. Give the sighted analysts this
+    repo's own `inattentive` slip rate and the invariance is gone, while every sentence
+    of the derivation stays true. So the sweep measures more than one noise level, and
+    the claim is allowed to be stated only for the level that supports it.
+    """
+    payload = _artifact()
+
+    levels = {entry["slip_rate"] for entry in payload["sweep"]}
+    assert levels != {0.0}, (
+        "the sweep only measures a noiseless fleet, so it cannot tell whether the "
+        "invariance is a property of the statistic or of the idealization"
+    )
+    assert 0.0 in levels, "the noiseless reference column is how this was first reported"
 
 
 def test_the_sweep_reaches_the_shares_the_finding_makes_claims_about():

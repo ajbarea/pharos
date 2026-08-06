@@ -96,7 +96,7 @@ BUDGETS = (0, 2, 5, 8, 12, 20, 30, 45, 60, 80, 95)
 CHANNEL_ENTANGLEMENT_SLACK = 0.5
 
 
-def blind_fleet(n_blind: int, size: int) -> tuple[AnalystPolicy, ...]:
+def blind_fleet(n_blind: int, size: int, *, slip_rate: float = 0.0) -> tuple[AnalystPolicy, ...]:
     """A fleet holding the correct threshold, `n_blind` of them discounting a channel.
 
     Every reviewer here applies the world's own rule. That is the point: this is not a
@@ -112,13 +112,25 @@ def blind_fleet(n_blind: int, size: int) -> tuple[AnalystPolicy, ...]:
     Under the shedding ruling of finding 2 all 200 tasks are observed and all 20
     affected verdicts enter the stream. Finding 18's readership measurement runs under
     the same ruling for the same structural reason.
+
+    `slip_rate` defaults to zero, which is what finding 21 measured and must keep
+    measuring. It is a parameter because a noiseless fleet turns out to be a special
+    case in a way that matters elsewhere: with every analyst deterministic and
+    identical, each task's verdict rate is a function of its evidence stratum alone, so
+    a within-stratum statistic has exactly zero variance to work against. Finding 22
+    needs a fleet that can disagree with itself in order to have a null at all.
     """
     sighted = [
-        AnalystPolicy(f"sighted-{i}", release_policy=DROP_COMPARTMENTS)
+        AnalystPolicy(f"sighted-{i}", release_policy=DROP_COMPARTMENTS, slip_rate=slip_rate)
         for i in range(size - n_blind)
     ]
     blind = [
-        AnalystPolicy(f"blind-{i}", blind_compartment=BLIND, release_policy=DROP_COMPARTMENTS)
+        AnalystPolicy(
+            f"blind-{i}",
+            blind_compartment=BLIND,
+            release_policy=DROP_COMPARTMENTS,
+            slip_rate=slip_rate,
+        )
         for i in range(n_blind)
     ]
     return tuple(sighted + blind)

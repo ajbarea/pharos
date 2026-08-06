@@ -26,12 +26,22 @@ import json
 import random
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from pharos.generate import GeneratorConfig, generate
 from pharos.provenance import run_provenance
 from pharos.tasks import build_triage_tasks
 from pharos.telemetry import get_logger, record
 from pharos.uncertainty import Trial, cluster_bootstrap
+
+ROOT = Path(__file__).resolve().parents[1]
+RESULTS = ROOT / "results"
+
+
+def _fail(message: str) -> None:
+    """Refuse rather than price a claim against a number nobody measured."""
+    raise SystemExit(f"measure_power: {message}")
+
 
 SEED = 7
 EVENTS = 400
@@ -75,46 +85,157 @@ class Claim:
         return half if self.against_constant else 2.0 * half
 
 
-#: Effects are the *gap the claim depends on*, not the score itself. A claim that a
-#: model fails to clear a floor rests on the distance from the score to the floor; a
-#: claim that two conditions differ rests on the distance between them.
-CLAIMS: tuple[Claim, ...] = (
-    # The majority floor and the stated-rule ceiling are computed from a generated
-    # corpus and are therefore exact, not estimated: claims against them pay one
-    # half-width, not two.
-    Claim("3b", 40, 0.000, "qwen2.5-3b (0.625) clears the majority floor (0.625)", True),
-    Claim("3b", 40, 0.200, "mistral-7b (0.425) is below the majority floor (0.625)", True),
-    # Bought and refuted 2026-08-01. Remeasured at 600 the gap is -0.009, so the
-    # claim is not merely unresolved, it is gone. Kept in the table at its new size
-    # because a claim that was retired by more data is exactly what this file is for.
-    Claim("5", 600, 0.009, "8 shots (0.514) beats 0 shots (0.523) -- REFUTED at n=600"),
-    Claim("5", 600, 0.055, "2 shots (0.468) is worse than 0 shots (0.523) -- direction only"),
-    Claim("5", 600, 0.486, "8 shots (0.514) is below the stated-rule ceiling (1.000)", True),
-    Claim("5", 600, 0.179, "8 shots (0.514) is below the majority floor (0.693)", True),
-    Claim("6", 60, 0.531, "adapter (1.000) beats the base model (0.469)"),
-    Claim("10", 600, 0.560, "any-one adapter matches teacher (1.000) not world (0.440)"),
-    # Bought and CONFIRMED 2026-08-01, unlike finding 5's. Remeasured at 600 the gap
-    # widened from 0.083 to 0.112 and now clears the bar. Both scorings are of one
-    # decode over one evaluation set, so the pairing makes the real test tighter than
-    # this table's independent one.
-    Claim("10", 600, 0.112, "inattentive adapter (0.902) beats its own teacher (0.790)"),
-    # Finding 11 clusters over analysts rather than tasks, so n is the fleet size.
-    Claim(
-        "11",
-        200,
-        0.100,
-        "linkage recovery (0.205) beats the guessing prior (0.105)",
+def _from(name: str) -> dict[str, Any]:
+    """One measurement artifact, or a hard error naming what is missing.
+
+    These claims used to be written out by hand, effect sizes and quoted scores
+    together, in a table that feeds a *generated* block in `docs/findings.md`. That
+    made them prose wearing a data structure's clothes: when the corpus was
+    re-measured on 2026-08-04 every number here went stale silently, and the page
+    published `qwen2.5-3b (0.625) clears the majority floor (0.625)` -- a claim of a
+    dead heat -- while the artifact said 0.775 against a floor of 0.65. The generated
+    block was faithfully rendering a hand-typed lie.
+
+    So the numbers are read, and the *shape* of each claim is all that stays written.
+    """
+    path = RESULTS / name
+    if not path.exists():
+        _fail(f"power claims read {name}, which is missing; run its measurement first")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _floor_claim(finding: str, n: int, artifact: str, label: str) -> Claim:
+    """A score against the corpus's own majority floor, which is exact rather than
+    estimated -- so the claim pays one half-width and not two."""
+    payload = _from(artifact)
+    score, floor = payload["accuracy"], payload["majority_accuracy"]
+    verb = "clears" if score >= floor else "is below"
+    return Claim(
+        finding,
+        n,
+        abs(score - floor),
+        f"{label} ({score:.3f}) {verb} the majority floor ({floor:.3f})",
         True,
-        rate=0.205,
-    ),
-    Claim(
-        "11",
-        50,
-        0.820,
-        "RESTRICTED analysts (0.820) are recovered where OPEN (0.000) are not",
-        rate=0.820,
-    ),
-)
+    )
+
+
+def _shot_gap(rows: dict[int, float], high: int, low: int) -> tuple[float, str]:
+    """The gap between two few-shot conditions, and how it currently reads."""
+    gap = rows[high] - rows[low]
+    verdict = "beats" if gap > 0 else "is worse than"
+    return abs(gap), f"{high} shots ({rows[high]:.3f}) {verdict} {low} shots ({rows[low]:.3f})"
+
+
+def _claims() -> tuple[Claim, ...]:
+    """Every claim this table prices, with its numbers read from the artifacts.
+
+    Effects are the *gap the claim depends on*, not the score itself. A claim that a
+    model fails to clear a floor rests on the distance from the score to the floor; a
+    claim that two conditions differ rests on the distance between them.
+
+    Kept a function rather than a module constant because it reads files, and a
+    module-level read makes importing this script for a single helper do disk IO.
+    """
+    learn = _from("learnability.json")
+    shots = {row["shots"]: row["accuracy"] for row in learn["rows"]}
+    floor = max(row["majority"] for row in learn["rows"])
+    adapter = _from("adapter_learnability.json")
+    n_learn = learn["n_eval"] * len(learn["rows"])
+
+    eight_v_zero, eight_v_zero_text = _shot_gap(shots, 8, 0)
+    two_v_zero, two_v_zero_text = _shot_gap(shots, 2, 0)
+
+    return (
+        _floor_claim("3b", 40, "triage_lift-qwen2.5-3b.json", "qwen2.5-3b"),
+        _floor_claim("3b", 40, "triage_lift-mistral-7b.json", "mistral-7b"),
+        # Bought and refuted 2026-08-01, and it stays in the table at its new size:
+        # a claim retired by more data is exactly what this file exists to record.
+        Claim("5", n_learn, eight_v_zero, f"{eight_v_zero_text} -- REFUTED at n={n_learn}"),
+        Claim("5", n_learn, two_v_zero, f"{two_v_zero_text} -- direction only"),
+        Claim(
+            "5",
+            n_learn,
+            abs(1.0 - shots[8]),
+            f"8 shots ({shots[8]:.3f}) is below the stated-rule ceiling (1.000)",
+            True,
+        ),
+        Claim(
+            "5",
+            n_learn,
+            abs(floor - shots[8]),
+            f"8 shots ({shots[8]:.3f}) is below the majority floor ({floor:.3f})",
+            True,
+        ),
+        Claim(
+            "6",
+            adapter["adapter"]["n"],
+            abs(adapter["adapter"]["f1"] - adapter["base"]["f1"]),
+            f"adapter ({adapter['adapter']['f1']:.3f}) beats the base model "
+            f"({adapter['base']['f1']:.3f})",
+        ),
+        *_teacher_claims(),
+        *_linkage_claims(),
+    )
+
+
+def _teacher_claims() -> tuple[Claim, ...]:
+    """Finding 10: an adapter inherits its teacher's standard rather than the world's."""
+    payload = _from("review_adapter-t1s0.json")
+    world = payload["adapter"]["accuracy"]
+    teacher = payload["adapter_vs_teacher"]["accuracy"]
+    inattentive = _from("review_adapter-t3s0.15.json")
+    tuned = inattentive["adapter"]["accuracy"]
+    its_teacher = inattentive["teacher"]["train_target_agreement"]
+    n = payload["adapter"]["n"]
+    return (
+        Claim(
+            "10",
+            n,
+            abs(teacher - world),
+            f"any-one adapter matches teacher ({teacher:.3f}) not world ({world:.3f})",
+        ),
+        # Bought and CONFIRMED 2026-08-01, unlike finding 5's. Both scorings are of one
+        # decode over one evaluation set, so the pairing makes the real test tighter
+        # than this table's independent one.
+        Claim(
+            "10",
+            n,
+            abs(tuned - its_teacher),
+            f"inattentive adapter ({tuned:.3f}) beats its own teacher ({its_teacher:.3f})",
+        ),
+    )
+
+
+def _linkage_claims() -> tuple[Claim, ...]:
+    """Finding 11 clusters over analysts rather than tasks, so n is the fleet size."""
+    payload = _from("fleet_linkage.json")
+    recovery = payload["drop_compartments"]["recovery"]["point"]
+    prior = payload["prior"]
+    by_level = {row["level"]: row for row in payload["by_clearance_level"]}
+    restricted, openv = by_level.get("RESTRICTED"), by_level.get("OPEN")
+    claims = [
+        Claim(
+            "11",
+            payload["events"],
+            abs(recovery - prior),
+            f"linkage recovery ({recovery:.3f}) beats the guessing prior ({prior:.3f})",
+            True,
+            rate=recovery,
+        )
+    ]
+    if restricted is not None and openv is not None:
+        hit = restricted["recovery"]["point"]
+        miss = openv["recovery"]["point"]
+        claims.append(
+            Claim(
+                "11",
+                restricted["n"],
+                abs(hit - miss),
+                f"RESTRICTED analysts ({hit:.3f}) are recovered where OPEN ({miss:.3f}) are not",
+                rate=hit,
+            )
+        )
+    return tuple(claims)
 
 
 def class_balance(tasks) -> float:
@@ -172,7 +293,7 @@ def main() -> int:
     print("Every headline claim against the size it was measured at:")
     print("=" * 74)
     verdicts = []
-    for claim in CLAIMS:
+    for claim in _claims():
         claim_rate = claim.rate if claim.rate is not None else rate
         half = half_width(claim.n, claim_rate, resamples=args.resamples, seed=SEED)
         required = claim.threshold(half)

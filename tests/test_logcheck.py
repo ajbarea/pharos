@@ -84,6 +84,31 @@ def test_the_model_free_sweep_covers_the_model_free_measurements():
     )
 
 
+def test_no_expected_warning_is_exempt_from_the_missing_check_by_accident():
+    """The missing-warning check used to name its members a second time, and drifted.
+
+    `core_missing` was a second literal set, comments and all, duplicating the members
+    of EXPECTED_WARNINGS that this command can actually observe. When
+    `authority.not_repaired` was added to the first set and not the second, the finding
+    whose entire published limit is that no affordable authority repairs it would have
+    stopped announcing that limit while logcheck still exited 0.
+
+    The exemption is a property of the `validity.` family, not a list of names, so this
+    asserts the property. Anything outside that family must be checked for absence.
+    """
+    logcheck = _logcheck_module()
+
+    exempt = {w for w in logcheck.EXPECTED_WARNINGS if w.startswith(logcheck.VALIDITY_PREFIX)}
+    checked = logcheck.EXPECTED_WARNINGS - exempt
+
+    assert checked, "every expected warning is exempt, so the missing check tests nothing"
+    assert "authority.not_repaired" in checked, (
+        "the warning whose omission motivated this test is exempt again"
+    )
+    # Every exempt name has to earn it by being in the family, not by being forgotten.
+    assert all(w.startswith(logcheck.VALIDITY_PREFIX) for w in exempt)
+
+
 def test_every_expected_warning_has_something_that_emits_it():
     """A typo here disables the missing-warning detection for that name, silently."""
     logcheck = _logcheck_module()

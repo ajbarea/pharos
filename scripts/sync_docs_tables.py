@@ -510,6 +510,66 @@ def audit_policy() -> str:
     return "\n".join(lines)
 
 
+def difficulty_confound() -> str:
+    """Finding 17: estimated difficulty by true overlap, per fleet composition.
+
+    Hand-typed until 2026-08-05, and every cell of it had drifted. The item counts
+    were wrong, every difficulty value was wrong, and the prose read a peak off the
+    wrong column: it said the random-slip row "peaks at overlap 0, furthest from the
+    boundary", where the artifact peaks at overlap 1. That last one is why this is
+    generated now rather than corrected in place. A wrong digit is a wrong digit; a
+    wrong *peak* is the argument the finding makes.
+    """
+    path = RESULTS / "difficulty_confound.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make difficulty` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    rows = payload.get("rows") or []
+    if not rows:
+        _fail("difficulty_confound.json carries no rows; refusing to emit an empty table")
+
+    overlaps: list[str] = sorted((str(k) for k in rows[0]["difficulty_by_overlap"]), key=int)
+    boundary = payload.get("near_boundary_overlap", "2")
+    converged = set(payload.get("converged_rows") or [])
+
+    def head(o: str) -> str:
+        return f"**ovl={o}**" if o == boundary else f"ovl={o}"
+
+    lines = [
+        "| Fleet | " + " | ".join(head(o) for o in overlaps) + " | Spread | Converged |",
+        "| --- |" + " --- |" * (len(overlaps) + 2),
+    ]
+    for row in rows:
+        by_overlap = row["difficulty_by_overlap"]
+        peak = max(by_overlap, key=lambda o: by_overlap[o])
+        cells = []
+        for o in overlaps:
+            value = f"{by_overlap[o]:.3f}"
+            cells.append(
+                f"**{value}**" if o == peak and len(set(by_overlap.values())) > 1 else value
+            )
+        iters = row.get("iterations")
+        settled = "yes" if row["composition"] in converged else "**no**"
+        lines.append(
+            f"| {row['composition']} | "
+            + " | ".join(cells)
+            + f" | {row['difficulty_spread']:.3f} | {settled}, {iters} iter |"
+        )
+
+    items = payload.get("items_by_overlap") or {}
+    lines += [
+        "",
+        "| Signature facts present | " + " | ".join(head(o) for o in overlaps) + " |",
+        "| --- |" + " --- |" * len(overlaps),
+        "| Items | " + " | ".join(str(items.get(o, "--")) for o in overlaps) + " |",
+        "",
+        "Estimated item difficulty by true signature overlap, under fleets differing only "
+        "in composition. **Bold** in each row marks that row's own peak, read from the "
+        "artifact rather than asserted in prose.",
+    ]
+    return "\n".join(lines)
+
+
 def blind_spot() -> str:
     """Finding 21: where the audit policy stops working.
 
@@ -565,36 +625,58 @@ def channel_bias() -> str:
 
     channels = [d["channel"] for d in sweep[0]["detections"]]
     blind = payload["blind_channel"]
-    lines = [
-        "| Blind of {} | ".format(payload["fleet"])
-        + " | ".join(f"`{c}`" + (" ‡" if c == blind else "") for c in channels)
-        + " |",
-        "| --- |" + " --- |" * len(channels),
-    ]
-    for row in sweep:
-        cells = []
-        for channel in channels:
-            hit = next((d for d in row["detections"] if d["channel"] == channel), None)
-            if hit is None:
-                cells.append("--")
-            elif hit["detected"]:
-                cells.append(f"**{hit['z']:.1f}**")
-            else:
-                cells.append(f"{hit['z']:.1f}")
-        lines.append(f"| {row['n_blind']} | " + " | ".join(cells) + " |")
+    levels = payload.get("noise_levels") or [0.0]
 
-    control = payload.get("threshold_control") or []
+    def score(hit: dict[str, Any] | None) -> str:
+        """A degenerate null prints as `n/a`, never as a number it does not have."""
+        if hit is None:
+            return "--"
+        if hit.get("degenerate") or hit.get("z") is None:
+            return "n/a"
+        return f"**{hit['z']:.2f}**" if hit["detected"] else f"{hit['z']:.2f}"
+
+    lines: list[str] = []
+    controls = {entry["slip_rate"]: entry["detections"] for entry in payload["threshold_control"]}
+
+    for slip in levels:
+        rows = [r for r in sweep if r["slip_rate"] == slip]
+        if not rows:
+            _fail(f"channel_bias.json has no sweep rows at slip {slip}; refusing a partial table")
+        lines += [
+            f"**Verdict noise {slip:.2f}**",
+            "",
+            "| Blind of {} | ".format(payload["fleet"])
+            + " | ".join(f"`{c}`" + (" ‡" if c == blind else "") for c in channels)
+            + " |",
+            "| --- |" + " --- |" * len(channels),
+        ]
+        for row in rows:
+            cells = [
+                score(next((d for d in row["detections"] if d["channel"] == channel), None))
+                for channel in channels
+            ]
+            lines.append(f"| {row['n_blind']} | " + " | ".join(cells) + " |")
+        lines.append(
+            "| threshold control | "
+            + " | ".join(
+                score(next((d for d in controls.get(slip, []) if d["channel"] == c), None))
+                for c in channels
+            )
+            + " |"
+        )
+        lines.append("")
+
     lines += [
-        "",
-        "| Control | " + " | ".join(f"`{d['channel']}`" for d in control) + " |",
-        "| --- |" + " --- |" * len(control),
-        "| threshold error (not channel-linked) | "
-        + " | ".join(f"{d['z']:.1f}" for d in control)
-        + " |",
-        "",
         f"Standard deviations above a within-stratum permutation null over "
-        f"{payload['trials']} trials; bold is a detection at z ≥ "
-        f"{payload['detection_z']:.0f}. ‡ is the channel the fleet actually discounts.",
+        f"{payload['trials']} trials, reported as the median across "
+        f"{len(payload['permutation_seeds'])} draws of that null; bold is a detection at "
+        f"z ≥ {payload['detection_z']:.0f}. ‡ is the channel the fleet actually discounts.",
+        "",
+        "`n/a` is not a pass. At zero verdict noise every analyst is identical and "
+        "deterministic, so each task's rate is fixed by its evidence stratum, every "
+        "permutation of the channel labels returns the same gap, and the null has no "
+        "spread for z to be measured against. Both controls sit in that case, which is "
+        "why the sweep runs at noise levels where they can fail.",
     ]
     return "\n".join(lines)
 
@@ -610,6 +692,7 @@ BLOCKS = {
     "authority-price": authority_price,
     "audit-policy": audit_policy,
     "blind-spot": blind_spot,
+    "difficulty-confound": difficulty_confound,
     "channel-bias": channel_bias,
 }
 

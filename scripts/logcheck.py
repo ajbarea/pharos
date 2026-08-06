@@ -48,6 +48,10 @@ SCRIPTS = (
     "measure_channel_bias.py",
 )
 
+#: The one warning family this command cannot expect to see, because it fires on
+#: model-backed measurements the list above deliberately excludes.
+VALIDITY_PREFIX = "validity."
+
 #: Warnings this project expects to see, each a real finding rather than a defect.
 #: A warning absent from here is worth looking at; one of these going missing is worth
 #: looking at harder, because it means a finding stopped reporting itself.
@@ -77,6 +81,9 @@ EXPECTED_WARNINGS = {
     # not: the implementation was missing the Gaussian priors Whitehill et al. specify
     # in their section 3.1, and with them every composition settles in under 40
     # iterations. Listing it as expected would now hide a real regression.
+    # Everything below fires only on model-backed measurements, which this command does
+    # not run. `core_missing` exempts the family by this prefix, so a new validity
+    # warning needs no second edit -- and anything outside the family is checked.
     "validity.small_n",
     "validity.below_majority",
     "validity.degenerate_predictions",
@@ -168,21 +175,15 @@ def main() -> int:
     missing = EXPECTED_WARNINGS - seen_warnings
     # Only the ones these scripts can emit; the validity family fires on model-backed
     # measurements that this command deliberately does not run.
-    core_missing = missing & {
-        "power.claim_unresolved",
-        "tagging.aggregate_leak_invisible",
-        "consensus.cliff",
-        "budget.no_finite_guarantee",
-        "difficulty.manufactured_by_reviewers",
-        "difficulty.ability_inverted",
-        # A selection policy beating the uniform floor is the finding, not a defect, so it
-        # is announced at WARNING and expected here. If it stops firing, either a corpus
-        # change made selection worthless or the comparison broke.
-        "audit.policy_beats_uniform",
-        # Finding 21's result: outside its stated condition the targeted policy stops
-        # helping. Expected, because the experiment exists to produce it.
-        "blindspot.policy_advantage_inverted",
-    }
+    #
+    # Derived by subtraction rather than listed again. This used to be a second literal
+    # set naming each warning a second time, and it drifted the first time it was
+    # extended: `authority.not_repaired` was added to EXPECTED_WARNINGS and not here, so
+    # the one finding whose limit is that it never repairs would have stopped announcing
+    # that limit without failing anything. A second hand-maintained copy of a list is a
+    # list that will disagree with the first; the exemption is a property of the
+    # `validity.` family, so name the property.
+    core_missing = {w for w in missing if not w.startswith(VALIDITY_PREFIX)}
     if core_missing:
         print(
             "\nEXPECTED WARNINGS THAT DID NOT FIRE -- a finding may have stopped reporting itself:"

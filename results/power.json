@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "1fe63ec6fc24",
-    "git_dirty": false,
-    "generated_at": "2026-08-03T21:50:25+00:00",
+    "git_commit": "91d26e710831",
+    "git_dirty": true,
+    "generated_at": "2026-08-06T00:25:12+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -67,106 +67,106 @@
     {
       "finding": "3b",
       "n": 40,
-      "effect": 0.0,
+      "effect": 0.125,
       "against_constant": true,
       "rate": 0.3325,
       "required_gap": 0.15,
       "resolved": false,
-      "n_needed": null,
-      "description": "qwen2.5-3b (0.625) clears the majority floor (0.625)"
+      "n_needed": 120,
+      "description": "qwen2.5-3b (0.775) clears the majority floor (0.650)"
     },
     {
       "finding": "3b",
       "n": 40,
-      "effect": 0.2,
+      "effect": 0.1538,
       "against_constant": true,
       "rate": 0.3325,
       "required_gap": 0.15,
       "resolved": true,
       "n_needed": null,
-      "description": "mistral-7b (0.425) is below the majority floor (0.625)"
+      "description": "mistral-7b (0.487) is below the majority floor (0.641)"
     },
     {
       "finding": "5",
-      "n": 600,
-      "effect": 0.009,
+      "n": 2400,
+      "effect": 0.003400000000000014,
       "against_constant": false,
       "rate": 0.3325,
-      "required_gap": 0.075,
+      "required_gap": 0.0383,
       "resolved": false,
       "n_needed": null,
-      "description": "8 shots (0.514) beats 0 shots (0.523) -- REFUTED at n=600"
+      "description": "8 shots (0.485) beats 0 shots (0.481) -- REFUTED at n=2400"
     },
     {
       "finding": "5",
-      "n": 600,
-      "effect": 0.055,
+      "n": 2400,
+      "effect": 0.04859999999999998,
       "against_constant": false,
       "rate": 0.3325,
-      "required_gap": 0.075,
-      "resolved": false,
-      "n_needed": 2000,
-      "description": "2 shots (0.468) is worse than 0 shots (0.523) -- direction only"
+      "required_gap": 0.0383,
+      "resolved": true,
+      "n_needed": null,
+      "description": "2 shots (0.433) is worse than 0 shots (0.481) -- direction only"
     },
     {
       "finding": "5",
-      "n": 600,
-      "effect": 0.486,
+      "n": 2400,
+      "effect": 0.5151,
       "against_constant": true,
       "rate": 0.3325,
-      "required_gap": 0.0375,
+      "required_gap": 0.0192,
       "resolved": true,
       "n_needed": null,
-      "description": "8 shots (0.514) is below the stated-rule ceiling (1.000)"
+      "description": "8 shots (0.485) is below the stated-rule ceiling (1.000)"
     },
     {
       "finding": "5",
-      "n": 600,
-      "effect": 0.179,
+      "n": 2400,
+      "effect": 0.19979999999999998,
       "against_constant": true,
       "rate": 0.3325,
-      "required_gap": 0.0375,
+      "required_gap": 0.0192,
       "resolved": true,
       "n_needed": null,
-      "description": "8 shots (0.514) is below the majority floor (0.693)"
+      "description": "8 shots (0.485) is below the majority floor (0.685)"
     },
     {
       "finding": "6",
       "n": 60,
-      "effect": 0.531,
+      "effect": 0.4627,
       "against_constant": false,
       "rate": 0.3325,
       "required_gap": 0.25,
       "resolved": true,
       "n_needed": null,
-      "description": "adapter (1.000) beats the base model (0.469)"
+      "description": "adapter (1.000) beats the base model (0.537)"
     },
     {
       "finding": "10",
       "n": 600,
-      "effect": 0.56,
+      "effect": 0.5333,
       "against_constant": false,
       "rate": 0.3325,
       "required_gap": 0.075,
       "resolved": true,
       "n_needed": null,
-      "description": "any-one adapter matches teacher (1.000) not world (0.440)"
+      "description": "any-one adapter matches teacher (1.000) not world (0.467)"
     },
     {
       "finding": "10",
       "n": 600,
-      "effect": 0.112,
+      "effect": 0.05930000000000002,
       "against_constant": false,
       "rate": 0.3325,
       "required_gap": 0.075,
-      "resolved": true,
-      "n_needed": null,
-      "description": "inattentive adapter (0.902) beats its own teacher (0.790)"
+      "resolved": false,
+      "n_needed": 1000,
+      "description": "inattentive adapter (0.923) beats its own teacher (0.864)"
     },
     {
       "finding": "11",
       "n": 200,
-      "effect": 0.1,
+      "effect": 0.09999999999999999,
       "against_constant": true,
       "rate": 0.205,
       "required_gap": 0.065,
