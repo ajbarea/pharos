@@ -2323,6 +2323,27 @@ are read into LIAISON" is not obviously the safer of the two.
 
 `scripts/measure_authority_anchors.py`, `results/authority_anchors.json`
 
+!!! warning "Corrected 2026-08-06: the four-wrong row was repairing nothing"
+    This finding scored a repair as `agreement >= 0.95`, full stop. Its two siblings ---
+    the audit-policy sweep of [finding 20](#20-no-audit-policy-beats-the-uniform-floor-once-the-fleet-agrees)
+    and the blind-spot sweep of [finding 21](#21-the-audit-policy-stops-working-exactly-where-it-is-needed)
+    --- both additionally require that some *unanchored* label actually changed, because
+    anchoring a task the estimator gets wrong removes it from the denominator and lifts
+    the score without correcting anything. Finding 21's threshold table was withdrawn
+    over exactly that. This script measures the same quantity on the same corpus and the
+    guard was never mirrored to it.
+
+    Mirroring it moves one published number. The **four-wrong row** reported a price of
+    **0 anchors**, which read as "a minority wrong standard repairs itself for free". It
+    now reads **not reached**, which is the truthful statement: at four of nine wrong the
+    estimator makes no errors to begin with, so there is nothing for an authority to
+    correct and no budget at which a correction occurs. A control row was being published
+    as a result.
+
+    Every other price is unchanged --- 12 at a bare majority, 80 at six of nine, 150 at
+    seven, never at nine --- because in those compositions the anchors were doing real
+    work all along. The correction narrows what the finding claims rather than moving it.
+
 Finding 18 localised the cliff to non-identifiability, and
 [finding 17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)
 already showed no better estimator escapes it from the data alone. What breaks a
@@ -2337,7 +2358,7 @@ bought. Every number below is computed **only over unanchored tasks**.
 <!-- BEGIN GENERATED: authority-grid -->
 | Wrong of 9 | 0 | 1 | 2 | 3 | 5 | 8 | 12 | 20 | 30 | 50 | 80 | 100 | 120 | 150 | 180 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 4 | **1.000** | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| 4 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 | 5 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | **1.000** | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
 | 6 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | 0.647 | 0.653 | 0.633 | **1.000** | 1.000 | 1.000 | 1.000 |
 | 7 | 0.660 | 0.660 | 0.660 | 0.660 | 0.656 | 0.653 | 0.645 | 0.629 | 0.647 | 0.653 | 0.633 | 0.652 | 0.692 | **1.000** | 1.000 |
@@ -2352,7 +2373,7 @@ moves far faster than the fleet's error does:
 <!-- BEGIN GENERATED: authority-price -->
 | Wrong of 9 | Audited items needed (median) | Share of the round | Range over 21 draws | Draws that reached it |
 | --- | --- | --- | --- | --- |
-| 4 | 0 | 0.0% | 0 | 21 of 21 |
+| 4 | not reached within 180 | — | — | 0 of 21 |
 | 5 | 12 | 6.0% | 2–30 | 21 of 21 |
 | 6 | 80 | 40.0% | 50–100 | 21 of 21 |
 | 7 | 150 | 75.0% | 120–180 | 21 of 21 |
@@ -2613,25 +2634,25 @@ fleet is otherwise unanimous and correct.
 ### The advantage does not degrade. It disappears at unanimity.
 
 <!-- BEGIN GENERATED: blind-spot -->
-| Blind of 9 | `uniform` | `margin` | `posterior` | `consensus` | `oracle` |
-| --- | --- | --- | --- | --- | --- |
-| 0 | -- | -- | -- | -- | -- |
-| 3 | -- | -- | -- | -- | -- |
-| 5 | -- | -- | -- | -- | -- |
-| 7 | -- | -- | -- | -- | -- |
-| 8 | -- | -- | -- | -- | -- |
-| 9 | -- | -- | -- | -- | -- |
+| Blind of 9 | `uniform` | `margin` | `posterior` | `consensus` | `channel` | `oracle` |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | -- | -- | -- | -- | -- | -- |
+| 3 | -- | -- | -- | -- | -- | -- |
+| 5 | -- | -- | -- | -- | -- | -- |
+| 7 | -- | -- | -- | -- | -- | -- |
+| 8 | -- | -- | -- | -- | -- | -- |
+| 9 | -- | -- | -- | -- | -- | -- |
 
 Audited items needed to repair; `--` is not reached within 95. Below: the share of a 20-item audit landing on a genuinely corrupted task.
 
-| Blind of 9 | `uniform` | `margin` | `posterior` | `consensus` | `oracle` |
-| --- | --- | --- | --- | --- | --- |
-| 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| 3 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| 5 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| 7 | 0.10 | 1.00 | 1.00 | 0.00 | 1.00 |
-| 8 | 0.10 | 1.00 | 1.00 | 0.00 | 1.00 |
-| 9 | 0.10 | 0.15 | 0.20 | 0.15 | 1.00 |
+| Blind of 9 | `uniform` | `margin` | `posterior` | `consensus` | `channel` | `oracle` |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 3 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 5 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 7 | 0.10 | 1.00 | 1.00 | 0.00 | 1.00 | 1.00 |
+| 8 | 0.10 | 1.00 | 1.00 | 0.00 | 1.00 | 1.00 |
+| 9 | 0.10 | 0.15 | 0.20 | 0.15 | 1.00 | 1.00 |
 <!-- END GENERATED: blind-spot -->
 
 While a sighted minority remains, at seven and eight of nine, the corrupted tasks still
@@ -2848,3 +2869,62 @@ that follows no observable partition would leave no trace in this statistic eith
 nothing here says how to find one. What has changed is narrower and still worth having:
 the specific regime finding 21 left as undetectable is detectable, cheaply, from data the
 aggregator already holds.
+
+## 23. Once the detector names the channel, provenance finds every corrupted item
+
+`scripts/measure_blind_spot.py`, `scripts/measure_audit_policy.py`,
+`results/blind_spot.json`
+
+[Finding 21](#21-the-audit-policy-stops-working-exactly-where-it-is-needed) ends with
+every deployable audit policy at chance on a unanimously blind fleet, because all of
+them read *disagreement* and unanimity is its absence.
+[Finding 22](#22-the-trace-a-blind-spot-leaves-after-it-stops-leaving-disagreement)
+supplies the input that was missing: it says **which channel** is being discounted,
+from the per-task sums the aggregator already holds. This wires the second into the
+first.
+
+**The policy.** Select tasks that carry the named channel, deepest evidence first. It
+reads two things, both public corpus structure and both already read by finding 22's
+detector: which tasks carry the channel, and how many defining facts each shows. It
+never touches ground truth or the per-analyst stream, so it stays inside finding 20's
+deployability rule.
+
+Evidence depth is not decoration. Carrying the channel is necessary and not sufficient
+--- the first version of this policy selected on provenance alone and landed **0.50**
+of its audit on corrupted tasks, against uniform's 0.10. A blind analyst only flips a
+verdict where the discounted channel was doing the work, which in this corpus is the
+high-evidence end: the affected slice sits at 3.00 defining facts against a corpus mean
+of 1.75.
+
+**At the unanimity where every other deployable policy is at chance, it ties the
+oracle.** Share of a 20-item audit landing on a corrupted task, at nine of nine blind:
+
+| `uniform` | `margin` | `posterior` | `consensus` | `channel` | `oracle` |
+| --- | --- | --- | --- | --- | --- |
+| 0.10 | 0.15 | 0.20 | 0.15 | **1.00** | 1.00 |
+
+!!! warning "Finding every one of them is not repairing any of them"
+    At a 20-item budget the channel policy drives `remaining_errors` to **zero**: every
+    corrupted label in the corpus is correct afterwards, and agreement reaches 1.000.
+    And `corrected` stays at **zero**, because not one *unanchored* label changed. The
+    authority overrode the twenty items it ruled on, and the estimator learned nothing
+    from any of them.
+
+    **The oracle does exactly the same thing**, and that is the load-bearing half. An
+    obstacle that defeats a policy handed the ground truth is not a selection problem,
+    so no better selection rule closes it. What this finding delivers is the *selection*
+    half of "what to do once the detector fires": you can now find the corrupted items
+    in the regime where finding 21 said you could not. What remains open is whether
+    anything can be learned from them, and the evidence here is that in this regime
+    nothing can.
+
+    Quoted without that paragraph, this reads as a solution. It is half of one.
+
+**Scope condition, carried with the number every time.** The policy ties the oracle
+*because* the corrupted slice in this corpus is exactly "carries the channel, and shows
+deep evidence" by construction --- the same shape of condition
+[finding 20](#20-no-audit-policy-beats-the-uniform-floor-once-the-fleet-agrees) has to
+carry. The claim that travels is conditional: **when a wrong standard follows an
+observable partition of the corpus, audit that partition.** A shared error that follows
+no observable partition leaves no trace for finding 22 to detect and no handle for this
+policy to grip.

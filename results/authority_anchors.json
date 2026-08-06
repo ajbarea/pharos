@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "4254a0abfefc",
+    "git_commit": "f2acc2d3a02b",
     "git_dirty": false,
-    "generated_at": "2026-08-05T17:08:19+00:00",
+    "generated_at": "2026-08-06T13:49:21+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -68,7 +68,7 @@
       "anchor_share": 0.0,
       "scored_tasks": 97,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -76,7 +76,7 @@
       "anchor_share": 0.005,
       "scored_tasks": 97,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -84,7 +84,7 @@
       "anchor_share": 0.01,
       "scored_tasks": 97,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -92,7 +92,7 @@
       "anchor_share": 0.015,
       "scored_tasks": 97,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -100,7 +100,7 @@
       "anchor_share": 0.025,
       "scored_tasks": 96,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -108,7 +108,7 @@
       "anchor_share": 0.04,
       "scored_tasks": 95,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -116,7 +116,7 @@
       "anchor_share": 0.06,
       "scored_tasks": 93,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -124,7 +124,7 @@
       "anchor_share": 0.1,
       "scored_tasks": 89,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -132,7 +132,7 @@
       "anchor_share": 0.15,
       "scored_tasks": 85,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -140,7 +140,7 @@
       "anchor_share": 0.25,
       "scored_tasks": 72,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -148,7 +148,7 @@
       "anchor_share": 0.4,
       "scored_tasks": 60,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -156,7 +156,7 @@
       "anchor_share": 0.5,
       "scored_tasks": 46,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -164,7 +164,7 @@
       "anchor_share": 0.6,
       "scored_tasks": 39,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -172,7 +172,7 @@
       "anchor_share": 0.75,
       "scored_tasks": 21,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 4,
@@ -180,7 +180,7 @@
       "anchor_share": 0.9,
       "scored_tasks": 11,
       "agreement": 1.0,
-      "repaired": true
+      "repaired": false
     },
     {
       "n_wrong": 5,
@@ -665,14 +665,14 @@
   ],
   "grid_anchor_seed": 909,
   "anchors_needed": {
-    "4": 0,
+    "4": null,
     "5": 12,
     "6": 80,
     "7": 150,
     "9": null
   },
   "anchors_needed_primary_draw": {
-    "4": 0,
+    "4": null,
     "5": 30,
     "6": 100,
     "7": 150,
@@ -682,10 +682,10 @@
     "4": {
       "n_wrong": 4,
       "seeds": 21,
-      "reached": 21,
-      "median": 0,
-      "lowest": 0,
-      "highest": 0
+      "reached": 0,
+      "median": null,
+      "lowest": null,
+      "highest": null
     },
     "5": {
       "n_wrong": 5,
@@ -729,7 +729,6 @@
   },
   "scored_tasks_min": 11,
   "scored_tasks_at_threshold": {
-    "4": 97,
     "5": 93,
     "6": 60,
     "7": 21

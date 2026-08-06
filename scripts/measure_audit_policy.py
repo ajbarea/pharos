@@ -74,7 +74,7 @@ Needs no model and no network.
 import argparse
 import json
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from random import Random
 
@@ -152,6 +152,18 @@ class ServerObservation:
     votes: dict[str, float]
     seen: dict[str, float]
     posterior: dict[str, float]
+    #: How much evidence each task shows, which is public corpus structure and the
+    #: same quantity finding 22's detector conditions on. Empty where unused.
+    evidence: dict[str, int] = field(default_factory=dict)
+    #: Which tasks carry the channel finding 22's detector named, when it has fired.
+    #: Empty until then, and empty is the honest default: a policy may not select by
+    #: provenance on a fleet nobody has shown to be channel-blind.
+    #:
+    #: Reading this does NOT widen what a policy may see. Finding 22 established that
+    #: the public structure of the corpus is available to a deployment -- its detector
+    #: reads exactly this, conditions the verdict rate on it, and is deployable for
+    #: that reason. What stays forbidden is ground truth and the per-analyst stream.
+    carries: dict[str, bool] = field(default_factory=dict)
 
     def margin(self, task: str) -> float:
         """How evenly the fleet split on this task. 0.0 is a dead heat."""
@@ -178,6 +190,48 @@ def observe(partitioned: dict[str, list[tuple[str, bool]]]) -> ServerObservation
 #: whose 8-item selection is not a superset of its 5-item selection would confound
 #: "more anchors" with "different anchors".
 Policy = Callable[[ServerObservation, dict[str, bool]], dict[str, float]]
+
+
+def policy_channel(view: ServerObservation, _truth: dict[str, bool]) -> dict[str, float]:
+    """Audit the channel the detector named, which is finding 22's answer to finding 21.
+
+    Every other deployable policy here reads *disagreement*, and a unanimously blind
+    fleet has none -- which is why they all fall to chance in finding 21. This one reads
+    provenance instead. It selects tasks carrying the discounted channel, breaking ties
+    toward the ones the fleet split on, and it is only usable at all because finding 22
+    supplies the channel name from data the aggregator already holds.
+
+    That is the pairing: the detector says *which regime* and *which channel*, and this
+    turns the second half into a selection rule. It is not a better estimator and not a
+    better uncertainty signal; it is the observation that once provenance is known, the
+    corrupted slice can be addressed by provenance rather than found by disagreement.
+    """
+    if not view.carries:
+        # No detection, no licence to select this way. Scoring every task equally would
+        # silently degrade to an arbitrary draw wearing a policy's name.
+        return dict.fromkeys(view.posterior, 1.0)
+
+    # Carrying the channel is necessary and not sufficient, which the first version of
+    # this policy demonstrated: selecting on provenance alone landed 0.50 of its audit
+    # on corrupted tasks against uniform's 0.10 -- a real gain, and half the budget
+    # still spent on tasks a blind analyst never had cause to change.
+    #
+    # A blind analyst only flips a verdict where the discounted channel was doing the
+    # work, and in this corpus that is the high-evidence end: the affected slice sits at
+    # 3.00 defining facts against a corpus mean of 1.75. So order by evidence within the
+    # carrying set. Evidence count is public corpus structure, the same quantity finding
+    # 22's detector already conditions on, so this reads nothing new.
+    if not view.evidence:
+        return {
+            task: (0.0 if view.carries.get(task) else 1.0) + view.margin(task) * 1e-3
+            for task in view.posterior
+        }
+    deepest = max(view.evidence.values(), default=0) or 1
+    return {
+        task: (0.0 if view.carries.get(task) else 1.0)
+        + (1.0 - view.evidence.get(task, 0) / deepest)
+        for task in view.posterior
+    }
 
 
 def policy_margin(view: ServerObservation, _truth: dict[str, bool]) -> dict[str, float]:
@@ -207,6 +261,7 @@ def policy_oracle(view: ServerObservation, truth: dict[str, bool]) -> dict[str, 
 
 
 POLICIES: dict[str, Policy] = {
+    "channel": policy_channel,
     "margin": policy_margin,
     "posterior": policy_posterior,
     "consensus": policy_consensus,

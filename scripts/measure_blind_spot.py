@@ -42,7 +42,7 @@ Needs no model and no network.
 
 import argparse
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from measure_audit_policy import (
@@ -246,8 +246,15 @@ def main() -> int:
         "items a threshold error hits, which is the anti-correlation this rests on."
     )
 
+    # `channel` is finding 22's answer wired into finding 21's failure. Every policy in
+    # DEPLOYABLE reads disagreement, and a unanimously blind fleet has none -- which is
+    # the whole of finding 21. This one reads the provenance the detector names instead,
+    # so it is evaluated here and nowhere else: in finding 20's regime there is no
+    # channel to detect and it would degrade to an arbitrary draw.
+    policies_here = (*DEPLOYABLE, "channel", "oracle")
+
     rows: list[Row] = []
-    thresholds: dict[str, dict[int, int | None]] = {p: {} for p in (*DEPLOYABLE, "oracle")}
+    thresholds: dict[str, dict[int, int | None]] = {p: {} for p in policies_here}
     hit_rate: dict[int, dict[str, float]] = {}
 
     for n_blind in SHARES:
@@ -256,6 +263,17 @@ def main() -> int:
         flat = contributions_for(blind_fleet(n_blind, args.fleet), tasks, proposals, seed=SEED)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
+        # What the detector hands over. Only populated where finding 22 actually fires;
+        # at n_blind = 0 there is no detection and the policy must not select this way.
+        by_id = {t.task_id: t for t in tasks}
+        carries = {
+            task: any(BLIND in r.label.compartments for r in by_id[task].sources)
+            for task in view.posterior
+        }
+        evidence = {task: len(evidence_shown(by_id[task])) for task in view.posterior}
+        view = replace(
+            view, carries=carries if n_blind else {}, evidence=evidence if n_blind else {}
+        )
         baseline = baseline_errors(partitioned, truth)
         wrong = {t for t, p in view.posterior.items() if (p >= 0.5) != truth[t]}
 
@@ -263,11 +281,11 @@ def main() -> int:
         # share of a policy's picks are actually corrupted items. This is the number
         # that explains the thresholds below, and in finding 20 it was 100%.
         hit_rate[n_blind] = {}
-        for name in (*DEPLOYABLE, "oracle"):
+        for name in policies_here:
             picked = set(select(name, view, truth, 20, seed=POLICY_SEED))
             hit_rate[n_blind][name] = round(len(picked & wrong) / 20, 3) if wrong else 0.0
 
-        for name in (*DEPLOYABLE, "oracle"):
+        for name in policies_here:
             found: int | None = None
             for budget in BUDGETS:
                 out = evaluate(
@@ -305,7 +323,7 @@ def main() -> int:
             thresholds[name][n_blind] = found
             record("blindspot.threshold", float(found or -1), policy=name, n_blind=n_blind)
 
-    order = (*DEPLOYABLE, "oracle")
+    order = policies_here
     print(f"\n  budget to repair (lower is better), '-' = not reached within {max(BUDGETS)}")
     print(f"    {'blind':>6}" + "".join(f"{p:>12}" for p in order))
     print("    " + "-" * (6 + 12 * len(order)))

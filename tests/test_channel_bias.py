@@ -1,10 +1,7 @@
 """Finding 22: the trace a shared blind spot leaves after it stops leaving disagreement."""
 
-import json
-from pathlib import Path
-from typing import Any
-
 import pytest
+from conftest import artifact
 from measure_channel_bias import (
     ALPHA,
     Detection,
@@ -17,15 +14,6 @@ from measure_channel_bias import (
 from pharos.generate import GeneratorConfig, generate
 from pharos.labels import Compartment
 from pharos.tasks import build_triage_tasks
-
-
-def _artifact() -> dict[str, Any]:
-    """The committed measurement. Loaded in one place so the path is stated once."""
-    return json.loads(
-        (Path(__file__).resolve().parents[1] / "results" / "channel_bias.json").read_text(
-            encoding="utf-8"
-        )
-    )
 
 
 def test_stratified_delta_conditions_on_difficulty():
@@ -209,7 +197,7 @@ def test_the_effect_is_linear_in_the_share_and_the_p_value_saturates():
     used to be reported as a z-score, which did vary, and its invariance across shares
     was published as a finding. That invariance was an artifact of a noiseless fleet.
     """
-    payload = _artifact()
+    payload = artifact("channel_bias")
     blind = payload["blind_channel"]
     scored = {
         entry["n_blind"]: next(d for d in entry["detections"] if d["channel"] == blind)
@@ -242,7 +230,7 @@ def test_the_effect_is_linear_in_the_share_and_the_p_value_saturates():
 
 def test_the_healthy_fleet_and_the_other_channels_are_both_reported():
     """A detector is only interesting beside its controls, so both must be present."""
-    payload = _artifact()
+    payload = artifact("channel_bias")
     assert payload["controls_clean"]
     zero = next(e for e in payload["sweep"] if e["n_blind"] == 0)
     assert not [d for d in zero["detections"] if d["detected"]], (
@@ -272,7 +260,7 @@ def test_the_noiseless_control_returns_a_real_answer_rather_than_a_special_case(
     report exactly 1.0, and that the ones with noise, which genuinely could fire, do
     not.
     """
-    payload = _artifact()
+    payload = artifact("channel_bias")
 
     controls = {entry["slip_rate"]: entry["detections"] for entry in payload["threshold_control"]}
     assert controls, "no threshold control in the artifact"
@@ -301,7 +289,7 @@ def test_the_invariance_is_a_property_of_a_noiseless_fleet_and_says_so():
     of the derivation stays true. So the sweep measures more than one noise level, and
     the claim is allowed to be stated only for the level that supports it.
     """
-    payload = _artifact()
+    payload = artifact("channel_bias")
 
     levels = {entry["slip_rate"] for entry in payload["sweep"]}
     assert levels != {0.0}, (

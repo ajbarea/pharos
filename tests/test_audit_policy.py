@@ -1,6 +1,7 @@
 """Finding 20: which items an authority should rule on, and a fallible one."""
 
 import pytest
+from conftest import artifact
 from measure_audit_policy import (
     AUTHORITY_ERROR,
     BUDGETS,
@@ -39,8 +40,37 @@ def test_observe_reads_only_the_two_sums_the_protocol_reveals():
     assert view.votes["T-1"] == 2.0
     assert view.seen["T-1"] == 3.0
     assert view.seen["T-2"] == 2.0
-    # No per-analyst field: a policy cannot reach a contributor through this object.
-    assert set(ServerObservation.__slots__) == {"votes", "seen", "posterior"}
+    # `observe` still returns only what the protocol reveals: the two per-task sums and
+    # the estimator's own output. The two structural fields below are empty here and are
+    # populated by the caller, never by `observe`.
+    assert not view.carries
+    assert not view.evidence
+
+    # The deployability contract, and the reason this is asserted on `__slots__` rather
+    # than on a happy path: a policy that reaches past these fields is reading something
+    # the aggregator does not have, and the result would be an oracle wearing a method's
+    # name. The set grew on 2026-08-06 and the growth was deliberate.
+    #
+    # `carries` and `evidence` are *public corpus structure* -- which tasks carry a
+    # channel, and how many defining facts each shows. Finding 22's detector already
+    # reads exactly these two and is deployable for that reason: it conditions the
+    # verdict rate on evidence stratum and tests association with the channel. Finding
+    # 23's policy reads the same two and nothing else.
+    #
+    # What must never appear here is a per-analyst field. That is the line this test
+    # exists to hold, and widening the set for public structure does not move it.
+    assert set(ServerObservation.__slots__) == {
+        "votes",
+        "seen",
+        "posterior",
+        "evidence",
+        "carries",
+    }
+    forbidden = {"contributions", "contributors", "analysts", "partitioned", "truth", "by_analyst"}
+    assert not forbidden & set(ServerObservation.__slots__), (
+        "a per-analyst field reached the observation; finding 20's deployability rule "
+        "is that a policy cannot distinguish contributors"
+    )
 
 
 def test_consensus_is_the_exact_inverse_of_margin():
@@ -230,14 +260,8 @@ def test_margin_picks_only_wrong_items_until_it_runs_out_of_them():
     count of anchors landing on a task the zero-anchor estimate got wrong, so the claim
     is exactly `hits == budget` below the saturation point and `hits == errors` above it.
     """
-    import json
-    from pathlib import Path
 
-    payload = json.loads(
-        (Path(__file__).resolve().parents[1] / "results" / "audit_policy.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    payload = artifact("audit_policy")
     grid = [r for r in payload["grid"] if r["policy"] == "margin"]
     assert grid, "no margin rows in the artifact"
 
@@ -268,14 +292,8 @@ def test_margin_picks_only_wrong_items_until_it_runs_out_of_them():
 
 def test_the_uniform_baseline_is_reported_as_a_spread_not_a_draw():
     """A point estimate here would credit the policy with whatever the draw supplied."""
-    import json
-    from pathlib import Path
 
-    payload = json.loads(
-        (Path(__file__).resolve().parents[1] / "results" / "audit_policy.json").read_text(
-            encoding="utf-8"
-        )
-    )
+    payload = artifact("audit_policy")
     spread = payload["uniform_spread"]
     assert spread, "the artifact carries no uniform spread"
     assert len(payload["uniform_seeds"]) >= 21
