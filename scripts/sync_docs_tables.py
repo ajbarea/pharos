@@ -510,6 +510,46 @@ def audit_policy() -> str:
     return "\n".join(lines)
 
 
+def label_fidelity() -> str:
+    """Finding 1: what leave-one-out attribution recovers, and what it mislabels.
+
+    Generated because this headline has now drifted twice. It was first written at
+    n=8, corrected to n=24 on 2026-07-30, and was still quoting the n=24 figures on
+    2026-08-06 after the corpus had been re-measured at n=40 -- with the corrected
+    numbers appearing in the prose two paragraphs below, so the page stated both.
+    A sentence that has been wrong twice for the same reason should stop being a
+    sentence.
+    """
+    path = RESULTS / "label_fidelity.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make results` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    outcomes = payload.get("outcomes") or {}
+    if not outcomes:
+        _fail("label_fidelity.json carries no outcomes; refusing to emit an empty summary")
+
+    exact = outcomes.get("exact", 0)
+    leak = outcomes.get("leak", 0)
+    creep = outcomes.get("creep", 0)
+    turns = exact + leak + creep
+    wrong = leak + creep
+    calls = sum(row.get("calls", 0) for row in payload.get("rows") or [])
+
+    return "\n".join(
+        [
+            "| Turns | Source recall | Source precision | Exact label | Leak | Creep |",
+            "| --- | --- | --- | --- | --- | --- |",
+            f"| {turns} | **{payload['source_recall_mean']:.3f}** | "
+            f"**{payload['source_precision_mean']:.3f}** | {exact} | {leak} | {creep} |",
+            "",
+            f"Eight-source summarization turns under exact leave-one-out, "
+            f"{calls} model calls. A wrong governed label on **{wrong} of {turns} turns "
+            f"({wrong / turns:.0%})**: {leak} leak and {creep} creep. Recall is what the "
+            f"ablation misses; precision is what it wrongly blames.",
+        ]
+    )
+
+
 def difficulty_confound() -> str:
     """Finding 17: estimated difficulty by true overlap, per fleet composition.
 
@@ -699,6 +739,7 @@ BLOCKS = {
     "audit-policy": audit_policy,
     "blind-spot": blind_spot,
     "difficulty-confound": difficulty_confound,
+    "label-fidelity": label_fidelity,
     "channel-bias": channel_bias,
 }
 

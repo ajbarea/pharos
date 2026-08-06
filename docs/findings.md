@@ -26,7 +26,7 @@ machines, while the gate is.
 !!! note "Regenerating"
     `make results` reruns the four Ollama-backed measurements into `results/`. It
     needs Ollama serving the model each script names, and it is slow: the label
-    fidelity pass alone is 216 sequential model calls. Findings 3b and 6 are cluster
+    fidelity pass alone is 360 sequential model calls. Findings 3b and 6 are cluster
     jobs and are not part of this target. `make review` regenerates finding 7 and
     `make linkage` finding 11; neither needs a model.
 
@@ -273,9 +273,13 @@ Exempt, because there is no sampling question to answer:
 
 `scripts/measure_label_fidelity.py`
 
-Eight-source summarization turns, exact leave-one-out, 24 turns: **61.8% source
-recall at 97.6% precision, and a wrong governed label on 8 of 24 turns (33%).** Six
-of the eight leak; two creep.
+<!-- BEGIN GENERATED: label-fidelity -->
+| Turns | Source recall | Source precision | Exact label | Leak | Creep |
+| --- | --- | --- | --- | --- | --- |
+| 40 | **0.705** | **0.942** | 33 | 4 | 3 |
+
+Eight-source summarization turns under exact leave-one-out, 360 model calls. A wrong governed label on **7 of 40 turns (18%)**: 4 leak and 3 creep. Recall is what the ablation misses; precision is what it wrongly blames.
+<!-- END GENERATED: label-fidelity -->
 
 !!! warning "Corrected 2026-07-30"
     First measured at n=8 on the corpus *before* the coverage fix in finding 3.
@@ -284,6 +288,19 @@ of the eight leak; two creep.
     of 24. And the cited move to an **incomparable** label
     (`RESTRICTED[LIAISON,PARTNER,SENSOR]` to `PROTECTED[LEGAL]`) did not recur and
     should not be quoted. Source recall did reproduce, 0.618 against 0.62.
+
+!!! warning "Corrected again 2026-08-06, and the headline is generated now"
+    The corpus was re-measured at n=40 on 2026-08-04 and the headline above was not
+    updated, so this page carried the n=24 figures --- 61.8% recall, 97.6% precision,
+    8 of 24 wrong --- while the paragraphs below it quoted the n=40 ones. Both were on
+    the page at once, three screens apart.
+
+    A sentence that has now been wrong twice for the same reason should stop being a
+    sentence, so the headline is a generated block and cannot drift from the artifact
+    again. The direction of the correction is worth noting: the mechanism looks
+    *better* at n=40 than at n=24 (18% wrong rather than 33%), and the finding stands
+    either way, because it rests on leave-one-out being unable to produce a correct
+    label at all rather than on how often it fails.
 
 The cause is corroboration. Leave-one-out asks which single source is
 load-bearing, and a fact reported through several channels has none: drop any one
@@ -549,13 +566,31 @@ permissive one, and it has been corrected.
 
 What the other columns show is a coherent mechanism for the direction, whether or not
 the size is resolved. Recall climbs from 0.899 at zero shots to **exactly 1.000** at
-eight, while precision falls from 0.368 to 0.380 -- it does not recover -- so the
-examples are not teaching the rule, they are teaching the model to escalate more. At
-eight shots the model escalates every single task, which is the clearest form this
-failure has taken: a classifier that answers SIGNIFICANT to everything has a recall of
-1.000 and has learned nothing. That is the same failure
-[finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) found in
-every model tested, and supplying examples does not repair it.
+eight, while precision barely moves --- 0.368 to 0.380 --- so the examples are not
+teaching the rule. They are teaching the model to escalate more: false positives rise
+from 290 to 307 while false negatives fall from 19 to 0. That is the same
+over-escalation
+[finding 3b](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) found in every
+model tested, and supplying examples does not repair it.
+
+!!! warning "Corrected 2026-08-06: read the confusion matrix, not the recall"
+    This paragraph previously said the model "escalates every single task" at eight
+    shots, and called that "a classifier that answers SIGNIFICANT to everything". The
+    artifact says otherwise: at eight shots the matrix is 188 true positives, 307 false
+    positives and **101 true negatives**. A hundred and one tasks were answered ROUTINE.
+
+    Recall of exactly 1.000 means every *positive* was escalated, not that every task
+    was. Reading a saturated recall as universal escalation is the specific misreading
+    the validity module exists to flag, and
+    [the health table](#measurement-health) records it correctly for this row: the
+    eight-shot entry carries the "recall 1.000 while false positives exceed true
+    positives" concern and *not* the "every prediction was positive" concern that a
+    genuinely degenerate run would carry. The prose was contradicted by a generated
+    block two screens above it.
+
+    The same sentence also said precision "falls from 0.368 to 0.380", which is a rise
+    described as a fall. The direction of the argument survives either way, because it
+    never rested on precision moving: it rests on where the errors go.
 
 No other pair separates under the difference test. Four, eight, and zero shots are
 indistinguishable from each other at this size.
@@ -792,7 +827,7 @@ exactly 1.000 in every model, a fleet inheriting its teacher's error rate to wit
 
 Three caveats, because this result is still easy to over-read:
 
-- **Unparsed answers are not evenly distributed.** 21 of 600 at four shots against 1
+- **Unparsed answers are not evenly distributed.** 10 of 600 at four shots against 4
   at eight, and an unparsed answer is carried separately rather than scored as wrong.
   The variation is unexplained and is a reason to treat the 4-versus-8 ordering as
   noise even beyond what the intervals say.
