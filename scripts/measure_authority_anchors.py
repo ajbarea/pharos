@@ -79,6 +79,11 @@ COMPOSITIONS = (4, 5, 6, 7, 9)
 #: Agreement counted as repaired. The pre-cliff level is 1.000 and the post-cliff
 #: level is 0.660; anything at or above this is nearer the first than the second by a
 #: wide margin, and the exact threshold is reported so a reader can move it.
+#:
+#: Clearing this threshold is necessary and not sufficient. A repair also requires that
+#: some *unanchored* label actually changed, because anchoring a task the estimator gets
+#: wrong removes it from the denominator and lifts agreement without correcting
+#: anything. Finding 21's threshold table was withdrawn over exactly that.
 REPAIRED = 0.95
 
 #: Seeds for choosing which tasks the authority rules on. Distinct from the corpus seed

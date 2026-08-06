@@ -37,14 +37,25 @@ verdict rate the aggregator already holds, and the public structure of the corpu
 per-analyst stream, which secure aggregation does not produce, and not ground truth,
 which would make the question circular.
 
-**Significance is a permutation null**, matching the gate's idiom rather than assuming a
-parametric form: the channel labels are shuffled *within* each evidence stratum, which
-preserves the difficulty distribution and destroys only the channel association.
+**Significance is a one-sided permutation p-value**, matching the gate's idiom rather
+than assuming a parametric form: the channel labels are shuffled *within* each evidence
+stratum, which preserves the difficulty distribution and destroys only the channel
+association. The p-value is `(b + 1) / (m + 1)` after Phipson and Smyth (2010), so it is
+bounded below by `1 / (m + 1)` and never reaches zero. `PERMUTATIONS` therefore decides
+what `ALPHA` can mean: a budget too small to resolve the threshold makes every channel
+read as undetected regardless of the effect.
 
 **Two negative controls, because a detector that fires on everything detects nothing.**
 An unbiased fleet must produce no detection on any channel. A fleet holding a *threshold*
 error --- finding 12's wrong standard, which is not channel-linked --- must also produce
 none, or the statistic is reading generic error rather than channel bias.
+
+Both controls are run at every noise level, and the reason is that neither can fail at
+zero noise. A fleet of identical deterministic analysts fixes each task's verdict rate by
+its evidence stratum, so every permutation returns the observed gap, `b = m`, and the
+p-value is exactly 1.0 by construction rather than by evidence. Reported as clean for two
+days on that basis, and described here as the load-bearing check that could have voided
+the finding. Only the noisy levels test anything.
 
 Needs no model and no network.
 

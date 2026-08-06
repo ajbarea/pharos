@@ -2918,3 +2918,48 @@ def test_a_missing_or_empty_artifact_fails_rather_than_emitting_an_empty_table(
         sdt.authority_price()
     with pytest.raises(SystemExit):
         sdt.secure_readership()
+
+
+def test_the_readme_findings_count_matches_the_findings_page():
+    """The one volatile number worth writing down, and therefore worth guarding.
+
+    Most counts should not appear in prose at all -- a test total or a coverage figure
+    written into a comment is a number that will disagree with itself within a day, and
+    this repository has now watched that happen to both. The README's findings count is
+    the exception: it is a headline claim a reader acts on, and deleting it would leave
+    "some findings so far", which says nothing.
+
+    So it stays, and this keeps it honest. `docs/findings.md` is the source, and the
+    count is the number of `## N.` headings in it.
+    """
+    import re
+
+    root = SCRIPTS.parent
+    headings = re.findall(
+        r"^## (\d+)\.", (root / "docs" / "findings.md").read_text(encoding="utf-8"), re.MULTILINE
+    )
+    assert headings, "no numbered findings in docs/findings.md; the parser has broken"
+    measured = len(headings)
+
+    words = {
+        20: "Twenty",
+        21: "Twenty-one",
+        22: "Twenty-two",
+        23: "Twenty-three",
+        24: "Twenty-four",
+        25: "Twenty-five",
+        26: "Twenty-six",
+        27: "Twenty-seven",
+    }
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    claimed = re.search(r"^(\w[\w-]*) findings so far", readme, re.MULTILINE)
+    assert claimed, "the README no longer states a findings count in the expected shape"
+
+    expected = words.get(measured)
+    assert expected, (
+        f"docs/findings.md has {measured} findings and this test cannot spell that; extend `words`."
+    )
+    assert claimed.group(1) == expected, (
+        f"README says '{claimed.group(1)} findings so far' and docs/findings.md has "
+        f"{measured}. Update the README, or the page, so a reader is told the truth."
+    )
