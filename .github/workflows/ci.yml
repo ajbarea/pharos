@@ -116,6 +116,13 @@ jobs:
       # the regenerated tasks, so it is the drift guard behind every number finding 7
       # publishes. It calls no model and takes seconds; the equivalent check on the
       # Ollama-backed findings is a re-sweep and cannot run here.
+      # Stamp the tree before the measurement steps and check the stamp after them.
+      # A local gate is where this bites -- ten minutes is long enough to edit a file
+      # mid-run, which on 2026-08-06 produced a plausible 92.52% for a tree that never
+      # existed -- but it runs here too, because `make ci` promises to be exactly this
+      # workflow and a guard present in only one of them is drift by construction.
+      - name: Stamp the tree the gate is about to measure
+        run: uv run python scripts/tree_fingerprint.py --write .gate-fingerprint
       - name: Replay the committed verdicts past the analyst grid
         run: uv run python scripts/measure_analyst_review.py
       # The reviewer sweep is pure computation over the regenerated corpus, so it
@@ -208,4 +215,6 @@ jobs:
         run: uv run python scripts/logcheck.py
       - name: Check the docs tables against their artifacts
         run: uv run python scripts/sync_docs_tables.py --check
+      - name: Confirm the tree did not move while the gate ran
+        run: uv run python scripts/tree_fingerprint.py --verify .gate-fingerprint
 
