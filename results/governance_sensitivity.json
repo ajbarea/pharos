@@ -911,9 +911,9 @@
   },
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "6fce850b4400",
-    "git_dirty": true,
-    "generated_at": "2026-08-06T19:40:45+00:00",
+    "git_commit": "516919495546",
+    "git_dirty": false,
+    "generated_at": "2026-08-06T20:05:31+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
