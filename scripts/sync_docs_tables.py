@@ -510,6 +510,106 @@ def audit_policy() -> str:
     return "\n".join(lines)
 
 
+def linkage_controls() -> str:
+    """Finding 11: what each mitigation costs and what it leaves recoverable.
+
+    Generated because every cell of the hand-typed version had drifted. Contributions
+    were published as 7,053 and 1,000 where the artifact says 6606 and 400, and the
+    k=25, k=50, rarity and subsample rows were each wrong in two or three columns. The
+    argument -- that nothing closes this channel without taking most of the data with
+    it -- survived every one of those errors, which is exactly why nobody re-read the
+    numbers under it.
+    """
+    path = RESULTS / "fleet_linkage.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make linkage` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    controls = payload.get("controls") or {}
+    if not controls:
+        _fail("fleet_linkage.json carries no controls; refusing to emit an empty table")
+
+    labels = {
+        "none": "no mitigation",
+        "k_anonymity_k10": "k-anonymity, k=10",
+        "k_anonymity_k25": "k-anonymity, k=25",
+        "k_anonymity_k50": "k-anonymity, k=50",
+        "k_anonymity_k100": "k-anonymity, k=100",
+        "rarity_suppression_keep0.75": "suppress rarest 25%",
+        "rarity_suppression_keep0.5": "suppress rarest 50%",
+        "rarity_suppression_keep0.25": "suppress rarest 75%",
+        "subsample_p0.5": "subsample p=0.5",
+        "subsample_p0.2": "subsample p=0.2",
+        "subsample_p0.05": "subsample p=0.05",
+        "pooled": "pool every analyst",
+    }
+    # A control the artifact grows and this table cannot name would otherwise be
+    # dropped silently, which is how a mitigation goes unpublished.
+    unnamed = set(controls) - set(labels)
+    if unnamed:
+        _fail(f"fleet_linkage.json has controls this table cannot name: {sorted(unnamed)}")
+
+    lines = [
+        "| Mitigation | Recovered | Mean anonymity set | Volume kept | Analysts silenced |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    for key, label in labels.items():
+        row = controls.get(key)
+        if row is None:
+            continue
+        recovered = row["recovery"]
+        cell = f"**{recovered:.3f}**" if recovered == 0.0 else f"{recovered:.3f}"
+        lines.append(
+            f"| {label} | {cell} | {row['mean_anonymity_set']:.2f} | "
+            f"{row['retained_volume']:.1%} | {row['silenced_analysts']} |"
+        )
+
+    prior = payload["prior"]
+    lines += [
+        "",
+        f"Bold marks a mitigation that drives recovery to zero. The guessing prior is "
+        f"{prior:.3f}, so a row at or below it has closed *this* attack; read the volume "
+        f"and silenced columns for what that cost. Contributions under the two rulings "
+        f"are {payload['drop_compartments']['contributions']:,} when compartments are "
+        f"shed and {payload['keep']['contributions']:,} when they are kept.",
+    ]
+    return "\n".join(lines)
+
+
+def privacy_budget() -> str:
+    """Finding 15: what participation noise buys, and the budget it spends doing it."""
+    path = RESULTS / "privacy_budget.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make budget` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    rows = [r for r in (payload.get("rows") or []) if (r.get("budget") or {}).get("fabricate")]
+    if not rows:
+        _fail("privacy_budget.json carries no fabricating rows; refusing an empty table")
+
+    lines = [
+        "| Keep | Fabricate | Recovered | Label noise | epsilon per indicator | epsilon composed |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in rows:
+        budget = row["budget"]
+        lines.append(
+            f"| {budget['keep']:.1f} | {budget['fabricate']:.1f} | {row['recovery']:.3f} | "
+            f"{row['label_noise']:.4f} | {budget['epsilon_per_indicator']:.2f} | "
+            f"{budget['epsilon_effective']:.1f} |"
+        )
+
+    baseline = payload["baseline_recovery"]
+    lines += [
+        "",
+        f"Participation noise against a baseline recovery of {baseline:.3f} over "
+        f"{payload['fleet']} analysts. `epsilon composed` is the better of basic and "
+        f"advanced composition across {rows[0]['budget']['indicators']} indicators at "
+        f"delta = {rows[0]['budget']['delta']:g}. Read the label-noise column beside it: "
+        f"the setting that suppresses the attack corrupts most of the labels, and an "
+        f"epsilon in the hundreds is a budget in name rather than a guarantee.",
+    ]
+    return "\n".join(lines)
+
+
 def label_fidelity() -> str:
     """Finding 1: what leave-one-out attribution recovers, and what it mislabels.
 
@@ -740,6 +840,8 @@ BLOCKS = {
     "blind-spot": blind_spot,
     "difficulty-confound": difficulty_confound,
     "label-fidelity": label_fidelity,
+    "linkage-controls": linkage_controls,
+    "privacy-budget": privacy_budget,
     "channel-bias": channel_bias,
 }
 
