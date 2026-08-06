@@ -131,6 +131,12 @@ external-validation:       ## Re-run the gate claim against three public corpora
 		--limit 12000 --null-trials 40 --out results/external_gate_validation.json
 
 ci:                        ## Run every CI gate in order, exactly as the workflow does
+	# Stamp the tree first and check the stamp last. A local gate runs for ten
+	# minutes and nothing stops a file being edited inside that window; when one was,
+	# on 2026-08-06, the run reported a plausible 92.52% for a tree that never
+	# existed and passed. Refusing is the same discipline every published artifact
+	# here already follows.
+	uv run python scripts/tree_fingerprint.py --write .gate-fingerprint >/dev/null
 	uv run ruff format --check .
 	uv run ruff check .
 	uv run ty check
@@ -152,3 +158,5 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_channel_bias.py
 	uv run python scripts/logcheck.py
 	uv run python scripts/sync_docs_tables.py --check
+	# Last, so it covers every step above: did the tree this gate measured stay put?
+	uv run python scripts/tree_fingerprint.py --verify .gate-fingerprint
