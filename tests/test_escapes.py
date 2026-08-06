@@ -2,6 +2,7 @@
 
 import json
 import re
+from pathlib import Path
 
 import pytest
 from conftest import artifact
@@ -161,3 +162,51 @@ def test_the_governance_numbers_the_page_shows_are_the_ones_finding_24_publishes
     values = {reading["label"]: reading["raw"] for reading in served["readings"]}
     assert values["Highest safe share"] == bracket["highest_safe_share"]
     assert values["Lowest broken share"] == bracket["lowest_broken_share"]
+
+
+def _relative_luminance(hex_colour: str) -> float:
+    """WCAG 2.2 relative luminance, from the sRGB definition."""
+    raw = hex_colour.lstrip("#")
+    channels = []
+    for offset in (0, 2, 4):
+        value = int(raw[offset : offset + 2], 16) / 255
+        channels.append(value / 12.92 if value <= 0.03928 else ((value + 0.055) / 1.055) ** 2.4)
+    red, green, blue = channels
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+
+
+def _contrast(foreground: str, background: str) -> float:
+    first, second = _relative_luminance(foreground), _relative_luminance(background)
+    lighter, darker = max(first, second), min(first, second)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def test_every_verdict_colour_is_readable_in_both_themes():
+    """WCAG 2.2 AA, 4.5:1, against both surfaces the badges actually sit on.
+
+    The verdict badges render their label in the token colour, so this is text contrast
+    and not the 3:1 graphical threshold. Light-theme amber was 4.24:1 when the tab was
+    written, which reads fine to me and fails for a reader it was not written for.
+
+    Colour is never the only channel here -- each badge also carries a glyph and the
+    verdict spelled out, so this passing is not what makes the tab accessible. It is
+    what stops the redundant channel from being the only usable one.
+    """
+    page = (Path(__file__).resolve().parents[1] / "src/pharos/static/index.html").read_text(
+        encoding="utf-8"
+    )
+    themes = {
+        "light": dict(
+            re.findall(r"--(\w+): (#[0-9a-f]{6})", page.split("prefers-color-scheme")[0])
+        ),
+        "dark": dict(re.findall(r"--(\w+): (#[0-9a-f]{6})", page.split("prefers-color-scheme")[1])),
+    }
+    failures = []
+    for name, tokens in themes.items():
+        for token in ("ok", "amber", "bad", "accent", "muted", "fg"):
+            assert token in tokens, f"{name} theme no longer defines --{token}"
+            for surface in ("card", "bg"):
+                ratio = _contrast(tokens[token], tokens[surface])
+                if ratio < 4.5:
+                    failures.append(f"{name}/--{token} on --{surface} = {ratio:.2f}")
+    assert not failures, f"below WCAG AA 4.5:1: {failures}"
