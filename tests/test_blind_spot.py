@@ -1,6 +1,9 @@
 """Finding 21: the corpus finding 20's policy cannot handle, built on purpose."""
 
+import json
 import random
+from pathlib import Path
+from typing import Any
 
 import pytest
 from measure_blind_spot import (
@@ -132,3 +135,72 @@ def test_the_sweep_reaches_unanimity():
     assert 0 in SHARES
     assert list(SHARES) == sorted(SHARES)
     assert max(BUDGETS) < EVENTS
+
+
+def test_the_channel_policy_finds_what_disagreement_cannot():
+    """Finding 23: the detector names a channel, and that is enough to select on.
+
+    Every policy in `DEPLOYABLE` reads disagreement, and a unanimously blind fleet has
+    none -- which is the whole of finding 21. Finding 22 supplies the missing input: it
+    names *which* channel is being discounted, from data the aggregator already holds.
+    Selecting tasks that carry that channel, deepest evidence first, then finds every
+    corrupted item at the unanimity where uncertainty sampling is at chance.
+
+    Both halves are asserted, because the second is what makes the first meaningful:
+    the channel policy matches the oracle, and the disagreement-based policies do not.
+    """
+    payload = json.loads(
+        (Path(__file__).resolve().parents[1] / "results" / "blind_spot.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    unanimous = str(payload["fleet"])
+    rates = payload["audit_hit_rate"][unanimous]
+
+    assert rates["channel"] == 1.0, (
+        "the channel policy no longer finds every corrupted item at unanimity; "
+        "finding 23's whole claim is that provenance succeeds where disagreement fails"
+    )
+    assert rates["channel"] == rates["oracle"], "the channel policy no longer ties the bound"
+    for name in ("uniform", "margin", "posterior", "consensus"):
+        assert rates[name] <= 0.25, (
+            f"{name} is no longer at chance at unanimity, which would mean finding 21's "
+            "premise has changed and finding 23 is answering a question nobody has"
+        )
+
+
+def test_finding_all_of_them_is_not_repairing_any_of_them():
+    """The limit finding 23 must be quoted with, and the reason it is not a solution.
+
+    At a 20-item budget the channel policy drives `remaining_errors` to zero: every
+    corrupted label in the corpus is correct afterwards. And `corrected` stays at zero,
+    because not one *unanchored* label changed. The authority overrode the twenty items
+    it ruled on and the estimator learned nothing from any of them.
+
+    The oracle does the same thing, which is the load-bearing part: an obstacle that
+    defeats a policy handed the ground truth is not a selection problem, so no better
+    selection rule closes it. That is what keeps item 7 of the LAS alignment open.
+    """
+    payload = json.loads(
+        (Path(__file__).resolve().parents[1] / "results" / "blind_spot.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    unanimous = payload["fleet"]
+
+    def row(policy: str, budget: int) -> dict[str, Any]:
+        return next(
+            r
+            for r in payload["grid"]
+            if r["n_blind"] == unanimous and r["policy"] == policy and r["budget"] == budget
+        )
+
+    for policy in ("channel", "oracle"):
+        full = row(policy, 20)
+        assert full["remaining_errors"] == 0, f"{policy} left corrupted labels at budget 20"
+        assert full["hits"] == 20, f"{policy} did not audit all twenty corrupted items"
+        assert full["corrected"] == 0, (
+            f"{policy} corrected an unanchored label, which would be a real repair and "
+            "would mean this test's finding has changed"
+        )
+        assert not full["repaired"], "repaired must stay false while corrected is zero"
