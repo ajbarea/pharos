@@ -32,7 +32,7 @@ Needs no model and no network.
 
 import argparse
 import json
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from random import Random
@@ -69,12 +69,61 @@ FLEET = 9
 #: is repaired and the one that never repairs can be named as such.
 ANCHOR_COUNTS = (0, 1, 2, 3, 5, 8, 12, 20, 30, 50, 80, 100, 120, 150, 180)
 
+
+def majority(fleet: int) -> int:
+    """Smallest number of analysts that carries a vote. Fleets here are odd, so no ties."""
+    return fleet // 2 + 1
+
+
+#: Fleet positions the composition constants encode, as functions of the fleet size
+#: rather than as counts.
+#:
+#: Findings 19 through 23 were all measured at nine analysts and wrote their
+#: compositions as absolute tuples -- `(4, 5, 6, 7, 9)` here, `(5, 6, 7)` in the audit
+#: policy, `(0, 3, 5, 7, 8, 9)` in the blind spot. Every one of those reads as an
+#: arbitrary tuple until you know that 5 is the majority crossing at nine and 4 is the
+#: row below it.
+#:
+#: That made `--fleet` misleading rather than merely unused. Each script skips a
+#: composition larger than the fleet, so at `--fleet 5` the audit policy measured only
+#: 5-of-5 -- unanimity, not the bare majority the row was there to price -- and printed
+#: the two skipped rows as "none" beside it, where "none" elsewhere means swept and
+#: never repaired. The blind spot named its unanimity row "9 of 5". A reader could not
+#: tell an unmeasured cell from a measured failure.
+#:
+#: Written as positions, the ladder is the same experiment at any fleet, and it
+#: reproduces every committed constant exactly at nine (asserted in the tests).
+RUNGS: dict[str, Callable[[int], int]] = {
+    "none": lambda fleet: 0,
+    "one": lambda fleet: 1,
+    "two": lambda fleet: 2,
+    "one-third": lambda fleet: round(fleet / 3),
+    "below": lambda fleet: majority(fleet) - 1,
+    "majority": majority,
+    "two-thirds": lambda fleet: round(2 * fleet / 3),
+    "seven-ninths": lambda fleet: round(7 * fleet / 9),
+    "all-but-one": lambda fleet: fleet - 1,
+    "unanimous": lambda fleet: fleet,
+}
+
+
+def ladder(fleet: int, rungs: Sequence[str]) -> tuple[int, ...]:
+    """The named positions as counts at this fleet, deduplicated and ordered.
+
+    Deduplication is not incidental: at small fleets distinct rungs collide (at five,
+    the majority and two-thirds are both 3), and a sweep that measured the same
+    composition twice would report it as two agreeing observations.
+    """
+    return tuple(sorted({min(fleet, max(0, RUNGS[rung](fleet))) for rung in rungs}))
+
+
 #: Which fleet compositions to price. Below the cliff there is nothing to repair, so
 #: the sweep runs from the crossing upward and carries one pre-cliff row as a control.
-#: Nine is the unanimity control and is expected never to repair: with every analyst
-#: holding the wrong standard there is no disagreement to estimate from, and an
-#: authority that has to rule on every task has not been assisted by a fleet at all.
-COMPOSITIONS = (4, 5, 6, 7, 9)
+#: Unanimity is the control expected never to repair: with every analyst holding the
+#: wrong standard there is no disagreement to estimate from, and an authority that has
+#: to rule on every task has not been assisted by a fleet at all.
+ANCHOR_RUNGS = ("below", "majority", "two-thirds", "seven-ninths", "unanimous")
+COMPOSITIONS = ladder(FLEET, ANCHOR_RUNGS)
 
 #: Agreement counted as repaired. The pre-cliff level is 1.000 and the post-cliff
 #: level is 0.660; anything at or above this is nearer the first than the second by a
@@ -210,6 +259,7 @@ def main() -> int:
     parser.add_argument("--fleet", type=int, default=FLEET)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
+    compositions = ladder(args.fleet, ANCHOR_RUNGS)
 
     tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=args.events)))
     proposals = {
@@ -228,9 +278,7 @@ def main() -> int:
     breakeven: dict[int, int | None] = {}
     spreads: dict[int, ThresholdSpread] = {}
 
-    for n_wrong in COMPOSITIONS:
-        if n_wrong > args.fleet:
-            continue
+    for n_wrong in compositions:
         flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
         partitioned = partition_by_contributor(flat)
         cells: list[str] = []
@@ -335,7 +383,7 @@ def main() -> int:
         "mask_seed": MASK_SEED,
         "repaired_threshold": REPAIRED,
         "anchor_counts": list(ANCHOR_COUNTS),
-        "compositions": list(COMPOSITIONS),
+        "compositions": list(compositions),
         # One seed's agreement grid, the one a reader can follow cell by cell. The
         # claim does not rest on it; `anchors_needed` is the median over every draw.
         "grid": [r.as_dict() for r in rows],

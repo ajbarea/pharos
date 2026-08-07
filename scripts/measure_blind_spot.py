@@ -53,7 +53,7 @@ from measure_audit_policy import (
     observe,
     select,
 )
-from measure_authority_anchors import REPAIRED
+from measure_authority_anchors import REPAIRED, ladder
 from measure_secure_reliability import contributions_for
 
 from pharos.analyst import AnalystPolicy
@@ -75,7 +75,8 @@ BLIND = Compartment.PARTNER
 
 #: How much of the fleet carries the blind spot. The interesting end is the top: a
 #: sighted minority is what keeps the disagreement signal alive.
-SHARES = (0, 3, 5, 7, 8, 9)
+BLIND_RUNGS = ("none", "one-third", "majority", "seven-ninths", "all-but-one", "unanimous")
+SHARES = ladder(FLEET, BLIND_RUNGS)
 
 #: Budgets swept. Capped under the auditable pool, as in finding 20.
 BUDGETS = (0, 2, 5, 8, 12, 20, 30, 45, 60, 80, 95)
@@ -170,6 +171,7 @@ def main() -> int:
     parser.add_argument("--fleet", type=int, default=FLEET)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
+    shares = ladder(args.fleet, BLIND_RUNGS)
 
     tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=args.events)))
     from pharos.analyst import Proposal, evidence_shown
@@ -257,9 +259,7 @@ def main() -> int:
     thresholds: dict[str, dict[int, int | None]] = {p: {} for p in policies_here}
     hit_rate: dict[int, dict[str, float]] = {}
 
-    for n_blind in SHARES:
-        if n_blind > args.fleet:
-            continue
+    for n_blind in shares:
         flat = contributions_for(blind_fleet(n_blind, args.fleet), tasks, proposals, seed=SEED)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
@@ -327,9 +327,7 @@ def main() -> int:
     print(f"\n  budget to repair (lower is better), '-' = not reached within {max(BUDGETS)}")
     print(f"    {'blind':>6}" + "".join(f"{p:>12}" for p in order))
     print("    " + "-" * (6 + 12 * len(order)))
-    for n_blind in SHARES:
-        if n_blind > args.fleet:
-            continue
+    for n_blind in shares:
         cells = []
         for name in order:
             value = thresholds[name].get(n_blind)
@@ -339,12 +337,10 @@ def main() -> int:
     print("\n  share of a 20-item audit that lands on a corrupted task")
     print(f"    {'blind':>6}" + "".join(f"{p:>12}" for p in order))
     print("    " + "-" * (6 + 12 * len(order)))
-    for n_blind in SHARES:
-        if n_blind > args.fleet:
-            continue
+    for n_blind in shares:
         print(f"    {n_blind:>6}" + "".join(f"{hit_rate[n_blind][p]:>12.2f}" for p in order))
 
-    unanimous = max(SHARES)
+    unanimous = max(shares)
     margin_at_unanimity = thresholds["margin"].get(unanimous)
     uniform_at_unanimity = thresholds["uniform"].get(unanimous)
 
@@ -395,7 +391,7 @@ def main() -> int:
         "corpus_mean_evidence": round(corpus_mean, 3),
         "channel_mean_with": round(mean_with, 3),
         "channel_mean_without": round(mean_without, 3),
-        "shares": list(SHARES),
+        "shares": list(shares),
         "budgets": list(BUDGETS),
         "repaired_threshold": REPAIRED,
         "thresholds": {k: {str(n): v for n, v in d.items()} for k, d in thresholds.items()},

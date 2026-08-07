@@ -113,7 +113,7 @@ Federated personalization splits what a model learns into **local knowledge** an
 | [`pharos.export`](reference/corpus-schema.md) | **Data Export**: Reproducible JSON Lines exporter with cryptographic content hashing |
 | [`pharos.croissant`](releasing.md) | **Open Metadata**: Emits Croissant metadata extended with Responsible AI fields |
 | `pharos.telemetry` | **Observability**: Structured OpenTelemetry logs, tracing spans, and execution snapshots |
-| [`pharos.web`](getting-started.md#visual-explorer-ui) | **Visual Explorer**: Interactive web UI for corpus, lattice, gate, and triage review |
+| [`pharos.web`](getting-started.md#visual-explorer-ui) | **Visual Explorer**: corpus, lattice, gate, triage review, and the escapes ladder every finding is an exit from |
 | `pharos.cli` | **Command Line**: CLI subcommands (`gate`, `export`, `models`, `serve`) |
 
 !!! note "Deterministic Pipeline"

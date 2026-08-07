@@ -70,6 +70,7 @@ from pathlib import Path
 from random import Random
 
 from measure_audit_policy import observe
+from measure_authority_anchors import ladder
 from measure_blind_spot import blind_fleet
 from measure_secure_reliability import contributions_for
 
@@ -93,7 +94,17 @@ FLEET = 9
 #: majority, which ties it to finding 16. That claim was published while the sweep
 #: started at 5 of 9 -- already the majority -- so it rested on nothing. A share the
 #: sweep never runs cannot support a sentence about that share.
-SHARES = (0, 1, 2, 3, 4, 5, 7, 9)
+CHANNEL_RUNGS = (
+    "none",
+    "one",
+    "two",
+    "one-third",
+    "below",
+    "majority",
+    "seven-ninths",
+    "unanimous",
+)
+SHARES = ladder(FLEET, CHANNEL_RUNGS)
 
 #: Significance level for a detection. The gate's own convention elsewhere in this
 #: repo is three sigma, whose one-sided normal tail is 0.00135, so 0.001 is the nearest
@@ -299,6 +310,7 @@ def main() -> int:
     parser.add_argument("--permutations", type=int, default=PERMUTATIONS)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
+    shares = ladder(args.fleet, CHANNEL_RUNGS)
 
     tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=args.events)))
     proposals = {
@@ -325,7 +337,7 @@ def main() -> int:
         print(f"\n  blind-spot sweep at slip rate {slip:.2f}")
         print(f"    {'blind':>6}{header}")
         print("    " + "-" * (6 + 10 * len(Compartment)))
-        for n_blind in SHARES:
+        for n_blind in shares:
             if n_blind > args.fleet:
                 continue
             flat = contributions_for(
@@ -386,7 +398,7 @@ def main() -> int:
     # it was first reported, but its controls are known-degenerate there, so the honest
     # controls come from every level.
     unanimous = next(
-        (found for slip, share, found in sweep if slip == 0.0 and share == max(SHARES)), None
+        (found for slip, share, found in sweep if slip == 0.0 and share == max(shares)), None
     )
     detected_at_unanimity = [d.channel for d in unanimous or [] if d.detected]
     control_hits = [
@@ -426,7 +438,7 @@ def main() -> int:
         "permutations": args.permutations,
         "alpha": ALPHA,
         "blind_channel": truth_blind.value,
-        "shares": list(SHARES),
+        "shares": list(shares),
         "noise_levels": list(NOISE_LEVELS),
         "permutation_seed": PERMUTATION_SEED,
         "sweep": [

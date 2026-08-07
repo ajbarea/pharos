@@ -108,6 +108,10 @@ channel-bias:              ## Whether a unanimous blind spot leaves any trace at
 	@mkdir -p results
 	uv run python scripts/measure_channel_bias.py --out results/channel_bias.json
 
+governance-sensitivity:    ## Whether findings 19-23 survive a fleet other than nine (no model)
+	@mkdir -p results
+	uv run python scripts/measure_governance_sensitivity.py --out results/governance_sensitivity.json
+
 logcheck:                  ## Run the model-free measurements and summarise what they logged
 	uv run python scripts/logcheck.py
 

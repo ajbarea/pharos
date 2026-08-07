@@ -255,6 +255,8 @@ This table is generated from `results/` and CI fails when it drifts from them.
 
 **27 of 58** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
+**Carrying no validity assessment, which is a gap rather than a pass:** `governance_sensitivity`.
+
 Exempt, because there is no sampling question to answer:
 
 - `adapter_replication` -- compares assessed adapter artifacts against their own replicates; the question is whether two runs agree, which no sampling flag answers
@@ -2928,3 +2930,103 @@ carry. The claim that travels is conditional: **when a wrong standard follows an
 observable partition of the corpus, audit that partition.** A shared error that follows
 no observable partition leaves no trace for finding 22 to detect and no handle for this
 policy to grip.
+
+## 24. The cliff is a share of the fleet, and "a majority" was nine analysts talking
+
+Findings 19 through 23 all describe the same failure in the same words: *a majority
+holds the wrong standard*. Every one of them was measured at nine analysts, where the
+estimator recovers the truth at 4 and collapses at 5. The majority and the crossing are
+the same cell at that fleet, so the phrase was never wrong. It was never tested either.
+
+Sweeping the fleet and scanning **every** composition rather than the five the ladder
+visits separates them.
+
+<!-- BEGIN GENERATED: governance-sensitivity -->
+| Fleet | Bare majority | Recovers up to | Breaks at | Breaking share | Survives a bare majority |
+| --- | --- | --- | --- | --- | --- |
+| 5 | 3 | 2 | 3 | 0.600 | no |
+| 9 | 5 | 4 | 5 | 0.556 | no |
+| 15 | 8 | 8 | 9 | 0.600 | **yes** |
+| 25 | 13 | 13 | 14 | 0.560 | **yes** |
+
+Every composition from 1 to the fleet size, one EM fit each, with recovery at agreement ≥ 0.95. The breaking share is bracketed by **0.5333 < s ≤ 0.5556**; four fleet sizes bound it and none of them resolves it further.
+
+Agreement past the crossing is 0.6598 at every fleet and every composition above it, so the cliff's **depth** does not move where its **location** does. The failure has no gradient: a fleet is identified or it is not.
+<!-- END GENERATED: governance-sensitivity -->
+
+**A bare majority breaks a fleet of nine and does not break a fleet of fifteen.** The
+crossing sits at a fixed share of the fleet, and the bare majority exceeds that share
+only when the fleet is small enough for one analyst to be a large fraction of it: 5 of 9
+is 0.556 and breaks, 8 of 15 is 0.533 and does not. So the phrase every earlier finding
+used names a quantity that happens to coincide with the mechanism at one fleet size.
+
+!!! danger "What this changes about findings 19 and 20"
+    The prices those findings publish -- a median of 12 audited items to repair a bare
+    majority, 20 at six of nine, 30 at seven -- are prices for **compositions**, and they
+    stand. What does not stand is reading them as a price for *a bare majority* in
+    general. At fifteen and twenty-five analysts a bare majority costs nothing to repair,
+    because there is nothing to repair.
+
+    Quote the share, not the phrase.
+
+**This half was already on disk, and nobody read it back into the prose.**
+[Finding 17's fleet sweep](#17-modelling-item-difficulty-does-not-separate-a-hard-item-from-a-wrong-standard-it-converts-one-into-the-other)
+recorded "Dawid-Skene recovers the truth at a bare majority once the fleet reaches 15"
+when it ran, and `fleet_sensitivity.json` has carried `dawid_skene_survives_crossing:
+true` for fleets 15, 25 and 51 ever since. Findings 19 through 23 were written after
+that and went on calling the failure "a majority holds the wrong standard" anyway.
+
+So the new part here is not the fact. It is the **share**, bracketed by scanning every
+composition rather than the crossing alone; the **invariance of the depth**; and the
+observation that the phrase all five later findings share is load-bearing in none of
+them. The rest is a claim this repository had already measured and failed to propagate,
+which is the same prose-outlives-its-evidence failure this page has now corrected five
+times.
+
+**Reliability weighting buys real margin, and how much depends on the fleet.** Plain
+consensus flips at the majority by definition, at every fleet size. Dawid-Skene does not.
+Finding 12 measured that at nine and called it "one extra contributor of margin, not an
+escape", which was the right reading of the fleet it had.
+
+!!! note "It is still not an escape"
+    The margin is bounded by the same share. A house style that reaches 60% of a fleet
+    defeats the estimator at every size measured, and [finding 16](#16-analysts-are-not-independent-draws-and-the-i-i-d-assumption-understates-the-failure-by-two-orders-of-magnitude)
+    is the reason to expect a house style to reach exactly that far. A larger fleet raises
+    the bar; it does not remove it.
+
+**The depth does not move where the location does.** Agreement past the crossing is
+0.6598 at every fleet and every composition above it. There is no gradual degradation
+between the two levels and no partial failure to find: a fleet is identified or it is
+not. That is what a relabelling of the latent class looks like, as opposed to a loss of
+signal, and it is the sharpest evidence in the repository for the non-identifiability
+reading that findings 18 and 19 argue from.
+
+**Everything else in findings 19-23 survives the sweep.** Six invariants were checked at
+four fleet sizes: selection beats a uniform draw wherever a repair is needed, and ties
+the oracle bound; disagreement collapses to chance at unanimity; provenance recovers
+every corrupted item there; no policy repairs an unanchored label, including the oracle;
+and the blinded channel is detected at every noise level while every control stays
+silent. Only the "bare majority" phrasing moved.
+
+!!! warning "Two defects the sweep found before it measured anything"
+    All four scripts accepted `--fleet` and none of them scaled its *compositions* with
+    it, so the flag produced a mislabelled artifact at any fleet but nine. At `--fleet 5`
+    the audit policy measured 5-of-5 -- unanimity -- under the label of a bare majority,
+    printed the two rows it had skipped as `none` beside it, where `none` elsewhere means
+    *swept and never repaired*, and then named a "best deployable policy" chosen from a
+    field in which every entry was unmeasured. The blind spot labelled its unanimity row
+    "9 of 5". Compositions are now positions in the fleet
+    (`measure_authority_anchors.ladder`), asserted to reproduce every committed constant
+    exactly at nine.
+
+    And a repair threshold of `None` meant two opposite things -- *no budget repaired it*
+    and *there was nothing to repair*. The first run of this sweep read the second as the
+    first and reported finding 20 as holding while the crossing row had quietly stopped
+    being a failure at all. The two are separated in the artifact now.
+
+A third defect belonged to the sweep itself and is worth recording because it is the
+failure mode this whole page is about. A smoke run at 300 permutations reported finding
+22 as moved. Nothing had moved: a permutation p-value floors at 1/(m+1), so 300
+permutations put the entire attainable range above alpha and **no cell could be detected
+at any effect size**. The sweep had manufactured a failure to replicate out of its own
+argument. It now refuses to run below a permutation count that can clear alpha.

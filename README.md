@@ -97,7 +97,7 @@ external validator, the explorer — is optional.
 | `pharos.export` | Writing a corpus out as JSON Lines, and hashing exactly what was written |
 | `pharos.croissant` | Croissant metadata with the Responsible AI extension, emitted from the manifest |
 | `pharos.telemetry` | Structured logs, spans, and the execution-context snapshot |
-| `pharos.web` | The explorer: corpus, lattice, gate, a triage run, and analyst review behind one page |
+| `pharos.web` | The explorer: corpus, lattice, gate, a triage run, analyst review, and every exit priced, behind one page |
 | `pharos.cli` | `gate`, `export`, `models`, `serve` |
 
 **Model calls are confined to one module.** `pharos.attribute` is the only place a
@@ -123,7 +123,7 @@ compare `float.hex()` and refuse outright unless both machines scored the same c
 | Page | What it covers |
 | --- | --- |
 | [Getting started](https://ajbarea.github.io/pharos/getting-started/) | Install, the everyday commands, reading a gate verdict, the explorer, observability |
-| [Explorer](https://ajbarea.github.io/pharos/explorer/) | The corpus, the lattice, the gate, and the analyst grid, running with no backend |
+| [Explorer](https://ajbarea.github.io/pharos/explorer/) | The corpus, the lattice, the gate, the analyst grid, and the argument the findings make, running with no backend |
 | [The label lattice](https://ajbarea.github.io/pharos/reference/label-lattice/) | Dominance, joins, and why compartments make this a lattice rather than a ladder |
 | [The shortcut gate](https://ajbarea.github.io/pharos/reference/gate/) | What the probe sees, the four rounds it rejected, and why it is a calibration instrument |
 | [The release decision](https://ajbarea.github.io/pharos/reference/disclosure/) | Three dispositions, reason codes, purpose limitation, and the audited case table |
@@ -146,7 +146,7 @@ the system it serves.
 
 ## What has been measured
 
-Twenty-three findings so far, each reproducible from a named script and each backed by a
+Twenty-four findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, a third was retracted outright after a generator bug, and a

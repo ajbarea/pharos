@@ -82,6 +82,7 @@ from measure_authority_anchors import (
     REPAIRED,
     ThresholdSpread,
     choose_anchors,
+    ladder,
     summarize_thresholds,
 )
 from measure_secure_reliability import MASK_SEED, contributions_for, fleet_of
@@ -118,7 +119,8 @@ BUDGETS = (0, 2, 5, 8, 12, 20, 30, 45, 60, 80, 95)
 
 #: Compositions worth pricing. 5 is the bare majority finding 19 repairs cheaply, 6 and
 #: 7 are where its price exploded, so they are where a policy has room to help.
-COMPOSITIONS = (5, 6, 7)
+AUDIT_RUNGS = ("majority", "two-thirds", "seven-ninths")
+COMPOSITIONS = ladder(FLEET, AUDIT_RUNGS)
 
 #: Authority error rates swept in the second half. 0.0 reproduces finding 19.
 AUTHORITY_ERROR = (0.0, 0.05, 0.1, 0.2)
@@ -465,6 +467,7 @@ def main() -> int:
     parser.add_argument("--fleet", type=int, default=FLEET)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
+    compositions = ladder(args.fleet, AUDIT_RUNGS)
 
     tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=args.events)))
     proposals = {
@@ -477,7 +480,7 @@ def main() -> int:
     # anywhere else constrains no confusion matrix, so this and not the corpus size is
     # the denominator an audit budget is a fraction of.
     probe = partition_by_contributor(
-        contributions_for(fleet_of(COMPOSITIONS[0], args.fleet), tasks, proposals, seed=SEED)
+        contributions_for(fleet_of(compositions[0], args.fleet), tasks, proposals, seed=SEED)
     )
     auditable = len({t for rows in probe.values() for t, _ in rows})
     print(
@@ -492,7 +495,7 @@ def main() -> int:
         print(f"\n  {name}")
         print(f"    {'wrong':>6}" + "".join(f"{b:>7}" for b in BUDGETS))
         print("    " + "-" * (6 + 7 * len(BUDGETS)))
-        for n_wrong in COMPOSITIONS:
+        for n_wrong in compositions:
             if n_wrong > args.fleet:
                 continue
             flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
@@ -542,9 +545,7 @@ def main() -> int:
     print(f"\n  uniform baseline over {len(UNIFORM_SEEDS)} draws")
     print(f"    {'wrong':>6}  median   range        reached")
     print("    " + "-" * 44)
-    for n_wrong in COMPOSITIONS:
-        if n_wrong > args.fleet:
-            continue
+    for n_wrong in compositions:
         flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
@@ -598,7 +599,7 @@ def main() -> int:
     print("\n  budget to repair, by policy (lower is better)")
     print(f"    {'wrong':>6}" + "".join(f"{p:>12}" for p in (*DEPLOYABLE, "oracle")))
     print("    " + "-" * (6 + 12 * (len(DEPLOYABLE) + 1)))
-    for n_wrong in COMPOSITIONS:
+    for n_wrong in compositions:
         cells = []
         for name in (*DEPLOYABLE, "oracle"):
             value = thresholds[name].get(n_wrong)
@@ -609,7 +610,7 @@ def main() -> int:
     # measurement rather than named in advance, so a corpus change that reordered the
     # policies would move this too instead of leaving a stale winner hard-coded.
     def total_cost(name: str) -> tuple[int, int]:
-        values = [thresholds[name].get(n) for n in COMPOSITIONS]
+        values = [thresholds[name].get(n) for n in compositions]
         unrepaired = sum(1 for v in values if v is None)
         return unrepaired, sum(v for v in values if v is not None)
 
@@ -626,9 +627,7 @@ def main() -> int:
     print(f"    {'wrong':>6}" + "".join(f"{e:>9}" for e in AUTHORITY_ERROR))
     print("    " + "-" * (6 + 9 * len(AUTHORITY_ERROR)))
     fallible: dict[int, dict[str, int | None]] = {}
-    for n_wrong in COMPOSITIONS:
-        if n_wrong > args.fleet:
-            continue
+    for n_wrong in compositions:
         flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
@@ -674,7 +673,7 @@ def main() -> int:
         "events": args.events,
         "budgets": list(BUDGETS),
         "auditable_pool": auditable,
-        "compositions": list(COMPOSITIONS),
+        "compositions": list(compositions),
         "authority_error": list(AUTHORITY_ERROR),
         "repaired_threshold": REPAIRED,
         "policy_seed": POLICY_SEED,

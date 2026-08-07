@@ -350,6 +350,10 @@ _METRIC_META: dict[str, tuple[str, str]] = {
     ),
     "difficulty.composition": ("1", "Spread of estimated item difficulty across overlap bands"),
     "fleet.linkage": ("1", "Share of contributors the stream identifies exactly"),
+    "governance_sensitivity.cliff_share": (
+        "1",
+        "Share of the fleet holding the wrong standard at which the estimator breaks",
+    ),
     "fleet_sensitivity.cliff": (
         "{contributor}",
         "Wrong-standard contributors at which consensus collapses, per fleet size",
