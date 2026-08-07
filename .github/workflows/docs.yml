@@ -3,18 +3,9 @@ name: Documentation
 # Builds the Zensical site and publishes it to GitHub Pages. Matches the pattern the
 # sister repositories use, including the SHA-pinned actions.
 #
-# The path filter matters: docs rebuild on their own changes, not on every commit to
-# src/. A code change that alters what the docs *describe* still has to touch a docs
-# file to say so, which is the intended coupling.
-#
-# The explorer is the exception, and it is not a weakening of that rule. `docs/explorer/`
-# is gitignored and BUILT here, from `src/pharos/static/index.html`, `pharos.escapes`,
-# `scripts/build_static_explorer.py` and the artifacts in `results/`. Those are build
-# inputs rather than things the docs describe, so leaving them out did not enforce a
-# coupling -- it published a stale page. The escapes tab was added to the explorer in
-# one commit that touched none of the paths below, and without these entries the
-# deployed page would have kept serving the previous build until somebody happened to
-# edit a markdown file.
+# The path filter is deliberate: a code change that alters what the docs *describe*
+# still has to touch a docs file to say so. The explorer paths below are the exception,
+# because `docs/explorer/` is gitignored and built here rather than described here.
 
 on:
   push:
@@ -27,8 +18,7 @@ on:
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/docs.yml"
-      # Explorer build inputs. See the note above: these are compiled into the
-      # published page, not described by it.
+      # Explorer build inputs, compiled into the published page.
       - "src/pharos/static/**"
       - "src/pharos/escapes.py"
       - "src/pharos/web.py"
