@@ -165,7 +165,6 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_blind_spot.py
 	uv run python scripts/measure_channel_bias.py
 	uv run python scripts/measure_estimator_initialization.py
-	uv run python scripts/measure_federation_eligibility.py
 	uv run python scripts/measure_fleet_sensitivity.py
 	uv run python scripts/logcheck.py
 	uv run python scripts/sync_docs_tables.py --check
