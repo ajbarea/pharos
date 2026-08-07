@@ -81,6 +81,10 @@ jobs:
       url: '${{ steps.deployment.outputs.page_url }}'
     runs-on: ubuntu-latest
     steps:
+      # Twenty minutes, not the default ten: a slow Pages queue outlasts the timer and
+      # fails the job for a deployment that then lands anyway.
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
         id: deployment
+        with:
+          timeout: 1200000
