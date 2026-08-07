@@ -1,0 +1,467 @@
+{
+  "fleets": [
+    9,
+    15
+  ],
+  "draws": [
+    1,
+    7,
+    11,
+    23,
+    101,
+    202,
+    303,
+    404
+  ],
+  "restarts": 32,
+  "likelihood_tie": 1e-06,
+  "repaired_threshold": 0.95,
+  "rows": [
+    {
+      "fleet": 9,
+      "n_wrong": 1,
+      "share": 0.1111,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 9,
+      "n_wrong": 2,
+      "share": 0.2222,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 9,
+      "n_wrong": 3,
+      "share": 0.3333,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 9,
+      "n_wrong": 4,
+      "share": 0.4444,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 9,
+      "n_wrong": 5,
+      "share": 0.5556,
+      "is_majority": true,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 2,
+      "draws_where_the_truth_fits_better": 2,
+      "draws_where_the_truth_is_a_fixed_point": 8,
+      "draws_where_restarts_recover": 2,
+      "restart_recovery_rate": 0.1094,
+      "likelihood_gap_range": [
+        -52.8218,
+        12.7217
+      ],
+      "likelihood_gap_median": -18.7213
+    },
+    {
+      "fleet": 9,
+      "n_wrong": 6,
+      "share": 0.6667,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 8,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0078,
+      "likelihood_gap_range": [
+        -142.8714,
+        -76.7564
+      ],
+      "likelihood_gap_median": -109.532
+    },
+    {
+      "fleet": 9,
+      "n_wrong": 7,
+      "share": 0.7778,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 1,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0,
+      "likelihood_gap_range": [
+        -166.6295,
+        -0.0
+      ],
+      "likelihood_gap_median": 0.0
+    },
+    {
+      "fleet": 9,
+      "n_wrong": 8,
+      "share": 0.8889,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 6,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0,
+      "likelihood_gap_range": [
+        0.0,
+        0.0001
+      ],
+      "likelihood_gap_median": -0.0
+    },
+    {
+      "fleet": 9,
+      "n_wrong": 9,
+      "share": 1.0,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0,
+      "likelihood_gap_range": [
+        -0.0002,
+        0.0
+      ],
+      "likelihood_gap_median": 0.0
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 1,
+      "share": 0.0667,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 2,
+      "share": 0.1333,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 3,
+      "share": 0.2,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 4,
+      "share": 0.2667,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 5,
+      "share": 0.3333,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 6,
+      "share": 0.4,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 7,
+      "share": 0.4667,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 0,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": null,
+      "likelihood_gap_range": null,
+      "likelihood_gap_median": null
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 8,
+      "share": 0.5333,
+      "is_majority": true,
+      "draws": 8,
+      "draws_broken": 6,
+      "draws_with_an_escape": 1,
+      "draws_where_the_truth_fits_better": 1,
+      "draws_where_the_truth_is_a_fixed_point": 6,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.1927,
+      "likelihood_gap_range": [
+        -59.5261,
+        5.413
+      ],
+      "likelihood_gap_median": -32.0244
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 9,
+      "share": 0.6,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 8,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.082,
+      "likelihood_gap_range": [
+        -149.5371,
+        -27.4423
+      ],
+      "likelihood_gap_median": -85.9272
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 10,
+      "share": 0.6667,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 8,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0273,
+      "likelihood_gap_range": [
+        -239.549,
+        -116.9132
+      ],
+      "likelihood_gap_median": -177.2676
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 11,
+      "share": 0.7333,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 1,
+      "draws_where_the_truth_is_a_fixed_point": 7,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0039,
+      "likelihood_gap_range": [
+        -329.6031,
+        0.0001
+      ],
+      "likelihood_gap_median": -268.2454
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 12,
+      "share": 0.8,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 6,
+      "draws_where_the_truth_is_a_fixed_point": 1,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0,
+      "likelihood_gap_range": [
+        -295.9219,
+        0.0001
+      ],
+      "likelihood_gap_median": 0.0
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 13,
+      "share": 0.8667,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 1,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0,
+      "likelihood_gap_range": [
+        -0.0003,
+        0.0
+      ],
+      "likelihood_gap_median": 0.0
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 14,
+      "share": 0.9333,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0,
+      "likelihood_gap_range": [
+        0.0,
+        0.0
+      ],
+      "likelihood_gap_median": 0.0
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 15,
+      "share": 1.0,
+      "is_majority": false,
+      "draws": 8,
+      "draws_broken": 8,
+      "draws_with_an_escape": 0,
+      "draws_where_the_truth_fits_better": 0,
+      "draws_where_the_truth_is_a_fixed_point": 0,
+      "draws_where_restarts_recover": 0,
+      "restart_recovery_rate": 0.0,
+      "likelihood_gap_range": [
+        0.0,
+        0.0
+      ],
+      "likelihood_gap_median": 0.0
+    }
+  ],
+  "priced_compositions": 13,
+  "escape_compositions": [
+    {
+      "fleet": 9,
+      "n_wrong": 5,
+      "share": 0.5556,
+      "draws_with_an_escape": 2,
+      "draws_broken": 8
+    },
+    {
+      "fleet": 15,
+      "n_wrong": 8,
+      "share": 0.5333,
+      "draws_with_an_escape": 1,
+      "draws_broken": 6
+    }
+  ],
+  "invariants": {
+    "no_initialisation_escapes_the_cliff": false,
+    "the_escape_is_confined_to_the_crossing": true,
+    "likelihood_selection_would_pick_the_truth_wherever_it_is_reachable": false,
+    "random_restarts_never_recover_the_truth": false
+  },
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "df9ff88ac4ca",
+    "git_dirty": false,
+    "generated_at": "2026-08-07T12:53:53+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "fleets": [
+      9,
+      15
+    ],
+    "draws": [
+      1,
+      7,
+      11,
+      23,
+      101,
+      202,
+      303,
+      404
+    ],
+    "restarts": 32
+  }
+}

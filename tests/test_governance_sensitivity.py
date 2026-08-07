@@ -130,33 +130,59 @@ def test_the_cliff_is_a_share_of_the_fleet_and_not_a_bare_majority():
     share without resolving it, and pinning a number the sweep cannot see would be the
     same overclaim in the other direction.
     """
-    bracket = artifact("governance_sensitivity")["cliff_bracket"]
+    payload = artifact("governance_sensitivity")
+    bracket = payload["cliff_bracket"]
 
-    assert bracket["highest_safe_share"] < bracket["lowest_broken_share"], (
-        "a fleet recovers above a share where another breaks; the cliff is not a share"
-    )
-    assert bracket["fleets_surviving_a_bare_majority"], (
-        "no fleet survives a bare majority, which would restore the retired phrasing -- "
-        "a result worth publishing, not a test to relax"
-    )
     assert bracket["fleets_where_the_cliff_is_at_the_majority"], (
         "the crossing coincides with the majority nowhere, including at nine, where "
         "every committed number in findings 19-23 was measured"
     )
+    assert not payload["invariants"]["the_cliff_is_at_the_majority_at_every_fleet"], (
+        "the crossing is at the majority everywhere, which would restore the retired "
+        "phrasing -- a result worth publishing, not a test to relax"
+    )
+
+    low, high = bracket["breaking_share_range"]
+    assert low < high, (
+        "the crossing takes one value across every fleet and draw swept, which would "
+        "make it the constant finding 24 first claimed it was"
+    )
+    assert 0.5 <= low <= high <= 1.0, "a crossing outside (0.5, 1] is not a wrong majority"
 
 
-def test_the_cliff_deepens_nowhere_even_where_it_moves():
-    """Location and depth come apart, and only the location is fleet-dependent.
+def test_the_cliff_has_no_gradient_within_a_draw():
+    """The mechanism claim, at the only scope where it survived the draw sweep.
 
-    Post-cliff agreement is the same value at every fleet and every composition past the
-    crossing. That is what makes this a relabelling of the latent class rather than a
-    gradual loss of signal: there is no partial failure to be found between the two
-    levels, so a fleet is either identified or it is not.
+    Past the crossing, agreement is one value at every composition above it -- so the
+    failure is a relabelling of the latent class rather than a gradual loss of signal,
+    and a fleet is either identified or it is not.
+
+    Asserted per draw rather than across them, because that is where it holds. The
+    committed artifact once reported a single global depth of 0.6598; over eight draws
+    the level takes eight values, and reading the one-draw constant as a property was
+    half of finding 24's retraction.
     """
-    bracket = artifact("governance_sensitivity")["cliff_bracket"]
-    assert len(bracket["post_cliff_agreement"]) == 1, (
-        f"post-cliff agreement now takes several values {bracket['post_cliff_agreement']}; "
-        "the failure has a gradient it did not have, which changes the mechanism"
+    payload = artifact("governance_sensitivity")
+    checked = 0
+    for entry in payload["cliff"]:
+        for draw in entry["per_draw"]:
+            broken = draw["lowest_broken"]
+            if not broken:
+                continue
+            above = {
+                row["agreement"] for row in draw["grid"] if row["n_wrong"] >= broken["n_wrong"]
+            }
+            assert len(above) == 1, (
+                f"fleet {entry['fleet']} draw {draw['draw']}: agreement past the crossing "
+                f"takes several values {sorted(above)}; the failure has a gradient it did "
+                "not have, which changes the mechanism"
+            )
+            checked += 1
+    assert checked >= 8, "too few draws carried a crossing for this to have tested anything"
+
+    assert len(payload["cliff_bracket"]["post_cliff_agreement"]) > 1, (
+        "the depth is one value across every draw, which would restore the constant "
+        "finding 24 first published -- publish it rather than relaxing the retraction"
     )
 
 

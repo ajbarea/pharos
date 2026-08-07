@@ -355,23 +355,63 @@ ESCAPES = (
         findings=(24,),
         verdict="bounded",
         outcome=(
-            "Only the wording. The crossing is a fixed share of the fleet, and a bare "
-            "majority exceeds it only in small fleets, so 'a majority holds the wrong "
-            "standard' names the mechanism at one fleet size. Every other invariant "
-            "survives at four."
+            "The wording, and more than we first reported. The crossing is not a fixed "
+            "share but a distribution over corpus draws, and it grows less predictable "
+            "as the fleet grows: at nine analysts every draw breaks at the same "
+            "composition, at twenty-five a bare majority survives on half of them. Every "
+            "other invariant survives at four fleet sizes."
         ),
         readings=(
             Reading(
-                "Highest safe share",
+                "Breaking share, median",
                 "governance_sensitivity.json",
-                "cliff_bracket.highest_safe_share",
+                "cliff_bracket.breaking_share_median",
                 "{:.3f}",
             ),
             Reading(
-                "Lowest broken share",
+                "Breaking share, lowest",
                 "governance_sensitivity.json",
-                "cliff_bracket.lowest_broken_share",
+                "cliff_bracket.breaking_share_range.0",
                 "{:.3f}",
+            ),
+            Reading(
+                "Breaking share, highest",
+                "governance_sensitivity.json",
+                "cliff_bracket.breaking_share_range.1",
+                "{:.3f}",
+            ),
+        ),
+    ),
+    Escape(
+        key="initialisation",
+        objection="Is the cliff real, or is it where you pointed the estimator?",
+        findings=(25,),
+        verdict="bounded",
+        outcome=(
+            "Bounded to one cell. Dawid-Skene here starts from the majority vote, which "
+            "has no global-optimality guarantee, so the objection is fair and was never "
+            "tested. Sweeping the start over an uninformative one, an adversarial one, "
+            "thirty-two random restarts and the ground truth itself, an escape exists "
+            "only at the crossing composition and only in a minority of draws. Past it "
+            "the wrong answer is the better fit by tens of nats, so selecting by "
+            "likelihood picks it even where the truth is reachable, and no initialiser "
+            "helps a search whose objective prefers the wrong answer."
+        ),
+        readings=(
+            Reading(
+                "Compositions priced",
+                "estimator_initialization.json",
+                "priced_compositions",
+            ),
+            Reading(
+                "Random restarts per cell",
+                "estimator_initialization.json",
+                "restarts",
+            ),
+            Reading(
+                "Escape confined to the crossing",
+                "estimator_initialization.json",
+                "invariants.the_escape_is_confined_to_the_crossing",
             ),
         ),
     ),

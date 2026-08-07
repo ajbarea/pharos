@@ -902,34 +902,80 @@ def governance_sensitivity() -> str:
 
     bracket = payload["cliff_bracket"]
     lines = [
-        "| Fleet | Bare majority | Recovers up to | Breaks at | Breaking share | "
-        "Survives a bare majority |",
+        "| Fleet | Bare majority | Breaking share (median) | Breaking share (range) | "
+        "Crossing at the majority | Survives a bare majority |",
         "| --- | --- | --- | --- | --- | --- |",
     ]
     for row in cliff:
-        safe = row["highest_safe"]
-        broke = row["lowest_broken"]
-        survives = "**yes**" if row["survives_a_bare_majority"] else "no"
-        safe_at = safe["n_wrong"] if safe else "--"
-        broke_at = broke["n_wrong"] if broke else "--"
-        broke_share = f"{broke['share']:.3f}" if broke else "--"
+        span = row["breaking_share_range"]
+        rng = f"{span[0]:.3f} – {span[1]:.3f}" if span else "--"
+        median = f"{row['breaking_share_median']:.3f}" if row["breaking_share_median"] else "--"
+        at_majority = f"{row['draws_where_the_cliff_is_at_the_majority']}/{row['draws']}"
+        survives = f"{row['draws_surviving_a_bare_majority']}/{row['draws']}"
         lines.append(
-            f"| {row['fleet']} | {row['majority']} | {safe_at} | {broke_at} "
-            f"| {broke_share} | {survives} |"
+            f"| {row['fleet']} | {row['majority']} | {median} | {rng} "
+            f"| {at_majority} | {survives} |"
         )
 
+    span = bracket["breaking_share_range"]
     depths = bracket["post_cliff_agreement"]
+    draws = len(payload.get("draws") or cliff[0]["draw_seeds"])
     lines += [
         "",
-        f"Every composition from 1 to the fleet size, one EM fit each, with recovery at "
-        f"agreement ≥ {payload['repaired_threshold']}. The breaking share is bracketed by "
-        f"**{bracket['highest_safe_share']:.4f} < s ≤ {bracket['lowest_broken_share']:.4f}**; "
-        "four fleet sizes bound it and none of them resolves it further.",
+        f"Every composition from 1 to the fleet size, one EM fit each, over {draws} corpus "
+        f"draws, with recovery at agreement ≥ {payload['repaired_threshold']}. The last two "
+        "columns are counts of draws, not verdicts, and that is the finding: the crossing "
+        f"is a distribution spanning **{span[0]:.3f} – {span[1]:.3f}** rather than a "
+        "constant, and it becomes *less* predictable as the fleet grows. At five and nine "
+        "analysts every draw breaks at the same composition; at fifteen and twenty-five the "
+        "same fleet survives a bare majority on some corpora and not others.",
         "",
-        f"Agreement past the crossing is {', '.join(f'{d:.4f}' for d in depths)} at every "
-        f"fleet and every composition above it, so the cliff's **depth** does not move "
-        f"where its **location** does. The failure has no gradient: a fleet is identified "
-        f"or it is not.",
+        f"Agreement past the crossing takes {len(depths)} distinct values across draws "
+        f"({min(depths):.4f} – {max(depths):.4f}). Within a single draw it is constant at "
+        "every composition above the crossing, so the failure still has no gradient — a "
+        "fleet is identified or it is not — but the level it falls to is a property of the "
+        "corpus.",
+    ]
+    return "\n".join(lines)
+
+
+def estimator_initialization() -> str:
+    """Finding 25: whether a different start escapes the cliff, per composition."""
+    path = RESULTS / "estimator_initialization.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make estimator-initialization` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    priced = [row for row in payload.get("rows", []) if row["draws_broken"]]
+    if not priced:
+        _fail("estimator_initialization.json prices no broken composition; refusing an empty table")
+
+    lines = [
+        "| Fleet | Wrong | Draws broken | Draws with an escape | Restarts recovering | "
+        "Median log-likelihood gap |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in priced:
+        marker = " *(crossing)*" if row["is_majority"] else ""
+        lines.append(
+            f"| {row['fleet']} | {row['n_wrong']}{marker} "
+            f"| {row['draws_broken']}/{row['draws']} "
+            f"| {row['draws_with_an_escape']} "
+            f"| {row['restart_recovery_rate']:.3f} "
+            f"| {row['likelihood_gap_median']:+.1f} |"
+        )
+
+    lines += [
+        "",
+        f"Every composition the published start gets wrong, over {len(payload['draws'])} corpus "
+        f"draws and {payload['restarts']} random restarts each, plus an uninformative start, an "
+        "adversarial one, and the ground truth. An *escape* is a start that both fits strictly "
+        "better and recovers the truth.",
+        "",
+        "The gap is signed and the sign is the finding: it is the truth's log-likelihood minus "
+        "the published answer's, so **negative means the wrong answer is the better fit**. It is "
+        "negative everywhere past the crossing and grows with the share, which is why no "
+        "likelihood-guided initialisation helps there. Exactly zero means the truth is not a "
+        "fixed point at all — seeded there, EM leaves.",
     ]
     return "\n".join(lines)
 
@@ -938,6 +984,7 @@ def governance_sensitivity() -> str:
 #: than a no-op: a marker with nothing behind it is how a table quietly stops updating.
 BLOCKS = {
     "governance-sensitivity": governance_sensitivity,
+    "estimator-initialization": estimator_initialization,
     "power-claims": power_claims,
     "measurement-health": measurement_health,
     "teacher-fleet": teacher_fleet,
