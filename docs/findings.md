@@ -255,7 +255,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 
 **27 of 58** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
-**Carrying no validity assessment, which is a gap rather than a pass:** `governance_sensitivity`.
+**Carrying no validity assessment, which is a gap rather than a pass:** `estimator_initialization`, `governance_sensitivity`.
 
 Exempt, because there is no sampling question to answer:
 
@@ -2931,7 +2931,7 @@ observable partition of the corpus, audit that partition.** A shared error that 
 no observable partition leaves no trace for finding 22 to detect and no handle for this
 policy to grip.
 
-## 24. The cliff is a share of the fleet, and "a majority" was nine analysts talking
+## 24. The crossing is a distribution over corpora, not a share, and "a majority" was nine analysts talking
 
 Findings 19 through 23 all describe the same failure in the same words: *a majority
 holds the wrong standard*. Every one of them was measured at nine analysts, where the
@@ -2942,32 +2942,54 @@ Sweeping the fleet and scanning **every** composition rather than the five the l
 visits separates them.
 
 <!-- BEGIN GENERATED: governance-sensitivity -->
-| Fleet | Bare majority | Recovers up to | Breaks at | Breaking share | Survives a bare majority |
+| Fleet | Bare majority | Breaking share (median) | Breaking share (range) | Crossing at the majority | Survives a bare majority |
 | --- | --- | --- | --- | --- | --- |
-| 5 | 3 | 2 | 3 | 0.600 | no |
-| 9 | 5 | 4 | 5 | 0.556 | no |
-| 15 | 8 | 8 | 9 | 0.600 | **yes** |
-| 25 | 13 | 13 | 14 | 0.560 | **yes** |
+| 5 | 3 | 0.600 | 0.600 – 0.600 | 8/8 | 0/8 |
+| 9 | 5 | 0.556 | 0.556 – 0.556 | 8/8 | 0/8 |
+| 15 | 8 | 0.533 | 0.533 – 0.600 | 6/8 | 2/8 |
+| 25 | 13 | 0.560 | 0.520 – 0.600 | 4/8 | 4/8 |
 
-Every composition from 1 to the fleet size, one EM fit each, with recovery at agreement ≥ 0.95. The breaking share is bracketed by **0.5333 < s ≤ 0.5556**; four fleet sizes bound it and none of them resolves it further.
+Every composition from 1 to the fleet size, one EM fit each, over 8 corpus draws, with recovery at agreement ≥ 0.95. The last two columns are counts of draws, not verdicts, and that is the finding: the crossing is a distribution spanning **0.520 – 0.600** rather than a constant, and it becomes *less* predictable as the fleet grows. At five and nine analysts every draw breaks at the same composition; at fifteen and twenty-five the same fleet survives a bare majority on some corpora and not others.
 
-Agreement past the crossing is 0.6598 at every fleet and every composition above it, so the cliff's **depth** does not move where its **location** does. The failure has no gradient: a fleet is identified or it is not.
+Agreement past the crossing takes 8 distinct values across draws (0.5773 – 0.7882). Within a single draw it is constant at every composition above the crossing, so the failure still has no gradient — a fleet is identified or it is not — but the level it falls to is a property of the corpus.
 <!-- END GENERATED: governance-sensitivity -->
 
-**A bare majority breaks a fleet of nine and does not break a fleet of fifteen.** The
-crossing sits at a fixed share of the fleet, and the bare majority exceeds that share
-only when the fleet is small enough for one analyst to be a large fraction of it: 5 of 9
-is 0.556 and breaks, 8 of 15 is 0.533 and does not. So the phrase every earlier finding
-used names a quantity that happens to coincide with the mechanism at one fleet size.
+**The crossing is a distribution, not a constant, and it gets less predictable as the
+fleet grows.** At five and nine analysts every one of eight corpus draws breaks at the
+same composition. At fifteen and twenty-five they do not agree with each other: the same
+fleet size survives a bare majority on some corpora and fails on others, 2 draws in 8 at
+fifteen and 4 in 8 at twenty-five. Across the whole sweep the breaking share spans 0.520
+to 0.600.
+
+So the phrase every earlier finding used -- *a majority holds the wrong standard* --
+names the mechanism exactly at nine analysts and is a coin flip at twenty-five. That is
+the part that survives. What does **not** survive is the first version of this finding.
+
+!!! danger "Retraction, 2026-08-07: this finding's own headline was one draw"
+    Published a day earlier, finding 24 claimed the crossing sat at a fixed share
+    bracketed by `0.533 < s ≤ 0.556`, that fleets of fifteen and twenty-five therefore
+    *survive* a bare majority, and that agreement past the crossing is a constant 0.6598.
+    All three came from one corpus per fleet, and the committed seed is favourable at
+    both larger sizes.
+
+    Over eight draws: the breaking share spans **0.520 – 0.600** and the bracket does not
+    hold; a bare majority survives at fifteen in **2 draws of 8** rather than as a
+    property; and post-crossing agreement takes **eight distinct values** from 0.5773 to
+    0.7882 rather than one.
+
+    This is the third time a single-draw quantity has been published here as a constant,
+    after finding 19's anchor prices and finding 5's shot count. The scan now sweeps the
+    draw and the artifact reports a median with its range. **A crossing quoted without a
+    denominator is not a measurement.**
 
 !!! danger "What this changes about findings 19 and 20"
     The prices those findings publish -- a median of 12 audited items to repair a bare
-    majority, 20 at six of nine, 30 at seven -- are prices for **compositions**, and they
-    stand. What does not stand is reading them as a price for *a bare majority* in
-    general. At fifteen and twenty-five analysts a bare majority costs nothing to repair,
-    because there is nothing to repair.
+    majority, 20 at six of nine, 30 at seven -- are prices for **compositions** measured
+    at nine analysts, and they stand. What does not stand is reading them as a price for
+    *a bare majority* in general, in either direction: a bare majority is not reliably
+    broken above nine analysts, and it is not reliably safe there either.
 
-    Quote the share, not the phrase.
+    Quote the composition and the fleet, never the phrase.
 
 **This half was already on disk, and nobody read it back into the prose.**
 [Finding 17's fleet sweep](#17-modelling-item-difficulty-does-not-separate-a-hard-item-from-a-wrong-standard-it-converts-one-into-the-other)
@@ -2976,17 +2998,25 @@ when it ran, and `fleet_sensitivity.json` has carried `dawid_skene_survives_cros
 true` for fleets 15, 25 and 51 ever since. Findings 19 through 23 were written after
 that and went on calling the failure "a majority holds the wrong standard" anyway.
 
-So the new part here is not the fact. It is the **share**, bracketed by scanning every
-composition rather than the crossing alone; the **invariance of the depth**; and the
-observation that the phrase all five later findings share is load-bearing in none of
-them. The rest is a claim this repository had already measured and failed to propagate,
-which is the same prose-outlives-its-evidence failure this page has now corrected five
-times.
+So the new part here is not the fact. It is that the crossing was scanned at every
+composition rather than at the crossing alone, over eight draws rather than one; that its
+location is a **distribution** whose spread grows with the fleet; and the observation that
+the phrase all five later findings share is load-bearing in none of them. The rest is a
+claim this repository had already measured and failed to propagate, which is the same
+prose-outlives-its-evidence failure this page has now corrected five times.
 
-**Reliability weighting buys real margin, and how much depends on the fleet.** Plain
-consensus flips at the majority by definition, at every fleet size. Dawid-Skene does not.
-Finding 12 measured that at nine and called it "one extra contributor of margin, not an
-escape", which was the right reading of the fleet it had.
+**The depth is flat within a draw and not across draws.** Past the crossing, agreement is
+the same value at every composition above it -- checked in all 32 fleet-and-draw cells --
+so the failure still has no gradient: a fleet is identified or it is not. But *which*
+level it falls to is a property of the corpus, ranging 0.5773 to 0.7882. The earlier claim
+that the depth is a constant 0.6598 was the same one-draw error as the location.
+
+**Reliability weighting buys margin, and less reliably than the first version claimed.**
+Plain consensus flips at the majority by definition, at every fleet size. Dawid-Skene
+does not, at nine. Above nine it sometimes does and sometimes does not, which is a weaker
+statement than the one this finding first made. Finding 12 measured this at nine and
+called it "one extra contributor of margin, not an escape", which remains the right
+reading of the fleet it had.
 
 !!! note "It is still not an escape"
     The margin is bounded by the same share. A house style that reaches 60% of a fleet
@@ -3006,7 +3036,8 @@ four fleet sizes: selection beats a uniform draw wherever a repair is needed, an
 the oracle bound; disagreement collapses to chance at unanimity; provenance recovers
 every corrupted item there; no policy repairs an unanchored label, including the oracle;
 and the blinded channel is detected at every noise level while every control stays
-silent. Only the "bare majority" phrasing moved.
+silent. All six still hold. What moved is confined to this finding's own claims about
+where the crossing sits and how deep it goes.
 
 !!! warning "Two defects the sweep found before it measured anything"
     All four scripts accepted `--fleet` and none of them scaled its *compositions* with
@@ -3030,3 +3061,94 @@ failure mode this whole page is about. A smoke run at 300 permutations reported 
 permutations put the entire attainable range above alpha and **no cell could be detected
 at any effect size**. The sweep had manufactured a failure to replicate out of its own
 argument. It now refuses to run below a permutation count that can clear alpha.
+
+## 25. The cliff is not where we pointed the estimator, except at the crossing itself
+
+Every finding from 12 onward rests on Dawid-Skene reporting the wrong standard as the
+truth once enough of the fleet holds it. And `inference.py` has said in its own docstring,
+since the day it was written, that EM started from the majority vote "is drawn toward
+whatever the majority believes."
+
+That is a researcher degree of freedom sitting directly underneath the headline result,
+and it is the first thing a reviewer reaches for. The Dawid-Skene log-likelihood is
+non-convex; majority-vote initialisation carries no global-optimality guarantee. Zhang,
+Chen, Zhou and Jordan ([JMLR 17, 2016](https://jmlr.org/papers/volume17/14-511/14-511.pdf))
+initialise from a spectral method of moments and prove optimal convergence for the
+two-stage estimator precisely because the conventional start does not have that property;
+the plainer remedy named in the same literature is many random restarts scored by
+likelihood. Neither had ever been tried here.
+
+So the question is sharp, and it has opposite answers: **is the wrong answer the
+maximum-likelihood fit, or merely the basin the conventional start falls into?** A local
+optimum is escapable, and findings 12 and 17 through 24 would shrink to statements about
+one initialiser. A global optimum is not escapable by any initialiser at all.
+
+<!-- BEGIN GENERATED: estimator-initialization -->
+| Fleet | Wrong | Draws broken | Draws with an escape | Restarts recovering | Median log-likelihood gap |
+| --- | --- | --- | --- | --- | --- |
+| 9 | 5 *(crossing)* | 8/8 | 2 | 0.109 | -18.7 |
+| 9 | 6 | 8/8 | 0 | 0.008 | -109.5 |
+| 9 | 7 | 8/8 | 0 | 0.000 | +0.0 |
+| 9 | 8 | 8/8 | 0 | 0.000 | -0.0 |
+| 9 | 9 | 8/8 | 0 | 0.000 | +0.0 |
+| 15 | 8 *(crossing)* | 6/8 | 1 | 0.193 | -32.0 |
+| 15 | 9 | 8/8 | 0 | 0.082 | -85.9 |
+| 15 | 10 | 8/8 | 0 | 0.027 | -177.3 |
+| 15 | 11 | 8/8 | 0 | 0.004 | -268.2 |
+| 15 | 12 | 8/8 | 0 | 0.000 | +0.0 |
+| 15 | 13 | 8/8 | 0 | 0.000 | +0.0 |
+| 15 | 14 | 8/8 | 0 | 0.000 | +0.0 |
+| 15 | 15 | 8/8 | 0 | 0.000 | +0.0 |
+
+Every composition the published start gets wrong, over 8 corpus draws and 32 random restarts each, plus an uninformative start, an adversarial one, and the ground truth. An *escape* is a start that both fits strictly better and recovers the truth.
+
+The gap is signed and the sign is the finding: it is the truth's log-likelihood minus the published answer's, so **negative means the wrong answer is the better fit**. It is negative everywhere past the crossing and grows with the share, which is why no likelihood-guided initialisation helps there. Exactly zero means the truth is not a fixed point at all — seeded there, EM leaves.
+<!-- END GENERATED: estimator-initialization -->
+
+**The escape exists, and it is confined to the crossing composition.** At the cell where
+the cliff begins, a better start sometimes recovers the truth: 2 draws in 8 at nine
+analysts, 1 in 6 at fifteen. Roughly a tenth to a fifth of random restarts find it when
+it is there. So at exactly one composition per fleet, the published number reports a
+local optimum rather than the estimator's preference, and that cell now carries the
+caveat.
+
+**Past the crossing, no start escapes, and the artifact says why.** The gap between the
+truth's likelihood and the published answer's runs to tens and then hundreds of nats
+against the truth. At six of nine it is about 110 nats; at eleven of fifteen, 268. The
+truth is still *reachable* there -- seeded at it, EM stays -- but it is the strictly worse
+fit, so **selecting by likelihood rejects it**. That is the sharpest form of the result:
+a better initialiser cannot rescue a search whose objective prefers the wrong answer.
+
+!!! note "Why the oracle start is a diagnostic and not a method"
+    One of the starts swept is the ground truth itself. An estimator that needs the
+    answer to find the answer is useless, and it is not proposed as anything else. It is
+    the only way to separate "EM prefers the wrong answer" from "EM was aimed at it",
+    because it is the one start guaranteed to be inside the truth's basin if a basin
+    exists. Where EM seeded at the truth walks away from it -- seven of nine and above --
+    the truth is not a fixed point of the likelihood at all, and the question of finding
+    it with a better initialiser does not arise.
+
+**Random restarts are the wrong fix even where an escape exists.** Reported as a rate
+rather than a boolean, because one restart in thirty-two and thirty in thirty-two are the
+same yes and different methods. Where the escape exists, restarts find it around 11-19% of
+the time; where it does not, they land on the inverted labelling instead -- agreement near
+0.35, which is label switching, the failure the identifiability machinery in the
+class-conditional model was added to prevent and
+[finding 17's note](#17-modelling-item-difficulty-does-not-separate-a-hard-item-from-a-wrong-standard-it-converts-one-into-the-other)
+already records there.
+
+!!! warning "What this does and does not license"
+    It licenses keeping findings 12 and 17 through 24 as stated, with one added scope
+    condition: **at the crossing composition itself, the reported failure is
+    initialisation-dependent on some corpora.** Everywhere past it the failure is a
+    property of the likelihood.
+
+    It does not license the claim that no initialiser anywhere could do better. Thirty-two
+    restarts bound how large an unfound basin could be -- a basin covering a tenth of the
+    space is missed with probability 0.034 -- rather than proving none exists. A spectral
+    initialisation of the kind Zhang et al. prove optimal is not implemented here, and is
+    the obvious next thing to build.
+
+This is the objection that would have been asked first and answered worst. It cost one
+argument on an existing function and one script; it should have been run before finding
+12 was published, not thirteen findings later.

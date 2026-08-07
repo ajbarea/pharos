@@ -46,6 +46,7 @@ SCRIPTS = (
     "measure_audit_policy.py",
     "measure_blind_spot.py",
     "measure_channel_bias.py",
+    "measure_estimator_initialization.py",
 )
 
 #: The one warning family this command cannot expect to see, because it fires on
@@ -76,6 +77,12 @@ EXPECTED_WARNINGS = {
     # show. It going quiet again would mean a composition started repairing that the
     # finding says cannot.
     "authority.not_repaired",
+    # Finding 25's result: an initialisation escape exists at the crossing composition.
+    # Expected because the sweep was built to find out whether one does, and it does.
+    # If it stops firing, no start beats the majority vote anywhere -- a stronger result
+    # than the one published, and one that should retire finding 25's caveat rather than
+    # pass silently.
+    "estimator_initialization.escape_found",
     # `inference.glad_did_not_converge` is deliberately NOT here. It was, for about an
     # hour, while this project believed non-convergence was a property of GLAD. It is
     # not: the implementation was missing the Gaussian priors Whitehill et al. specify

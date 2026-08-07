@@ -5,434 +5,3415 @@
     15,
     25
   ],
+  "draws": [
+    1,
+    7,
+    11,
+    23,
+    101,
+    202,
+    303,
+    404
+  ],
   "repaired_threshold": 0.95,
   "cliff": [
     {
       "fleet": 5,
       "majority": 3,
       "majority_share": 0.6,
-      "grid": [
+      "draw_seeds": [
+        1,
+        7,
+        11,
+        23,
+        101,
+        202,
+        303,
+        404
+      ],
+      "per_draw": [
         {
-          "n_wrong": 1,
-          "share": 0.2,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 1,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.6,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.8,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 5,
+              "share": 1.0,
+              "agreement": 0.5773,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 2,
+            "share": 0.4,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 3,
+            "share": 0.6,
+            "agreement": 0.5773,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.5773
         },
         {
-          "n_wrong": 2,
-          "share": 0.4,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 7,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.6,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.8,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 5,
+              "share": 1.0,
+              "agreement": 0.6598,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 2,
+            "share": 0.4,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 3,
+            "share": 0.6,
+            "agreement": 0.6598,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6598
         },
         {
-          "n_wrong": 3,
-          "share": 0.6,
-          "agreement": 0.6598,
-          "recovers": false
+          "draw": 11,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.6,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.8,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 5,
+              "share": 1.0,
+              "agreement": 0.6429,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 2,
+            "share": 0.4,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 3,
+            "share": 0.6,
+            "agreement": 0.6429,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6429
         },
         {
-          "n_wrong": 4,
-          "share": 0.8,
-          "agreement": 0.6598,
-          "recovers": false
+          "draw": 23,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.6,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.8,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 5,
+              "share": 1.0,
+              "agreement": 0.6265,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 2,
+            "share": 0.4,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 3,
+            "share": 0.6,
+            "agreement": 0.6265,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6265
         },
         {
-          "n_wrong": 5,
-          "share": 1.0,
-          "agreement": 0.6598,
-          "recovers": false
+          "draw": 101,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.6,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.8,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 5,
+              "share": 1.0,
+              "agreement": 0.7882,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 2,
+            "share": 0.4,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 3,
+            "share": 0.6,
+            "agreement": 0.7882,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.7882
+        },
+        {
+          "draw": 202,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.6,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.8,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 5,
+              "share": 1.0,
+              "agreement": 0.686,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 2,
+            "share": 0.4,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 3,
+            "share": 0.6,
+            "agreement": 0.686,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.686
+        },
+        {
+          "draw": 303,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.6,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.8,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 5,
+              "share": 1.0,
+              "agreement": 0.6263,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 2,
+            "share": 0.4,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 3,
+            "share": 0.6,
+            "agreement": 0.6263,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6263
+        },
+        {
+          "draw": 404,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.6,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.8,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 5,
+              "share": 1.0,
+              "agreement": 0.6374,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 2,
+            "share": 0.4,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 3,
+            "share": 0.6,
+            "agreement": 0.6374,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6374
         }
       ],
-      "highest_safe": {
-        "n_wrong": 2,
-        "share": 0.4,
-        "agreement": 1.0,
-        "recovers": true
-      },
-      "lowest_broken": {
-        "n_wrong": 3,
-        "share": 0.6,
-        "agreement": 0.6598,
-        "recovers": false
-      },
-      "cliff_is_at_the_majority": true,
-      "survives_a_bare_majority": false,
-      "post_cliff_agreement": 0.6598
+      "breaking_share_range": [
+        0.6,
+        0.6
+      ],
+      "breaking_share_median": 0.6,
+      "draws_where_the_cliff_is_at_the_majority": 8,
+      "draws_surviving_a_bare_majority": 0,
+      "draws": 8,
+      "post_cliff_agreement": [
+        0.5773,
+        0.6263,
+        0.6265,
+        0.6374,
+        0.6429,
+        0.6598,
+        0.686,
+        0.7882
+      ]
     },
     {
       "fleet": 9,
       "majority": 5,
       "majority_share": 0.5556,
-      "grid": [
+      "draw_seeds": [
+        1,
+        7,
+        11,
+        23,
+        101,
+        202,
+        303,
+        404
+      ],
+      "per_draw": [
         {
-          "n_wrong": 1,
-          "share": 0.1111,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 1,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.1111,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.2222,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.4444,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.5556,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.6667,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.7778,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.8889,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 1.0,
+              "agreement": 0.5773,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 4,
+            "share": 0.4444,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 5,
+            "share": 0.5556,
+            "agreement": 0.5773,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.5773
         },
         {
-          "n_wrong": 2,
-          "share": 0.2222,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 7,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.1111,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.2222,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.4444,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.5556,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.6667,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.7778,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.8889,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 1.0,
+              "agreement": 0.6598,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 4,
+            "share": 0.4444,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 5,
+            "share": 0.5556,
+            "agreement": 0.6598,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6598
         },
         {
-          "n_wrong": 3,
-          "share": 0.3333,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 11,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.1111,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.2222,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.4444,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.5556,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.6667,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.7778,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.8889,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 1.0,
+              "agreement": 0.6429,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 4,
+            "share": 0.4444,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 5,
+            "share": 0.5556,
+            "agreement": 0.6429,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6429
         },
         {
-          "n_wrong": 4,
-          "share": 0.4444,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 23,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.1111,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.2222,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.4444,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.5556,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.6667,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.7778,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.8889,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 1.0,
+              "agreement": 0.6265,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 4,
+            "share": 0.4444,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 5,
+            "share": 0.5556,
+            "agreement": 0.6265,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6265
         },
         {
-          "n_wrong": 5,
-          "share": 0.5556,
-          "agreement": 0.6598,
-          "recovers": false
+          "draw": 101,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.1111,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.2222,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.4444,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.5556,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.6667,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.7778,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.8889,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 1.0,
+              "agreement": 0.7882,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 4,
+            "share": 0.4444,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 5,
+            "share": 0.5556,
+            "agreement": 0.7882,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.7882
         },
         {
-          "n_wrong": 6,
-          "share": 0.6667,
-          "agreement": 0.6598,
-          "recovers": false
+          "draw": 202,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.1111,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.2222,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.4444,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.5556,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.6667,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.7778,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.8889,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 1.0,
+              "agreement": 0.686,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 4,
+            "share": 0.4444,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 5,
+            "share": 0.5556,
+            "agreement": 0.686,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.686
         },
         {
-          "n_wrong": 7,
-          "share": 0.7778,
-          "agreement": 0.6598,
-          "recovers": false
+          "draw": 303,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.1111,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.2222,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.4444,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.5556,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.6667,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.7778,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.8889,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 1.0,
+              "agreement": 0.6263,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 4,
+            "share": 0.4444,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 5,
+            "share": 0.5556,
+            "agreement": 0.6263,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6263
         },
         {
-          "n_wrong": 8,
-          "share": 0.8889,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 9,
-          "share": 1.0,
-          "agreement": 0.6598,
-          "recovers": false
+          "draw": 404,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.1111,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.2222,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.4444,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.5556,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.6667,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.7778,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.8889,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 1.0,
+              "agreement": 0.6374,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 4,
+            "share": 0.4444,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 5,
+            "share": 0.5556,
+            "agreement": 0.6374,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6374
         }
       ],
-      "highest_safe": {
-        "n_wrong": 4,
-        "share": 0.4444,
-        "agreement": 1.0,
-        "recovers": true
-      },
-      "lowest_broken": {
-        "n_wrong": 5,
-        "share": 0.5556,
-        "agreement": 0.6598,
-        "recovers": false
-      },
-      "cliff_is_at_the_majority": true,
-      "survives_a_bare_majority": false,
-      "post_cliff_agreement": 0.6598
+      "breaking_share_range": [
+        0.5556,
+        0.5556
+      ],
+      "breaking_share_median": 0.5556,
+      "draws_where_the_cliff_is_at_the_majority": 8,
+      "draws_surviving_a_bare_majority": 0,
+      "draws": 8,
+      "post_cliff_agreement": [
+        0.5773,
+        0.6263,
+        0.6265,
+        0.6374,
+        0.6429,
+        0.6598,
+        0.686,
+        0.7882
+      ]
     },
     {
       "fleet": 15,
       "majority": 8,
       "majority_share": 0.5333,
-      "grid": [
+      "draw_seeds": [
+        1,
+        7,
+        11,
+        23,
+        101,
+        202,
+        303,
+        404
+      ],
+      "per_draw": [
         {
-          "n_wrong": 1,
-          "share": 0.0667,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 1,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.0667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.1333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.2667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.4667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.5333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.6,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.6667,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.7333,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.8,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.8667,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.9333,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 1.0,
+              "agreement": 0.5773,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 8,
+            "share": 0.5333,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 9,
+            "share": 0.6,
+            "agreement": 0.5773,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": false,
+          "survives_a_bare_majority": true,
+          "post_cliff_agreement": 0.5773
         },
         {
-          "n_wrong": 2,
-          "share": 0.1333,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 7,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.0667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.1333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.2667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.4667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.5333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.6,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.6667,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.7333,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.8,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.8667,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.9333,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 1.0,
+              "agreement": 0.6598,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 8,
+            "share": 0.5333,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 9,
+            "share": 0.6,
+            "agreement": 0.6598,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": false,
+          "survives_a_bare_majority": true,
+          "post_cliff_agreement": 0.6598
         },
         {
-          "n_wrong": 3,
-          "share": 0.2,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 11,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.0667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.1333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.2667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.4667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.5333,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.6,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.6667,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.7333,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.8,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.8667,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.9333,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 1.0,
+              "agreement": 0.6429,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 7,
+            "share": 0.4667,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 8,
+            "share": 0.5333,
+            "agreement": 0.6429,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6429
         },
         {
-          "n_wrong": 4,
-          "share": 0.2667,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 23,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.0667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.1333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.2667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.4667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.5333,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.6,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.6667,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.7333,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.8,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.8667,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.9333,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 1.0,
+              "agreement": 0.6265,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 7,
+            "share": 0.4667,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 8,
+            "share": 0.5333,
+            "agreement": 0.6265,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6265
         },
         {
-          "n_wrong": 5,
-          "share": 0.3333,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 101,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.0667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.1333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.2667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.4667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.5333,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.6,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.6667,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.7333,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.8,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.8667,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.9333,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 1.0,
+              "agreement": 0.7882,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 7,
+            "share": 0.4667,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 8,
+            "share": 0.5333,
+            "agreement": 0.7882,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.7882
         },
         {
-          "n_wrong": 6,
-          "share": 0.4,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 202,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.0667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.1333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.2667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.4667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.5333,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.6,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.6667,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.7333,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.8,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.8667,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.9333,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 1.0,
+              "agreement": 0.686,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 7,
+            "share": 0.4667,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 8,
+            "share": 0.5333,
+            "agreement": 0.686,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.686
         },
         {
-          "n_wrong": 7,
-          "share": 0.4667,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 303,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.0667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.1333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.2667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.4667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.5333,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.6,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.6667,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.7333,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.8,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.8667,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.9333,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 1.0,
+              "agreement": 0.6263,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 7,
+            "share": 0.4667,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 8,
+            "share": 0.5333,
+            "agreement": 0.6263,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6263
         },
         {
-          "n_wrong": 8,
-          "share": 0.5333,
-          "agreement": 1.0,
-          "recovers": true
-        },
-        {
-          "n_wrong": 9,
-          "share": 0.6,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 10,
-          "share": 0.6667,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 11,
-          "share": 0.7333,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 12,
-          "share": 0.8,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 13,
-          "share": 0.8667,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 14,
-          "share": 0.9333,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 15,
-          "share": 1.0,
-          "agreement": 0.6598,
-          "recovers": false
+          "draw": 404,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.0667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.1333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.2667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.3333,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.4667,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.5333,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.6,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.6667,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.7333,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.8,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.8667,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.9333,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 1.0,
+              "agreement": 0.6374,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 7,
+            "share": 0.4667,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 8,
+            "share": 0.5333,
+            "agreement": 0.6374,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6374
         }
       ],
-      "highest_safe": {
-        "n_wrong": 8,
-        "share": 0.5333,
-        "agreement": 1.0,
-        "recovers": true
-      },
-      "lowest_broken": {
-        "n_wrong": 9,
-        "share": 0.6,
-        "agreement": 0.6598,
-        "recovers": false
-      },
-      "cliff_is_at_the_majority": false,
-      "survives_a_bare_majority": true,
-      "post_cliff_agreement": 0.6598
+      "breaking_share_range": [
+        0.5333,
+        0.6
+      ],
+      "breaking_share_median": 0.5333,
+      "draws_where_the_cliff_is_at_the_majority": 6,
+      "draws_surviving_a_bare_majority": 2,
+      "draws": 8,
+      "post_cliff_agreement": [
+        0.5773,
+        0.6263,
+        0.6265,
+        0.6374,
+        0.6429,
+        0.6598,
+        0.686,
+        0.7882
+      ]
     },
     {
       "fleet": 25,
       "majority": 13,
       "majority_share": 0.52,
-      "grid": [
+      "draw_seeds": [
+        1,
+        7,
+        11,
+        23,
+        101,
+        202,
+        303,
+        404
+      ],
+      "per_draw": [
         {
-          "n_wrong": 1,
-          "share": 0.04,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 1,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.04,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.08,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.12,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.16,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.24,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.28,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.32,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.36,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.44,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.48,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.52,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.56,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 15,
+              "share": 0.6,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 16,
+              "share": 0.64,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 17,
+              "share": 0.68,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 18,
+              "share": 0.72,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 19,
+              "share": 0.76,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 20,
+              "share": 0.8,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 21,
+              "share": 0.84,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 22,
+              "share": 0.88,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 23,
+              "share": 0.92,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 24,
+              "share": 0.96,
+              "agreement": 0.5773,
+              "recovers": false
+            },
+            {
+              "n_wrong": 25,
+              "share": 1.0,
+              "agreement": 0.5773,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 14,
+            "share": 0.56,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 15,
+            "share": 0.6,
+            "agreement": 0.5773,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": false,
+          "survives_a_bare_majority": true,
+          "post_cliff_agreement": 0.5773
         },
         {
-          "n_wrong": 2,
-          "share": 0.08,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 7,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.04,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.08,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.12,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.16,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.24,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.28,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.32,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.36,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.44,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.48,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.52,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.56,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 0.6,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 16,
+              "share": 0.64,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 17,
+              "share": 0.68,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 18,
+              "share": 0.72,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 19,
+              "share": 0.76,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 20,
+              "share": 0.8,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 21,
+              "share": 0.84,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 22,
+              "share": 0.88,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 23,
+              "share": 0.92,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 24,
+              "share": 0.96,
+              "agreement": 0.6598,
+              "recovers": false
+            },
+            {
+              "n_wrong": 25,
+              "share": 1.0,
+              "agreement": 0.6598,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 13,
+            "share": 0.52,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 14,
+            "share": 0.56,
+            "agreement": 0.6598,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": false,
+          "survives_a_bare_majority": true,
+          "post_cliff_agreement": 0.6598
         },
         {
-          "n_wrong": 3,
-          "share": 0.12,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 11,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.04,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.08,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.12,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.16,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.24,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.28,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.32,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.36,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.44,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.48,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.52,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.56,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 0.6,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 16,
+              "share": 0.64,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 17,
+              "share": 0.68,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 18,
+              "share": 0.72,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 19,
+              "share": 0.76,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 20,
+              "share": 0.8,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 21,
+              "share": 0.84,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 22,
+              "share": 0.88,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 23,
+              "share": 0.92,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 24,
+              "share": 0.96,
+              "agreement": 0.6429,
+              "recovers": false
+            },
+            {
+              "n_wrong": 25,
+              "share": 1.0,
+              "agreement": 0.6429,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 12,
+            "share": 0.48,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 13,
+            "share": 0.52,
+            "agreement": 0.6429,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6429
         },
         {
-          "n_wrong": 4,
-          "share": 0.16,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 23,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.04,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.08,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.12,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.16,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.24,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.28,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.32,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.36,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.44,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.48,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.52,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.56,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 0.6,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 16,
+              "share": 0.64,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 17,
+              "share": 0.68,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 18,
+              "share": 0.72,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 19,
+              "share": 0.76,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 20,
+              "share": 0.8,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 21,
+              "share": 0.84,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 22,
+              "share": 0.88,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 23,
+              "share": 0.92,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 24,
+              "share": 0.96,
+              "agreement": 0.6265,
+              "recovers": false
+            },
+            {
+              "n_wrong": 25,
+              "share": 1.0,
+              "agreement": 0.6265,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 12,
+            "share": 0.48,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 13,
+            "share": 0.52,
+            "agreement": 0.6265,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6265
         },
         {
-          "n_wrong": 5,
-          "share": 0.2,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 101,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.04,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.08,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.12,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.16,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.24,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.28,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.32,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.36,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.44,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.48,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.52,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.56,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 0.6,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 16,
+              "share": 0.64,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 17,
+              "share": 0.68,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 18,
+              "share": 0.72,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 19,
+              "share": 0.76,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 20,
+              "share": 0.8,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 21,
+              "share": 0.84,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 22,
+              "share": 0.88,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 23,
+              "share": 0.92,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 24,
+              "share": 0.96,
+              "agreement": 0.7882,
+              "recovers": false
+            },
+            {
+              "n_wrong": 25,
+              "share": 1.0,
+              "agreement": 0.7882,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 13,
+            "share": 0.52,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 14,
+            "share": 0.56,
+            "agreement": 0.7882,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": false,
+          "survives_a_bare_majority": true,
+          "post_cliff_agreement": 0.7882
         },
         {
-          "n_wrong": 6,
-          "share": 0.24,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 202,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.04,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.08,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.12,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.16,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.24,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.28,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.32,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.36,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.44,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.48,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.52,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.56,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 0.6,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 16,
+              "share": 0.64,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 17,
+              "share": 0.68,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 18,
+              "share": 0.72,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 19,
+              "share": 0.76,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 20,
+              "share": 0.8,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 21,
+              "share": 0.84,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 22,
+              "share": 0.88,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 23,
+              "share": 0.92,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 24,
+              "share": 0.96,
+              "agreement": 0.686,
+              "recovers": false
+            },
+            {
+              "n_wrong": 25,
+              "share": 1.0,
+              "agreement": 0.686,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 12,
+            "share": 0.48,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 13,
+            "share": 0.52,
+            "agreement": 0.686,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.686
         },
         {
-          "n_wrong": 7,
-          "share": 0.28,
-          "agreement": 1.0,
-          "recovers": true
+          "draw": 303,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.04,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.08,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.12,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.16,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.24,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.28,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.32,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.36,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.44,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.48,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.52,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.56,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 0.6,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 16,
+              "share": 0.64,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 17,
+              "share": 0.68,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 18,
+              "share": 0.72,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 19,
+              "share": 0.76,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 20,
+              "share": 0.8,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 21,
+              "share": 0.84,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 22,
+              "share": 0.88,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 23,
+              "share": 0.92,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 24,
+              "share": 0.96,
+              "agreement": 0.6263,
+              "recovers": false
+            },
+            {
+              "n_wrong": 25,
+              "share": 1.0,
+              "agreement": 0.6263,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 13,
+            "share": 0.52,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 14,
+            "share": 0.56,
+            "agreement": 0.6263,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": false,
+          "survives_a_bare_majority": true,
+          "post_cliff_agreement": 0.6263
         },
         {
-          "n_wrong": 8,
-          "share": 0.32,
-          "agreement": 1.0,
-          "recovers": true
-        },
-        {
-          "n_wrong": 9,
-          "share": 0.36,
-          "agreement": 1.0,
-          "recovers": true
-        },
-        {
-          "n_wrong": 10,
-          "share": 0.4,
-          "agreement": 1.0,
-          "recovers": true
-        },
-        {
-          "n_wrong": 11,
-          "share": 0.44,
-          "agreement": 1.0,
-          "recovers": true
-        },
-        {
-          "n_wrong": 12,
-          "share": 0.48,
-          "agreement": 1.0,
-          "recovers": true
-        },
-        {
-          "n_wrong": 13,
-          "share": 0.52,
-          "agreement": 1.0,
-          "recovers": true
-        },
-        {
-          "n_wrong": 14,
-          "share": 0.56,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 15,
-          "share": 0.6,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 16,
-          "share": 0.64,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 17,
-          "share": 0.68,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 18,
-          "share": 0.72,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 19,
-          "share": 0.76,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 20,
-          "share": 0.8,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 21,
-          "share": 0.84,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 22,
-          "share": 0.88,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 23,
-          "share": 0.92,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 24,
-          "share": 0.96,
-          "agreement": 0.6598,
-          "recovers": false
-        },
-        {
-          "n_wrong": 25,
-          "share": 1.0,
-          "agreement": 0.6598,
-          "recovers": false
+          "draw": 404,
+          "grid": [
+            {
+              "n_wrong": 1,
+              "share": 0.04,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 2,
+              "share": 0.08,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 3,
+              "share": 0.12,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 4,
+              "share": 0.16,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 5,
+              "share": 0.2,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 6,
+              "share": 0.24,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 7,
+              "share": 0.28,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 8,
+              "share": 0.32,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 9,
+              "share": 0.36,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 10,
+              "share": 0.4,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 11,
+              "share": 0.44,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 12,
+              "share": 0.48,
+              "agreement": 1.0,
+              "recovers": true
+            },
+            {
+              "n_wrong": 13,
+              "share": 0.52,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 14,
+              "share": 0.56,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 15,
+              "share": 0.6,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 16,
+              "share": 0.64,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 17,
+              "share": 0.68,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 18,
+              "share": 0.72,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 19,
+              "share": 0.76,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 20,
+              "share": 0.8,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 21,
+              "share": 0.84,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 22,
+              "share": 0.88,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 23,
+              "share": 0.92,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 24,
+              "share": 0.96,
+              "agreement": 0.6374,
+              "recovers": false
+            },
+            {
+              "n_wrong": 25,
+              "share": 1.0,
+              "agreement": 0.6374,
+              "recovers": false
+            }
+          ],
+          "highest_safe": {
+            "n_wrong": 12,
+            "share": 0.48,
+            "agreement": 1.0,
+            "recovers": true
+          },
+          "lowest_broken": {
+            "n_wrong": 13,
+            "share": 0.52,
+            "agreement": 0.6374,
+            "recovers": false
+          },
+          "cliff_is_at_the_majority": true,
+          "survives_a_bare_majority": false,
+          "post_cliff_agreement": 0.6374
         }
       ],
-      "highest_safe": {
-        "n_wrong": 13,
-        "share": 0.52,
-        "agreement": 1.0,
-        "recovers": true
-      },
-      "lowest_broken": {
-        "n_wrong": 14,
-        "share": 0.56,
-        "agreement": 0.6598,
-        "recovers": false
-      },
-      "cliff_is_at_the_majority": false,
-      "survives_a_bare_majority": true,
-      "post_cliff_agreement": 0.6598
+      "breaking_share_range": [
+        0.52,
+        0.6
+      ],
+      "breaking_share_median": 0.56,
+      "draws_where_the_cliff_is_at_the_majority": 4,
+      "draws_surviving_a_bare_majority": 4,
+      "draws": 8,
+      "post_cliff_agreement": [
+        0.5773,
+        0.6263,
+        0.6265,
+        0.6374,
+        0.6429,
+        0.6598,
+        0.686,
+        0.7882
+      ]
     }
   ],
   "cliff_bracket": {
-    "highest_safe_share": 0.5333,
-    "lowest_broken_share": 0.5556,
+    "breaking_share_range": [
+      0.52,
+      0.6
+    ],
+    "breaking_share_median": 0.5556,
     "fleets_where_the_cliff_is_at_the_majority": [
       5,
       9
     ],
-    "fleets_surviving_a_bare_majority": [
+    "fleets_surviving_a_bare_majority_in_some_draw": [
       15,
       25
     ],
+    "fleets_surviving_a_bare_majority_in_every_draw": [],
     "post_cliff_agreement": [
-      0.6598
+      0.5773,
+      0.6263,
+      0.6265,
+      0.6374,
+      0.6429,
+      0.6598,
+      0.686,
+      0.7882
     ]
   },
   "audit": [
@@ -907,13 +3888,14 @@
     "no_policy_repairs_an_unanchored_label": true,
     "blinded_channel_detected_and_controls_silent": true,
     "the_cliff_is_at_the_majority_at_every_fleet": false,
-    "post_cliff_agreement_is_constant": true
+    "a_larger_fleet_reliably_survives_a_bare_majority": false,
+    "post_cliff_agreement_is_constant": false
   },
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "516919495546",
-    "git_dirty": false,
-    "generated_at": "2026-08-06T20:05:31+00:00",
+    "git_commit": "b5e6a2df19dd",
+    "git_dirty": true,
+    "generated_at": "2026-08-07T12:26:30+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",

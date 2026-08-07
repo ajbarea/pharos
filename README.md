@@ -146,7 +146,7 @@ the system it serves.
 
 ## What has been measured
 
-Twenty-four findings so far, each reproducible from a named script and each backed by a
+Twenty-five findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, a third was retracted outright after a generator bug, and a

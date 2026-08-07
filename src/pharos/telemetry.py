@@ -364,6 +364,11 @@ _METRIC_META: dict[str, tuple[str, str]] = {
     "gate.probe_auc": ("1", "AUC of one surface probe against the class label"),
     "gate.surface_baseline": ("1", "Best surface-feature AUC, the score to report against"),
     "generate.reports": ("{report}", "Reports rendered for a generated corpus"),
+    "estimator_initialization.likelihood_gap": (
+        "nat",
+        "Truth's log-likelihood minus the published start's; negative means the wrong "
+        "answer is the better fit and no initialiser escapes it",
+    ),
     "channelbias.p_value": (
         "1",
         "One-sided permutation p-value for one channel's verdict gap, floor 1/(m+1)",

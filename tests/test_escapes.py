@@ -160,8 +160,9 @@ def test_the_governance_numbers_the_page_shows_are_the_ones_finding_24_publishes
     served = {row["key"]: row for row in argument()["escapes"]}["fleetsize"]
     bracket = artifact("governance_sensitivity")["cliff_bracket"]
     values = {reading["label"]: reading["raw"] for reading in served["readings"]}
-    assert values["Highest safe share"] == bracket["highest_safe_share"]
-    assert values["Lowest broken share"] == bracket["lowest_broken_share"]
+    assert values["Breaking share, median"] == bracket["breaking_share_median"]
+    assert values["Breaking share, lowest"] == bracket["breaking_share_range"][0]
+    assert values["Breaking share, highest"] == bracket["breaking_share_range"][1]
 
 
 def _relative_luminance(hex_colour: str) -> float:

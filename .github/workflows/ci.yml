@@ -211,6 +211,21 @@ jobs:
       # the statistic is reading generic error and the finding is void.
       - name: Detect a blind spot that leaves no disagreement
         run: uv run python scripts/measure_channel_bias.py
+      # Finding 25's sweep, and the guard on the one degree of freedom underneath every
+      # cliff finding. The escape it reports must stay confined to the crossing: if a
+      # start ever recovers the truth past it, findings 12 and 17-24 are measuring a
+      # basin rather than the estimator. Twenty seconds, no model.
+      - name: Sweep the start the estimator is given
+        run: uv run python scripts/measure_estimator_initialization.py
+      # Model-free measurements whose artifacts had no CI regeneration, only a table
+      # check against them. `sync_docs_tables --check` compares the page to the
+      # artifact, so a stale artifact passed in both places and finding 2 -- the
+      # provenance-decides-eligibility result the whole design rests on -- had no guard
+      # at all.
+      - name: Decide federation eligibility from the label lattice
+        run: uv run python scripts/measure_federation_eligibility.py
+      - name: Sweep the fleet size the estimators were measured at
+        run: uv run python scripts/measure_fleet_sensitivity.py
       # Fails on a warning the project does not expect, and on an expected warning
       # that stopped firing. The second case is the subtle one: a finding that quietly
       # stops reporting itself looks identical to a clean run.

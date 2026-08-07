@@ -37,10 +37,11 @@ and the channel detector is a permutation test on top of that.
 
 import argparse
 import json
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from measure_audit_policy import EVENTS, SEED, observe
+from measure_audit_policy import EVENTS, observe
 from measure_authority_anchors import REPAIRED, majority
 from measure_channel_bias import ALPHA
 from measure_fleet_sensitivity import run_at
@@ -75,25 +76,23 @@ FLEETS = (5, 9, 15, 25)
 #: and four extreme draws still detect.
 SWEEP_PERMUTATIONS = 4200
 
+#: Corpus draws for the crossing scan. Finding 24's first version measured the crossing
+#: on one corpus per fleet, concluded that fifteen and twenty-five analysts survive a
+#: bare majority, and was wrong: the committed seed is favourable at both sizes and six
+#: of eight draws break at fifteen. Only the crossing scan sweeps these -- the audit,
+#: blind-spot and channel sub-sweeps each shell out to a script of their own and cost
+#: minutes per fleet, so multiplying them by eight would put this script in hours.
+DRAWS = (1, 7, 11, 23, 101, 202, 303, 404)
 
-def cliff_row(fleet: int) -> dict[str, Any]:
-    """Where the estimator actually breaks, scanned one analyst at a time.
 
-    Findings 19 through 23 all describe the failure as "a majority holds the wrong
-    standard", and at nine analysts that is what it looked like: the estimator recovers
-    the truth at 4 of 9 and collapses at 5 of 9, which is the majority. The phrase was
-    then carried into every downstream write-up as though the majority were the
-    mechanism.
-
-    It is not. Scanning every composition rather than the five the ladder visits puts
-    the crossing at a fixed *share* of the fleet, and a bare majority is above that share
-    only at small fleets. Nine is small enough; fifteen is not.
+def cliff_scan(fleet: int, seed: int) -> list[dict[str, Any]]:
+    """Every composition at one fleet size on one corpus draw, scanned one analyst at a time.
 
     Calls the same `observe` the audit policy uses rather than shelling out, because the
     quantity here is one EM fit per composition and the surrounding script would sweep
     every budget and policy to reach it.
     """
-    tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=EVENTS)))
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=seed, n_events=EVENTS)))
     proposals = {
         t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
         for t in tasks
@@ -102,7 +101,7 @@ def cliff_row(fleet: int) -> dict[str, Any]:
 
     grid = []
     for n_wrong in range(1, fleet + 1):
-        flat = contributions_for(fleet_of(n_wrong, fleet), tasks, proposals, seed=SEED)
+        flat = contributions_for(fleet_of(n_wrong, fleet), tasks, proposals, seed=seed)
         view = observe(partition_by_contributor(flat))
         wrong = sum(1 for task, p in view.posterior.items() if (p >= 0.5) != truth[task])
         agreement = 1 - wrong / len(view.posterior)
@@ -114,29 +113,76 @@ def cliff_row(fleet: int) -> dict[str, Any]:
                 "recovers": agreement >= REPAIRED,
             }
         )
+    return grid
 
-    safe = [row for row in grid if row["recovers"]]
-    broken = [row for row in grid if not row["recovers"]]
+
+def cliff_row(fleet: int, draws: Sequence[int]) -> dict[str, Any]:
+    """Where the estimator actually breaks, over every corpus draw rather than one.
+
+    Findings 19 through 23 all describe the failure as "a majority holds the wrong
+    standard", and at nine analysts that is what it looked like: the estimator recovers
+    the truth at 4 of 9 and collapses at 5 of 9, which is the majority. The phrase was
+    then carried into every downstream write-up as though the majority were the
+    mechanism. Scanning every composition rather than the five the ladder visits shows
+    it is a *share*, and at nine that share and the majority coincide.
+
+    The draw sweep is the second correction, and it retracts the first one's headline.
+    Measured on a single corpus this scan reported the crossing at 0.600 for fifteen
+    analysts and 0.560 for twenty-five -- both above a bare majority -- and finding 24
+    concluded that a larger fleet survives a bare majority. It does not, reliably: over
+    eight draws the crossing at fifteen sits at 0.533 in six of them, and at twenty-five
+    it ranges 0.520 to 0.600. The committed seed was favourable at both sizes.
+
+    So the location of the crossing is itself a distribution and is reported as one. A
+    single-draw crossing is exactly the quantity this repository has now mis-reported
+    three times, and the fix is the same each time: sweep the draw and quote the range.
+    """
     crossing = majority(fleet)
+    per_draw: list[dict[str, Any]] = []
+    for seed in draws:
+        grid = cliff_scan(fleet, seed)
+        safe = [row for row in grid if row["recovers"]]
+        broken = [row for row in grid if not row["recovers"]]
+        per_draw.append(
+            {
+                "draw": seed,
+                "grid": grid,
+                "highest_safe": safe[-1] if safe else None,
+                "lowest_broken": broken[0] if broken else None,
+                "cliff_is_at_the_majority": bool(broken) and broken[0]["n_wrong"] == crossing,
+                "survives_a_bare_majority": any(
+                    row["n_wrong"] == crossing and row["recovers"] for row in grid
+                ),
+                "post_cliff_agreement": broken[0]["agreement"] if broken else None,
+            }
+        )
+
+    broken_shares = sorted(d["lowest_broken"]["share"] for d in per_draw if d["lowest_broken"])
+    survives = [d["draw"] for d in per_draw if d["survives_a_bare_majority"]]
+    depths = sorted({d["post_cliff_agreement"] for d in per_draw if d["post_cliff_agreement"]})
     return {
         "fleet": fleet,
         "majority": crossing,
         "majority_share": round(crossing / fleet, 4),
-        "grid": grid,
-        "highest_safe": safe[-1] if safe else None,
-        "lowest_broken": broken[0] if broken else None,
-        #: The claim the phrase "a majority holds the wrong standard" makes, tested
-        #: rather than assumed. True at nine; the sweep exists to find out where else.
-        "cliff_is_at_the_majority": bool(broken) and broken[0]["n_wrong"] == crossing,
-        #: Whether the estimator survives a bare majority. Plain consensus cannot, by
-        #: definition, so wherever this is true the reliability weighting is buying real
-        #: margin rather than the "one extra contributor" finding 12 measured at nine.
-        "survives_a_bare_majority": any(
-            row["n_wrong"] == crossing and row["recovers"] for row in grid
+        "draw_seeds": list(draws),
+        "per_draw": per_draw,
+        #: The crossing as a distribution over draws, which is the only honest form.
+        #: A single value here was finding 24's error.
+        "breaking_share_range": [broken_shares[0], broken_shares[-1]] if broken_shares else None,
+        "breaking_share_median": broken_shares[len(broken_shares) // 2] if broken_shares else None,
+        #: How often the crossing lands exactly on the majority, rather than whether it
+        #: did on one corpus.
+        "draws_where_the_cliff_is_at_the_majority": sum(
+            1 for d in per_draw if d["cliff_is_at_the_majority"]
         ),
+        #: The claim finding 24 made and this retracts. At fifteen and twenty-five it is
+        #: a minority and a coin-flip of the draws respectively, not a property.
+        "draws_surviving_a_bare_majority": len(survives),
+        "draws": len(per_draw),
         #: The depth of the cliff, as opposed to its location. Reported separately
-        #: because the two turn out to behave differently across fleets.
-        "post_cliff_agreement": broken[0]["agreement"] if broken else None,
+        #: because the two behave differently: the location moves with the draw and the
+        #: depth does not.
+        "post_cliff_agreement": depths,
     }
 
 
@@ -299,6 +345,7 @@ def channel_row(fleet: int, permutations: int) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fleets", type=int, nargs="+", default=list(FLEETS))
+    parser.add_argument("--draws", type=int, nargs="+", default=list(DRAWS))
     parser.add_argument("--permutations", type=int, default=SWEEP_PERMUTATIONS)
     parser.add_argument("--skip-channel", action="store_true")
     parser.add_argument("--out", type=Path)
@@ -308,7 +355,7 @@ def main() -> int:
     for fleet in args.fleets:
         progress("governance_sensitivity.fleet", fleet=fleet)
         print(f">>> fleet {fleet}")
-        cliff.append(cliff_row(fleet))
+        cliff.append(cliff_row(fleet, args.draws))
         audit.append(audit_row(fleet))
         blind.append(blind_row(fleet))
         if not args.skip_channel:
@@ -338,30 +385,49 @@ def main() -> int:
 
     # The share, not the pool: `auditable_pool` is 97 at every fleet swept, so emitting
     # it would be a metric that cannot move. The breaking share is the quantity this
-    # sweep exists to find.
+    # sweep exists to find, and it is a median over draws rather than a value.
     for row in cliff:
-        broke = row["lowest_broken"]
-        if broke:
-            record("governance_sensitivity.cliff_share", broke["share"], fleet=row["fleet"])
+        if row["breaking_share_median"] is not None:
+            record(
+                "governance_sensitivity.cliff_share",
+                row["breaking_share_median"],
+                fleet=row["fleet"],
+            )
 
-    # The crossing share, bracketed by the fleets swept. The cliff sits above every
-    # safe share observed and at or below every broken one, so these two numbers bound
-    # it without asserting a value no fleet size here can resolve.
-    safe_shares = [row["highest_safe"]["share"] for row in cliff if row["highest_safe"]]
-    broken_shares = [row["lowest_broken"]["share"] for row in cliff if row["lowest_broken"]]
-    cliff_at_majority = [row["fleet"] for row in cliff if row["cliff_is_at_the_majority"]]
-    survives_majority = [row["fleet"] for row in cliff if row["survives_a_bare_majority"]]
-    depths = sorted({row["post_cliff_agreement"] for row in cliff if row["post_cliff_agreement"]})
+    # The crossing share over every fleet and every draw. Reported as a range because it
+    # is one: 0.52 to 0.60 across the sweep, and not monotone in fleet size. The earlier
+    # bracket -- one safe share below one broken share -- was an artifact of reading a
+    # single corpus per fleet, where each fleet contributes exactly one number and any
+    # two numbers bracket something.
+    observed = sorted(
+        d["lowest_broken"]["share"] for row in cliff for d in row["per_draw"] if d["lowest_broken"]
+    )
+    cliff_at_majority = [
+        row["fleet"]
+        for row in cliff
+        if row["draws_where_the_cliff_is_at_the_majority"] == row["draws"]
+    ]
+    survives_majority = [row["fleet"] for row in cliff if row["draws_surviving_a_bare_majority"]]
+    always_survives = [
+        row["fleet"] for row in cliff if row["draws_surviving_a_bare_majority"] == row["draws"]
+    ]
+    depths = sorted({depth for row in cliff for depth in row["post_cliff_agreement"]})
 
     payload = {
         "fleets": args.fleets,
+        "draws": args.draws,
         "repaired_threshold": REPAIRED,
         "cliff": cliff,
         "cliff_bracket": {
-            "highest_safe_share": max(safe_shares) if safe_shares else None,
-            "lowest_broken_share": min(broken_shares) if broken_shares else None,
+            #: The crossing over every fleet and every draw. A range, because a single
+            #: draw per fleet is what turned this into a bracket it never supported.
+            "breaking_share_range": [observed[0], observed[-1]] if observed else None,
+            "breaking_share_median": observed[len(observed) // 2] if observed else None,
             "fleets_where_the_cliff_is_at_the_majority": cliff_at_majority,
-            "fleets_surviving_a_bare_majority": survives_majority,
+            #: Fleets where *some* draw survives a bare majority, and where *every* draw
+            #: does. Finding 24 quoted the first and read it as the second.
+            "fleets_surviving_a_bare_majority_in_some_draw": survives_majority,
+            "fleets_surviving_a_bare_majority_in_every_draw": always_survives,
             "post_cliff_agreement": depths,
         },
         "audit": audit,
@@ -378,6 +444,11 @@ def main() -> int:
             #: that when it is false the artifact says so rather than leaving the claim
             #: standing on the one fleet where it happened to hold.
             "the_cliff_is_at_the_majority_at_every_fleet": len(cliff_at_majority) == len(cliff),
+            #: Finding 24's retracted headline, kept as an invariant so the retraction
+            #: is checked rather than remembered. False: at fifteen and twenty-five a
+            #: bare majority survives in some draws and not others.
+            "a_larger_fleet_reliably_survives_a_bare_majority": always_survives
+            == survives_majority,
             #: The depth of the cliff, which does not move even where its location does.
             "post_cliff_agreement_is_constant": len(depths) == 1,
         },
@@ -385,18 +456,17 @@ def main() -> int:
     }
 
     print()
-    print("  where the estimator breaks, by fleet")
-    print(f"    {'fleet':>6}{'majority':>10}{'safe to':>9}{'breaks at':>11}{'as share':>10}")
-    print("    " + "-" * 46)
+    print("  where the estimator breaks, by fleet, over every draw")
+    print(
+        f"    {'fleet':>6}{'majority':>10}{'share median':>14}{'share range':>18}{'maj safe':>10}"
+    )
+    print("    " + "-" * 58)
     for row in cliff:
-        safe = row["highest_safe"]
-        broke = row["lowest_broken"]
-        safe_at = str(safe["n_wrong"]) if safe else "-"
-        broke_at = str(broke["n_wrong"]) if broke else "-"
-        broke_share = f"{broke['share']:.3f}" if broke else "-"
-        print(
-            f"    {row['fleet']:>6}{row['majority']:>10}{safe_at:>9}{broke_at:>11}{broke_share:>10}"
-        )
+        span = row["breaking_share_range"]
+        rng = f"{span[0]:.3f} - {span[1]:.3f}" if span else "-"
+        med = f"{row['breaking_share_median']:.3f}" if row["breaking_share_median"] else "-"
+        safe = f"{row['draws_surviving_a_bare_majority']}/{row['draws']}"
+        print(f"    {row['fleet']:>6}{row['majority']:>10}{med:>14}{rng:>18}{safe:>10}")
     print()
     print(f"selection beats uniform where repair is needed: {selection_beats_uniform}")
     print(f"selection ties the oracle bound:             {selection_ties_oracle}")

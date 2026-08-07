@@ -77,6 +77,7 @@ def dawid_skene(
     *,
     max_iters: int = MAX_ITERS,
     tolerance: float = TOLERANCE,
+    initial_posterior: Mapping[str, float] | None = None,
 ) -> DawidSkene:
     """Joint EM over true labels and per-contributor error rates.
 
@@ -88,6 +89,12 @@ def dawid_skene(
     honest one for the question being asked here. If EM merely reproduces its
     initialization when the majority is wrong, that is a property of the method worth
     measuring rather than a choice to be tuned away.
+
+    `initial_posterior` overrides that start, for the one caller that needs to: the
+    likelihood surface is non-convex, so "the majority wins" and "the majority is where
+    EM was pointed" are different claims and only a sweep over starts separates them.
+    Every published finding uses the default. Tasks absent from an override keep the
+    majority vote, so a partial start is a partial start rather than a silent 0.5.
     """
     if not contributions:
         return DawidSkene({}, {}, 0.0, 0, True)
@@ -103,6 +110,8 @@ def dawid_skene(
         t: (sum(1 for _, v in rows if v) / len(rows) if rows else 0.5)
         for t, rows in by_task.items()
     }
+    if initial_posterior is not None:
+        posterior.update({t: p for t, p in initial_posterior.items() if t in posterior})
 
     error_rates: dict[str, tuple[tuple[float, float], tuple[float, float]]] = {}
     prevalence = 0.5
@@ -173,6 +182,48 @@ def dawid_skene(
         workers=len(workers),
     )
     return DawidSkene(posterior, error_rates, prevalence, iterations_run, converged)
+
+
+def log_likelihood(contributions: Sequence[tuple[str, str, bool]], estimate: DawidSkene) -> float:
+    """Observed-data log-likelihood of `contributions` under a fitted estimate.
+
+    Summed over tasks of `log sum_c P(c) prod_w P(report_w | c)`, marginalising the
+    latent label rather than conditioning on the posterior. That distinction is the
+    whole point: EM increases this quantity monotonically, so it is the scale on which
+    two runs that converged to different answers can be compared, and the posterior
+    each of them is confident in cannot.
+
+    What it settles is which of "the estimator prefers the wrong answer" and "the
+    estimator was started at the wrong answer" is true. A run seeded from the truth that
+    lands at a *lower* likelihood than one seeded from the majority says the wrong answer
+    is the better fit to the data, and no initialisation strategy escapes it.
+    """
+    if not contributions:
+        return 0.0
+
+    by_task: dict[str, list[tuple[str, bool]]] = {}
+    for task, who, verdict in contributions:
+        by_task.setdefault(task, []).append((who, verdict))
+
+    prevalence = min(max(estimate.prevalence, 1e-12), 1 - 1e-12)
+    total = 0.0
+    for rows in by_task.values():
+        # Accumulated in logs. The product over contributors underflows a float64 at
+        # about 700 contributions on one task, which no fleet here reaches, but the
+        # federated E step already works this way and two implementations of the same
+        # quantity that disagree at the extremes are worse than one.
+        log_pos = math.log(prevalence)
+        log_neg = math.log(1.0 - prevalence)
+        for who, verdict in rows:
+            matrix = estimate.error_rates.get(who)
+            if matrix is None:
+                continue
+            reported = 1 if verdict else 0
+            log_pos += math.log(max(matrix[1][reported], 1e-300))
+            log_neg += math.log(max(matrix[0][reported], 1e-300))
+        highest = max(log_pos, log_neg)
+        total += highest + math.log(math.exp(log_pos - highest) + math.exp(log_neg - highest))
+    return total
 
 
 def weighted_targets(

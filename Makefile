@@ -112,6 +112,10 @@ governance-sensitivity:    ## Whether findings 19-23 survive a fleet other than 
 	@mkdir -p results
 	uv run python scripts/measure_governance_sensitivity.py --out results/governance_sensitivity.json
 
+estimator-initialization:  ## Whether the cliff survives a start other than the majority vote (no model)
+	@mkdir -p results
+	uv run python scripts/measure_estimator_initialization.py --out results/estimator_initialization.json
+
 logcheck:                  ## Run the model-free measurements and summarise what they logged
 	uv run python scripts/logcheck.py
 
@@ -160,6 +164,9 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_audit_policy.py
 	uv run python scripts/measure_blind_spot.py
 	uv run python scripts/measure_channel_bias.py
+	uv run python scripts/measure_estimator_initialization.py
+	uv run python scripts/measure_federation_eligibility.py
+	uv run python scripts/measure_fleet_sensitivity.py
 	uv run python scripts/logcheck.py
 	uv run python scripts/sync_docs_tables.py --check
 	# Last, so it covers every step above: did the tree this gate measured stay put?
