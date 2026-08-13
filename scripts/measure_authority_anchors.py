@@ -257,11 +257,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--events", type=int, default=EVENTS)
     parser.add_argument("--fleet", type=int, default=FLEET)
+    parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     compositions = ladder(args.fleet, ANCHOR_RUNGS)
 
-    tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=args.events)))
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=args.seed, n_events=args.events)))
     proposals = {
         t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
         for t in tasks
@@ -279,7 +280,7 @@ def main() -> int:
     spreads: dict[int, ThresholdSpread] = {}
 
     for n_wrong in compositions:
-        flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
+        flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=args.seed)
         partitioned = partition_by_contributor(flat)
         cells: list[str] = []
         per_seed: list[int | None] = []
@@ -375,7 +376,7 @@ def main() -> int:
         )
 
     report = {
-        "provenance": run_provenance(seed=SEED),
+        "provenance": run_provenance(seed=args.seed),
         "fleet": args.fleet,
         "events": args.events,
         "anchor_seed": ANCHOR_SEED,

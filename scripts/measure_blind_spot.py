@@ -169,11 +169,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--events", type=int, default=EVENTS)
     parser.add_argument("--fleet", type=int, default=FLEET)
+    parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     shares = ladder(args.fleet, BLIND_RUNGS)
 
-    tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=args.events)))
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=args.seed, n_events=args.events)))
     from pharos.analyst import Proposal, evidence_shown
 
     proposals = {
@@ -260,7 +261,7 @@ def main() -> int:
     hit_rate: dict[int, dict[str, float]] = {}
 
     for n_blind in shares:
-        flat = contributions_for(blind_fleet(n_blind, args.fleet), tasks, proposals, seed=SEED)
+        flat = contributions_for(blind_fleet(n_blind, args.fleet), tasks, proposals, seed=args.seed)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
         # What the detector hands over. Only populated where finding 22 actually fires;
@@ -382,7 +383,7 @@ def main() -> int:
     )
 
     report = {
-        "provenance": run_provenance(seed=SEED),
+        "provenance": run_provenance(seed=args.seed),
         "fleet": args.fleet,
         "events": args.events,
         "blind_compartment": BLIND.value,
