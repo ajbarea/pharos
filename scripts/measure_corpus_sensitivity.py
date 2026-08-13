@@ -9,7 +9,12 @@ distribution spanning 0.520 to 0.600.
 
 That leaves the obvious exposure. Findings 20 through 23 are measured by four scripts
 that each hard-coded `SEED = 7` and did not accept a seed at all, so the corpus was not a
-sweepable dimension of this project's headline governance results. This sweeps it.
+sweepable dimension of this project's headline governance results. This sweeps three of
+them: `measure_audit_policy`, `measure_blind_spot` and `measure_channel_bias`.
+
+`measure_authority_anchors` takes `--seed` now and is **not** swept here, so finding 19's
+anchor prices remain a single corpus draw. They are already a median over 21 anchor draws
+within that corpus, which is a different multiverse and does not cover this one.
 
 Three things the first run found before it measured a policy, all of the same kind as the
 fleet defect and all invisible from the committed artifact:
@@ -42,6 +47,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
+from measure_audit_policy import DEPLOYABLE
+from measure_blind_spot import REFUSED_EXIT
 from measure_channel_bias import ALPHA
 
 from pharos.provenance import run_provenance
@@ -65,6 +72,19 @@ FLEET = 9
 #: `measure_governance_sensitivity` gives: a p-value floors at 1/(m+1), and a sweep that
 #: reduced it would test a weaker instrument than the finding it is checking.
 PERMUTATIONS = 4200
+
+#: Invariants published as false. Named so the alarm below can fire on a *change* rather
+#: than on the standing retractions, and so a retraction quietly reversing itself is
+#: itself an event.
+KNOWN_FALSE = frozenset(
+    {
+        "selection_ties_the_oracle_bound_in_every_draw",
+        "selection_beats_uniform_in_every_draw",
+        "provenance_ties_the_oracle_bound_in_every_draw",
+        "provenance_finds_every_corrupted_item_in_every_draw",
+        "the_auditable_pool_is_a_constant",
+    }
+)
 
 
 def run_at(script: str, seed: int, extra: tuple[str, ...] = ()) -> dict[str, Any] | None:
@@ -91,19 +111,25 @@ def run_at(script: str, seed: int, extra: tuple[str, ...] = ()) -> dict[str, Any
             text=True,
             check=False,
         )
-        if result.returncode != 0 or not out.exists():
+        reason = (
+            result.stderr.strip().splitlines()[-1][:200] if result.stderr.strip() else "no stderr"
+        )
+        if result.returncode == REFUSED_EXIT:
             LOG.warning(
                 "corpus_sensitivity.draw_refused",
                 extra={
                     "event": "corpus_sensitivity.draw_refused",
                     "script": script,
                     "seed": seed,
-                    "reason": result.stderr.strip().splitlines()[-1][:200]
-                    if result.stderr.strip()
-                    else "no stderr",
+                    "reason": reason,
                 },
             )
             return None
+        if result.returncode != 0 or not out.exists():
+            # Anything other than the declared refusal is a bug, and swallowing it would
+            # shrink the denominator instead of failing: the budget-ladder crash this
+            # sweep fixed would have logged four of eight draws as "refused by design".
+            raise RuntimeError(f"{script} at seed {seed} exited {result.returncode}: {reason}")
         return json.loads(out.read_text(encoding="utf-8"))
 
 
@@ -120,6 +146,15 @@ def audit_row(seed: int) -> dict[str, Any] | None:
     if payload is None:
         return None
     thresholds = payload["thresholds"]
+    # Whether the fleet was broken at all before a single item was audited, read off the
+    # artifact's own budget-zero oracle row exactly as measure_governance_sensitivity
+    # does. Deriving it instead from "neither policy repaired" conflates a corpus with
+    # nothing to fix and a policy that failed to fix it, which are opposite results.
+    unbroken = {
+        row["n_wrong"]
+        for row in payload["grid"]
+        if row["budget"] == 0 and row["policy"] == "oracle" and row["remaining_errors"] == 0
+    }
     cells = []
     for composition in payload["compositions"]:
         key = str(composition)
@@ -133,11 +168,14 @@ def audit_row(seed: int) -> dict[str, Any] | None:
                 "uniform_median": uniform,
                 "oracle": oracle,
                 "margin_beats_uniform": _better(margin, uniform),
-                "margin_ties_oracle": margin == oracle,
-                #: Neither repaired at any budget the ladder reached. Separated from a
-                #: loss, because "no policy helps here" and "this policy lost" are
+                #: A tie needs two finite thresholds. `None == None` is two failures to
+                #: repair, and counting it as "ties the bound" published a tie at seed
+                #: 202, seven wrong, where neither policy reached a repair at any budget.
+                "margin_ties_oracle": margin is not None and margin == oracle,
+                #: Nothing to repair, taken from the corpus rather than from the policies
+                #: failing on it. "No policy helps here" and "this policy lost" are
                 #: different results and only the second is about selection.
-                "nothing_repaired": margin is None and uniform is None,
+                "nothing_repaired": composition in unbroken,
             }
         )
     return {
@@ -159,7 +197,15 @@ def blind_row(seed: int) -> dict[str, Any] | None:
         return None
     unanimous = str(payload["fleet"])
     rates = payload["audit_hit_rate"][unanimous]
-    deployable = [p for p in payload.get("deployable", ()) if p in rates]
+    # From the shared policy list, not from a key the blind-spot artifact never had.
+    # `payload.get("deployable", ())` was always empty, so `all()` over it was vacuously
+    # true and finding 21's headline row asserted a comparison that never ran.
+    deployable = [p for p in DEPLOYABLE if p in rates]
+    if not deployable:
+        raise RuntimeError(
+            f"seed {seed}: none of {DEPLOYABLE} appear in the blind-spot hit rates, so "
+            "finding 21's claim cannot be evaluated on this draw"
+        )
     at_budget = {
         row["policy"]: row
         for row in payload["grid"]
@@ -168,8 +214,14 @@ def blind_row(seed: int) -> dict[str, Any] | None:
     return {
         "seed": seed,
         "disagreement_policies_at_chance": all(rates[p] <= 0.25 for p in deployable),
+        #: Every policy's rate, so the prose comparison can be checked against the
+        #: artifact rather than taken on trust.
+        "hit_rate_at_unanimity": rates,
+        "policies_read": deployable,
         "oracle_finds_all": rates.get("oracle") == 1.0,
-        "channel_ties_oracle": rates.get("channel") == rates.get("oracle"),
+        "channel_ties_oracle": (
+            rates.get("channel") is not None and rates.get("channel") == rates.get("oracle")
+        ),
         "channel_hit_rate": rates.get("channel"),
         "channel_corrected": at_budget.get("channel", {}).get("corrected"),
         "oracle_corrected": at_budget.get("oracle", {}).get("corrected"),
@@ -193,11 +245,6 @@ def channel_row(seed: int) -> dict[str, Any] | None:
         "no_other_channel_detected": not any(d["detected"] for d in others),
         "controls_clean": payload["controls_clean"],
     }
-
-
-def rate(rows: list[dict[str, Any]], key: str) -> dict[str, Any]:
-    """A count with its denominator, never a bare fraction."""
-    return {"held": sum(1 for r in rows if r[key]), "of": len(rows)}
 
 
 def main() -> int:
@@ -310,11 +357,25 @@ def main() -> int:
     for name, value in payload["invariants"].items():
         print(f"{name:<62} {value}")
 
-    moved = {name: value for name, value in payload["invariants"].items() if value is False}
+    # Only invariants that were expected to hold. Three of these are published as false
+    # and asserted false by the test suite, so warning on every false one meant the alarm
+    # fired identically on every run and a new regression would have been indistinguishable
+    # from the standing noise.
+    moved = sorted(
+        name
+        for name, value in payload["invariants"].items()
+        if value is False and name not in KNOWN_FALSE
+    )
     if moved:
         LOG.warning(
             "corpus_sensitivity.finding_moved",
-            extra={"event": "corpus_sensitivity.finding_moved", "moved": sorted(moved)},
+            extra={"event": "corpus_sensitivity.finding_moved", "moved": moved},
+        )
+    restored = sorted(n for n in KNOWN_FALSE if payload["invariants"].get(n) is True)
+    if restored:
+        LOG.warning(
+            "corpus_sensitivity.retraction_reversed",
+            extra={"event": "corpus_sensitivity.retraction_reversed", "restored": restored},
         )
 
     if args.out:

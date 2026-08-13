@@ -310,8 +310,8 @@
           "uniform_median": null,
           "oracle": null,
           "margin_beats_uniform": false,
-          "margin_ties_oracle": true,
-          "nothing_repaired": true
+          "margin_ties_oracle": false,
+          "nothing_repaired": false
         }
       ]
     },
@@ -370,7 +370,7 @@
           "uniform_median": 80,
           "oracle": null,
           "margin_beats_uniform": false,
-          "margin_ties_oracle": true,
+          "margin_ties_oracle": false,
           "nothing_repaired": false
         }
       ]
@@ -501,6 +501,20 @@
     {
       "seed": 1,
       "disagreement_policies_at_chance": true,
+      "hit_rate_at_unanimity": {
+        "uniform": 0.1,
+        "margin": 0.05,
+        "posterior": 0.15,
+        "consensus": 0.05,
+        "channel": 0.75,
+        "oracle": 0.75
+      },
+      "policies_read": [
+        "uniform",
+        "margin",
+        "posterior",
+        "consensus"
+      ],
       "oracle_finds_all": false,
       "channel_ties_oracle": true,
       "channel_hit_rate": 0.75,
@@ -510,6 +524,20 @@
     {
       "seed": 7,
       "disagreement_policies_at_chance": true,
+      "hit_rate_at_unanimity": {
+        "uniform": 0.1,
+        "margin": 0.15,
+        "posterior": 0.2,
+        "consensus": 0.15,
+        "channel": 1.0,
+        "oracle": 1.0
+      },
+      "policies_read": [
+        "uniform",
+        "margin",
+        "posterior",
+        "consensus"
+      ],
       "oracle_finds_all": true,
       "channel_ties_oracle": true,
       "channel_hit_rate": 1.0,
@@ -519,6 +547,20 @@
     {
       "seed": 11,
       "disagreement_policies_at_chance": true,
+      "hit_rate_at_unanimity": {
+        "uniform": 0.1,
+        "margin": 0.1,
+        "posterior": 0.1,
+        "consensus": 0.1,
+        "channel": 0.8,
+        "oracle": 0.8
+      },
+      "policies_read": [
+        "uniform",
+        "margin",
+        "posterior",
+        "consensus"
+      ],
       "oracle_finds_all": false,
       "channel_ties_oracle": true,
       "channel_hit_rate": 0.8,
@@ -528,6 +570,20 @@
     {
       "seed": 101,
       "disagreement_policies_at_chance": true,
+      "hit_rate_at_unanimity": {
+        "uniform": 0.15,
+        "margin": 0.1,
+        "posterior": 0.15,
+        "consensus": 0.1,
+        "channel": 0.9,
+        "oracle": 1.0
+      },
+      "policies_read": [
+        "uniform",
+        "margin",
+        "posterior",
+        "consensus"
+      ],
       "oracle_finds_all": true,
       "channel_ties_oracle": false,
       "channel_hit_rate": 0.9,
@@ -537,6 +593,20 @@
     {
       "seed": 202,
       "disagreement_policies_at_chance": true,
+      "hit_rate_at_unanimity": {
+        "uniform": 0.2,
+        "margin": 0.1,
+        "posterior": 0.1,
+        "consensus": 0.1,
+        "channel": 0.8,
+        "oracle": 0.8
+      },
+      "policies_read": [
+        "uniform",
+        "margin",
+        "posterior",
+        "consensus"
+      ],
       "oracle_finds_all": false,
       "channel_ties_oracle": true,
       "channel_hit_rate": 0.8,
@@ -546,6 +616,20 @@
     {
       "seed": 303,
       "disagreement_policies_at_chance": true,
+      "hit_rate_at_unanimity": {
+        "uniform": 0.05,
+        "margin": 0.05,
+        "posterior": 0.1,
+        "consensus": 0.05,
+        "channel": 0.75,
+        "oracle": 0.75
+      },
+      "policies_read": [
+        "uniform",
+        "margin",
+        "posterior",
+        "consensus"
+      ],
       "oracle_finds_all": false,
       "channel_ties_oracle": true,
       "channel_hit_rate": 0.75,
@@ -555,6 +639,20 @@
     {
       "seed": 404,
       "disagreement_policies_at_chance": true,
+      "hit_rate_at_unanimity": {
+        "uniform": 0.2,
+        "margin": 0.1,
+        "posterior": 0.1,
+        "consensus": 0.1,
+        "channel": 0.9,
+        "oracle": 0.9
+      },
+      "policies_read": [
+        "uniform",
+        "margin",
+        "posterior",
+        "consensus"
+      ],
       "oracle_finds_all": false,
       "channel_ties_oracle": true,
       "channel_hit_rate": 0.9,
@@ -631,15 +729,15 @@
     },
     {
       "n_wrong": 7,
-      "draws": 7,
+      "draws": 8,
       "beats": 6,
-      "ties": 7
+      "ties": 6
     }
   ],
   "draws_attempted": 8,
   "draws_hosting_the_blind_spot": 7,
   "invariants": {
-    "selection_ties_the_oracle_bound_in_every_draw": true,
+    "selection_ties_the_oracle_bound_in_every_draw": false,
     "selection_beats_uniform_in_every_draw": false,
     "disagreement_collapses_at_unanimity_wherever_measurable": true,
     "provenance_ties_the_oracle_bound_in_every_draw": false,
@@ -650,9 +748,9 @@
   },
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "d2c7a3fdc6ed",
-    "git_dirty": false,
-    "generated_at": "2026-08-13T19:39:31+00:00",
+    "git_commit": "cc85f3d64d67",
+    "git_dirty": true,
+    "generated_at": "2026-08-13T22:22:21+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",

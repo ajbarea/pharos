@@ -33,21 +33,33 @@ def test_the_seed_is_a_sweepable_dimension_of_every_governance_script():
         )
 
 
-def test_selection_ties_the_oracle_bound_in_every_draw():
-    """Finding 20's deep claim, and the most robust result in the governance set.
+def test_selection_ties_the_oracle_bound_below_the_crossing_and_not_above_it():
+    """Finding 20's deep claim, scored without the vacuous tie that first inflated it.
 
     A policy that ties the bound means no better selection rule exists on this signal.
-    That is a stronger statement than beating a uniform draw, and unlike the headline it
-    survives every corpus swept.
+    The first version of this sweep counted `None == None` -- neither margin nor the
+    oracle repairing at any budget -- as a tie, which made the claim hold everywhere. It
+    does not: at seven wrong it holds in six draws of eight, and that is where the fleet
+    is hardest to repair at all.
     """
     payload = artifact("corpus_sensitivity")
-    assert payload["invariants"]["selection_ties_the_oracle_bound_in_every_draw"], (
-        "selection no longer ties the oracle bound somewhere; finding 20 stops being a "
-        "bound and becomes a comparison, which is a different and weaker claim"
-    )
-    for entry in payload["by_composition"]:
+    by_composition = {e["n_wrong"]: e for e in payload["by_composition"]}
+    for n_wrong in (5, 6):
+        entry = by_composition[n_wrong]
         assert entry["ties"] == entry["draws"], (
-            f"{entry['n_wrong']} of 9 ties the bound in {entry['ties']}/{entry['draws']}"
+            f"{n_wrong} of 9 ties the bound in only {entry['ties']}/{entry['draws']} draws; "
+            "the part of finding 20 that survived the corpus sweep was the tie below the "
+            "crossing, and it has stopped surviving"
+        )
+    seven = by_composition[7]
+    assert seven["ties"] < seven["draws"], (
+        "seven of 9 now ties the bound in every draw, which is stronger than published -- "
+        "publish it rather than leaving the weaker claim in place"
+    )
+    for cell in (c for row in payload["audit"] for c in row["cells"]):
+        assert not (cell["margin_ties_oracle"] and cell["margin"] is None), (
+            f"draw {cell['n_wrong']}: a tie is recorded where margin never repaired, which "
+            "is the scoring defect this test exists for"
         )
 
 
@@ -67,6 +79,10 @@ def test_the_headline_that_moved_is_recorded_as_moved():
     assert not invariants["selection_beats_uniform_in_every_draw"], (
         "selection now beats a uniform draw everywhere, a stronger result than published"
     )
+    assert not invariants["selection_ties_the_oracle_bound_in_every_draw"], (
+        "selection ties the oracle bound in every draw again; that invariant was true only "
+        "while a cell where neither policy repaired counted as a tie"
+    )
     assert not invariants["the_auditable_pool_is_a_constant"], (
         "the auditable pool is one value across every draw, which would restore the 97 "
         "the script documented as a property of the design"
@@ -84,6 +100,13 @@ def test_the_advantage_survives_even_where_the_absolute_score_does_not():
     blind = payload["blind"]
     assert blind, "no draw hosted the blind-spot experiment; nothing here is tested"
     for row in blind:
+        # The claim is only worth asserting if policies were actually compared. It was
+        # first read off a key the blind-spot artifact does not have, so the comparison
+        # ran over an empty list and `all()` returned true without measuring anything.
+        assert row["policies_read"], (
+            f"draw {row['seed']}: no disagreement policy was scored, so the row below is "
+            "vacuously true rather than measured"
+        )
         assert row["disagreement_policies_at_chance"], (
             f"draw {row['seed']}: a disagreement policy is above chance at unanimity, so "
             "finding 21's premise moved and finding 23 answers a question nobody has"
@@ -172,21 +195,13 @@ def test_a_policy_that_never_repairs_does_not_beat_one_that_never_repairs():
     assert mod._better(45, 45) is False
 
 
-def test_a_rate_carries_its_denominator():
-    """Every rate in this artifact is held-of-attempted, because the denominators vary."""
-    import measure_corpus_sensitivity as mod
-
-    rows = [{"held": True}, {"held": False}, {"held": True}]
-    assert mod.rate(rows, "held") == {"held": 2, "of": 3}
-    assert mod.rate([], "held") == {"held": 0, "of": 0}
-
-
 def test_the_audit_row_separates_a_loss_from_nothing_being_repairable(monkeypatch):
-    """`nothing_repaired` is not `margin_beats_uniform` inverted.
+    """`nothing_repaired` is a property of the corpus, not of the policies failing on it.
 
-    Where neither policy repairs at any budget the ladder reached, the cell says so.
-    Reading that as a loss for selection would report a property of the corpus as a
-    property of the policy.
+    It is read off the artifact's budget-zero oracle row: a composition the fleet gets
+    right before any audit had nothing to repair. Deriving it from "neither margin nor
+    uniform repaired" instead conflates that with a draw where both simply lost, and
+    silently drops the second out of the denominator.
     """
     mod = _stub(
         monkeypatch,
@@ -197,6 +212,10 @@ def test_the_audit_row_separates_a_loss_from_nothing_being_repairable(monkeypatc
                 "uniform": {"5": 45, "6": None},
             },
             "compositions": [5, 6],
+            "grid": [
+                {"n_wrong": 5, "budget": 0, "policy": "oracle", "remaining_errors": 12},
+                {"n_wrong": 6, "budget": 0, "policy": "oracle", "remaining_errors": 0},
+            ],
             "auditable_pool": 97,
             "budgets": [10, 20],
             "budgets_requested": [10, 20, 95],
@@ -204,12 +223,40 @@ def test_the_audit_row_separates_a_loss_from_nothing_being_repairable(monkeypatc
         },
     )
     row = mod.audit_row(7)
-    won, neither = row["cells"]
+    won, unbroken = row["cells"]
     assert (won["margin_beats_uniform"], won["margin_ties_oracle"]) == (True, True)
     assert won["nothing_repaired"] is False
-    assert neither["nothing_repaired"] is True
-    assert neither["margin_beats_uniform"] is False
+    assert unbroken["nothing_repaired"] is True
+    assert unbroken["margin_beats_uniform"] is False
     assert row["ladder_truncated"] is True
+
+
+def test_a_tie_needs_two_finite_thresholds(monkeypatch):
+    """The defect that made finding 26's own headline hold everywhere.
+
+    At seed 202, seven wrong, neither margin nor the oracle repaired at any budget the
+    truncated ladder reached. `None == None` scored that as "ties the bound", and one such
+    cell was the whole of `selection_ties_the_oracle_bound_in_every_draw`.
+    """
+    mod = _stub(
+        monkeypatch,
+        {
+            "thresholds": {"margin": {"7": None}, "oracle": {"7": None}, "uniform": {"7": 80}},
+            "compositions": [7],
+            "grid": [{"n_wrong": 7, "budget": 0, "policy": "oracle", "remaining_errors": 9}],
+            "auditable_pool": 83,
+            "budgets": [10, 80],
+            "budgets_requested": [10, 80],
+            "best_deployable": "uniform",
+        },
+    )
+    cell = mod.audit_row(202)["cells"][0]
+    assert cell["margin_ties_oracle"] is False, (
+        "two failures to repair are being scored as a tie with the bound"
+    )
+    assert cell["nothing_repaired"] is False, (
+        "the fleet was broken here, so this cell is priced and counts against selection"
+    )
 
 
 def test_the_blind_row_does_not_credit_a_tie_with_an_absent_oracle(monkeypatch):

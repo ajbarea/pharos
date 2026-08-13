@@ -1032,6 +1032,11 @@ def corpus_sensitivity() -> str:
         )
 
     pool = payload["auditable_pool_range"]
+    # A draw whose artifact carries no channel rate is a missing measurement, not a zero.
+    # Sorting `None` beside floats raised TypeError here rather than saying so.
+    missing = [r["seed"] for r in blind if r["channel_hit_rate"] is None]
+    if missing:
+        _fail(f"draws {missing} report no channel hit rate; the range below cannot be built")
     hit = sorted(r["channel_hit_rate"] for r in blind)
     lines += [
         "",

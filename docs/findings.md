@@ -3197,10 +3197,10 @@ as the `--fleet` defect finding 24 found, and all invisible from the committed a
 | --- | --- | --- | --- |
 | `margin` ties the oracle bound at 5 of 9 | 20 | **8** | 8 |
 | `margin` ties the oracle bound at 6 of 9 | 20 | **8** | 8 |
-| `margin` ties the oracle bound at 7 of 9 | 20 | **7** | 7 |
+| `margin` ties the oracle bound at 7 of 9 | 20 | **6** | 8 |
 | `margin` beats a uniform draw at 5 of 9 | 20 | **7** | 8 |
 | `margin` beats a uniform draw at 6 of 9 | 20 | **8** | 8 |
-| `margin` beats a uniform draw at 7 of 9 | 20 | **6** | 7 |
+| `margin` beats a uniform draw at 7 of 9 | 20 | **6** | 8 |
 | Disagreement policies sit at chance at unanimity | 21 | **7** | 7 |
 | Provenance ties the oracle bound | 23 | **6** | 7 |
 | Provenance finds *every* corrupted item | 23 | **1** | 7 |
@@ -3212,15 +3212,43 @@ Fleet of 9, 8 corpus draws, every denominator stated. Finding 21's experiment ne
 The auditable pool an audit budget is a fraction of ranges **83 to 99**, not the 97 the script documented. Provenance recovers **0.75 to 1.00** of corrupted items against every disagreement-reading policy's 0.25 or less, so the *advantage* is robust even where the 1.00 is not.
 <!-- END GENERATED: corpus-sensitivity -->
 
-**The bound holds; one headline does not.** `margin` ties the oracle bound in **every
-draw at every composition** — 8 of 8 at five and six wrong, 7 of 7 at seven. That is the
-claim that matters, because a policy tying the bound means no better selection rule exists
-on this signal, and it is the most robust result in the governance set.
+**The bound holds below the crossing, and not above it.** `margin` ties the oracle bound
+in **8 of 8** draws at five and six wrong, and in **6 of 8** at seven. A policy tying the
+bound means no better selection rule exists on this signal, so the tie is the claim worth
+having — and it is now bounded by where the fleet is hardest to repair at all, rather than
+stated everywhere.
 
-What moves is finding 23's number.
+!!! danger "Retraction: this sweep's own first headline counted a tie that never happened"
+    The version of this finding published on 2026-08-07 reported the tie holding in
+    **every draw at every composition** and called it the most robust result in the
+    governance set. That was a scoring defect in the sweep, not a result. A cell where
+    *neither* `margin` nor the oracle repaired at any budget — both thresholds `None` —
+    compared equal and was counted as a tie. Seed 202 at seven wrong is such a cell, and
+    that single cell was the whole of the invariant.
+
+    Two consequences, both in the table above. The tie at seven wrong is 6 of 8, not
+    7 of 7. And the denominator itself was wrong: `nothing_repaired` was derived from the
+    policies failing rather than from the corpus, so seed 101 at seven wrong — a fleet
+    that *was* broken and that nothing in the ladder repaired — was dropped from the
+    denominator instead of counted. It is read off the budget-zero oracle row now, which
+    is where `measure_governance_sensitivity` already read it.
+
+    Found by an independent review of the pull request that introduced it, before it was
+    merged. It is the same shape as the defect the finding is about: a comparison that
+    was never made, reported as one that held.
+
+**Finding 21's row was vacuous, and now is not.** `disagreement_policies_at_chance` read
+its policy list from a `deployable` key the blind-spot artifact has never had, so the
+comparison ran over an empty list and `all()` returned true without scoring a single
+policy. The row read 7 of 7 and measured nothing. Scored against the four deployable
+policies by name, it still reads **7 of 7** — the claim was true, and it had not been
+tested. Every policy's rate is recorded per draw now, so the prose comparison can be
+checked against the artifact rather than taken on trust.
+
+What moves next is finding 23's number.
 
 !!! danger "Retraction: 'provenance finds every corrupted item' is one draw in seven"
-    [Finding 23](#23-once-the-detector-names-the-channel-provenance-finds-every-corrupted-item)
+    [Finding 23](#23-once-the-detector-names-the-channel-provenance-finds-the-corrupted-items-that-are-findable-at-all)
     reports a hit rate of **1.00** against uniform's 0.10 and margin's 0.15, tying the
     oracle exactly. Across seven draws that can host the experiment, the channel policy
     recovers **0.75, 0.80, 0.80, 0.90, 0.90, 0.75** and — on the committed corpus alone —
@@ -3264,6 +3292,12 @@ names is `margin` in seven draws and `uniform` in one. A sweep that reports a si
 winner from a single corpus is reporting the corpus.
 
 This is the fourth single-draw quantity corrected here, after finding 5's shot count,
-finding 19's anchor prices, and finding 24's crossing. The class is now guarded rather
-than re-noticed: every one of these scripts takes `--seed`, and this sweep is the artifact
-that would catch the next one.
+finding 19's anchor prices, and finding 24's crossing. The class is guarded rather than
+re-noticed now: every one of these scripts takes `--seed`, and the test suite fails if a
+new governance script does not.
+
+**The guard is narrower than the class, and this says where.** The sweep runs three of
+the four scripts. `measure_authority_anchors` accepts a seed and is not swept, so finding
+19's anchor prices are still one corpus -- a median over 21 *anchor* draws inside a single
+corpus draw, which is a different multiverse from this one. That is the next cell to fill,
+and naming it is cheaper than rediscovering it.

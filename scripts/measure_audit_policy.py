@@ -505,7 +505,9 @@ def main() -> int:
             extra={
                 "event": "audit.budget_ladder_truncated",
                 "auditable": auditable,
-                "dropped": [b for b in budgets if b > auditable],
+                # From the full ladder: `budgets` is already filtered by this predicate,
+                # so reading it here reported an empty list on every truncation.
+                "dropped": [b for b in BUDGETS if b > auditable],
             },
         )
     rows: list[Row] = []
@@ -515,7 +517,7 @@ def main() -> int:
         thresholds[name] = {}
         print(f"\n  {name}")
         print(f"    {'wrong':>6}" + "".join(f"{b:>7}" for b in budgets))
-        print("    " + "-" * (6 + 7 * len(BUDGETS)))
+        print("    " + "-" * (6 + 7 * len(budgets)))
         for n_wrong in compositions:
             if n_wrong > args.fleet:
                 continue
