@@ -147,3 +147,102 @@ def test_the_budget_ladder_is_truncated_to_the_pool_it_draws_from():
             "the used ladder is not the requested one filtered by the pool, so it is not "
             "a truncation but a different ladder"
         )
+
+
+def _stub(monkeypatch, payload):
+    """Point the module's `run_at` at a payload instead of a subprocess."""
+    import measure_corpus_sensitivity as mod
+
+    monkeypatch.setattr(mod, "run_at", lambda *a, **k: payload)
+    return mod
+
+
+def test_a_policy_that_never_repairs_does_not_beat_one_that_never_repairs():
+    """`None` is "never repaired at any budget", not "repaired at budget infinity".
+
+    Ordering it as a number would make two failures look like a win for whichever was
+    checked first, which is the shape of the censoring error finding 20's sweep made.
+    """
+    import measure_corpus_sensitivity as mod
+
+    assert mod._better(20, 45) is True
+    assert mod._better(20, None) is True
+    assert mod._better(None, 45) is False
+    assert mod._better(None, None) is False
+    assert mod._better(45, 45) is False
+
+
+def test_a_rate_carries_its_denominator():
+    """Every rate in this artifact is held-of-attempted, because the denominators vary."""
+    import measure_corpus_sensitivity as mod
+
+    rows = [{"held": True}, {"held": False}, {"held": True}]
+    assert mod.rate(rows, "held") == {"held": 2, "of": 3}
+    assert mod.rate([], "held") == {"held": 0, "of": 0}
+
+
+def test_the_audit_row_separates_a_loss_from_nothing_being_repairable(monkeypatch):
+    """`nothing_repaired` is not `margin_beats_uniform` inverted.
+
+    Where neither policy repairs at any budget the ladder reached, the cell says so.
+    Reading that as a loss for selection would report a property of the corpus as a
+    property of the policy.
+    """
+    mod = _stub(
+        monkeypatch,
+        {
+            "thresholds": {
+                "margin": {"5": 20, "6": None},
+                "oracle": {"5": 20, "6": None},
+                "uniform": {"5": 45, "6": None},
+            },
+            "compositions": [5, 6],
+            "auditable_pool": 97,
+            "budgets": [10, 20],
+            "budgets_requested": [10, 20, 95],
+            "best_deployable": "margin",
+        },
+    )
+    row = mod.audit_row(7)
+    won, neither = row["cells"]
+    assert (won["margin_beats_uniform"], won["margin_ties_oracle"]) == (True, True)
+    assert won["nothing_repaired"] is False
+    assert neither["nothing_repaired"] is True
+    assert neither["margin_beats_uniform"] is False
+    assert row["ladder_truncated"] is True
+
+
+def test_the_blind_row_does_not_credit_a_tie_with_an_absent_oracle(monkeypatch):
+    """`channel_ties_oracle` compares two rates, and a missing oracle is not a tie.
+
+    `dict.get` returning None on both sides would make them equal, which would report a
+    tie with the bound on a draw where the bound was never measured.
+    """
+    mod = _stub(
+        monkeypatch,
+        {
+            "fleet": 9,
+            "audit_hit_rate": {"9": {"channel": 0.9, "uniform": 0.1, "margin": 0.15}},
+            "deployable": ["uniform", "margin"],
+            "grid": [],
+        },
+    )
+    row = mod.blind_row(1)
+    assert row["oracle_finds_all"] is False
+    assert row["channel_ties_oracle"] is False
+    assert row["disagreement_policies_at_chance"] is True
+    assert row["channel_corrected"] is None
+
+
+def test_the_channel_row_reports_no_detections_as_undetected(monkeypatch):
+    """`all()` over an empty list is True, which would publish silence as detection."""
+    mod = _stub(
+        monkeypatch,
+        {
+            "blind_channel": "PARTNER",
+            "shares": [1, 9],
+            "sweep": [{"n_blind": 9, "detections": []}],
+            "controls_clean": True,
+        },
+    )
+    assert mod.channel_row(1)["blinded_detected_at_every_noise_level"] is False
