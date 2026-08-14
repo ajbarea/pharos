@@ -372,3 +372,70 @@ def test_the_blind_row_refuses_a_draw_where_no_policy_was_scored(monkeypatch):
     )
     with pytest.raises(RuntimeError, match="finding 21's claim cannot be evaluated"):
         mod.blind_row(1)
+
+
+def test_nothing_repairs_unanimity_in_any_draw():
+    """Finding 19's load-bearing negative, and the one quoted outside this repository.
+
+    An authority of record buys nothing once the fleet is unanimously wrong, at any budget
+    the ladder reaches. The anchor *prices* are corpus-dependent; this is the claim that is
+    not, and the twelve-month deliverable is shaped by it.
+    """
+    payload = artifact("corpus_sensitivity")
+    anchors = payload.get("anchors")
+    assert anchors, "no draw carries anchor prices; finding 19 is unswept again"
+    assert payload["invariants"]["nothing_repairs_unanimity_in_any_draw"], (
+        "some draw now repairs a unanimously wrong fleet with an authority of record. "
+        "That is a stronger and more useful result than the one published -- publish it, "
+        "and revisit what the open problem is"
+    )
+    for row in anchors:
+        assert row["compositions"]["9"]["reached"] == 0, (
+            f"draw {row['seed']}: unanimity repaired in "
+            f"{row['compositions']['9']['reached']} of {row['compositions']['9']['seeds']} "
+            "anchor draws"
+        )
+
+
+def test_the_anchor_price_is_a_property_of_the_corpus():
+    """Finding 19's prices were three single numbers taken from one corpus draw.
+
+    The script sweeps 21 anchor draws inside a corpus and reports a median with its range,
+    which reads as a robustness check and is one for the anchors only. The corpus those
+    anchors are drawn from was the outer multiverse nobody had varied.
+    """
+    payload = artifact("corpus_sensitivity")
+    anchors = payload["anchors"]
+    assert not payload["invariants"]["the_anchor_price_is_a_constant"], (
+        "every draw now agrees on the anchor price, which would make the published "
+        "single numbers correct after all -- check the sweep before believing it"
+    )
+    for key in ("5", "6", "7"):
+        priced = [r for r in anchors if r["compositions"][key]["median"] is not None]
+        assert priced, f"composition {key} prices nothing in any draw"
+        # A draw with no median repairs in a minority of its anchor draws. That is a
+        # result about that corpus, not a missing measurement, so it has to stay legible
+        # rather than being filtered out of the range quoted from it.
+        for row in anchors:
+            cell = row["compositions"][key]
+            if cell["median"] is None:
+                assert cell["reached"] < cell["seeds"] // 2 + 1, (
+                    f"draw {row['seed']} at {key} wrong has no median but repaired in "
+                    f"{cell['reached']} of {cell['seeds']} anchor draws, which should have "
+                    "produced one -- the two are being derived inconsistently"
+                )
+
+
+def test_the_sweep_declares_what_it_holds_fixed():
+    """The multiverse is a researcher degree of freedom too.
+
+    A sweep that chooses its dimensions after seeing which are kind to the result is not a
+    robustness check, so the swept and pinned dimensions are declared in the artifact with
+    the reason each pin is a pin.
+    """
+    payload = artifact("corpus_sensitivity")
+    multiverse = payload["multiverse"]
+    assert multiverse["swept"]["corpus_seed"] == payload["draws"]
+    for name, pin in multiverse["pinned"].items():
+        assert pin["why"].strip(), f"{name} is pinned with no reason recorded"
+    assert multiverse["pinned"]["fleet"]["value"] == payload["fleet"]

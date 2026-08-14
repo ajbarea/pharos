@@ -2345,6 +2345,9 @@ are read into LIAISON" is not obviously the safer of the two.
     Every other price is unchanged --- 12 at a bare majority, 80 at six of nine, 150 at
     seven, never at nine --- because in those compositions the anchors were doing real
     work all along. The correction narrows what the finding claims rather than moving it.
+    (Those three numbers moved later, when finding 26 swept the corpus rather than the
+    anchor draw. The retraction below carries the ranges; only the "never at nine"
+    survived as stated.)
 
 Finding 18 localised the cliff to non-identifiability, and
 [finding 17](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)
@@ -2386,7 +2389,22 @@ Threshold for 'repaired' is agreement ≥ 0.95 on unanchored tasks, over a corpu
 
 At a bare majority an authority ruling on a **median of twelve items in two hundred**
 restores the estimate on the **93** that remain scorable. One analyst further and the
-same repair costs **two fifths of the round**; two further, three quarters. The
+same repair costs **two fifths of the round**; two further, three quarters.
+
+!!! danger "Retraction: these prices are one corpus, and it is a cheap one"
+    Finding 26 swept the corpus these anchors are drawn from. The twelve above is the
+    second-cheapest of eight draws: the bare-majority price spans a **median of 5 to 80**
+    audited items, six of nine **80 to 120**, and seven of nine **120 to 180** — and at
+    seven of nine one draw prices nothing at all, repairing in only 5 of its 21 anchor
+    draws. The 21-draw median quoted here is a robustness check over *anchors*, which
+    reads like one over the experiment and is not: the corpus was the dimension nobody
+    varied.
+
+    What survives untouched is the negative, which is the half this finding is quoted on:
+    **no budget on the ladder repairs unanimity, in any draw.** Quote the range for a
+    price and the invariant for the bound.
+
+The
 mechanism is visible in the M step: an anchored task constrains every contributor's
 confusion matrix, but the unanchored majority still outvotes it, so the anchors have to
 reach a share that dominates the estimate rather than merely inform it.
@@ -3205,11 +3223,18 @@ as the `--fleet` defect finding 24 found, and all invisible from the committed a
 | Provenance ties the oracle bound | 23 | **6** | 7 |
 | Provenance finds *every* corrupted item | 23 | **1** | 7 |
 | No policy repairs an unanchored label | 23 | **7** | 7 |
+| Nothing repairs unanimity, at any budget | 19 | **8** | 8 |
 | Blinded channel detected, controls silent | 22 | **8** | 8 |
 
 Fleet of 9, 8 corpus draws, every denominator stated. Finding 21's experiment needs a blind channel orthogonal to item difficulty and refuses to run where they are entangled, so it is constructible on **7 of 8** draws; a draw that cannot host the negative control says nothing about the finding and is excluded rather than counted against it.
 
 The auditable pool an audit budget is a fraction of ranges **83 to 99**, not the 97 the script documented. Provenance recovers **0.75 to 1.00** of corrupted items against every disagreement-reading policy's 0.25 or less, so the *advantage* is robust even where the 1.00 is not.
+
+Finding 19's anchor prices are a median over 21 *anchor* draws inside one corpus, and the corpus moves them. Across 8 draws, the median number of audited items an authority of record must rule on spans a bare majority **5 to 80**, six of nine **80 to 120**, seven of nine **120 to 180** (priced in 7 of 8 draws). The committed corpus ranks 2 of 8 at a bare majority, 2 of 8 at six, 2 of 7 at seven when the draws are ordered cheapest first, so it is not a worst case and not a typical one. The published single numbers were one draw's, not the price.
+
+At seven of nine, one draw (seed 101) repairs in only **5 of 21** anchor draws, so it has no median at all: on that corpus an authority usually buys nothing within the ladder. That draw is reported here rather than dropped from the range.
+
+What does not move is the negative. **No budget on the ladder repairs unanimity, in any draw** -- which is the claim finding 19 is quoted on outside this repository, and the one the open problem is shaped by.
 <!-- END GENERATED: corpus-sensitivity -->
 
 **The bound holds below the crossing, and not above it.** `margin` ties the oracle bound
@@ -3296,8 +3321,23 @@ finding 19's anchor prices, and finding 24's crossing. The class is guarded rath
 re-noticed now: every one of these scripts takes `--seed`, and the test suite fails if a
 new governance script does not.
 
-**The guard is narrower than the class, and this says where.** The sweep runs three of
-the four scripts. `measure_authority_anchors` accepts a seed and is not swept, so finding
-19's anchor prices are still one corpus -- a median over 21 *anchor* draws inside a single
-corpus draw, which is a different multiverse from this one. That is the next cell to fill,
-and naming it is cheaper than rediscovering it.
+**The last cell is filled, and it was the most expensive one.** Naming
+`measure_authority_anchors` as the unswept dimension took an afternoon to close: the
+script costs 26 seconds a draw, so the exclusion that called it too slow to sweep had
+been guessing. Finding 19's prices move more than any other quantity here — the
+bare-majority price spans a median of **5 to 80** audited items where 12 was published,
+and the committed corpus is the second-cheapest draw of eight at every composition that
+prices at all. The affordability claim was the optimistic end of a range.
+
+The negative survives, and it is the half that carries the argument: **no budget on the
+ladder repairs unanimity, in any of the eight draws**. So an authority of record is
+costlier than published and still buys nothing where the fleet agrees, which is the shape
+the open problem already had.
+
+**What is pinned is now declared.** The multiverse is itself a researcher degree of
+freedom, and a sweep that picks its dimensions after seeing which are kind to the result
+is not a robustness check. The artifact carries a `multiverse` block naming what varies
+(the corpus seed, eight draws) and what is held fixed with the reason for each: the fleet
+size, which belongs to finding 24's sweep and would confound this one; the permutation
+count, because a p-value floors at 1/(m+1); and the 21 anchor draws, which are the inner
+multiverse this one wraps.

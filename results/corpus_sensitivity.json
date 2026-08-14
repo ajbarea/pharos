@@ -11,6 +11,34 @@
     404
   ],
   "permutations": 4200,
+  "multiverse": {
+    "swept": {
+      "corpus_seed": [
+        1,
+        7,
+        11,
+        23,
+        101,
+        202,
+        303,
+        404
+      ]
+    },
+    "pinned": {
+      "fleet": {
+        "value": 9,
+        "why": "the size every published governance number was measured at; the fleet dimension belongs to measure_governance_sensitivity.py, and crossing the two would confound which one moved a result"
+      },
+      "permutations": {
+        "value": 4200,
+        "why": "a p-value floors at 1/(m+1), so reducing it would test a weaker instrument than the finding it checks"
+      },
+      "anchor_draws": {
+        "value": 21,
+        "why": "the inner multiverse measure_authority_anchors already reports a median and range over; this sweep varies the corpus those anchors are drawn from"
+      }
+    }
+  },
   "audit": [
     {
       "seed": 1,
@@ -710,6 +738,328 @@
       "controls_clean": true
     }
   ],
+  "anchors": [
+    {
+      "seed": 1,
+      "compositions": {
+        "4": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "5": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 5,
+          "lowest": 1,
+          "highest": 20
+        },
+        "6": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 80,
+          "lowest": 50,
+          "highest": 100
+        },
+        "7": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 120,
+          "lowest": 80,
+          "highest": 150
+        },
+        "9": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        }
+      }
+    },
+    {
+      "seed": 7,
+      "compositions": {
+        "4": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "5": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 12,
+          "lowest": 2,
+          "highest": 30
+        },
+        "6": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 80,
+          "lowest": 50,
+          "highest": 100
+        },
+        "7": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 150,
+          "lowest": 120,
+          "highest": 180
+        },
+        "9": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        }
+      }
+    },
+    {
+      "seed": 11,
+      "compositions": {
+        "4": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "5": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 80,
+          "lowest": 30,
+          "highest": 100
+        },
+        "6": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 120,
+          "lowest": 100,
+          "highest": 150
+        },
+        "7": {
+          "reached": 19,
+          "seeds": 21,
+          "median": 180,
+          "lowest": 150,
+          "highest": 180
+        },
+        "9": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        }
+      }
+    },
+    {
+      "seed": 23,
+      "compositions": {
+        "4": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "5": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 50,
+          "lowest": 30,
+          "highest": 80
+        },
+        "6": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 100,
+          "lowest": 80,
+          "highest": 150
+        },
+        "7": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 150,
+          "lowest": 120,
+          "highest": 180
+        },
+        "9": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        }
+      }
+    },
+    {
+      "seed": 101,
+      "compositions": {
+        "4": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "5": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 50,
+          "lowest": 12,
+          "highest": 80
+        },
+        "6": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 120,
+          "lowest": 80,
+          "highest": 150
+        },
+        "7": {
+          "reached": 5,
+          "seeds": 21,
+          "median": null,
+          "lowest": 180,
+          "highest": 180
+        },
+        "9": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        }
+      }
+    },
+    {
+      "seed": 202,
+      "compositions": {
+        "4": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "5": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 80,
+          "lowest": 30,
+          "highest": 80
+        },
+        "6": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 120,
+          "lowest": 80,
+          "highest": 150
+        },
+        "7": {
+          "reached": 14,
+          "seeds": 21,
+          "median": 180,
+          "lowest": 150,
+          "highest": 180
+        },
+        "9": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        }
+      }
+    },
+    {
+      "seed": 303,
+      "compositions": {
+        "4": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "5": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 30,
+          "lowest": 12,
+          "highest": 80
+        },
+        "6": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 100,
+          "lowest": 80,
+          "highest": 150
+        },
+        "7": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 150,
+          "lowest": 120,
+          "highest": 180
+        },
+        "9": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        }
+      }
+    },
+    {
+      "seed": 404,
+      "compositions": {
+        "4": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        },
+        "5": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 50,
+          "lowest": 30,
+          "highest": 80
+        },
+        "6": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 100,
+          "lowest": 80,
+          "highest": 120
+        },
+        "7": {
+          "reached": 21,
+          "seeds": 21,
+          "median": 180,
+          "lowest": 120,
+          "highest": 180
+        },
+        "9": {
+          "reached": 0,
+          "seeds": 21,
+          "median": null,
+          "lowest": null,
+          "highest": null
+        }
+      }
+    }
+  ],
   "auditable_pool_range": [
     83,
     99
@@ -743,14 +1093,16 @@
     "provenance_ties_the_oracle_bound_in_every_draw": false,
     "provenance_finds_every_corrupted_item_in_every_draw": false,
     "no_policy_repairs_an_unanchored_label": true,
+    "nothing_repairs_unanimity_in_any_draw": true,
+    "the_anchor_price_is_a_constant": false,
     "blinded_channel_detected_and_controls_silent": true,
     "the_auditable_pool_is_a_constant": false
   },
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "ae0f00c62c00",
-    "git_dirty": false,
-    "generated_at": "2026-08-13T22:37:38+00:00",
+    "git_commit": "a263c9ea0405",
+    "git_dirty": true,
+    "generated_at": "2026-08-14T04:40:49+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
