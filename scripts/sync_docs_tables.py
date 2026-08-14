@@ -1009,6 +1009,132 @@ def _committed_rank(anchors: list[dict[str, Any]], committed: int = 7) -> str:
     )
 
 
+def selective_risk() -> str:
+    """Finding 28: what withholding buys where auditing buys nothing.
+
+    Risk and coverage in the same block, always. Either alone is unreadable: a risk
+    column with no coverage beside it credits a policy for shrinking the corpus, which is
+    the artifact findings 19 and 20 had to retract, and a coverage column alone says
+    nothing about whether anything was removed.
+    """
+    path = RESULTS / "selective_risk.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make selective-risk` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    fleets = payload.get("fleets") or []
+    shared = payload.get("shared_only_slip_rates") or []
+    if not fleets or not shared:
+        _fail("selective_risk.json carries no regime isolating the shared blind spot")
+
+    order = [*payload["deployable"], payload["bound"]]
+    shares = payload["shares"]
+    lines: list[str] = []
+    for rate in shared:
+        rows = {f["n_blind"]: f for f in fleets if f["slip_rate"] == rate}
+        base = {n: rows[n]["base_risk"] for n in shares if n in rows}
+        lines += [
+            f"**Slip rate {rate}** --- errors among published labels, "
+            f"{payload['report_budget']} of the pool withheld",
+            "",
+            f"| Blind of {payload['fleet']} | base | " + " | ".join(f"`{p}`" for p in order) + " |",
+            "| --- | --- |" + " --- |" * len(order),
+        ]
+        for n in shares:
+            if n not in rows:
+                continue
+            cells = []
+            for name in order:
+                value = rows[n]["policies"][name]["risk_at_20"]
+                cells.append("--" if value is None else f"{value:.3f}")
+            lines.append(f"| {n} | {base[n]:.3f} | " + " | ".join(cells) + " |")
+        lines += [
+            "",
+            f"Share of those {payload['report_budget']} withheld labels that were actually wrong "
+            "(chance is the base rate in the column above):",
+            "",
+            f"| Blind of {payload['fleet']} | " + " | ".join(f"`{p}`" for p in order) + " |",
+            "| --- |" + " --- |" * len(order),
+        ]
+        for n in shares:
+            if n not in rows:
+                continue
+            cells = []
+            for name in order:
+                value = rows[n]["policies"][name]["precision_at_20"]
+                cells.append("--" if value is None else f"{value:.2f}")
+            lines.append(f"| {n} | " + " | ".join(cells) + " |")
+        lines.append("")
+
+    unanimous = max(shares)
+    # The coverage a zero in the risk column costs, quoted from the same artifact. A
+    # claim that abstention "removes the errors" without this number is the half of the
+    # trade that flatters itself.
+    halving, clearing = [], []
+    for rate in shared:
+        cells = [
+            c
+            for c in payload["grid"]
+            if c["n_blind"] == unanimous and c["slip_rate"] == rate and c["policy"] == "channel"
+        ]
+        if not cells:
+            _fail(f"no channel cells at unanimity for slip {rate}")
+        fleet = next(f for f in fleets if f["n_blind"] == unanimous and f["slip_rate"] == rate)
+        halved = fleet["policies"]["channel"]["halved_at"]
+        at_halved = next((c for c in cells if c["withheld"] == halved), None)
+        if at_halved is None:
+            _fail(f"no channel cell at the halving budget for slip {rate}")
+        halving.append(f"{1 - at_halved['coverage']:.0%} of coverage at slip {rate}")
+        # The budget that clears the errors entirely, which is a different price from the
+        # one that halves them and was quoted as the same number in a first draft of this
+        # block. Absent where the sweep never clears them, and said so rather than
+        # rounded away.
+        cleared = next(
+            (c for c in sorted(cells, key=lambda c: c["withheld"]) if c["errors_published"] == 0),
+            None,
+        )
+        clearing.append(
+            f"{1 - cleared['coverage']:.0%} of coverage at slip {rate}"
+            if cleared
+            else f"not reached within the sweep at slip {rate}"
+        )
+
+    false_priced = [e for e in payload["false_detection"] if e["coverage_at_20"] is not None]
+    clean = [e for e in false_priced if e["base_errors"] == 0]
+    lines += [
+        "At unanimity the textbook rule is at chance and provenance is exact. Withholding "
+        "by the channel the detector named halves the wrong labels for "
+        + " and ".join(halving)
+        + ", and clears them entirely for "
+        + " and ".join(clearing)
+        + ". That is the price of the whole trade: **detection converts into coverage, "
+        "not into correction**. Nothing here repairs a label, and the coverage column is "
+        "what says so.",
+        "",
+    ]
+    if clean:
+        entry = clean[0]
+        lines.append(
+            f"The same rule on a fleet with **no** blind spot withholds "
+            f"{1 - entry['coverage_at_20']:.0%} of labels and catches "
+            f"{entry['caught_at_20']} wrong ones, because there are none to catch. That is "
+            "what a false detection costs, and it is a number rather than a reassurance."
+        )
+        lines.append("")
+    control = payload.get("random_error_control")
+    if control is not None:
+        works = payload["findings"]["confidence_abstention_works_on_random_error"]
+        survives = payload["findings"]["provenance_abstention_survives_dominant_random_error"]
+        lines.append(
+            f"The control runs the other way. At slip {control} a fleet with no blind spot "
+            f"already carries estimator errors, and there the textbook rule "
+            f"{'works' if works else 'does not work'} while provenance "
+            f"{'still helps' if survives else 'no longer beats an untargeted draw'} --- so "
+            "the failure above is a property of the error's *shape*, not of abstention, "
+            "and the remedy is bounded by the same distinction."
+        )
+    return "\n".join(lines)
+
+
 def corpus_sensitivity() -> str:
     """Finding 26: whether findings 20-23 survive the corpus draw, claim by claim."""
     path = RESULTS / "corpus_sensitivity.json"
@@ -1053,6 +1179,28 @@ def corpus_sensitivity() -> str:
         unrepaired = sum(1 for r in anchors if r["compositions"]["9"]["reached"] == 0)
         lines.append(
             f"| Nothing repairs unanimity, at any budget | 19 | **{unrepaired}** | {len(anchors)} |"
+        )
+    if selective := payload.get("selective"):
+        hosted_sel = len(selective)
+        lines += [
+            f"| Confidence abstention fails at unanimity | 28 | "
+            f"**{sum(1 for r in selective if r['confidence_fails_at_unanimity'])}** | {hosted_sel} |",
+            f"| Its textbook inversion fails too | 28 | "
+            f"**{sum(1 for r in selective if r['consensus_fails_at_unanimity'])}** | {hosted_sel} |",
+            f"| Provenance abstention beats every untargeted draw | 28 | "
+            f"**{sum(1 for r in selective if r['provenance_works_at_unanimity'])}** | {hosted_sel} |",
+            f"| Provenance abstention ties the bound | 28 | "
+            f"**{sum(1 for r in selective if r['provenance_ties_the_bound_at_unanimity'])}** "
+            f"| {hosted_sel} |",
+        ]
+        # The control carries its own denominator: a draw where no swept slip rate breaks
+        # a healthy fleet reports None, which is an experiment that did not run rather
+        # than a rule that failed.
+        measurable = [r for r in selective if r["confidence_works_on_random_error"] is not None]
+        lines.append(
+            f"| Confidence abstention works on *random* error | 28 | "
+            f"**{sum(1 for r in measurable if r['confidence_works_on_random_error'])}** "
+            f"| {len(measurable)} |"
         )
     if payload.get("channel"):
         detected = sum(
@@ -1156,6 +1304,7 @@ BLOCKS = {
     "linkage-controls": linkage_controls,
     "privacy-budget": privacy_budget,
     "channel-bias": channel_bias,
+    "selective-risk": selective_risk,
 }
 
 #: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --

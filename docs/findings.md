@@ -244,6 +244,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `review_adapter-two-of-three` | 600 | yes | - |
 | `review_sweep` | 40 | yes | - |
 | `secure_reliability` | 200 | yes | - |
+| `selective_risk` | 140 | yes | - |
 | `tagged_aggregation` | 200 | yes | - |
 | `triage_lift-llama3.1-8b` | 40 | **no** | accuracy 0.600 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift-llama3.2-3b` | 40 | yes | - |
@@ -253,7 +254,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**27 of 58** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**27 of 59** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 **Carrying no validity assessment, which is a gap rather than a pass:** `corpus_sensitivity`, `estimator_initialization`, `governance_sensitivity`.
 
@@ -3400,3 +3401,134 @@ modules out of thirty, and the survivor count is inflated by string mutants nobo
 chase. `gate.py` belongs in scope and is excluded for cost alone -- its tests take 90
 seconds, against half a second for the two modules here -- which is a budget, not a
 verdict on how well the gate is tested.
+
+## 28. The open problem, answered: detection converts into coverage, not into correction
+
+`scripts/measure_selective_risk.py`, `results/selective_risk.json`
+
+Findings 19 to 21 close off correction at unanimity from three directions -- no budget on
+the anchor ladder repairs a label, no disagreement-reading policy beats chance, and
+[finding 26](#26-findings-20-to-23-were-measured-on-one-corpus-and-one-of-their-headlines-was-that-corpus)
+shows both hold across corpus draws.
+[Finding 22](#22-the-trace-a-blind-spot-leaves-after-it-stops-leaving-disagreement) then
+detects the regime anyway, and
+[finding 23](#23-once-the-detector-names-the-channel-provenance-finds-the-corrupted-items-that-are-findable-at-all)
+turns that detection into a selection rule that finds the corrupted items. What was left
+open is the sentence between them: **the fleet knows which regime it is in, the items are
+selectable, and auditing them still corrects nothing.** So what should a deployment
+actually do?
+
+**Auditing is not the only action.** A deployment that cannot correct a label can decline
+to publish it. That is selective prediction, and the 2026 form of the rule states it as
+agreement: predict only when the label is *forced*, that is when every consistent
+hypothesis agrees, and abstain otherwise (Khosravani, [arXiv:2605.02611](https://arxiv.org/abs/2605.02611)).
+Read across to a fleet of analysts, that rule says publish where the fleet is unanimous.
+This corpus was built to say what happens to a rule like that when unanimity **is** the
+failure.
+
+**What is measured.** No authority, no anchors, no re-estimation. The estimator runs once
+per fleet and each policy chooses labels to withhold. Two numbers per cell and neither is
+readable alone: *selective risk*, the errors among labels still published, and *coverage*,
+how many are published at all. Withholding here is deletion by design rather than by
+accident -- nothing claims a repair, and a policy that withholds correct labels raises its
+own risk, which is what makes the column honest without an oracle.
+
+<!-- BEGIN GENERATED: selective-risk -->
+**Slip rate 0.0** --- errors among published labels, 20 of the pool withheld
+
+| Blind of 9 | base | `uniform` | `margin` | `posterior` | `consensus` | `channel` | `oracle` |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| 3 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| 5 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| 7 | 0.100 | 0.100 | 0.000 | 0.000 | 0.111 | 0.000 | 0.000 |
+| 8 | 0.100 | 0.100 | 0.000 | 0.000 | 0.111 | 0.000 | 0.000 |
+| 9 | 0.100 | 0.100 | 0.094 | 0.089 | 0.094 | 0.000 | 0.000 |
+
+Share of those 20 withheld labels that were actually wrong (chance is the base rate in the column above):
+
+| Blind of 9 | `uniform` | `margin` | `posterior` | `consensus` | `channel` | `oracle` |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 3 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 5 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 7 | 0.10 | 1.00 | 1.00 | 0.00 | 1.00 | 1.00 |
+| 8 | 0.10 | 1.00 | 1.00 | 0.00 | 1.00 | 1.00 |
+| 9 | 0.10 | 0.15 | 0.20 | 0.15 | 1.00 | 1.00 |
+
+**Slip rate 0.15** --- errors among published labels, 20 of the pool withheld
+
+| Blind of 9 | base | `uniform` | `margin` | `posterior` | `consensus` | `channel` | `oracle` |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| 3 | 0.020 | 0.022 | 0.006 | 0.006 | 0.022 | 0.017 | 0.000 |
+| 5 | 0.075 | 0.078 | 0.022 | 0.017 | 0.083 | 0.011 | 0.000 |
+| 7 | 0.100 | 0.100 | 0.067 | 0.078 | 0.111 | 0.000 | 0.000 |
+| 8 | 0.100 | 0.100 | 0.094 | 0.106 | 0.111 | 0.000 | 0.000 |
+| 9 | 0.105 | 0.106 | 0.111 | 0.106 | 0.117 | 0.006 | 0.006 |
+
+Share of those 20 withheld labels that were actually wrong (chance is the base rate in the column above):
+
+| Blind of 9 | `uniform` | `margin` | `posterior` | `consensus` | `channel` | `oracle` |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| 3 | 0.00 | 0.15 | 0.15 | 0.00 | 0.05 | 0.20 |
+| 5 | 0.05 | 0.55 | 0.60 | 0.00 | 0.65 | 0.75 |
+| 7 | 0.10 | 0.40 | 0.30 | 0.00 | 1.00 | 1.00 |
+| 8 | 0.10 | 0.15 | 0.05 | 0.00 | 1.00 | 1.00 |
+| 9 | 0.10 | 0.05 | 0.10 | 0.00 | 1.00 | 1.00 |
+
+At unanimity the textbook rule is at chance and provenance is exact. Withholding by the channel the detector named halves the wrong labels for 6% of coverage at slip 0.0 and 6% of coverage at slip 0.15, and clears them entirely for 10% of coverage at slip 0.0 and not reached within the sweep at slip 0.15. That is the price of the whole trade: **detection converts into coverage, not into correction**. Nothing here repairs a label, and the coverage column is what says so.
+
+The same rule on a fleet with **no** blind spot withholds 10% of labels and catches 0 wrong ones, because there are none to catch. That is what a false detection costs, and it is a number rather than a reassurance.
+
+The control runs the other way. At slip 0.4 a fleet with no blind spot already carries estimator errors, and there the textbook rule works while provenance no longer beats an untargeted draw --- so the failure above is a property of the error's *shape*, not of abstention, and the remedy is bounded by the same distinction.
+<!-- END GENERATED: selective-risk -->
+
+**The crossing is sharp, and it is at unanimity.** With one dissenter left in nine, the
+textbook rule is *exact*: `margin` and `posterior` withhold nothing but corrupted labels
+and tie the oracle bound. At nine of nine the same rule lands 3 and 4 of a 20-label
+withhold on a wrong label, against chance's 2. Nothing about the corpus changed; the
+signal the rule reads stopped existing. `consensus`, the textbook inversion, does no
+better -- at unanimity almost everything is unanimous, so ranking by agreement ranks
+nothing.
+
+**What the answer costs.** On the committed corpus, withholding by the channel the
+detector named clears every label the blind spot corrupted at 10% of coverage, and it
+needs no authority, no second opinion and no re-estimation. Across the eight corpus
+draws finding 26 sweeps, seven can host the experiment: the published error rate falls
+below every untargeted draw in **7 of 7**, and the withhold matches what withholding the
+wrong labels themselves would buy in **5 of 7** -- the same two-in-eight shortfall
+finding 26 measured for the audit form of this policy, and for the same reason. The qualifier is exact rather than decorative: at a 15%
+slip rate one error survives the withhold, and it is an independent slip rather than the
+shared standard -- the rule addresses the component it was aimed at and no other. That is the whole trade and it is worse than an audit would have been if an
+audit worked: a deployment that detects a shared blind spot buys silence on a slice of its
+corpus, not a corrected label anywhere. The exchange rate is set by how prevalent the
+channel is, not by how many labels are wrong -- which is why a *false* detection is not
+free either: on a fleet with no blind spot at all, the same rule withholds 10% of labels
+and catches nothing.
+
+**The bound, stated as prominently as the result.** All of the above holds where the
+shared blind spot is the *whole* of the estimator's error -- the regime the artifact
+identifies itself, by checking that a fleet with no blind spot has no errors at that slip
+rate. Push independent noise up until a healthy fleet breaks (slip 0.40 here, where
+aggregation stops absorbing it) and the picture inverts: the textbook rule works again,
+because random error does show up as disagreement, and provenance stops beating an
+untargeted draw, because the shared component is now a minority of what is wrong. Neither
+rule is right in general. The distinction that travels is between error that is *shared*
+and error that is *independent*, and a deployment cannot pick a rule without knowing which
+it has -- which is what finding 22's detector is for.
+
+**Across draws, in one place.** Confidence-based abstention fails at unanimity in 7 of 7
+draws, its textbook inversion fails in 7 of 7, provenance works in 7 of 7 and ties the
+bound in 5 of 7, a false detection costs 10% of coverage in every draw, and the
+random-error control is measurable and positive in 5 of 7 -- on the other two the
+estimator is degenerate enough at that noise level that no rule beats an untargeted
+draw. `results/corpus_sensitivity.json` carries each denominator.
+
+!!! note "A comparison this measurement got wrong first, in the way this project keeps getting things wrong"
+    The first version compared each policy against the **median** of 21 uniform draws and
+    reported that confidence-based abstention worked at unanimity, on a gap of 0.006 --
+    one task, well inside the spread of the baseline it was beating. Withholding 20 random
+    labels of two hundred removes an error now and then, so the median is not a floor. The
+    comparison is now against the *best* of the 21 draws, and the claim reversed.
