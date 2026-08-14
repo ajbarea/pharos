@@ -62,6 +62,9 @@ def test_the_model_free_sweep_covers_the_model_free_measurements():
         # across four fleet sizes, and the channel detector fits a permutation test on
         # top of each. Its artifact carries the invariants.
         "measure_governance_sensitivity.py": "re-runs four swept scripts; tens of minutes",
+        # Three of those scripts again, across eight corpus draws instead of four fleet
+        # sizes, with a permutation test per draw. Slower than the sweep above.
+        "measure_corpus_sensitivity.py": "re-runs three swept scripts; tens of minutes",
         # Model-free and CPU-only, but it runs the gate seven times, which CI already
         # does for the gate table, and its result is a *comparison between two machines*
         # rather than a number. One machine's half of it carries no signal on its own,

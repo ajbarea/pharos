@@ -342,12 +342,32 @@ ESCAPES = (
         findings=(23,),
         verdict="open",
         outcome=(
-            "The selection half closes: provenance finds every corrupted item where "
-            "uncertainty sampling is at chance, tying the oracle. The repair half does "
-            "not. No unanchored label changes, and the oracle behaves identically, so "
-            "the residual obstacle is not one of selection."
+            "The selection half closes, at a rate rather than a number. Provenance "
+            "recovers 0.75 to 1.00 of the corrupted items where every policy reading "
+            "disagreement sits at or below 0.25, in all seven corpus draws that can host "
+            "the experiment, and it ties the oracle bound in six of them. The 1.00 first "
+            "published is the committed corpus alone; on most draws the oracle itself "
+            "does not find everything. The repair half does not close at all: no "
+            "unanchored label changes in any draw, and the oracle behaves identically, "
+            "so the residual obstacle is not one of selection."
         ),
-        readings=(),
+        readings=(
+            Reading(
+                "Draws hosting the experiment",
+                "corpus_sensitivity.json",
+                "draws_hosting_the_blind_spot",
+            ),
+            Reading(
+                "Ties the oracle bound in every draw",
+                "corpus_sensitivity.json",
+                "invariants.provenance_ties_the_oracle_bound_in_every_draw",
+            ),
+            Reading(
+                "Finds every corrupted item in every draw",
+                "corpus_sensitivity.json",
+                "invariants.provenance_finds_every_corrupted_item_in_every_draw",
+            ),
+        ),
     ),
     Escape(
         key="fleetsize",

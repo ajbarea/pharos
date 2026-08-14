@@ -980,11 +980,88 @@ def estimator_initialization() -> str:
     return "\n".join(lines)
 
 
+def corpus_sensitivity() -> str:
+    """Finding 26: whether findings 20-23 survive the corpus draw, claim by claim."""
+    path = RESULTS / "corpus_sensitivity.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make corpus-sensitivity` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    audit = payload.get("audit") or []
+    blind = payload.get("blind") or []
+    if not audit or not blind:
+        _fail("corpus_sensitivity.json carries no swept draws; refusing an empty table")
+
+    lines = [
+        "| Claim | Finding | Holds in | Of draws |",
+        "| --- | --- | --- | --- |",
+    ]
+    by_comp = {e["n_wrong"]: e for e in payload["by_composition"]}
+    for n_wrong in sorted(by_comp):
+        entry = by_comp[n_wrong]
+        lines.append(
+            f"| `margin` ties the oracle bound at {n_wrong} of 9 | 20 "
+            f"| **{entry['ties']}** | {entry['draws']} |"
+        )
+    for n_wrong in sorted(by_comp):
+        entry = by_comp[n_wrong]
+        lines.append(
+            f"| `margin` beats a uniform draw at {n_wrong} of 9 | 20 "
+            f"| **{entry['beats']}** | {entry['draws']} |"
+        )
+
+    hosted = len(blind)
+    ties = sum(1 for r in blind if r["channel_ties_oracle"])
+    perfect = sum(1 for r in blind if r["channel_hit_rate"] == 1.0)
+    chance = sum(1 for r in blind if r["disagreement_policies_at_chance"])
+    norepair = sum(1 for r in blind if r["channel_corrected"] == 0 and r["oracle_corrected"] == 0)
+    lines += [
+        f"| Disagreement policies sit at chance at unanimity | 21 | **{chance}** | {hosted} |",
+        f"| Provenance ties the oracle bound | 23 | **{ties}** | {hosted} |",
+        f"| Provenance finds *every* corrupted item | 23 | **{perfect}** | {hosted} |",
+        f"| No policy repairs an unanchored label | 23 | **{norepair}** | {hosted} |",
+    ]
+    if payload.get("channel"):
+        detected = sum(
+            1
+            for r in payload["channel"]
+            if r["blinded_detected_at_every_noise_level"] and r["no_other_channel_detected"]
+        )
+        lines.append(
+            f"| Blinded channel detected, controls silent | 22 | **{detected}** "
+            f"| {len(payload['channel'])} |"
+        )
+
+    pool = payload["auditable_pool_range"]
+    # A draw whose artifact carries no channel rate is a missing measurement, not a zero.
+    # Sorting `None` beside floats raised TypeError here rather than saying so.
+    missing = [r["seed"] for r in blind if r["channel_hit_rate"] is None]
+    if missing:
+        _fail(f"draws {missing} report no channel hit rate; the range below cannot be built")
+    hit = sorted(r["channel_hit_rate"] for r in blind)
+    lines += [
+        "",
+        f"Fleet of {payload['fleet']}, {payload['draws_attempted']} corpus draws, every "
+        "denominator stated. Finding 21's experiment needs a blind channel orthogonal to "
+        f"item difficulty and refuses to run where they are entangled, so it is "
+        f"constructible on **{hosted} of {payload['draws_attempted']}** draws; a draw that "
+        "cannot host the negative control says nothing about the finding and is excluded "
+        "rather than counted against it.",
+        "",
+        f"The auditable pool an audit budget is a fraction of ranges **{pool[0]} to "
+        f"{pool[1]}**, not the 97 the script documented. Provenance recovers "
+        f"**{hit[0]:.2f} to {hit[-1]:.2f}** of corrupted items against every "
+        "disagreement-reading policy's 0.25 or less, so the *advantage* is robust even "
+        "where the 1.00 is not.",
+    ]
+    return "\n".join(lines)
+
+
 #: Block name to builder. A block present in a doc but absent here is an error rather
 #: than a no-op: a marker with nothing behind it is how a table quietly stops updating.
 BLOCKS = {
     "governance-sensitivity": governance_sensitivity,
     "estimator-initialization": estimator_initialization,
+    "corpus-sensitivity": corpus_sensitivity,
     "power-claims": power_claims,
     "measurement-health": measurement_health,
     "teacher-fleet": teacher_fleet,

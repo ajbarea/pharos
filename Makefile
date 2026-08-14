@@ -116,6 +116,10 @@ estimator-initialization:  ## Whether the cliff survives a start other than the 
 	@mkdir -p results
 	uv run python scripts/measure_estimator_initialization.py --out results/estimator_initialization.json
 
+corpus-sensitivity:        ## Whether findings 20-23 survive a corpus other than the committed one (no model)
+	@mkdir -p results
+	uv run python scripts/measure_corpus_sensitivity.py --out results/corpus_sensitivity.json
+
 logcheck:                  ## Run the model-free measurements and summarise what they logged
 	uv run python scripts/logcheck.py
 

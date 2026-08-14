@@ -255,7 +255,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 
 **27 of 58** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
-**Carrying no validity assessment, which is a gap rather than a pass:** `estimator_initialization`, `governance_sensitivity`.
+**Carrying no validity assessment, which is a gap rather than a pass:** `corpus_sensitivity`, `estimator_initialization`, `governance_sensitivity`.
 
 Exempt, because there is no sampling question to answer:
 
@@ -2872,7 +2872,7 @@ nothing here says how to find one. What has changed is narrower and still worth 
 the specific regime finding 21 left as undetectable is detectable, cheaply, from data the
 aggregator already holds.
 
-## 23. Once the detector names the channel, provenance finds every corrupted item
+## 23. Once the detector names the channel, provenance finds the corrupted items that are findable at all
 
 `scripts/measure_blind_spot.py`, `scripts/measure_audit_policy.py`,
 `results/blind_spot.json`
@@ -2921,6 +2921,21 @@ oracle.** Share of a 20-item audit landing on a corrupted task, at nine of nine 
     nothing can.
 
     Quoted without that paragraph, this reads as a solution. It is half of one.
+
+!!! danger "Corrected 2026-08-07: the 1.00 below is this corpus, not this policy"
+    Every number in this finding is measured on one corpus draw.
+    [Finding 26](#26-findings-20-to-23-were-measured-on-one-corpus-and-one-of-their-headlines-was-that-corpus)
+    sweeps eight. The channel policy recovers **0.75 to 1.00** across the seven draws that
+    can host the experiment, and reaches 1.00 on the committed corpus alone. On five of
+    the seven **the oracle itself does not find everything**, so no policy could have.
+
+    The bound-tying claim nearly survives -- six draws of seven -- and at one draw the
+    policy scores 0.90 where the oracle finds all of them, so it loses to the bound there
+    rather than tying it.
+
+    What survives unchanged is the comparison: every policy reading disagreement sits at
+    or below 0.25 in every draw, so provenance's advantage is robust even where its
+    absolute score is not. **Quote the range and the contrast, never the 1.00.**
 
 **Scope condition, carried with the number every time.** The policy ties the oracle
 *because* the corrupted slice in this corpus is exactly "carries the channel, and shows
@@ -3152,3 +3167,137 @@ already records there.
 This is the objection that would have been asked first and answered worst. It cost one
 argument on an existing function and one script; it should have been run before finding
 12 was published, not thirteen findings later.
+
+## 26. Findings 20 to 23 were measured on one corpus, and one of their headlines was that corpus
+
+[Finding 24](#24-the-crossing-is-a-distribution-over-corpora-not-a-share-and-a-majority-was-nine-analysts-talking)
+established that the committed corpus seed is favourable: at fleets of fifteen and
+twenty-five it survives a bare majority where most draws do not. That was measured on the
+crossing scan alone. The four scripts behind findings 19 through 23 each hard-coded
+`SEED = 7` and **did not accept a seed at all**, so the corpus was not a sweepable
+dimension of this project's headline governance results.
+
+It is now. Three defects surfaced before a single policy was scored, all of the same kind
+as the `--fleet` defect finding 24 found, and all invisible from the committed artifact.
+
+!!! danger "The script had never run on a corpus that was not seed 7"
+    `measure_audit_policy.py`'s budget ladder ended at a hard-coded 95 while the
+    *auditable pool* it draws from is a property of the draw. Over eight draws the pool
+    ranges **83 to 99**, so the ladder exceeded it and the script exited non-zero on
+    **four of eight** draws. The ladder is derived from the pool now and the artifact
+    publishes both the requested and the used form.
+
+    That 97 was not only a constant in code. It is quoted in `las-2027/ALIGNMENT.md` as a
+    corollary a proposal should carry: *"only 97 of 200 tasks are auditable at all, so
+    finding 19's share of the round overstates the real price."* The direction of that
+    argument survives; the number does not.
+
+<!-- BEGIN GENERATED: corpus-sensitivity -->
+| Claim | Finding | Holds in | Of draws |
+| --- | --- | --- | --- |
+| `margin` ties the oracle bound at 5 of 9 | 20 | **8** | 8 |
+| `margin` ties the oracle bound at 6 of 9 | 20 | **8** | 8 |
+| `margin` ties the oracle bound at 7 of 9 | 20 | **6** | 8 |
+| `margin` beats a uniform draw at 5 of 9 | 20 | **7** | 8 |
+| `margin` beats a uniform draw at 6 of 9 | 20 | **8** | 8 |
+| `margin` beats a uniform draw at 7 of 9 | 20 | **6** | 8 |
+| Disagreement policies sit at chance at unanimity | 21 | **7** | 7 |
+| Provenance ties the oracle bound | 23 | **6** | 7 |
+| Provenance finds *every* corrupted item | 23 | **1** | 7 |
+| No policy repairs an unanchored label | 23 | **7** | 7 |
+| Blinded channel detected, controls silent | 22 | **8** | 8 |
+
+Fleet of 9, 8 corpus draws, every denominator stated. Finding 21's experiment needs a blind channel orthogonal to item difficulty and refuses to run where they are entangled, so it is constructible on **7 of 8** draws; a draw that cannot host the negative control says nothing about the finding and is excluded rather than counted against it.
+
+The auditable pool an audit budget is a fraction of ranges **83 to 99**, not the 97 the script documented. Provenance recovers **0.75 to 1.00** of corrupted items against every disagreement-reading policy's 0.25 or less, so the *advantage* is robust even where the 1.00 is not.
+<!-- END GENERATED: corpus-sensitivity -->
+
+**The bound holds below the crossing, and not above it.** `margin` ties the oracle bound
+in **8 of 8** draws at five and six wrong, and in **6 of 8** at seven. A policy tying the
+bound means no better selection rule exists on this signal, so the tie is the claim worth
+having — and it is now bounded by where the fleet is hardest to repair at all, rather than
+stated everywhere.
+
+!!! danger "Retraction: this sweep's own first headline counted a tie that never happened"
+    The version of this finding published on 2026-08-07 reported the tie holding in
+    **every draw at every composition** and called it the most robust result in the
+    governance set. That was a scoring defect in the sweep, not a result. A cell where
+    *neither* `margin` nor the oracle repaired at any budget — both thresholds `None` —
+    compared equal and was counted as a tie. Seed 202 at seven wrong is such a cell, and
+    that single cell was the whole of the invariant.
+
+    Two consequences, both in the table above. The tie at seven wrong is 6 of 8, not
+    7 of 7. And the denominator itself was wrong: `nothing_repaired` was derived from the
+    policies failing rather than from the corpus, so seed 101 at seven wrong — a fleet
+    that *was* broken and that nothing in the ladder repaired — was dropped from the
+    denominator instead of counted. It is read off the budget-zero oracle row now, which
+    is where `measure_governance_sensitivity` already read it.
+
+    Found by an independent review of the pull request that introduced it, before it was
+    merged. It is the same shape as the defect the finding is about: a comparison that
+    was never made, reported as one that held.
+
+**Finding 21's row was vacuous, and now is not.** `disagreement_policies_at_chance` read
+its policy list from a `deployable` key the blind-spot artifact has never had, so the
+comparison ran over an empty list and `all()` returned true without scoring a single
+policy. The row read 7 of 7 and measured nothing. Scored against the four deployable
+policies by name, it still reads **7 of 7** — the claim was true, and it had not been
+tested. Every policy's rate is recorded per draw now, so the prose comparison can be
+checked against the artifact rather than taken on trust.
+
+What moves next is finding 23's number.
+
+!!! danger "Retraction: 'provenance finds every corrupted item' is one draw in seven"
+    [Finding 23](#23-once-the-detector-names-the-channel-provenance-finds-the-corrupted-items-that-are-findable-at-all)
+    reports a hit rate of **1.00** against uniform's 0.10 and margin's 0.15, tying the
+    oracle exactly. Across seven draws that can host the experiment, the channel policy
+    recovers **0.75, 0.80, 0.80, 0.90, 0.90, 0.75** and — on the committed corpus alone —
+    **1.00**.
+
+    The 1.00 is not a property of the policy. On five of those seven draws **the oracle
+    itself does not find everything**, so there was nothing for any policy to reach. And
+    at one draw the channel policy scores 0.90 where the oracle finds all of them, so it
+    **loses to the bound** rather than tying it: the tie holds in six of seven, not seven
+    of seven.
+
+    Two claims were being reported as one. *Ties the best any selection rule could do* is
+    the result and nearly survives. *Finds every corrupted item* was the corpus.
+
+**The advantage is robust, and it is the part to quote.** Provenance recovers 0.75 to 1.00
+of corrupted items in every draw, while every policy that reads disagreement sits at or
+below 0.25 in every draw. So the comparison finding 23 rests on holds everywhere it was
+tested; only the absolute value moved. Quote the range and the contrast, never the 1.00.
+
+**The negative half is the most robust thing here.** *No policy repairs an unanchored
+label* holds in **7 of 7** draws, for the channel policy and the oracle alike. The open
+question finding 23 leaves — whether an audited fleet can be made to generalise from what
+the authority ruled on — is unaffected by any of this, which is worth stating because it
+is the twelve-month deliverable.
+
+!!! note "Finding 21's experiment cannot be built on every corpus, and that is not a failure"
+    The blind-spot corpus needs a channel orthogonal to item difficulty, and
+    `measure_blind_spot.py` refuses to run when the two are entangled — at seed 23 the
+    `PARTNER` compartment carries mean evidence 2.12 against 1.61 without it. That refusal
+    is the design working: a negative control that is not orthogonal is not a negative
+    control.
+
+    So the experiment is constructible on **7 of 8** draws, and every rate above carries
+    that denominator. A draw that cannot host the control says nothing about the finding,
+    which is a different thing from a draw that contradicts it, and collapsing the two
+    would be the censoring error [finding 20's sweep](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise)
+    already made once.
+
+**One more thing that moves, and it is small.** The `best_deployable` policy the artifact
+names is `margin` in seven draws and `uniform` in one. A sweep that reports a single
+winner from a single corpus is reporting the corpus.
+
+This is the fourth single-draw quantity corrected here, after finding 5's shot count,
+finding 19's anchor prices, and finding 24's crossing. The class is guarded rather than
+re-noticed now: every one of these scripts takes `--seed`, and the test suite fails if a
+new governance script does not.
+
+**The guard is narrower than the class, and this says where.** The sweep runs three of
+the four scripts. `measure_authority_anchors` accepts a seed and is not swept, so finding
+19's anchor prices are still one corpus -- a median over 21 *anchor* draws inside a single
+corpus draw, which is a different multiverse from this one. That is the next cell to fill,
+and naming it is cheaper than rediscovering it.

@@ -109,12 +109,19 @@ FLEET = 9
 #: here is whether a policy moves the *threshold*, and a threshold that moves at all
 #: moves first where the budget is small.
 #:
-#: Capped below the *auditable* pool rather than the corpus. Only 97 of 200 tasks are
-#: ever observed by the aggregator at these compositions -- the rest were rejected by
-#: every reviewer, so no contributor's confusion matrix touches them and an anchor
-#: placed there constrains nothing. Finding 19 drew uniformly from all 200 and
+#: Capped below the *auditable* pool rather than the corpus. Only about half of the 200
+#: tasks are ever observed by the aggregator at these compositions -- the rest were
+#: rejected by every reviewer, so no contributor's confusion matrix touches them and an
+#: anchor placed there constrains nothing. Finding 19 drew uniformly from all 200 and
 #: therefore spent about half its budget on tasks that could not repay it, which is
 #: worth knowing before reading its 50% threshold as the price of an audit.
+#:
+#: The ladder is truncated at run time to the pool this corpus actually has, and the
+#: artifact records both. The pool is a property of the draw, not a constant: it is 97
+#: at the committed seed and ranges 83 to 99 over eight draws. Hard-coding the top rung
+#: at 95 made this script exit non-zero on four of those eight, which is the same defect
+#: as the absolute composition constants -- a sweepable dimension with a constant sized
+#: for one draw of it.
 BUDGETS = (0, 2, 5, 8, 12, 20, 30, 45, 60, 80, 95)
 
 #: Compositions worth pricing. 5 is the bare majority finding 19 repairs cheaply, 6 and
@@ -465,11 +472,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--events", type=int, default=EVENTS)
     parser.add_argument("--fleet", type=int, default=FLEET)
+    parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     compositions = ladder(args.fleet, AUDIT_RUNGS)
 
-    tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=args.events)))
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=args.seed, n_events=args.events)))
     proposals = {
         t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
         for t in tasks
@@ -480,31 +488,48 @@ def main() -> int:
     # anywhere else constrains no confusion matrix, so this and not the corpus size is
     # the denominator an audit budget is a fraction of.
     probe = partition_by_contributor(
-        contributions_for(fleet_of(compositions[0], args.fleet), tasks, proposals, seed=SEED)
+        contributions_for(fleet_of(compositions[0], args.fleet), tasks, proposals, seed=args.seed)
     )
     auditable = len({t for rows in probe.values() for t, _ in rows})
+    # `select` refuses a budget past the pool rather than clipping it, deliberately: a
+    # threshold reported at an untested budget is worse than a missing row. So the
+    # ladder is truncated here instead, and both forms are published.
+    budgets = tuple(b for b in BUDGETS if b <= auditable)
     print(
         f"{len(tasks)} tasks, {auditable} auditable, fleet of {args.fleet}, "
         "scored over UNANCHORED tasks only"
     )
+    if len(budgets) < len(BUDGETS):
+        get_logger().warning(
+            "audit.budget_ladder_truncated",
+            extra={
+                "event": "audit.budget_ladder_truncated",
+                "auditable": auditable,
+                # From the full ladder: `budgets` is already filtered by this predicate,
+                # so reading it here reported an empty list on every truncation.
+                "dropped": [b for b in BUDGETS if b > auditable],
+            },
+        )
     rows: list[Row] = []
     thresholds: dict[str, dict[int, int | None]] = {}
 
     for name in (*DEPLOYABLE, "oracle"):
         thresholds[name] = {}
         print(f"\n  {name}")
-        print(f"    {'wrong':>6}" + "".join(f"{b:>7}" for b in BUDGETS))
-        print("    " + "-" * (6 + 7 * len(BUDGETS)))
+        print(f"    {'wrong':>6}" + "".join(f"{b:>7}" for b in budgets))
+        print("    " + "-" * (6 + 7 * len(budgets)))
         for n_wrong in compositions:
             if n_wrong > args.fleet:
                 continue
-            flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
+            flat = contributions_for(
+                fleet_of(n_wrong, args.fleet), tasks, proposals, seed=args.seed
+            )
             partitioned = partition_by_contributor(flat)
             view = observe(partitioned)
             baseline = baseline_errors(partitioned, truth)
 
             cells, block = [], []
-            for budget in BUDGETS:
+            for budget in budgets:
                 out = evaluate(
                     partitioned,
                     view,
@@ -546,14 +571,14 @@ def main() -> int:
     print(f"    {'wrong':>6}  median   range        reached")
     print("    " + "-" * 44)
     for n_wrong in compositions:
-        flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
+        flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=args.seed)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
         baseline = baseline_errors(partitioned, truth)
         draws: list[int | None] = []
         for seed in UNIFORM_SEEDS:
             block: list[Row] = []
-            for budget in BUDGETS:
+            for budget in budgets:
                 out = evaluate(
                     partitioned,
                     view,
@@ -628,14 +653,14 @@ def main() -> int:
     print("    " + "-" * (6 + 9 * len(AUTHORITY_ERROR)))
     fallible: dict[int, dict[str, int | None]] = {}
     for n_wrong in compositions:
-        flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=SEED)
+        flat = contributions_for(fleet_of(n_wrong, args.fleet), tasks, proposals, seed=args.seed)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
         baseline = baseline_errors(partitioned, truth)
         cells, per_error = [], {}
         for error in AUTHORITY_ERROR:
             block = []
-            for budget in BUDGETS:
+            for budget in budgets:
                 out = evaluate(
                     partitioned,
                     view,
@@ -668,10 +693,11 @@ def main() -> int:
         print(f"    {n_wrong:>6}" + "".join(cells))
 
     report = {
-        "provenance": run_provenance(seed=SEED),
+        "provenance": run_provenance(seed=args.seed),
         "fleet": args.fleet,
         "events": args.events,
-        "budgets": list(BUDGETS),
+        "budgets": list(budgets),
+        "budgets_requested": list(BUDGETS),
         "auditable_pool": auditable,
         "compositions": list(compositions),
         "authority_error": list(AUTHORITY_ERROR),

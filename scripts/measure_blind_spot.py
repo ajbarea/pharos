@@ -42,6 +42,7 @@ Needs no model and no network.
 
 import argparse
 import json
+import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -95,6 +96,13 @@ BUDGETS = (0, 2, 5, 8, 12, 20, 30, 45, 60, 80, 95)
 #: pass. The statistic below does discriminate: PARTNER 1.88 vs 1.72, SENSOR 2.00 vs
 #: 0.48.
 CHANNEL_ENTANGLEMENT_SLACK = 0.5
+
+#: Exit code for "this corpus cannot host the experiment", as against a crash.
+#:
+#: Both are non-zero, and a sweep that cannot tell them apart reports a bug as a corpus
+#: property: the draw drops out of the denominator and the rate above it looks unchanged.
+#: A caller matches this code and re-raises anything else.
+REFUSED_EXIT = 3
 
 
 def blind_fleet(n_blind: int, size: int, *, slip_rate: float = 0.0) -> tuple[AnalystPolicy, ...]:
@@ -169,11 +177,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--events", type=int, default=EVENTS)
     parser.add_argument("--fleet", type=int, default=FLEET)
+    parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     shares = ladder(args.fleet, BLIND_RUNGS)
 
-    tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=args.events)))
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=args.seed, n_events=args.events)))
     from pharos.analyst import Proposal, evidence_shown
 
     proposals = {
@@ -216,10 +225,12 @@ def main() -> int:
             "blindspot.no_effect",
             extra={"event": "blindspot.no_effect", "compartment": BLIND.value},
         )
-        raise SystemExit(
+        print(
             f"a fleet-wide {BLIND.value} blind spot changes no verdict on this corpus; "
-            "there is nothing to measure"
+            "there is nothing to measure",
+            file=sys.stderr,
         )
+        raise SystemExit(REFUSED_EXIT)
     if abs(mean_with - mean_without) > CHANNEL_ENTANGLEMENT_SLACK:
         # A hard stop, not a warning. The previous version logged and continued, while
         # the docs described it as "asserted rather than trusted" -- prose describing
@@ -234,11 +245,13 @@ def main() -> int:
                 "mean_without": round(mean_without, 3),
             },
         )
-        raise SystemExit(
+        print(
             f"{BLIND.value} carries mean evidence {mean_with:.2f} against "
             f"{mean_without:.2f} without it; that channel is too entangled with "
-            "difficulty to serve as an independent axis"
+            "difficulty to serve as an independent axis",
+            file=sys.stderr,
         )
+        raise SystemExit(REFUSED_EXIT)
 
     print(
         f"{len(tasks)} tasks, fleet of {args.fleet}, blind spot on {BLIND.value}: "
@@ -260,7 +273,7 @@ def main() -> int:
     hit_rate: dict[int, dict[str, float]] = {}
 
     for n_blind in shares:
-        flat = contributions_for(blind_fleet(n_blind, args.fleet), tasks, proposals, seed=SEED)
+        flat = contributions_for(blind_fleet(n_blind, args.fleet), tasks, proposals, seed=args.seed)
         partitioned = partition_by_contributor(flat)
         view = observe(partitioned)
         # What the detector hands over. Only populated where finding 22 actually fires;
@@ -382,7 +395,7 @@ def main() -> int:
     )
 
     report = {
-        "provenance": run_provenance(seed=SEED),
+        "provenance": run_provenance(seed=args.seed),
         "fleet": args.fleet,
         "events": args.events,
         "blind_compartment": BLIND.value,

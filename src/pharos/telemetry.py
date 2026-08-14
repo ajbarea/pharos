@@ -358,6 +358,11 @@ _METRIC_META: dict[str, tuple[str, str]] = {
         "{contributor}",
         "Wrong-standard contributors at which consensus collapses, per fleet size",
     ),
+    "corpus_sensitivity.auditable_pool": (
+        "{task}",
+        "Tasks an audit budget can be spent on, per corpus draw; documented as a "
+        "constant 97 and measured as a range",
+    ),
     "gate.duration": ("s", "Wall-clock time to run the shortcut gate over a corpus"),
     "gate.null_mean": ("1", "Mean probe AUC under label permutation"),
     "gate.null_z": ("1", "Standard deviations separating the baseline from its null"),
