@@ -980,6 +980,31 @@ def estimator_initialization() -> str:
     return "\n".join(lines)
 
 
+def _committed_rank(anchors: list[dict[str, Any]], committed: int = 7) -> str:
+    """Where the committed corpus sits in the price distribution, derived not asserted.
+
+    An earlier version of this sentence claimed the committed draw was "cheapest or
+    near-cheapest at every composition". It is second and first at a bare majority and six
+    of nine, and mid-range at seven -- so the claim was true twice and written three times.
+    """
+    parts = []
+    for key, label in (("5", "a bare majority"), ("6", "six"), ("7", "seven")):
+        priced = sorted(
+            (r["compositions"][key]["median"], r["seed"])
+            for r in anchors
+            if r["compositions"][key]["median"] is not None
+        )
+        seat = next((i for i, (_, seed) in enumerate(priced, 1) if seed == committed), None)
+        if seat is None:
+            parts.append(f"unpriced at {label}")
+        else:
+            parts.append(f"{seat} of {len(priced)} at {label}")
+    return (
+        "The committed corpus ranks " + ", ".join(parts) + " when the draws are ordered "
+        "cheapest first, so it is not a worst case and not a typical one."
+    )
+
+
 def corpus_sensitivity() -> str:
     """Finding 26: whether findings 20-23 survive the corpus draw, claim by claim."""
     path = RESULTS / "corpus_sensitivity.json"
@@ -1020,6 +1045,11 @@ def corpus_sensitivity() -> str:
         f"| Provenance finds *every* corrupted item | 23 | **{perfect}** | {hosted} |",
         f"| No policy repairs an unanchored label | 23 | **{norepair}** | {hosted} |",
     ]
+    if anchors := payload.get("anchors"):
+        unrepaired = sum(1 for r in anchors if r["compositions"]["9"]["reached"] == 0)
+        lines.append(
+            f"| Nothing repairs unanimity, at any budget | 19 | **{unrepaired}** | {len(anchors)} |"
+        )
     if payload.get("channel"):
         detected = sum(
             1
@@ -1053,6 +1083,51 @@ def corpus_sensitivity() -> str:
         "disagreement-reading policy's 0.25 or less, so the *advantage* is robust even "
         "where the 1.00 is not.",
     ]
+    if anchors:
+        # A draw whose median is None repairs in a MINORITY of its anchor draws. Dropping
+        # it from the range would report the price of the corpora that happened to be
+        # repairable, which is the censoring error this page has already made once.
+        prices = []
+        for key, label in (("5", "a bare majority"), ("6", "six of nine"), ("7", "seven of nine")):
+            medians = [r["compositions"][key]["median"] for r in anchors]
+            priced = sorted(m for m in medians if m is not None)
+            if not priced:
+                _fail(f"no draw prices composition {key}; the range cannot be built")
+            segment = f"{label} **{priced[0]} to {priced[-1]}**"
+            if len(priced) < len(medians):
+                segment += f" (priced in {len(priced)} of {len(medians)} draws)"
+            prices.append(segment)
+        thin = [
+            (r["seed"], r["compositions"]["7"])
+            for r in anchors
+            if r["compositions"]["7"]["median"] is None
+        ]
+        lines += [
+            "",
+            "Finding 19's anchor prices are a median over 21 *anchor* draws inside one "
+            f"corpus, and the corpus moves them. Across {len(anchors)} draws, the median "
+            "number of audited items an authority of record must rule on spans "
+            + ", ".join(prices)
+            + ". "
+            + _committed_rank(anchors)
+            + " The published single numbers were one "
+            "draw's, not the price.",
+        ]
+        if thin:
+            seed, cell = thin[0]
+            lines.append("")
+            lines.append(
+                f"At seven of nine, one draw (seed {seed}) repairs in only "
+                f"**{cell['reached']} of {cell['seeds']}** anchor draws, so it has no "
+                "median at all: on that corpus an authority usually buys nothing within "
+                "the ladder. That draw is reported here rather than dropped from the range.",
+            )
+        lines.append("")
+        lines.append(
+            "What does not move is the negative. **No budget on the ladder repairs "
+            "unanimity, in any draw** -- which is the claim finding 19 is quoted on "
+            "outside this repository, and the one the open problem is shaped by."
+        )
     return "\n".join(lines)
 
 

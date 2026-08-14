@@ -9,12 +9,13 @@ distribution spanning 0.520 to 0.600.
 
 That leaves the obvious exposure. Findings 20 through 23 are measured by four scripts
 that each hard-coded `SEED = 7` and did not accept a seed at all, so the corpus was not a
-sweepable dimension of this project's headline governance results. This sweeps three of
-them: `measure_audit_policy`, `measure_blind_spot` and `measure_channel_bias`.
+sweepable dimension of this project's headline governance results. This sweeps all four:
+`measure_audit_policy`, `measure_blind_spot`, `measure_channel_bias` and
+`measure_authority_anchors`.
 
-`measure_authority_anchors` takes `--seed` now and is **not** swept here, so finding 19's
-anchor prices remain a single corpus draw. They are already a median over 21 anchor draws
-within that corpus, which is a different multiverse and does not cover this one.
+Finding 19's anchor prices were the last cell of that. They are a median over 21 *anchor*
+draws inside one corpus, which is an inner multiverse that says nothing about the corpus
+the anchors are drawn from -- and the outer one moves them.
 
 Three things the first run found before it measured a policy, all of the same kind as the
 fleet defect and all invisible from the committed artifact:
@@ -73,6 +74,35 @@ FLEET = 9
 #: reduced it would test a weaker instrument than the finding it is checking.
 PERMUTATIONS = 4200
 
+#: What this sweep varies and what it holds fixed, declared in the artifact rather than
+#: left to be read off the code.
+#:
+#: The multiverse is itself a researcher degree of freedom: a sweep that picks its
+#: dimensions after seeing which ones are kind to the result is not a robustness check.
+#: Each pin below is owned by another sweep or by the finding being tested, so the two
+#: are readable against each other instead of being confounded in one grid.
+MULTIVERSE = {
+    "swept": {"corpus_seed": list(DRAWS)},
+    "pinned": {
+        "fleet": {
+            "value": FLEET,
+            "why": "the size every published governance number was measured at; the fleet "
+            "dimension belongs to measure_governance_sensitivity.py, and crossing the two "
+            "would confound which one moved a result",
+        },
+        "permutations": {
+            "value": PERMUTATIONS,
+            "why": "a p-value floors at 1/(m+1), so reducing it would test a weaker "
+            "instrument than the finding it checks",
+        },
+        "anchor_draws": {
+            "value": 21,
+            "why": "the inner multiverse measure_authority_anchors already reports a median "
+            "and range over; this sweep varies the corpus those anchors are drawn from",
+        },
+    },
+}
+
 #: Invariants published as false. Named so the alarm below can fire on a *change* rather
 #: than on the standing retractions, and so a retraction quietly reversing itself is
 #: itself an event.
@@ -83,6 +113,7 @@ KNOWN_FALSE = frozenset(
         "provenance_ties_the_oracle_bound_in_every_draw",
         "provenance_finds_every_corrupted_item_in_every_draw",
         "the_auditable_pool_is_a_constant",
+        "the_anchor_price_is_a_constant",
     }
 )
 
@@ -228,6 +259,31 @@ def blind_row(seed: int) -> dict[str, Any] | None:
     }
 
 
+def anchor_row(seed: int) -> dict[str, Any] | None:
+    """Finding 19 at one draw: what an authority of record costs, per composition.
+
+    The script already sweeps 21 *anchor* draws inside one corpus and reports a median
+    with its range, because a single anchor draw is not a price. This sweeps the corpus
+    the anchors are drawn from, which is the outer multiverse that sweep does not cover.
+    """
+    payload = run_at("measure_authority_anchors.py", seed)
+    if payload is None:
+        return None
+    return {
+        "seed": seed,
+        "compositions": {
+            key: {
+                "reached": entry["reached"],
+                "seeds": entry["seeds"],
+                "median": entry["median"],
+                "lowest": entry["lowest"],
+                "highest": entry["highest"],
+            }
+            for key, entry in payload["anchors_needed_spread"].items()
+        },
+    }
+
+
 def channel_row(seed: int) -> dict[str, Any] | None:
     """Finding 22 at one draw: is the blinded channel detected, controls still silent?"""
     payload = run_at("measure_channel_bias.py", seed, ("--permutations", str(PERMUTATIONS)))
@@ -261,7 +317,7 @@ def main() -> int:
             f"alpha {ALPHA}; finding 22 would read as moved when nothing had moved"
         )
 
-    audit, blind, channel = [], [], []
+    audit, blind, channel, anchors = [], [], [], []
     for seed in args.draws:
         progress("corpus_sensitivity.draw", seed=seed)
         print(f">>> draw {seed}")
@@ -269,6 +325,8 @@ def main() -> int:
             audit.append(row)
         if (row := blind_row(seed)) is not None:
             blind.append(row)
+        if (row := anchor_row(seed)) is not None:
+            anchors.append(row)
         if not args.skip_channel and (row := channel_row(seed)) is not None:
             channel.append(row)
 
@@ -296,9 +354,11 @@ def main() -> int:
         "fleet": FLEET,
         "draws": args.draws,
         "permutations": PERMUTATIONS,
+        "multiverse": MULTIVERSE,
         "audit": audit,
         "blind": blind,
         "channel": channel,
+        "anchors": anchors,
         "auditable_pool_range": [pools[0], pools[-1]] if pools else None,
         "by_composition": sorted(by_composition.values(), key=lambda e: e["n_wrong"]),
         "draws_attempted": len(args.draws),
@@ -324,6 +384,19 @@ def main() -> int:
             and all(r["channel_hit_rate"] == 1.0 for r in blind),
             "no_policy_repairs_an_unanchored_label": bool(blind)
             and all(r["channel_corrected"] == 0 and r["oracle_corrected"] == 0 for r in blind),
+            #: Finding 19's load-bearing negative, and the one quoted outside this repo:
+            #: an authority of record buys nothing at unanimity, at any budget the ladder
+            #: reaches. If this ever came back true on some draw, the twelve-month
+            #: deliverable would change shape.
+            "nothing_repairs_unanimity_in_any_draw": bool(anchors)
+            and all(r["compositions"]["9"]["reached"] == 0 for r in anchors),
+            #: Finding 19's prices. Published as single numbers -- 12 at a bare majority,
+            #: 80 at six, 150 at seven -- from one corpus.
+            "the_anchor_price_is_a_constant": bool(anchors)
+            and all(
+                len({r["compositions"][key]["median"] for r in anchors}) == 1
+                for key in ("5", "6", "7")
+            ),
             #: Finding 22.
             "blinded_channel_detected_and_controls_silent": (
                 bool(channel)
