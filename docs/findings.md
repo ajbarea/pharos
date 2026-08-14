@@ -266,6 +266,7 @@ Exempt, because there is no sampling question to answer:
 - `fleet_sensitivity` -- a sweep over a nuisance parameter; reports invariants, samples nothing
 - `gate_determinism` -- reports the gate's surface baseline at full precision on one machine; the result is the comparison against another machine, not the number
 - `gate_determinism-cluster` -- the second machine of that comparison
+- `guard_mutations` -- four deterministic edits, each either noticed by the suite or not; there is no population the four are drawn from and no n a flag could be computed against
 - `power` -- prices hypothetical evaluation sizes; simulates outcomes rather than measuring any
 - `teacher_fleet` -- aggregates assessed adapter artifacts; adds no measurement of its own
 - `triage_lift` -- superseded by the per-model triage_lift-* artifacts, which are assessed
@@ -3341,3 +3342,61 @@ is not a robustness check. The artifact carries a `multiverse` block naming what
 size, which belongs to finding 24's sweep and would confound this one; the permutation
 count, because a p-value floors at 1/(m+1); and the 21 anchor draws, which are the inner
 multiverse this one wraps.
+
+## 27. Four guards could be inverted with the suite still green, and coverage called them all covered
+
+Every finding above rests on code that decides whether a number may be quoted. The
+question this project asks of everything else had never been asked of that code: if the
+condition were wrong, would anything say so?
+
+Coverage cannot answer it. `validity.py` and `provenance.py` -- the two modules the
+manuscript names as instruments, *a validity flag that travels with the number* and the
+provenance stamp on every artifact -- were already at 100% line and branch coverage.
+Coverage records that a line ran, and a guard runs identically whether or not anything
+checks what it decided.
+
+Mutation testing answers it directly: change the condition, and see whether the suite
+objects. Scoped to those two modules, 438 mutants ran, 187 died and 251 survived. Most
+survivors are string literals and log-message text, which are noise here. **Four are
+guards, and all four survived the entire suite as it stood**, verified by applying each
+to the real source and running the whole of `tests/` rather than the fast subset:
+
+| mutation | what it breaks |
+| --- | --- |
+| `total = scored + unparsed` → `scored - unparsed` | the sample size every validity flag is computed against |
+| `if total < SMALL_N` → `<=` | whether a measurement at exactly n=30 carries the caveat |
+| `if not path` → `if path` | `executable` becomes empty in every artifact |
+| `if ".venv" in path` → `not in` | the executable path stops being the stable relative form |
+
+The first is the one worth reading twice. The self-audit already records a case where a
+sample size was wired to the number of decode regimes rather than the number of tasks
+compared, and its lesson was that a wrong `n` produces a plausible number rather than an
+error. The arithmetic behind `n` can still be inverted here without a single test
+failing. The instrument that caught that defect had the defect's own shape inside it.
+
+Seven tests now pin these, and each was verified by re-applying its mutant and watching
+the suite fail. `measure_guard_mutations.py` keeps the four as a standing check rather
+than a one-off: it refuses a dirty tree or a red baseline, applies each mutation to the
+real source, runs the whole suite, restores in a `finally` so an interrupt cannot leave a
+mutated guard behind, and writes `results/guard_mutations.json`. The artifact records the
+verdicts **now**, which is 4 of 4 killed; the table above is what they were before the
+tests existed. A future change that stops killing one of them is therefore a visible
+regression rather than a rediscovery. `[tool.mutmut]` records the wider scope for anyone
+who wants the full 438: `uvx mutmut run`.
+
+!!! warning "The first version of this measurement was wrong, in the way this file is about"
+    The harness decided kill-versus-survive by grepping pytest's last two lines for
+    `N failed`. Under `-q` the final line is `FAILED tests/...`, so the count line was
+    never in the window and **every real failure read as a pass**. It reported four
+    false survivals before anything was written down.
+
+    It was caught by disbelief rather than by a check: tests asserting `report.n == 40`
+    cannot pass against code that computes 20. The harness now reads pytest's exit
+    status, and the numbers above are from the corrected run against a baseline that
+    exits 0.
+
+**What is not claimed.** 187/438 is not a mutation score for this project. It covers two
+modules out of thirty, and the survivor count is inflated by string mutants nobody should
+chase. `gate.py` belongs in scope and is excluded for cost alone -- its tests take 90
+seconds, against half a second for the two modules here -- which is a budget, not a
+verdict on how well the gate is tested.

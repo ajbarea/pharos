@@ -41,3 +41,8 @@ docs/explorer/
 
 # Written by `make ci` to detect a tree edited while the gate was running.
 .gate-fingerprint
+
+# mutmut's working copy of the tree, rebuilt by every `mutmut run`.
+mutants/
+# Per-session worktrees (see the parallel-sessions convention).
+.claude/worktrees/

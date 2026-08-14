@@ -1,0 +1,57 @@
+{
+  "mutations": 4,
+  "killed": 4,
+  "surviving": 0,
+  "results": [
+    {
+      "path": "src/pharos/validity.py",
+      "guard": "the sample size every validity flag is computed against",
+      "breaks": "n is wrong and stays plausible, which is how the decode-regime defect happened",
+      "from": "total = scored + unparsed",
+      "to": "total = scored - unparsed",
+      "killed": true
+    },
+    {
+      "path": "src/pharos/validity.py",
+      "guard": "the small-n boundary",
+      "breaks": "a measurement at exactly n=30 gains or loses its caveat",
+      "from": "if total < SMALL_N:",
+      "to": "if total <= SMALL_N:",
+      "killed": true
+    },
+    {
+      "path": "src/pharos/provenance.py",
+      "guard": "the empty-path guard in the executable sanitiser",
+      "breaks": "`executable` becomes empty in every artifact this project writes",
+      "from": "if not path:",
+      "to": "if path:",
+      "killed": true
+    },
+    {
+      "path": "src/pharos/provenance.py",
+      "guard": "the venv branch of the executable sanitiser",
+      "breaks": "the recorded path stops being the stable relative form",
+      "from": "if \".venv\" in path:",
+      "to": "if \".venv\" not in path:",
+      "killed": true
+    }
+  ],
+  "scope": {
+    "modules": [
+      "src/pharos/provenance.py",
+      "src/pharos/validity.py"
+    ],
+    "excluded": {
+      "src/pharos/gate.py": "in scope on the merits, excluded on cost: its tests take 90 seconds against half a second for these two. A budget, not a verdict."
+    }
+  },
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "d794c1735a1a",
+    "git_dirty": false,
+    "generated_at": "2026-08-14T16:33:46+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3"
+  }
+}
