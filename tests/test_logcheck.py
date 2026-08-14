@@ -70,6 +70,10 @@ def test_the_model_free_sweep_covers_the_model_free_measurements():
         # rather than a number. One machine's half of it carries no signal on its own,
         # so running it here would spend two minutes to learn nothing.
         "measure_gate_determinism.py": "one half of a two-machine comparison; CI is one machine",
+        # Measures the test suite rather than a corpus, so it emits no pharos log events
+        # for logcheck to sweep. It also runs the whole suite once per mutation plus a
+        # baseline, which is five suites, and it rewrites source files while it does it.
+        "measure_guard_mutations.py": "runs the suite five times and edits source; not a corpus measurement",
         "measure_edge_cost.py": "reads artifacts produced by GPU jobs",
         "measure_teacher_fleet.py": "reads adapter artifacts produced by cluster jobs",
         "measure_adapter_replication.py": "reads adapter artifacts produced by cluster jobs",

@@ -208,3 +208,47 @@ def test_a_healthy_checkout_logs_no_degradation_warning(caplog):
     if stamp["git_commit"] is not None:
         events = [r.__dict__.get("event") for r in caplog.records]
         assert "provenance.unidentifiable" not in events
+
+
+# `_sanitize_executable` keeps a personal home directory out of every artifact this
+# project publishes. Both of its branches could be inverted without the suite noticing,
+# which was found by mutation rather than by reading: the function was covered, and
+# coverage cannot distinguish a branch that ran from a branch that was checked.
+
+
+def test_a_venv_path_is_truncated_at_the_venv():
+    """Inverting `if ".venv" in path` survived the whole suite.
+
+    Under the inversion this path falls through to the home-directory branch, which
+    returns `~/...` -- still redacted, still plausible, and no longer the stable
+    relative form every artifact is supposed to carry.
+    """
+    assert provenance._sanitize_executable("/home/someone/proj/.venv/bin/python") == (
+        ".venv/bin/python"
+    )
+
+
+def test_a_path_with_no_venv_is_left_alone_apart_from_the_home_prefix():
+    home = os.path.expanduser("~")  # noqa: PTH111
+    assert provenance._sanitize_executable(f"{home}/bin/python") == "~/bin/python"
+    assert provenance._sanitize_executable("/usr/bin/python3") == "/usr/bin/python3"
+
+
+def test_an_empty_path_is_returned_unchanged():
+    """Inverting `if not path` survived too.
+
+    The inversion returns "" for every real path, so `executable` would be blank in
+    every artifact. Nothing downstream reads it as a precondition, which is exactly
+    why nothing would have complained.
+    """
+    assert provenance._sanitize_executable("") == ""
+    assert provenance._sanitize_executable("/usr/bin/python3") != ""
+
+
+def test_the_sanitized_executable_reaches_the_artifact():
+    """The unit above is only worth pinning if the value travels."""
+    home = os.path.expanduser("~")  # noqa: PTH111
+    executable = provenance.run_provenance()["executable"]
+
+    assert executable
+    assert not executable.startswith(home)

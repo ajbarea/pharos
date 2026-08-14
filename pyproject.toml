@@ -233,3 +233,18 @@ exclude_also = [
     "if TYPE_CHECKING:",
     "@overload",
 ]
+
+# Mutation testing, scoped to the two modules the manuscript names as instruments.
+#
+# Coverage says a line ran. It cannot say a check would have objected, and this
+# project's whole argument is that those are different questions -- every retraction
+# here was a measurement that looked healthy. So the guards get asked the question they
+# ask of everything else: if this condition were wrong, would anything say so?
+#
+# Narrow on purpose. `gate.py` belongs here too and is excluded only because its tests
+# take 90 seconds, which is hundreds of mutants times ninety. That is a cost problem,
+# not a judgement that the gate is better tested.
+[tool.mutmut]
+paths_to_mutate = ["src/pharos/validity.py", "src/pharos/provenance.py"]
+tests_dir = ["tests/test_validity.py", "tests/test_provenance.py", "tests/test_artifact_provenance.py"]
+also_copy = ["src/", "tests/", "pyproject.toml", "conftest.py"]

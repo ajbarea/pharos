@@ -165,3 +165,54 @@ def test_one_error_is_enough_to_clear_the_saturation_flag() -> None:
     report = check_classification(tp=20, fp=1, tn=39, fn=0, label="near-perfect")
 
     assert not any("saturated" in c for c in report.concerns)
+
+
+# The three tests below were written from a mutation run: each kills a mutant that the
+# whole suite -- not just this file -- let through. Coverage had every one of these
+# lines at 100%, which is the distinction the paper draws. A line that runs is not a
+# check that bites, and the flags are the instrument this project claims for others.
+
+
+def test_unparsed_answers_count_toward_the_sample_size() -> None:
+    """`total = scored + unparsed`, and the sign is load-bearing.
+
+    Inverting it to a subtraction passed the entire suite. It is the same defect the
+    self-audit already records once, where a sample size was wired to the number of
+    decode regimes rather than the number of tasks: the number stays plausible, so
+    only an arithmetic assertion can see it.
+    """
+    report = check_classification(tp=10, fp=5, tn=10, fn=5, unparsed=10, label="mixed")
+
+    assert report.n == 40  # 30 scored + 10 unparsed, not 20
+    # Under the subtraction the sample is 20, which is below SMALL_N, so the small-n
+    # flag would fire on a measurement that does not warrant it.
+    assert not any("is below" in c for c in report.concerns)
+
+
+def test_the_small_n_boundary_is_exclusive() -> None:
+    """Exactly SMALL_N is not below SMALL_N.
+
+    `<` to `<=` survived the suite. An off-by-one here does not corrupt a number, it
+    attaches or withholds the caveat that says whether the number may be quoted, which
+    is the only thing this module exists to decide.
+    """
+    at = check_classification(tp=15, fp=0, tn=15, fn=0, label="at")
+    assert at.n == SMALL_N
+    assert not any("is below" in c for c in at.concerns)
+
+    below = check_classification(tp=14, fp=0, tn=15, fn=0, label="below")
+    assert below.n == SMALL_N - 1
+    assert any("is below" in c for c in below.concerns)
+
+
+def test_the_unparsed_rate_is_taken_against_the_full_sample() -> None:
+    """The denominator of the unparsed rate is `total`, so it moves with the same sign.
+
+    Pinned separately because the two uses of `total` could be corrected apart, and a
+    rate reported against the wrong denominator is how finding 20's censoring error
+    happened in the first place.
+    """
+    report = check_classification(tp=40, fp=20, tn=15, fn=10, unparsed=15, label="rate")
+
+    assert report.n == 100  # 85 scored + 15 unparsed
+    assert any("15/100" in c for c in report.concerns)
