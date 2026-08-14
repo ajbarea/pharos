@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Labeled fleet testbed for federated personalization with a governed disclosure boundary"
 requires-python = ">=3.12,<3.15"
 dependencies = [
-    "numpy>=2.1",
+    "numpy>=2.5.2",
     "scikit-learn>=1.6",
     # First-class, not an extra. Traceability is a property of the experiment, not
     # a debugging convenience: a surprising number has to be traceable to the run
@@ -30,7 +30,7 @@ train = [
     # 5.0 floors the merged `warmup_steps`, which accepts a fraction of total steps
     # where 4.x had a separate `warmup_ratio`. On 4.x the float we pass truncates to
     # zero and the run trains with no warmup while looking identical.
-    "transformers>=5.0",
+    "transformers>=5.15.0",
     "accelerate>=1.3",
     "datasets>=3.2",
 ]
@@ -53,16 +53,16 @@ croissant = [
 # and OpenTelemetry; the corpus and the gate never need a web server.
 ui = [
     "fastapi>=0.115",
-    "uvicorn>=0.34",
+    "uvicorn>=0.52.1",
     # FastAPI TestClient backend. starlette deprecates plain httpx in favour of httpx2.
-    "httpx2>=0.28",
+    "httpx2>=2.10.0",
 ]
 dev = [
     "pytest>=9.0",
     "pytest-cov>=6.0",
-    "ruff>=0.15.20",
-    "ty>=0.0.44,<0.1",
-    "hypothesis>=6.152",
+    "ruff>=0.16.2",
+    "ty>=0.0.70,<0.1",
+    "hypothesis>=6.165.3",
     # Present in dev so the optional telemetry path is genuinely exercised by the
     # suite rather than pragma-excluded from it.
     "opentelemetry-api>=1.30",
