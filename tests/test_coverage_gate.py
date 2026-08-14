@@ -25,7 +25,7 @@ FLOOR_PATTERN = re.compile(r"--cov-fail-under=(\d+(?:\.\d+)?)")
 
 def configured_precision() -> int:
     config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    return config["tool"]["coverage"]["report"]["precision"]
+    return int(config["tool"]["coverage"]["report"]["precision"])
 
 
 def declared_floors() -> dict[str, list[float]]:

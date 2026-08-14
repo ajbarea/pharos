@@ -1862,10 +1862,12 @@ def test_consensus_matches_the_oracle_until_the_wrong_standard_is_the_majority()
     def score(n_wrong: int) -> tuple[float | None, float | None]:
         grouped = mcr.targets_by_task(mcr.fleet_of(n_wrong, 9), tasks, proposals, seed=mcr.SEED)
         streams = mcr.conditions(grouped, truth)
-        return (
-            mcr._agreement(streams["oracle"], truth),
-            mcr._agreement(streams["consensus"], truth),
-        )
+        # Annotated rather than returned inline: the script is imported dynamically, so
+        # every attribute off it is Any, and an Any flowing into a declared return type
+        # is what ty calls an unsound return.
+        oracle: float | None = mcr._agreement(streams["oracle"], truth)
+        consensus: float | None = mcr._agreement(streams["consensus"], truth)
+        return (oracle, consensus)
 
     # A clear minority of wrong standards: consensus is as good as knowing who is who.
     oracle_minority, consensus_minority = score(2)

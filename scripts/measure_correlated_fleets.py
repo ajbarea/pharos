@@ -88,10 +88,12 @@ def exact_wrong_majority(rate: float, *, schools: int, fleet: int = FLEET) -> fl
     """
     per_school = fleet // schools
     needed = fleet // 2 + 1
-    return sum(
-        comb(schools, j) * rate**j * (1 - rate) ** (schools - j)
-        for j in range(schools + 1)
-        if j * per_school >= needed
+    return float(
+        sum(
+            comb(schools, j) * rate**j * (1 - rate) ** (schools - j)
+            for j in range(schools + 1)
+            if j * per_school >= needed
+        )
     )
 
 

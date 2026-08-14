@@ -202,7 +202,7 @@ def rate_upper_bound(differing: int, n: int, *, level: float = 0.95) -> float:
         return 1.0
     alpha = 1.0 - level
     if differing == 0:
-        return 1.0 - alpha ** (1.0 / n)
+        return float(1.0 - alpha ** (1.0 / n))
     lo, hi = differing / n, 1.0
     for _ in range(200):
         mid = (lo + hi) / 2
