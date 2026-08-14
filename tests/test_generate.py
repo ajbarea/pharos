@@ -1,6 +1,7 @@
 """Generation invariants, above all the ones that keep plants surface-identical."""
 
 from collections import Counter
+from typing import Any
 
 import pytest
 
@@ -262,7 +263,9 @@ def test_a_configuration_that_cannot_describe_a_corpus_is_refused(kwargs, field)
     recording the value that made it meaningless -- which is the shape of defect this
     project has had to retract before.
     """
-    params = {"seed": 7, **kwargs}
+    # `dict[str, object]` so the checker does not try to unify an int event count with a
+    # tuple of centers: this parametrisation deliberately passes one bad field at a time.
+    params: dict[str, Any] = {"seed": 7, **kwargs}
     with pytest.raises(ValueError, match=field):
         GeneratorConfig(**params)
 

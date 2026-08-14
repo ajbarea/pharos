@@ -54,9 +54,9 @@ def make_targets_named_in(text: str) -> set[str]:
     the corpus smaller" is English, and treating it as a target is how this check would
     become noise.
     """
-    inline = re.findall(r"`make ([a-z][a-z0-9-]*)[^`]*`", text)
-    fenced = re.findall(r"^\s*make ([a-z][a-z0-9-]*)", text, re.MULTILINE)
-    return set(inline) | set(fenced)
+    inline: list[str] = re.findall(r"`make ([a-z][a-z0-9-]*)[^`]*`", text)
+    fenced: list[str] = re.findall(r"^\s*make ([a-z][a-z0-9-]*)", text, re.MULTILINE)
+    return {*inline, *fenced}
 
 
 def paths_named_in(text: str) -> set[str]:
