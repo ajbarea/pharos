@@ -104,6 +104,10 @@ NO_SAMPLING_QUESTION = {
     "external_gate_validation": "carries its own permutation-null statistics per corpus",
     "triage_lift": "superseded by the per-model triage_lift-* artifacts, which are assessed",
     "fleet_sensitivity": "a sweep over a nuisance parameter; reports invariants, samples nothing",
+    "guard_mutations": (
+        "four deterministic edits, each either noticed by the suite or not; there is no "
+        "population the four are drawn from and no n a flag could be computed against"
+    ),
     "teacher_fleet": "aggregates assessed adapter artifacts; adds no measurement of its own",
     "adapter_replication": (
         "compares assessed adapter artifacts against their own replicates; the question is "

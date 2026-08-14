@@ -266,6 +266,7 @@ Exempt, because there is no sampling question to answer:
 - `fleet_sensitivity` -- a sweep over a nuisance parameter; reports invariants, samples nothing
 - `gate_determinism` -- reports the gate's surface baseline at full precision on one machine; the result is the comparison against another machine, not the number
 - `gate_determinism-cluster` -- the second machine of that comparison
+- `guard_mutations` -- four deterministic edits, each either noticed by the suite or not; there is no population the four are drawn from and no n a flag could be computed against
 - `power` -- prices hypothetical evaluation sizes; simulates outcomes rather than measuring any
 - `teacher_fleet` -- aggregates assessed adapter artifacts; adds no measurement of its own
 - `triage_lift` -- superseded by the per-model triage_lift-* artifacts, which are assessed
