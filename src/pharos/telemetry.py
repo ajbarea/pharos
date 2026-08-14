@@ -382,6 +382,10 @@ _METRIC_META: dict[str, tuple[str, str]] = {
         "{task}",
         "Audited items needed to repair, at one blind-spot share and policy",
     ),
+    "selective_risk.cell": (
+        "1",
+        "Errors among published labels, under one abstention policy and withhold budget",
+    ),
     "audit.cell": (
         "1",
         "Agreement on unanchored tasks under one audit-selection policy and budget",

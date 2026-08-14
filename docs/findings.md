@@ -3226,6 +3226,11 @@ as the `--fleet` defect finding 24 found, and all invisible from the committed a
 | Provenance finds *every* corrupted item | 23 | **1** | 7 |
 | No policy repairs an unanchored label | 23 | **7** | 7 |
 | Nothing repairs unanimity, at any budget | 19 | **8** | 8 |
+| Confidence abstention fails at unanimity | 28 | **7** | 7 |
+| Its textbook inversion fails too | 28 | **7** | 7 |
+| Provenance abstention beats every untargeted draw | 28 | **7** | 7 |
+| Provenance abstention ties the bound | 28 | **5** | 7 |
+| Confidence abstention works on *random* error | 28 | **5** | 7 |
 | Blinded channel detected, controls silent | 22 | **8** | 8 |
 
 Fleet of 9, 8 corpus draws, every denominator stated. Finding 21's experiment needs a blind channel orthogonal to item difficulty and refuses to run where they are entangled, so it is constructible on **7 of 8** draws; a draw that cannot host the negative control says nothing about the finding and is excluded rather than counted against it.

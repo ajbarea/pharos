@@ -265,3 +265,76 @@ def test_a_licence_read_from_another_corpus_is_not_a_licence():
     )
     # A share the detector's own sweep does not carry is also "cannot say", not False.
     assert detector_fired(0.0, 8, seed=committed) is None
+
+
+def test_the_aggregator_view_carries_provenance_evidence_and_convergence():
+    """`_fleet_view` is what every cell is computed from, and it was reachable only
+    through `main`.
+
+    Three properties, each load-bearing. The channel map has to name the tasks carrying
+    the blinded compartment, or the provenance policy selects nothing. The evidence map
+    has to be the visible fact count, or the policy's tie-break is arbitrary. And the
+    convergence flag has to be the estimator's own, or a risk column computed off a fit
+    that ran out of iterations is reported as though it had finished.
+
+    Small on purpose: forty events and a fleet of three, which is seconds rather than the
+    minutes the full grid takes.
+    """
+    from measure_selective_risk import _fleet_view
+
+    from pharos.analyst import Proposal
+    from pharos.disclosure import KEEP_COMPARTMENTS
+    from pharos.labels import declassify
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=40)))
+    proposals = {
+        t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
+        for t in tasks
+    }
+    view, labels, converged = _fleet_view(
+        tasks, proposals, n_blind=3, fleet=3, slip_rate=0.0, seed=7
+    )
+
+    assert labels, "the estimator produced no labels, so no cell could be scored"
+    assert set(view.carries) == set(view.posterior)
+    assert set(view.evidence) == set(view.posterior)
+    assert any(view.carries.values()), "no task carries the blinded channel on this corpus"
+    assert converged is True
+    # The deployability line, asserted rather than described: the view must not have
+    # grown a per-analyst field.
+    assert "contributions" not in view.__slots__
+
+
+def test_a_cell_serialises_every_field_it_reports():
+    """`as_dict` is the artifact's schema. A field dropped here is a column that
+    silently stops being published while every table above it still renders."""
+    from dataclasses import fields
+
+    from measure_selective_risk import Cell
+
+    cell = Cell(
+        n_blind=9,
+        slip_rate=0.0,
+        policy="channel",
+        withheld=20,
+        coverage=0.9,
+        published=180,
+        risk=0.0,
+        errors_published=0,
+        caught=20,
+        precision=1.0,
+    )
+    assert set(cell.as_dict()) == {f.name for f in fields(Cell)}
+
+
+def test_an_absent_detector_artifact_is_not_a_detection(tmp_path, monkeypatch):
+    """The licence read must fail closed to "cannot say" when finding 22 has not run.
+
+    Returning False there would report the policy as unlicensed on a repository that
+    simply has not measured the detector yet, and returning True would licence it on no
+    evidence at all.
+    """
+    import measure_selective_risk as mod
+
+    monkeypatch.setattr(mod, "RESULTS", tmp_path)
+    assert mod.detector_fired(0.0, 9, seed=7) is None

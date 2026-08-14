@@ -491,3 +491,99 @@ def test_the_bound_is_reported_as_a_fraction_of_draws_not_as_a_tie():
     assert all(r["provenance_works_at_unanimity"] for r in rows), (
         "the deployable half must hold in every draw that hosts the experiment"
     )
+
+
+def test_the_selective_row_reads_only_the_shared_only_regimes(monkeypatch):
+    """A draw's abstention row must not be read from the noise control.
+
+    The high-noise cell exists to test a *different* prediction, and a fleet broken by
+    independent noise says nothing about a rule aimed at a shared standard. Quantifying
+    over it is the defect that made the first version of this measurement report its own
+    result as refuted, so the row builder is given both regimes and must ignore one.
+    """
+    mod = _stub(
+        monkeypatch,
+        {
+            "shares": [0, 9],
+            "shared_only_slip_rates": [0.0],
+            "random_error_control": 0.4,
+            "findings": {
+                "confidence_abstention_works_at_unanimity": False,
+                "consensus_abstention_works_at_unanimity": False,
+                "provenance_abstention_works_at_unanimity": True,
+                "confidence_abstention_works_on_random_error": True,
+            },
+            "fleets": [
+                {
+                    "n_blind": 9,
+                    "slip_rate": 0.0,
+                    "policies": {
+                        "channel": {"halved_at": 12},
+                        "oracle": {"halved_at": 12},
+                    },
+                },
+                {
+                    "n_blind": 9,
+                    "slip_rate": 0.4,
+                    "policies": {
+                        "channel": {"halved_at": None},
+                        "oracle": {"halved_at": 8},
+                    },
+                },
+            ],
+            "grid": [
+                {
+                    "n_blind": 9,
+                    "slip_rate": 0.0,
+                    "policy": "channel",
+                    "withheld": 12,
+                    "coverage": 0.94,
+                }
+            ],
+            "false_detection": [{"coverage_at_20": 0.9}],
+        },
+    )
+    row = mod.selective_row(1)
+    assert row["confidence_fails_at_unanimity"] is True
+    assert row["provenance_works_at_unanimity"] is True
+    assert row["provenance_ties_the_bound_at_unanimity"] is True
+    assert row["coverage_cost_at_unanimity"] == [0.94]
+    assert row["shared_only_slip_rates"] == [0.0]
+
+
+def test_the_selective_row_does_not_credit_a_tie_between_two_failures(monkeypatch):
+    """`None == None` is two policies failing to halve anything, not a tie with the bound.
+
+    This is the defect an independent review caught in `audit_row`, in the one place a
+    second copy of it could live.
+    """
+    mod = _stub(
+        monkeypatch,
+        {
+            "shares": [0, 9],
+            "shared_only_slip_rates": [0.0],
+            "random_error_control": None,
+            "findings": {
+                "confidence_abstention_works_at_unanimity": False,
+                "consensus_abstention_works_at_unanimity": False,
+                "provenance_abstention_works_at_unanimity": False,
+                "confidence_abstention_works_on_random_error": None,
+            },
+            "fleets": [
+                {
+                    "n_blind": 9,
+                    "slip_rate": 0.0,
+                    "policies": {
+                        "channel": {"halved_at": None},
+                        "oracle": {"halved_at": None},
+                    },
+                }
+            ],
+            "grid": [],
+            "false_detection": [],
+        },
+    )
+    row = mod.selective_row(1)
+    assert row["provenance_ties_the_bound_at_unanimity"] is False
+    assert row["coverage_cost_at_unanimity"] == [None]
+    assert row["confidence_works_on_random_error"] is None
