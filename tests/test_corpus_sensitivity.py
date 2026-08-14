@@ -293,3 +293,82 @@ def test_the_channel_row_reports_no_detections_as_undetected(monkeypatch):
         },
     )
     assert mod.channel_row(1)["blinded_detected_at_every_noise_level"] is False
+
+
+def _fake_subprocess(monkeypatch, *, returncode=0, stderr="", payload=None):
+    """Replace the subprocess call with one that writes `payload` and exits `returncode`."""
+    import json as _json
+    import subprocess
+    from pathlib import Path as _Path
+
+    import measure_corpus_sensitivity as mod
+
+    def run(cmd, **_kwargs):
+        if payload is not None:
+            _Path(cmd[cmd.index("--out") + 1]).write_text(_json.dumps(payload), encoding="utf-8")
+        return subprocess.CompletedProcess(cmd, returncode, "", stderr)
+
+    monkeypatch.setattr(mod.subprocess, "run", run)
+    return mod
+
+
+def test_a_draw_that_refuses_by_design_is_excluded(monkeypatch):
+    """The one non-zero exit this sweep is allowed to treat as data.
+
+    `measure_blind_spot` exits REFUSED_EXIT when the blind channel is entangled with item
+    difficulty. That draw cannot host the negative control and says nothing about the
+    finding, so it leaves the denominator rather than counting against it.
+    """
+    from measure_blind_spot import REFUSED_EXIT
+
+    mod = _fake_subprocess(monkeypatch, returncode=REFUSED_EXIT, stderr="too entangled")
+    assert mod.run_at("measure_blind_spot.py", 23) is None
+
+
+def test_a_crash_is_not_a_refusal(monkeypatch):
+    """The defect this guard exists for, and it nearly shipped.
+
+    Every non-zero exit used to be read as the precondition refusal, so the budget-ladder
+    crash this branch fixes would have logged four of eight draws as "refused by design"
+    and silently shrunk the denominator under a rate that looked unchanged.
+    """
+    import pytest
+
+    mod = _fake_subprocess(monkeypatch, returncode=1, stderr="Traceback: KeyError 'grid'")
+    with pytest.raises(RuntimeError, match="exited 1"):
+        mod.run_at("measure_audit_policy.py", 7)
+
+
+def test_run_at_returns_the_artifact_the_script_wrote(monkeypatch):
+    mod = _fake_subprocess(monkeypatch, payload={"fleet": 9})
+    assert mod.run_at("measure_audit_policy.py", 7) == {"fleet": 9}
+
+
+def test_a_refused_draw_produces_no_row_of_any_kind(monkeypatch):
+    """All three builders drop the draw rather than emitting a partial row."""
+    from measure_blind_spot import REFUSED_EXIT
+
+    mod = _fake_subprocess(monkeypatch, returncode=REFUSED_EXIT, stderr="refused")
+    assert mod.audit_row(23) is None
+    assert mod.blind_row(23) is None
+    assert mod.channel_row(23) is None
+
+
+def test_the_blind_row_refuses_a_draw_where_no_policy_was_scored(monkeypatch):
+    """The vacuous-truth path, asserted so it cannot come back quietly.
+
+    Reading the policy list from a key the artifact does not have gave an empty list, and
+    `all()` over it returned true. An empty list is now an error rather than a pass.
+    """
+    import pytest
+
+    mod = _fake_subprocess(
+        monkeypatch,
+        payload={
+            "fleet": 9,
+            "audit_hit_rate": {"9": {"channel": 0.9, "oracle": 1.0}},
+            "grid": [],
+        },
+    )
+    with pytest.raises(RuntimeError, match="finding 21's claim cannot be evaluated"):
+        mod.blind_row(1)
