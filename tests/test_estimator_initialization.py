@@ -18,7 +18,7 @@ def contributions(n_wrong: int, n_right: int, tasks: int = 40) -> list[tuple[str
     tie-break rather than the estimator.
     """
     truth = {f"t{i}": i % 2 == 0 for i in range(tasks)}
-    rows = []
+    rows: list[tuple[str, str, bool]] = []
     for i in range(n_right):
         rows += [(t, f"right-{i}", v) for t, v in truth.items()]
     for i in range(n_wrong):

@@ -173,7 +173,7 @@ def _relative_luminance(hex_colour: str) -> float:
         value = int(raw[offset : offset + 2], 16) / 255
         channels.append(value / 12.92 if value <= 0.03928 else ((value + 0.055) / 1.055) ** 2.4)
     red, green, blue = channels
-    return 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    return float(0.2126 * red + 0.7152 * green + 0.0722 * blue)
 
 
 def _contrast(foreground: str, background: str) -> float:
