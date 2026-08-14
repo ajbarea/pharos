@@ -84,7 +84,13 @@ def main(argv: list[str] | None = None) -> int:
 
         return serve(host=args.host, port=args.port)
 
-    config = GeneratorConfig(seed=args.seed, n_events=args.events, plant_rate=args.plant_rate)
+    try:
+        config = GeneratorConfig(seed=args.seed, n_events=args.events, plant_rate=args.plant_rate)
+    except ValueError as exc:
+        # A usage error, reported the way argparse reports one. The constructor refuses a
+        # configuration that cannot describe a corpus; surfacing that as a traceback would
+        # make a mistyped flag look like a defect in the generator.
+        parser.error(str(exc))
 
     if args.command == "export":
         return _export(config, args.out)

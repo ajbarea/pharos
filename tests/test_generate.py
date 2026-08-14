@@ -241,3 +241,33 @@ def test_no_decoy_carries_the_whole_signature():
     for pattern in DECOY_PATTERNS:
         overlap = len(set(pattern) & SIGNIFICANT_PATTERN)
         assert overlap <= 2, f"{sorted(pattern)} carries {overlap} of the signature facts"
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "field"),
+    [
+        ({"n_events": 0}, "n_events"),
+        ({"n_events": -1}, "n_events"),
+        ({"plant_rate": 1.5}, "plant_rate"),
+        ({"plant_rate": -0.1}, "plant_rate"),
+        ({"seed": -1}, "seed"),
+        ({"centers": ()}, "centers"),
+    ],
+)
+def test_a_configuration_that_cannot_describe_a_corpus_is_refused(kwargs, field):
+    """Every entry point builds one of these, so the constructor is where it fails.
+
+    None of these raise on their own. A plant rate of 1.5 plants a share of a corpus that
+    does not exist, zero events generates nothing, and both produce a well-formed manifest
+    recording the value that made it meaningless -- which is the shape of defect this
+    project has had to retract before.
+    """
+    params = {"seed": 7, **kwargs}
+    with pytest.raises(ValueError, match=field):
+        GeneratorConfig(**params)
+
+
+def test_the_refusal_is_a_bound_and_not_a_ban():
+    """The control. A validator that refused everything would satisfy the test above."""
+    assert GeneratorConfig(seed=0, n_events=1, plant_rate=0.0).n_events == 1
+    assert GeneratorConfig(seed=7, n_events=200, plant_rate=1.0).plant_rate == 1.0

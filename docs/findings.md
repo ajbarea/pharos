@@ -3482,6 +3482,8 @@ At unanimity the textbook rule is at chance and provenance is exact. Withholding
 
 The same rule on a fleet with **no** blind spot withholds 10% of labels and catches 0 wrong ones, because there are none to catch. That is what a false detection costs, and it is a number rather than a reassurance.
 
+The `channel` column is a proposal only where finding 22's detector fires, which is not every row: at 3 of 9 blind it is scored on a channel no deployment would have been told about. Every claim above is quantified over cells where the detector fired, and the artifact lists any that are not.
+
 The control runs the other way. At slip 0.4 a fleet with no blind spot already carries estimator errors, and there the textbook rule works while provenance no longer beats an untargeted draw --- so the failure above is a property of the error's *shape*, not of abstention, and the remedy is bounded by the same distinction.
 <!-- END GENERATED: selective-risk -->
 

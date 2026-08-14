@@ -71,3 +71,20 @@ def test_a_provided_baseline_skips_the_baseline_call(monkeypatch):
     result = attribute_leave_one_out(TASK, baseline="a summary mentioning draft and freeboard")
     assert "draft_mismatch" in result.asserted_facts
     assert result.calls == 1 + len(TASK.sources)
+
+
+def test_an_impossible_corpus_is_a_usage_error_not_a_traceback(capsys):
+    """`--events 0` is a mistyped flag, and it used to reach the generator.
+
+    `parser.error` exits 2 and prints usage, which is what every other bad flag does. A
+    ValueError escaping to the shell would present a mistake in the command line as a
+    defect in the generator.
+    """
+    import pytest as _pytest
+
+    from pharos.cli import main
+
+    with _pytest.raises(SystemExit) as excinfo:
+        main(["gate", "--events", "0"])
+    assert excinfo.value.code == 2
+    assert "n_events" in capsys.readouterr().err
