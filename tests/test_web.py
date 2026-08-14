@@ -152,3 +152,39 @@ def test_review_reports_whether_a_correction_can_actually_leave(client):
     by_name = {r["analyst"]: r for r in blocked["reviewers"]}
     assert by_name["by-the-book"]["correction_releasable"] is False
     assert by_name["releaser"]["correction_releasable"] is True
+
+
+def test_every_request_parameter_is_bounded(client):
+    """The cost bound the module comment claims, checked on every parameter that feeds it.
+
+    `MAX_EVENTS` was the whole of it, and gate cost is events times null trials -- so the
+    documented promise that "a curious click cannot start a minutes-long job" was true of
+    one parameter and false of the other. A limit nobody has seen refuse a request is not
+    yet a limit, so each is exercised here.
+    """
+    from pharos.web import MAX_EVENTS, MAX_LIMIT, MAX_NULL_TRIALS
+
+    assert client.get(f"/api/gate?events={MAX_EVENTS + 1}").status_code == 400
+    assert client.get(f"/api/gate?null_trials={MAX_NULL_TRIALS + 1}").status_code == 400
+    assert client.get("/api/gate?events=0").status_code == 400
+    assert client.get("/api/corpus?events=-5").status_code == 400
+    assert client.get(f"/api/corpus?limit={MAX_LIMIT + 1}").status_code == 400
+    assert client.get("/api/review?seed=-1").status_code == 400
+    # And the bound is a bound rather than a ban: the documented defaults still work.
+    assert client.get("/api/gate?events=40&null_trials=2").status_code == 200
+    assert client.get("/api/corpus?events=40&limit=12").status_code == 200
+    assert client.get("/api/review?seed=7&index=3").status_code == 200
+
+
+def test_a_bad_field_in_the_json_body_is_a_bad_request_not_a_crash(client):
+    """`int("abc")` inside an endpoint is a 500 with a traceback for a plainly bad request.
+
+    The triage endpoint coerces its own fields because they arrive in a JSON body rather
+    than a query string, so FastAPI does not do it. That coercion had no error path.
+    """
+    response = client.post("/api/triage", json={"seed": "abc"})
+    assert response.status_code == 400
+    assert "seed" in response.json()["detail"]
+
+    negative = client.post("/api/triage", json={"index": -1})
+    assert negative.status_code == 400

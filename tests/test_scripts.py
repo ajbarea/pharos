@@ -2943,23 +2943,37 @@ def test_the_readme_findings_count_matches_the_findings_page():
     assert headings, "no numbered findings in docs/findings.md; the parser has broken"
     measured = len(headings)
 
-    words = {
-        20: "Twenty",
-        21: "Twenty-one",
-        22: "Twenty-two",
-        23: "Twenty-three",
-        24: "Twenty-four",
-        25: "Twenty-five",
-        26: "Twenty-six",
-        27: "Twenty-seven",
+    # Spelled rather than tabulated. The table this replaces had to be extended by hand
+    # every time a finding landed, and its failure message said so -- "this test cannot
+    # spell that" -- which made the guard's own maintenance a step somebody would
+    # eventually skip by loosening the assertion instead. A guard that asks to be edited
+    # on every ordinary change is a guard that gets edited into silence.
+    tens = {2: "Twenty", 3: "Thirty", 4: "Forty", 5: "Fifty"}
+    units = {
+        1: "one",
+        2: "two",
+        3: "three",
+        4: "four",
+        5: "five",
+        6: "six",
+        7: "seven",
+        8: "eight",
+        9: "nine",
     }
+
+    def spell(n: int) -> str | None:
+        if n // 10 not in tens:
+            return None
+        return tens[n // 10] + (f"-{units[n % 10]}" if n % 10 else "")
+
     readme = (root / "README.md").read_text(encoding="utf-8")
     claimed = re.search(r"^(\w[\w-]*) findings so far", readme, re.MULTILINE)
     assert claimed, "the README no longer states a findings count in the expected shape"
 
-    expected = words.get(measured)
+    expected = spell(measured)
     assert expected, (
-        f"docs/findings.md has {measured} findings and this test cannot spell that; extend `words`."
+        f"docs/findings.md has {measured} findings, which is outside the range this "
+        "test can spell (20-59). Extend `tens`."
     )
     assert claimed.group(1) == expected, (
         f"README says '{claimed.group(1)} findings so far' and docs/findings.md has "

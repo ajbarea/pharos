@@ -210,3 +210,58 @@ def test_the_artifact_flags_the_cells_whose_estimator_did_not_converge(report):
 def test_the_measurement_is_quotable_at_the_thinnest_cell(report):
     assert report["validity"]["quotable"], report["validity"]["concerns"]
     assert report["published_min"] >= 30
+
+
+def test_the_channel_policy_is_only_proposed_where_the_detector_licenses_it(report):
+    """Finding 28's rule is deployable *because* finding 22 names the channel.
+
+    That licence is not uniform across this grid -- detection reaches one blind analyst
+    in nine on a noiseless fleet and four of nine at a realistic slip rate -- so a claim
+    resting on a cell where the detector never fired would be proposing a policy no
+    deployment could have known to run.
+    """
+    assert report["unlicensed_claim_cells"] == [], (
+        "a claim is quantified over a cell where finding 22's detector did not fire: "
+        f"{report['unlicensed_claim_cells']}"
+    )
+    unanimous = max(report["shares"])
+    for rate in report["shared_only_slip_rates"]:
+        fleet = next(
+            f for f in report["fleets"] if f["n_blind"] == unanimous and f["slip_rate"] == rate
+        )
+        assert fleet["detector_fired"] is True
+
+
+def test_the_licence_field_is_not_vacuous(report):
+    """The control. A field that is true everywhere records nothing.
+
+    At a realistic slip rate the detector needs four of nine, so the low-share rows are
+    exactly the cells where the `channel` column is scored without a licence. If this
+    ever stops being so, the field has become decoration and the test above stops
+    meaning anything.
+    """
+    fired = [f["detector_fired"] for f in report["fleets"]]
+    assert any(value is not True for value in fired), (
+        "every cell reports the detector firing, so the licence field cannot distinguish "
+        "a proposal from a policy nobody could have run"
+    )
+    assert any(value is True for value in fired), "no cell reports a detection at all"
+
+
+def test_a_licence_read_from_another_corpus_is_not_a_licence():
+    """The cross-corpus guard, exercised rather than asserted.
+
+    `channel_bias.json` is one corpus draw and this measurement is swept over eight. A
+    licence read without checking the seed would hand every draw the committed corpus's
+    detections -- the same cross-corpus confound that cost this project a reproducibility
+    claim -- so a mismatched seed must read as "cannot say" rather than as a detection.
+    """
+    from measure_selective_risk import detector_fired
+
+    committed = artifact("channel_bias.json")["provenance"]["seed"]
+    assert detector_fired(0.0, 9, seed=committed) is True
+    assert detector_fired(0.0, 9, seed=committed + 1) is None, (
+        "a detection measured on one corpus was reported for another"
+    )
+    # A share the detector's own sweep does not carry is also "cannot say", not False.
+    assert detector_fired(0.0, 8, seed=committed) is None

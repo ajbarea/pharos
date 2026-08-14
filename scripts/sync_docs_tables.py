@@ -1120,6 +1120,27 @@ def selective_risk() -> str:
             "what a false detection costs, and it is a number rather than a reassurance."
         )
         lines.append("")
+    # Where the `channel` column is a policy rather than a proposal. Finding 22 needs one
+    # blind analyst in nine on a noiseless fleet and four of nine at a realistic slip
+    # rate, so some rows above score a rule on a channel no deployment would have been
+    # told about. Generated rather than described, because the threshold is finding 22's
+    # to move and this page should follow it.
+    scored_unlicensed = [
+        f["n_blind"]
+        for f in fleets
+        if f["slip_rate"] in shared and f["detector_fired"] is False and f["base_errors"]
+    ]
+    if scored_unlicensed:
+        lines.append(
+            "The `channel` column is a proposal only where finding 22's detector fires, "
+            "which is not every row: at "
+            + ", ".join(f"{n} of {payload['fleet']} blind" for n in sorted(set(scored_unlicensed)))
+            + " it is scored on a channel no deployment would have been told about. Every "
+            "claim above is quantified over cells where the detector fired, and the "
+            "artifact lists any that are not."
+        )
+        lines.append("")
+
     control = payload.get("random_error_control")
     if control is not None:
         works = payload["findings"]["confidence_abstention_works_on_random_error"]

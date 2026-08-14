@@ -172,6 +172,7 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_audit_policy.py
 	uv run python scripts/measure_blind_spot.py
 	uv run python scripts/measure_channel_bias.py
+	uv run python scripts/measure_selective_risk.py
 	uv run python scripts/measure_estimator_initialization.py
 	uv run python scripts/measure_fleet_sensitivity.py
 	uv run python scripts/logcheck.py

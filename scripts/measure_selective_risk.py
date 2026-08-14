@@ -96,6 +96,10 @@ from pharos.validity import check_sample_size
 
 LOG = get_logger()
 
+#: Finding 22's artifact lives here, and is read to say where the `channel` policy is
+#: licensed at all.
+RESULTS = Path(__file__).resolve().parents[1] / "results"
+
 SEED = 7
 EVENTS = 200
 FLEET = 9
@@ -259,6 +263,41 @@ def first_budget_halving(cells: list[Cell], base_errors: int) -> int | None:
     )
 
 
+def detector_fired(slip_rate: float, n_blind: int, *, seed: int) -> bool | None:
+    """Whether finding 22's detector actually names this channel on this fleet.
+
+    The `channel` policy is deployable *because* finding 22 supplies the channel name
+    from data the aggregator already holds. That licence is not uniform across this
+    grid: detection reaches one blind analyst in nine on a noiseless fleet and four of
+    nine at a realistic slip rate, so there are cells here where the policy is scored on
+    a channel no deployment would have been told about.
+
+    Read from `channel_bias.json` rather than recomputed, because a second implementation
+    of a detection threshold is a second thing to drift. Returns None where that artifact
+    cannot answer -- it is missing, or carries no cell at this slip rate and share -- and
+    None is reported rather than assumed false, since "not measured" and "measured and
+    silent" are different claims and only one of them is about the detector.
+    """
+    path = RESULTS / "channel_bias.json"
+    if not path.exists():
+        return None
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    # The committed artifact is one corpus draw, and this script is swept over eight.
+    # Without this line every draw would be handed seed 7's detections, and the sweep
+    # would report a licence that was measured on a different corpus -- which is the
+    # cross-corpus confound this project has already withdrawn a claim over. A mismatch
+    # is "cannot say", not "did not fire".
+    if payload.get("provenance", {}).get("seed") != seed:
+        return None
+    for cell in payload.get("sweep", []):
+        if cell.get("slip_rate") != slip_rate or cell.get("n_blind") != n_blind:
+            continue
+        for detection in cell.get("detections", []):
+            if detection.get("channel") == BLIND.value:
+                return bool(detection.get("detected"))
+    return None
+
+
 def beats_every_draw(theirs: float | None, draws: list[float]) -> bool:
     """Whether a targeted risk is below the *best* of the untargeted draws it is compared to.
 
@@ -295,10 +334,15 @@ def _fleet_view(
     partitioned = partition_by_contributor(flat)
     view = observe(partitioned)
     by_id = {t.task_id: t for t in tasks}
-    # What the detector hands over, and only where it has fired. At n_blind = 0 there is
-    # no channel to name, and a policy selecting by provenance on a fleet nobody has shown
-    # to be channel-blind would be an oracle wearing a method's name. The one exception is
-    # the false-detection control below, which supplies it deliberately and says so.
+    # What the detector hands over. Supplied at EVERY share, including shares where
+    # finding 22's detector would not have fired, because two of the cells this script
+    # needs are exactly those: the healthy fleet, where handing over a channel is the
+    # false-detection control and its cost is the number reported.
+    #
+    # That makes the `channel` column deployable only where the detector fires, which is
+    # not every row of the grid. Rather than leave that to a caption, each fleet records
+    # `detector_fired` from finding 22's own artifact, and the tests assert that every
+    # cell a claim rests on is one where it did.
     carries = {
         task: any(BLIND in r.label.compartments for r in by_id[task].sources)
         for task in view.posterior
@@ -375,13 +419,9 @@ def main() -> int:
             for policy in (*DEPLOYABLE, BOUND):
                 if policy == "uniform":
                     continue
-                # `channel` reads the detector's output, which exists only where the
-                # detector fired. At n_blind = 0 it is handed the channel anyway: that is
-                # the false-detection control, and its cost is the number reported.
-                policy_view = view
                 block: list[Cell] = []
                 for budget in budgets:
-                    held = select(policy, policy_view, truth, budget, seed=POLICY_SEED)
+                    held = select(policy, view, truth, budget, seed=POLICY_SEED)
                     cell = score(
                         n_blind=n_blind,
                         slip_rate=slip_rate,
@@ -502,6 +542,9 @@ def main() -> int:
                     "base_errors": len(wrong),
                     "base_risk": base.risk,
                     "converged": converged,
+                    #: Whether finding 22's detector names this channel on this fleet.
+                    #: The `channel` column is a proposal only where this is true.
+                    "detector_fired": detector_fired(slip_rate, n_blind, seed=args.seed),
                     "budgets": list(budgets),
                     "nothing_to_withhold": nothing_to_withhold,
                     "policies": per_policy,
@@ -700,6 +743,37 @@ def main() -> int:
         else lowers_risk(unanimous, control_rate, "channel"),
     }
 
+    # The licence check, on the cells the claims are quantified over. A claim resting on
+    # a cell where finding 22's detector never fired would be proposing a policy no
+    # deployment could have known to run.
+    #
+    # Two states, not one. `False` is finding 22 saying it does not detect this fleet,
+    # which would make the policy undeployable on the cell a claim rests on. `None` is
+    # its artifact being unable to answer -- a different corpus draw, or a share it did
+    # not sweep -- which is missing evidence rather than negative evidence. Collapsing
+    # them would either cry wolf on every swept draw or hide a real gap on the committed
+    # one, and only one of those is loud enough to notice.
+    unlicensed = [
+        (n, rate)
+        for rate in shared_only
+        for n in (unanimous,)
+        if fleet_at(n, rate)["detector_fired"] is False
+    ]
+    unverified = [
+        (n, rate)
+        for rate in shared_only
+        for n in (unanimous,)
+        if fleet_at(n, rate)["detector_fired"] is None
+    ]
+    if unlicensed:
+        LOG.warning(
+            "selective_risk.policy_unlicensed_here",
+            extra={
+                "event": "selective_risk.policy_unlicensed_here",
+                "cells": [f"{n}@{rate}" for n, rate in unlicensed],
+            },
+        )
+
     print("\n  predictions, as measured")
     for name, value in findings.items():
         print(f"    {name:<52} {value}")
@@ -751,6 +825,13 @@ def main() -> int:
         "findings": findings,
         "random_error_control": control_rate,
         "shared_only_slip_rates": shared_only,
+        #: Cells a claim is quantified over where the detector did not fire, or where
+        #: finding 22's artifact cannot say. Empty is the expected state and is published
+        #: rather than assumed, because the licence is what makes the policy a proposal.
+        "unlicensed_claim_cells": [{"n_blind": n, "slip_rate": rate} for n, rate in unlicensed],
+        #: Claim cells where finding 22's artifact cannot answer at this corpus draw.
+        #: Expected to be every cell on a swept draw and none on the committed one.
+        "unverified_claim_cells": [{"n_blind": n, "slip_rate": rate} for n, rate in unverified],
         "unconverged_cells": [{"n_blind": n, "slip_rate": rate} for n, rate in unconverged],
         "false_detection": false_detection,
         "grid": [c.as_dict() for c in cells],

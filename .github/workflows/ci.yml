@@ -211,6 +211,15 @@ jobs:
       # the statistic is reading generic error and the finding is void.
       - name: Detect a blind spot that leaves no disagreement
         run: uv run python scripts/measure_channel_bias.py
+      # Finding 28's measurement, and the live guard on two conditions the finding
+      # rests on rather than reports. It refuses a corpus whose blinded channel is
+      # entangled with item difficulty, exactly as finding 21's script does, and it
+      # refuses a slip ladder with no regime where the shared blind spot is the whole
+      # of the error -- without which every claim it makes would be about mixed error.
+      # It also reads finding 22's artifact to say where the channel policy is licensed
+      # at all, so a corpus change that moved the detection threshold shows up here.
+      - name: Price what abstention buys where auditing buys nothing
+        run: uv run python scripts/measure_selective_risk.py
       # Finding 25's sweep, and the guard on the one degree of freedom underneath every
       # cliff finding. The escape it reports must stay confined to the crossing: if a
       # start ever recovers the truth past it, findings 12 and 17-24 are measuring a
