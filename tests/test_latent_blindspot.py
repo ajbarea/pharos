@@ -26,6 +26,7 @@ from pharos.governance import (
     fleet,
     latent_blind_fleet,
     observe,
+    policy_channel,
     policy_deviation,
     policy_shortfall,
     select,
@@ -254,6 +255,22 @@ def test_the_counts_the_findings_page_quotes_are_the_artifact_s():
     assert payload["cells_where_one_sided_is_no_better_than_uniform"] == 0
 
 
+def _channel_affected(tasks):
+    """Tasks a fleet-wide channel blind spot flips, as the library's own guard counts them."""
+    return [
+        t
+        for t in tasks
+        if (
+            len(AnalystPolicy("blind", blind_compartment=BLIND).evidence_visible_to(t))
+            >= AnalystPolicy("reference").escalation_threshold
+        )
+        != (
+            len(AnalystPolicy("reference").evidence_visible_to(t))
+            >= AnalystPolicy("reference").escalation_threshold
+        )
+    ]
+
+
 @pytest.fixture(scope="module")
 def small():
     """A corpus small enough to run the measurement functions directly.
@@ -309,10 +326,10 @@ def _cell(small, keying, slice_, *, n_blind=5, slip=0.0):
 
 def test_measure_runs_both_detectors_and_scores_every_named_policy(small):
     """One cell end to end, on both constructions, with the budgets turned down."""
-    from measure_latent_blindspot import BOUND, POLICIES_HERE, _affected
+    from measure_latent_blindspot import BOUND, POLICIES_HERE
 
     tasks, _, _ = small
-    drawn = draw_balanced_slice(tasks, size=len(_affected(tasks)), seed=7)
+    drawn = draw_balanced_slice(tasks, size=len(_channel_affected(tasks)), seed=7)
 
     channel_cell = _cell(small, "channel", None)
     latent_cell = _cell(small, "latent", drawn)
@@ -331,27 +348,39 @@ def test_measure_runs_both_detectors_and_scores_every_named_policy(small):
     )
 
 
-def test_measure_populates_no_channel_map_for_a_latent_fleet(small):
-    """`channel` is unavailable rather than merely bad, and that has to be visible."""
-    from measure_latent_blindspot import _affected
+def test_the_latent_fleet_supplies_no_channel_for_a_policy_to_read(small):
+    """The invariant that makes `channel` unavailable rather than merely bad.
 
-    tasks, _, _ = small
-    drawn = draw_balanced_slice(tasks, size=len(_affected(tasks)), seed=7)
-    latent_cell = _cell(small, "latent", drawn, n_blind=5)
-    # With no channel supplied the provenance policy scores every task equally, so it
-    # cannot beat an untargeted draw except by the tie-break. The finding reports that as
-    # "no remedy available", and this is the property that makes the report true.
-    assert latent_cell.precision["uniform"] >= 0.0
+    An earlier version of this test asserted `precision["uniform"] >= 0.0`, which is a
+    share in [0, 1] and could never fail -- it would have passed just as happily if the
+    latent view had been handed a channel map, which is the one thing that would invalidate
+    the finding. This reads the view the measurement actually builds.
+    """
+    tasks, proposals, _ = small
+    drawn = draw_balanced_slice(tasks, size=len(_channel_affected(tasks)), seed=7)
+    flat = contributions_for(latent_blind_fleet(5, 5, drawn), tasks, proposals, seed=7)
+    view = observe(partition_by_contributor(flat))
+
+    assert not view.carries, "the latent construction supplied a channel map"
+    # And with none supplied, the provenance policy is flat by its own contract: no
+    # detection, no licence to select by provenance.
+    assert len(set(policy_channel(view, {}).values())) == 1
+
+    from measure_latent_blindspot import POLICIES_HERE
+
+    assert "channel" not in POLICIES_HERE, (
+        "the grid scores a remedy that cannot be applied on this construction"
+    )
 
 
 def test_assemble_answers_every_prediction_from_the_cells_it_is_given(small):
     """The artifact builder, driven directly rather than through a full sweep."""
     import argparse
 
-    from measure_latent_blindspot import _affected, assemble, slice_sweep
+    from measure_latent_blindspot import assemble, slice_sweep
 
     tasks, proposals, truth = small
-    size = len(_affected(tasks))
+    size = len(_channel_affected(tasks))
     drawn = draw_balanced_slice(tasks, size=size, seed=7)
     cells = [
         _cell(small, "channel", None, n_blind=n, slip=slip) for n in (0, 5) for slip in (0.0, 0.15)
@@ -386,10 +415,10 @@ def test_render_prints_the_three_tables_and_every_verdict(small, capsys):
     """The reporting path, which is where a number a reader sees is actually formed."""
     import argparse
 
-    from measure_latent_blindspot import _affected, assemble, render, slice_sweep
+    from measure_latent_blindspot import assemble, render, slice_sweep
 
     tasks, proposals, truth = small
-    size = len(_affected(tasks))
+    size = len(_channel_affected(tasks))
     drawn = draw_balanced_slice(tasks, size=size, seed=7)
     cells = [
         _cell(small, "channel", None, n_blind=5),
@@ -422,10 +451,10 @@ def test_the_slice_sweep_spans_the_pool_it_draws_from(small):
 
 def test_the_two_constructions_are_refused_if_they_agree(small):
     """`_views_agree` is the guard against comparing a fleet with itself."""
-    from measure_latent_blindspot import _affected, _views_agree
+    from measure_latent_blindspot import _views_agree
 
     tasks, proposals, _ = small
-    drawn = draw_balanced_slice(tasks, size=len(_affected(tasks)), seed=7)
+    drawn = draw_balanced_slice(tasks, size=len(_channel_affected(tasks)), seed=7)
     flat = contributions_for(latent_blind_fleet(5, 5, drawn), tasks, proposals, seed=7)
     latent_view = observe(partition_by_contributor(flat))
     channel_flat = contributions_for(blind_fleet(5, 5), tasks, proposals, seed=7)
@@ -443,9 +472,8 @@ def test_the_affected_slice_is_read_from_the_corpus_rather_than_assumed(small):
     A hard-coded 20 would silently compare a 20-task slice against a 14-task one on a
     corpus draw where the channel happens to hit fewer tasks.
     """
-    from measure_latent_blindspot import _affected
 
     tasks, _, _ = small
-    affected = _affected(tasks)
+    affected = _channel_affected(tasks)
     assert affected, "no verdict changes under a channel blind spot on this corpus"
     assert all(t.significant for t in affected)

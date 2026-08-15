@@ -374,7 +374,9 @@ class LatentSlice:
     #: only ones where discounting a report can change a verdict at all.
     eligible: int
     #: Largest gap, over every compartment, between the slice's carriage of it and that of
-    #: the eligible tasks it was drawn from.
+    #: the rest of the eligible pool -- the tasks that were drawn *against*, not the pool
+    #: including them. Said precisely because this number is published for readers to
+    #: interpret, and the two comparisons differ materially at 20 of 69.
     worst_carriage_gap: float
     #: Where that gap sits in the distribution of the same statistic over uniform draws
     #: from the same pool. This is the number to read: the gap alone has no scale, and a
@@ -470,7 +472,14 @@ def draw_latent_slice(
     }
 
     def worst_gap(slice_ids: set[str]) -> float:
-        """Largest carriage gap between a slice of the pool and the rest of it."""
+        """Largest carriage gap between a slice of the pool and the rest of it.
+
+        The carriage map above is built inline rather than by calling
+        `channel.compartment_carriage`, which computes the same thing. That module imports
+        `view`, which imports this one, so the reuse would close an import cycle. Noted
+        rather than left to be rediscovered: it is a real third copy of the expression, and
+        the reason it stays is structural.
+        """
         rest = [t for t in pool if t not in slice_ids]
         inside = sorted(slice_ids)
         gaps = []

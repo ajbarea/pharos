@@ -354,7 +354,7 @@ distinction the detector exists to draw.
 blind spot aligned with a known, public partition of the corpus, and this section used to
 close by saying that a shared error following no observable partition would leave no trace
 and that nothing here said how to find one. [Finding
-30](https://ajbarea.github.io/pharos/findings/#30-the-blind-spot-with-no-name-is-detected-the-same-and-located-by-the-same-signal-read-one-sided)
+30](docs/findings.md#30-the-blind-spot-with-no-name-is-detected-the-same-and-located-by-the-same-signal-read-one-sided)
 built that error on purpose --- analysts who discount a set of individual reports rather
 than a channel, drawn to corrupt the same 20 verdicts in the same evidence stratum --- and
 neither half of the sentence held. The channel scan is silent on it, as expected. The index

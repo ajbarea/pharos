@@ -59,7 +59,7 @@ import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
 
-from pharos.analyst import AnalystPolicy, Proposal, evidence_shown
+from pharos.analyst import Proposal, evidence_shown
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
 from pharos.governance import (
@@ -118,9 +118,12 @@ SLICE_SIZES = (10, 20, 30, 40, 50, 60)
 #: retracted five numbers that were properties of a single sample, and a slice is a sample.
 SLICE_SEEDS = (7, 1_000_003, 2_000_003, 3_000_003, 4_000_003)
 
-#: What the grid scores. `channel` is present to be reported *unavailable* on the latent
-#: fleet rather than quietly omitted: a remedy that cannot be applied is the result here,
-#: and a missing column would read as an oversight.
+#: What the grid scores. `channel` is deliberately **absent**, and the absence is the
+#: result rather than an omission: finding 28's remedy withholds by the channel a detector
+#: named, and on the latent construction there is no channel to name. Scoring it anyway
+#: would hand `policy_channel` an empty carriage map, which by its own contract degrades to
+#: a flat score -- an arbitrary draw wearing the remedy's name, and a column a reader would
+#: reasonably mistake for the remedy having been tried. The finding says it cannot be.
 POLICIES_HERE = ("uniform", "margin", "posterior", "consensus", "deviation", "shortfall")
 BOUND = "oracle"
 
@@ -295,9 +298,12 @@ def main() -> int:
 
     try:
         check = assert_channel_usable(tasks)
+        # Sized from the guard's own count rather than from a second derivation of it. An
+        # earlier version recomputed the affected slice here with a slightly different
+        # predicate and published `check.affected` beside slices sized by the copy, so a
+        # divergence would have recorded one count while measuring another.
         slices = {
-            seed: draw_balanced_slice(tasks, seed=seed, size=len(_affected(tasks)))
-            for seed in SLICE_SEEDS
+            seed: draw_balanced_slice(tasks, seed=seed, size=check.affected) for seed in SLICE_SEEDS
         }
     except ChannelUnusableError as refusal:
         print(refusal, file=sys.stderr)
@@ -391,24 +397,6 @@ def build_tasks(*, seed: int, events: int) -> list[TriageTask]:
     return build_triage_tasks(generate(GeneratorConfig(seed=seed, n_events=events)))
 
 
-def _affected(tasks: list[TriageTask]) -> list[TriageTask]:
-    """Tasks a fleet-wide channel blind spot changes the verdict on.
-
-    The latent slice is sized from this rather than from a constant, so the two
-    constructions stay matched on a corpus draw where the channel happens to hit a
-    different number of tasks. A hard-coded 20 would silently become a comparison between
-    a 20-task slice and a 14-task one.
-    """
-    reference = AnalystPolicy("reference")
-    blinded = AnalystPolicy("blind", blind_compartment=BLIND)
-    return [
-        t
-        for t in tasks
-        if (len(blinded.evidence_visible_to(t)) >= reference.escalation_threshold)
-        != (len(reference.evidence_visible_to(t)) >= reference.escalation_threshold)
-    ]
-
-
 @dataclass(frozen=True, slots=True, kw_only=True)
 class DispersionPair:
     """The same fleet under both keyings, so prediction 2 is a subtraction rather than a look."""
@@ -433,14 +421,22 @@ class DispersionPair:
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class SweepRow:
-    """One corrupted-slice size at unanimity: where each residual rule stands."""
+    """One corrupted-slice size at unanimity, over every slice draw.
+
+    `precision` carries a median and a range per rule rather than a number, because a slice
+    is a sample and this sweep used to draw exactly one of them. The structural claims held
+    across draws when that was checked; the individual cells moved by up to 0.10, and the
+    prose was quoting them as constants. That is the shape of error this project has
+    retracted five times, and the fix is to publish the spread rather than to remember.
+    """
 
     size: int
     slip_rate: float
     eligible: int
     rejected: int
-    errors: int
-    precision: dict[str, float]
+    errors: dict[str, float]
+    draws: int
+    precision: dict[str, dict[str, float]]
 
     def as_dict(self) -> dict[str, object]:
         return {
@@ -449,8 +445,19 @@ class SweepRow:
             "eligible": self.eligible,
             "rejected": self.rejected,
             "errors": self.errors,
+            "draws": self.draws,
             "precision": self.precision,
         }
+
+
+def _spread(values: list[float]) -> dict[str, float]:
+    """Median, min and max of one rule at one cell, across slice draws."""
+    ordered = sorted(values)
+    return {
+        "median": round(ordered[len(ordered) // 2], 4),
+        "min": round(ordered[0], 4),
+        "max": round(ordered[-1], 4),
+    }
 
 
 def slice_sweep(
@@ -469,47 +476,66 @@ def slice_sweep(
     residual rules add. The sweep exists because the two-sided rule's failure mode is a
     prediction about *where* it turns, and a prediction about a crossing is only worth
     making if the sweep crosses it.
+
+    Every cell is measured over all of `SLICE_SEEDS`, the same draws the headline grid
+    uses. It ran at one draw first, which made every quoted cell a one-draw number wearing
+    a constant's clothes -- the structural claims survive the spread and several of the
+    quoted values move by up to a tenth.
     """
     rows: list[SweepRow] = []
     for size in SLICE_SIZES:
         for slip in SLIP_RATES:
             progress("latent_blindspot.slice_sweep", size=size, slip_rate=slip)
-            try:
-                slice_ = draw_balanced_slice(tasks, size=size, seed=SEED)
-            except ChannelUnusableError as refusal:
-                # A size this corpus cannot host is skipped and said so, not zeroed.
-                LOG.warning(
-                    "latent_blindspot.size_refused",
-                    extra={
-                        "event": "latent_blindspot.size_refused",
-                        "size": size,
-                        "reason": str(refusal),
-                    },
+            gathered: dict[str, list[float]] = {}
+            errors: list[float] = []
+            drawn_at: list[LatentSlice] = []
+            for slice_seed in SLICE_SEEDS:
+                try:
+                    slice_ = draw_balanced_slice(tasks, size=size, seed=slice_seed)
+                except ChannelUnusableError as refusal:
+                    # A size this corpus cannot host at this draw is skipped and said so,
+                    # not zeroed. Skipping the draw rather than the whole cell keeps a size
+                    # that most draws can host in the sweep, with a smaller denominator.
+                    LOG.warning(
+                        "latent_blindspot.size_refused",
+                        extra={
+                            "event": "latent_blindspot.size_refused",
+                            "size": size,
+                            "slice_seed": slice_seed,
+                            "reason": str(refusal),
+                        },
+                    )
+                    continue
+                cell = measure(
+                    tasks,
+                    proposals,
+                    truth,
+                    keying=f"latent:{slice_seed}",
+                    n_blind=fleet,
+                    slip_rate=slip,
+                    fleet=fleet,
+                    seed=seed,
+                    slice_=slice_,
+                    # Neither detector is read in this sweep and both nulls are the
+                    # expensive part. One draw each still exercises the same path.
+                    permutations=1,
+                    null_draws=1,
                 )
+                drawn_at.append(slice_)
+                errors.append(float(cell.errors))
+                for rule, value in cell.precision.items():
+                    gathered.setdefault(rule, []).append(value)
+            if not drawn_at:
                 continue
-            cell = measure(
-                tasks,
-                proposals,
-                truth,
-                keying="latent",
-                n_blind=fleet,
-                slip_rate=slip,
-                fleet=fleet,
-                seed=seed,
-                slice_=slice_,
-                # The channel scan is not read in this sweep, and its permutations are the
-                # expensive part. One permutation still exercises the same path.
-                permutations=1,
-                null_draws=null_draws,
-            )
             rows.append(
                 SweepRow(
                     size=size,
                     slip_rate=slip,
-                    eligible=slice_.eligible,
-                    rejected=slice_.rejected,
-                    errors=cell.errors,
-                    precision=cell.precision,
+                    eligible=drawn_at[0].eligible,
+                    rejected=sum(d.rejected for d in drawn_at),
+                    errors=_spread(errors),
+                    draws=len(drawn_at),
+                    precision={rule: _spread(vals) for rule, vals in gathered.items()},
                 )
             )
     return rows
@@ -528,7 +554,10 @@ def assemble(
     channel = [c for c in cells if c.keying == "channel"]
     unanimous = max(shares)
 
-    scan_silent = all(not c.channels_fired for c in latent)
+    # Guarded against an empty pool, like the two dispersion verdicts below. `all()` over
+    # nothing is True, and a verdict that is true from zero data is the shape of a control
+    # that has quietly stopped running.
+    scan_silent = bool(latent) and all(not c.channels_fired for c in latent)
     scan_fires = [c for c in channel if c.n_blind >= unanimous and c.channels_fired]
 
     # Prediction 2, as a number rather than as an impression: the same fleet share and
@@ -570,7 +599,18 @@ def assemble(
     scored = [c for c in latent if c.n_blind >= unanimous and c.errors]
 
     def no_better_than_uniform(rule: str) -> list[int]:
-        return [r.size for r in sweep if r.errors and r.precision[rule] <= r.precision["uniform"]]
+        """Sizes where a rule's median draw fails to beat the best untargeted draw's median.
+
+        Compared median to median across slice draws rather than cell to cell, now that
+        each cell is a spread. A rule that loses on one draw of five has not turned; a rule
+        whose median has crossed has.
+        """
+        return [
+            r.size
+            for r in sweep
+            if r.errors["median"]
+            and r.precision[rule]["median"] <= r.precision["uniform"]["median"]
+        ]
 
     inverted = no_better_than_uniform("deviation")
 
@@ -619,8 +659,12 @@ def assemble(
         "dispersion_identical_on_deterministic_fleets": bool(deterministic) and identical,
         "dispersion_cannot_tell_the_constructions_apart": indistinguishable,
         # 3 and 4: localization.
-        "two_sided_residual_localizes_at_unanimity": beats_uniform("deviation") == len(scored),
-        "one_sided_residual_localizes_at_unanimity": beats_uniform("shortfall") == len(scored),
+        # `bool(scored)` for the same reason: with no unanimity cell carrying an error,
+        # `0 == 0` would assert both localization results off no measurement at all.
+        "two_sided_residual_localizes_at_unanimity": bool(scored)
+        and beats_uniform("deviation") == len(scored),
+        "one_sided_residual_localizes_at_unanimity": bool(scored)
+        and beats_uniform("shortfall") == len(scored),
         "two_sided_residual_inverts_in_the_sweep": bool(inverted),
         "one_sided_residual_inverts_in_the_sweep": bool(no_better_than_uniform("shortfall")),
     }
@@ -663,13 +707,22 @@ def assemble(
         #: generated table go stale silently, and these are the same shape.
         "swept_cells": len(sweep),
         "cells_where_two_sided_is_no_better_than_uniform": sum(
-            1 for r in sweep if r.errors and r.precision["deviation"] <= r.precision["uniform"]
+            1
+            for r in sweep
+            if r.errors["median"]
+            and r.precision["deviation"]["median"] <= r.precision["uniform"]["median"]
         ),
         "cells_where_one_sided_ties_the_bound": sum(
-            1 for r in sweep if r.errors and r.precision["shortfall"] == r.precision[BOUND]
+            1
+            for r in sweep
+            if r.errors["median"]
+            and r.precision["shortfall"]["median"] == r.precision[BOUND]["median"]
         ),
         "cells_where_one_sided_is_no_better_than_uniform": sum(
-            1 for r in sweep if r.errors and r.precision["shortfall"] <= r.precision["uniform"]
+            1
+            for r in sweep
+            if r.errors["median"]
+            and r.precision["shortfall"]["median"] <= r.precision["uniform"]["median"]
         ),
         "unconverged_cells": [
             {"keying": c.keying, "n_blind": c.n_blind, "slip_rate": c.slip_rate}
@@ -715,13 +768,17 @@ def render(
 
     print("\n  as the corrupted slice grows past the majority of its stratum")
     print(
-        f"    {'size':>6}{'slip':>7}{'errors':>8}{'uniform':>9}{'deviation':>11}{'shortfall':>11}"
+        f"    {'size':>6}{'slip':>7}{'errors':>8}{'uniform':>9}"
+        f"{'deviation':>18}{'shortfall':>18}   (median, range over draws)"
     )
     for row in sweep:
+        two = row.precision["deviation"]
+        one = row.precision["shortfall"]
         print(
-            f"    {row.size:>6}{row.slip_rate:>7}{row.errors:>8}"
-            f"{row.precision['uniform']:>9.2f}{row.precision['deviation']:>11.2f}"
-            f"{row.precision['shortfall']:>11.2f}"
+            f"    {row.size:>6}{row.slip_rate:>7}{row.errors['median']:>8.0f}"
+            f"{row.precision['uniform']['median']:>9.2f}"
+            f"{two['median']:>8.2f} ({two['min']:.2f}-{two['max']:.2f})"
+            f"{one['median']:>8.2f} ({one['min']:.2f}-{one['max']:.2f})"
         )
 
     print("\n  predictions, as measured")
@@ -735,6 +792,17 @@ def render(
         LOG.error(
             "latent_blindspot.scan_not_silent",
             extra={"event": "latent_blindspot.scan_not_silent"},
+        )
+    if not findings["channel_scan_fires_on_channel_keyed"]:
+        # The other half of the same control, and it was missing while the CI step
+        # described the pair. A scan that has stopped detecting the channel-keyed blind
+        # spot makes "silent on the latent one" worthless -- both fleets read the same
+        # because the instrument is dead, not because the construction worked. Silence
+        # here would have let that land with CI green, which is finding 27's failure class
+        # exactly.
+        LOG.error(
+            "latent_blindspot.control_did_not_fire",
+            extra={"event": "latent_blindspot.control_did_not_fire"},
         )
     if not findings["dispersion_cannot_tell_the_constructions_apart"]:
         LOG.warning(

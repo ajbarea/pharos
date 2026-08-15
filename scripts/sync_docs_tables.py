@@ -1235,16 +1235,21 @@ def latent_blindspot() -> str:
         "",
         "**As the corrupted slice grows past the majority of its stratum.** The pool of "
         f"tasks a discounted report can flip is {sweep[0]['eligible']} on this corpus, so "
-        "the crossing sits between the two middle rows.",
+        "the crossing sits between the two middle rows. Every cell is the median over "
+        f"{sweep[0]['draws']} slice draws with the range beside it, because a slice is a "
+        "sample and this sweep quoted one draw of it as a constant until it did not.",
         "",
         "| Slice | slip | errors | `uniform` (best of 21) | `deviation` | `shortfall` |",
         "| --- | --- | --- | --- | --- | --- |",
     ]
     for row in sweep:
+        cells = []
+        for rule in ("uniform", "deviation", "shortfall"):
+            spread = row["precision"][rule]
+            cells.append(f"{spread['median']:.2f} ({spread['min']:.2f}-{spread['max']:.2f})")
         lines.append(
-            f"| {row['size']} of {row['eligible']} | {row['slip_rate']} | {row['errors']} "
-            f"| {row['precision']['uniform']:.2f} | {row['precision']['deviation']:.2f} "
-            f"| {row['precision']['shortfall']:.2f} |"
+            f"| {row['size']} of {row['eligible']} | {row['slip_rate']} "
+            f"| {row['errors']['median']:.0f} | " + " | ".join(cells) + " |"
         )
     return "\n".join(lines)
 
