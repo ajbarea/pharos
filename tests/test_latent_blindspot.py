@@ -275,6 +275,19 @@ def small():
     return tasks, proposals, truth
 
 
+def _mapping(value: object) -> dict[str, object]:
+    """Narrow one of `assemble`'s `object`-typed sections to the mapping it is.
+
+    The artifact is typed `dict[str, object]` because that is what it serializes as, so a
+    test reading into it has to say what it expects. Raising rather than casting keeps the
+    failure legible: a section that stopped being a mapping is a real change to the
+    artifact's shape, not a typing inconvenience.
+    """
+    if not isinstance(value, dict):
+        raise TypeError(f"expected a mapping section, got {type(value).__name__}")
+    return {str(key): item for key, item in value.items()}
+
+
 def _cell(small, keying, slice_, *, n_blind=5, slip=0.0):
     from measure_latent_blindspot import measure
 
@@ -350,8 +363,10 @@ def test_assemble_answers_every_prediction_from_the_cells_it_is_given(small):
     sweep = slice_sweep(tasks, proposals, truth, fleet=5, seed=7, null_draws=1)
     args = argparse.Namespace(seed=7, events=60, fleet=5, permutations=1, null_draws=1)
     report = assemble(cells, sweep, {7: drawn}, (0, 5), args, size)
+    findings = _mapping(report["findings"])
+    slices = _mapping(report["slices"])
 
-    assert set(report["findings"]) == {
+    assert set(findings) == {
         "channel_scan_silent_on_latent",
         "channel_scan_fires_on_channel_keyed",
         "dispersion_identical_on_deterministic_fleets",
@@ -361,10 +376,10 @@ def test_assemble_answers_every_prediction_from_the_cells_it_is_given(small):
         "two_sided_residual_inverts_in_the_sweep",
         "one_sided_residual_inverts_in_the_sweep",
     }
-    assert all(isinstance(v, bool) for v in report["findings"].values())
+    assert all(isinstance(v, bool) for v in findings.values())
     assert report["swept_cells"] == len(sweep)
     assert report["grid"] and report["slice_sweep"]
-    assert report["slices"]["7"]["corrupted"] == size
+    assert _mapping(slices["7"])["corrupted"] == size
 
 
 def test_render_prints_the_three_tables_and_every_verdict(small, capsys):
@@ -389,7 +404,7 @@ def test_render_prints_the_three_tables_and_every_verdict(small, capsys):
     assert "detection, by what the blind spot is keyed on" in printed
     assert "localization at unanimity" in printed
     assert "as the corrupted slice grows past the majority of its stratum" in printed
-    for name in report["findings"]:
+    for name in _mapping(report["findings"]):
         assert name in printed, f"{name} was decided and not reported"
 
 
