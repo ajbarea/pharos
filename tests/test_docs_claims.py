@@ -1,0 +1,130 @@
+"""The mechanical half of the documentation, checked.
+
+Most of what the docs say is prose and stays prose. Two kinds of claim are not: a
+`make <target>` a reader is told to run, and a repository path a reader is told to look
+at. Both are exact, both are cheap to verify, and both rot silently -- a renamed target
+leaves a page telling somebody to run a command that does not exist, and the page still
+builds, still deploys, and still reads fine.
+
+This is deliberately narrow. It does not check prose, claims about behaviour, or numbers;
+`sync_docs_tables.py` covers the tables that restate an artifact, and nothing covers the
+rest. What it does cover, it covers exhaustively, and the controls below prove the
+extraction can fail rather than merely pass.
+"""
+
+import re
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+
+#: Prefixes a backticked string must start with to be read as a repository path. Without
+#: this the extractor treats every backticked token as a path and drowns in false
+#: positives -- and a check that cries wolf gets deleted, which is a slower way of not
+#: having one.
+PATH_PREFIXES = ("scripts/", "src/", "tests/", "cluster/", "scenarios/", "results/", "docs/")
+
+#: Paths that name a file in a *sibling* repository rather than this one. Each is
+#: exempted with the repository it lives in, because an exemption is a claim too: the
+#: alternative is a checker that silently skips anything it cannot find, which is the
+#: same as no checker.
+SIBLING_PATHS = {
+    "docs/research/federated-forge/pharos-testbed.md": "kourai-khryseai",
+    "docs/research/federated-forge/future-work.md": "kourai-khryseai",
+    "docs/research/federated-forge/index.md": "kourai-khryseai",
+}
+
+
+def _docs() -> list[Path]:
+    """Every hand-written page. `docs/explorer/` is generated and is not one."""
+    pages = [ROOT / "README.md", ROOT / "RESEARCH.md", *(ROOT / "docs").rglob("*.md")]
+    return [p for p in pages if p.exists() and "explorer" not in p.parts]
+
+
+def _make_targets() -> set[str]:
+    return set(re.findall(r"^([a-z][a-z0-9-]*):", (ROOT / "Makefile").read_text(), re.MULTILINE))
+
+
+def make_targets_named_in(text: str) -> set[str]:
+    """Targets a page tells a reader to run, from backticks and from fenced blocks.
+
+    Both forms, because the docs use both and an extractor that read only one would pass
+    while half the claims went unchecked. Bare prose is deliberately not matched: "make
+    the corpus smaller" is English, and treating it as a target is how this check would
+    become noise.
+    """
+    inline: list[str] = re.findall(r"`make ([a-z][a-z0-9-]*)[^`]*`", text)
+    fenced: list[str] = re.findall(r"^\s*make ([a-z][a-z0-9-]*)", text, re.MULTILINE)
+    return {*inline, *fenced}
+
+
+def paths_named_in(text: str) -> set[str]:
+    """Repository paths a page points at, from backticked strings only."""
+    return {
+        path
+        for path in re.findall(r"`([\w./*-]+)`", text)
+        if path.startswith(PATH_PREFIXES) and not path.endswith("/")
+    }
+
+
+@pytest.mark.parametrize("page", _docs(), ids=lambda p: str(p.relative_to(ROOT)))
+def test_every_make_target_the_docs_name_exists(page):
+    targets = _make_targets()
+    named = make_targets_named_in(page.read_text(encoding="utf-8"))
+    missing = sorted(named - targets)
+    assert not missing, (
+        f"{page.relative_to(ROOT)} tells a reader to run {missing}, and the Makefile has "
+        "no such target"
+    )
+
+
+@pytest.mark.parametrize("page", _docs(), ids=lambda p: str(p.relative_to(ROOT)))
+def test_every_repository_path_the_docs_name_exists(page):
+    missing = []
+    for path in sorted(paths_named_in(page.read_text(encoding="utf-8"))):
+        if path in SIBLING_PATHS:
+            continue
+        if "*" in path:
+            if not list(ROOT.glob(path)):
+                missing.append(path)
+        elif not (ROOT / path).exists():
+            missing.append(path)
+    assert not missing, f"{page.relative_to(ROOT)} points at paths that do not exist: {missing}"
+
+
+def test_a_sibling_exemption_names_a_repository_that_has_the_file():
+    """An exemption that stopped being true is a path nobody checks in either repository.
+
+    Skipped rather than failed when the sibling is not checked out: this suite runs in CI
+    with only this repository present, and a check that fails on a missing neighbour would
+    fail for a reason that has nothing to do with the claim.
+    """
+    for path, repo in SIBLING_PATHS.items():
+        sibling = ROOT.parent / repo
+        if not sibling.is_dir():
+            pytest.skip(f"{repo} is not checked out beside this repository")
+        assert (sibling / path).exists(), (
+            f"{path} is exempted as living in {repo}, and it does not exist there either"
+        )
+
+
+def test_the_extractors_can_fail():
+    """The control. Both extractors are regular expressions over prose, and a regular
+    expression that matches nothing is indistinguishable from one that found nothing.
+
+    Every pattern above is given a string it must catch and a string it must not, drawn
+    from the shapes these pages actually use.
+    """
+    caught = make_targets_named_in(
+        "run `make gate` first, then the fenced form:\n\n    make review\n"
+    )
+    assert caught == {"gate", "review"}
+    assert make_targets_named_in("this does not make a claim about targets") == set()
+    assert make_targets_named_in("`make selective-risk` with a comment") == {"selective-risk"}
+
+    assert paths_named_in("see `scripts/measure_selective_risk.py` for the run") == {
+        "scripts/measure_selective_risk.py"
+    }
+    assert paths_named_in("`results/*.json` are tracked") == {"results/*.json"}
+    assert paths_named_in("a `dict` is not a path, nor is `uv sync`") == set()

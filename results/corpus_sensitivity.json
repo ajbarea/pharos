@@ -1060,6 +1060,154 @@
       }
     }
   ],
+  "selective": [
+    {
+      "seed": 1,
+      "shared_only_slip_rates": [
+        0.0,
+        0.15
+      ],
+      "random_error_control": 0.4,
+      "confidence_fails_at_unanimity": true,
+      "consensus_fails_at_unanimity": true,
+      "provenance_works_at_unanimity": true,
+      "confidence_works_on_random_error": true,
+      "provenance_ties_the_bound_at_unanimity": true,
+      "coverage_cost_at_unanimity": [
+        0.96,
+        0.96
+      ],
+      "false_detection_coverage": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "seed": 7,
+      "shared_only_slip_rates": [
+        0.0,
+        0.15
+      ],
+      "random_error_control": 0.4,
+      "confidence_fails_at_unanimity": true,
+      "consensus_fails_at_unanimity": true,
+      "provenance_works_at_unanimity": true,
+      "confidence_works_on_random_error": true,
+      "provenance_ties_the_bound_at_unanimity": true,
+      "coverage_cost_at_unanimity": [
+        0.94,
+        0.94
+      ],
+      "false_detection_coverage": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "seed": 11,
+      "shared_only_slip_rates": [
+        0.0
+      ],
+      "random_error_control": 0.4,
+      "confidence_fails_at_unanimity": true,
+      "consensus_fails_at_unanimity": true,
+      "provenance_works_at_unanimity": true,
+      "confidence_works_on_random_error": false,
+      "provenance_ties_the_bound_at_unanimity": true,
+      "coverage_cost_at_unanimity": [
+        0.96
+      ],
+      "false_detection_coverage": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "seed": 101,
+      "shared_only_slip_rates": [
+        0.0
+      ],
+      "random_error_control": 0.4,
+      "confidence_fails_at_unanimity": true,
+      "consensus_fails_at_unanimity": true,
+      "provenance_works_at_unanimity": true,
+      "confidence_works_on_random_error": false,
+      "provenance_ties_the_bound_at_unanimity": true,
+      "coverage_cost_at_unanimity": [
+        0.94
+      ],
+      "false_detection_coverage": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "seed": 202,
+      "shared_only_slip_rates": [
+        0.0
+      ],
+      "random_error_control": 0.4,
+      "confidence_fails_at_unanimity": true,
+      "consensus_fails_at_unanimity": true,
+      "provenance_works_at_unanimity": true,
+      "confidence_works_on_random_error": true,
+      "provenance_ties_the_bound_at_unanimity": false,
+      "coverage_cost_at_unanimity": [
+        0.94
+      ],
+      "false_detection_coverage": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "seed": 303,
+      "shared_only_slip_rates": [
+        0.0
+      ],
+      "random_error_control": 0.4,
+      "confidence_fails_at_unanimity": true,
+      "consensus_fails_at_unanimity": true,
+      "provenance_works_at_unanimity": true,
+      "confidence_works_on_random_error": true,
+      "provenance_ties_the_bound_at_unanimity": false,
+      "coverage_cost_at_unanimity": [
+        0.94
+      ],
+      "false_detection_coverage": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "seed": 404,
+      "shared_only_slip_rates": [
+        0.0,
+        0.15
+      ],
+      "random_error_control": 0.4,
+      "confidence_fails_at_unanimity": true,
+      "consensus_fails_at_unanimity": true,
+      "provenance_works_at_unanimity": true,
+      "confidence_works_on_random_error": true,
+      "provenance_ties_the_bound_at_unanimity": true,
+      "coverage_cost_at_unanimity": [
+        0.94,
+        0.94
+      ],
+      "false_detection_coverage": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    }
+  ],
   "auditable_pool_range": [
     83,
     99
@@ -1086,6 +1234,7 @@
   ],
   "draws_attempted": 8,
   "draws_hosting_the_blind_spot": 7,
+  "draws_hosting_selective_abstention": 7,
   "invariants": {
     "selection_ties_the_oracle_bound_in_every_draw": false,
     "selection_beats_uniform_in_every_draw": false,
@@ -1095,14 +1244,19 @@
     "no_policy_repairs_an_unanchored_label": true,
     "nothing_repairs_unanimity_in_any_draw": true,
     "the_anchor_price_is_a_constant": false,
+    "confidence_abstention_fails_at_unanimity_in_every_draw": true,
+    "consensus_abstention_fails_at_unanimity_in_every_draw": true,
+    "provenance_abstention_works_at_unanimity_in_every_draw": true,
+    "provenance_abstention_ties_the_bound_in_every_draw": false,
+    "confidence_abstention_works_on_random_error_wherever_measurable": false,
     "blinded_channel_detected_and_controls_silent": true,
     "the_auditable_pool_is_a_constant": false
   },
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "20406ed47fd3",
+    "git_commit": "8ee6fe1a175b",
     "git_dirty": false,
-    "generated_at": "2026-08-14T04:58:04+00:00",
+    "generated_at": "2026-08-14T23:42:31+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",

@@ -278,3 +278,39 @@ def test_every_model_free_measurement_reaches_ci():
     assert not missing or "logcheck.py" in remote, (
         f"model-free measurements absent from CI and not covered by logcheck: {sorted(missing)}"
     )
+
+
+def test_scoped_warnings_name_a_script_that_exists_and_emits_them():
+    """A scoped expectation is narrower than a global one and fails in the same ways.
+
+    Two failures are possible and both are silent. The key can name a script that no
+    longer exists, in which case the expectation applies to nothing; or the warning can
+    name an event nothing emits, in which case it silences a name that never fires and
+    would keep silencing it if a real emitter appeared under that name later.
+
+    This is deliberately stricter than the global set: a scoped warning must be
+    unnecessary globally, or the scoping is decoration over an expectation that already
+    applies everywhere.
+    """
+    logcheck = _logcheck_module()
+
+    sources = [
+        p.read_text(encoding="utf-8")
+        for p in [*(ROOT / "src" / "pharos").rglob("*.py"), *(ROOT / "scripts").glob("*.py")]
+        if p.name != "logcheck.py"
+    ]
+    for script, names in logcheck.SCRIPT_SCOPED_WARNINGS.items():
+        assert (ROOT / "scripts" / script).is_file(), (
+            f"logcheck scopes warnings to {script}, which does not exist"
+        )
+        assert script in logcheck.SCRIPTS, (
+            f"{script} carries scoped warnings but logcheck never runs it"
+        )
+        for name in names:
+            assert any(name in s for s in sources), (
+                f"logcheck expects {name} from {script}, and nothing emits that event"
+            )
+            assert name not in logcheck.EXPECTED_WARNINGS, (
+                f"{name} is expected globally as well as scoped to {script}; "
+                "the scoping has no effect and reads as though it does"
+            )

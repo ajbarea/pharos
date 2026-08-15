@@ -63,6 +63,18 @@ jobs:
       # remaining gap is load_corpora(), which downloads public datasets and cannot
       # run here. The margin is deliberate -- an earlier floor sat 0.04 points under
       # the measurement and any new line turned the build red.
+      #
+      # The same floor is a different bar on each leg, and the difference is the
+      # interpreter rather than the code. Under 3.14 a bare annotation is no longer an
+      # executable statement, so every dataclass field drops out of the denominator:
+      # `measure_audit_policy.py` counts 128 statements on 3.12 and 108 on 3.14, which
+      # is exactly its 20 annotation-only lines. The run this comment was written from
+      # measured 92.66% on 3.12 and 3.13 and 92.26% on 3.14 from one commit.
+      #
+      # Two consequences worth seeing rather than rediscovering: the strictest leg is
+      # 3.14, which is *not* a required check on main; and the leg that uploads to
+      # Codecov is 3.13, which is the most generous. Neither is wrong, and neither is
+      # what a reader would assume from a single "92%".
       - run: >
           uv run pytest --cov=pharos --cov=scripts --cov-branch
           --cov-report=term-missing --cov-report=xml --cov-fail-under=92
@@ -211,6 +223,15 @@ jobs:
       # the statistic is reading generic error and the finding is void.
       - name: Detect a blind spot that leaves no disagreement
         run: uv run python scripts/measure_channel_bias.py
+      # Finding 28's measurement, and the live guard on two conditions the finding
+      # rests on rather than reports. It refuses a corpus whose blinded channel is
+      # entangled with item difficulty, exactly as finding 21's script does, and it
+      # refuses a slip ladder with no regime where the shared blind spot is the whole
+      # of the error -- without which every claim it makes would be about mixed error.
+      # It also reads finding 22's artifact to say where the channel policy is licensed
+      # at all, so a corpus change that moved the detection threshold shows up here.
+      - name: Price what abstention buys where auditing buys nothing
+        run: uv run python scripts/measure_selective_risk.py
       # Finding 25's sweep, and the guard on the one degree of freedom underneath every
       # cliff finding. The escape it reports must stay confined to the crossing: if a
       # start ever recovers the truth past it, findings 12 and 17-24 are measuring a

@@ -146,7 +146,7 @@ the system it serves.
 
 ## What has been measured
 
-Twenty-seven findings so far, each reproducible from a named script and each backed by a
+Twenty-eight findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, a third was retracted outright after a generator bug, and a
@@ -180,6 +180,12 @@ corrections, and the caveats.
 | 20 | Audit where the fleet splits, and the prediction that said otherwise |
 | 21 | The corpus the audit policy cannot handle, built on purpose |
 | 22 | The trace a blind spot leaves after it stops leaving disagreement |
+| 23 | Once the detector names the channel, provenance finds the corrupted items that are findable at all |
+| 24 | The crossing is a distribution over corpora, not a share |
+| 25 | The cliff is not where we pointed the estimator, except at the crossing itself |
+| 26 | Findings 20 to 23 were measured on one corpus, and one of their headlines was that corpus |
+| 27 | Four guards could be inverted with the suite still green, and coverage called them all covered |
+| 28 | The open problem, answered: detection converts into coverage, not into correction |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -202,6 +208,7 @@ make authority   # what an authority of record costs, in audited items (no model
 make audit       # which items to rule on, and what a fallible authority buys (no model)
 make blindspot   # where that policy stops working, built on purpose (no model)
 make channel-bias # whether a unanimous blind spot leaves any trace at all (no model)
+make selective-risk # what abstention buys once the audit budget buys nothing (no model)
 
 # Sensitivity: whether a finding survives a parameter nobody chose on principle
 make fleet-sensitivity  # findings 12, 16 and 17 across fleets of 5 to 51 (no model)
@@ -311,18 +318,33 @@ make teacher-fleet      # whether adapters inherit their teachers, across 24 of 
    point was built from disagreement, and unanimity is the absence of disagreement --
    but the fleet's verdict *rate* is an observable too, and it can be conditioned on
    public structure. Testing whether the verdict rate is independent of a channel given
-   the evidence count finds the discounted channel at **z = 8.1** at nine of nine blind,
-   exactly where every audit policy scores at chance, with no other channel above 1.8.
+   the evidence count finds the discounted channel at the **attainable p-value floor of
+   1/4201** at nine of nine blind, exactly where every audit policy scores at chance,
+   with no other channel detected at any share and both negative controls silent.
 
-   Two properties make it worth having. **One blind analyst in nine is as detectable as
-   all nine** -- the z is invariant because signal and null scale together -- so a house
-   style is catchable before it becomes the majority, which is finding 16's warning.
-   And it reads only per-task vote sums and public corpus structure, so it survives the
-   secure-aggregation protocol of finding 18: no identity, no ground truth.
+   Two properties make it worth having. **Detection reaches down to one blind analyst
+   in nine** on a noiseless fleet, and to four of nine at a realistic slip rate, so a
+   house style is catchable before it becomes the majority, which is finding 16's
+   warning. And it reads only per-task vote sums and public corpus structure, so it
+   survives the secure-aggregation protocol of finding 18: no identity, no ground truth.
 
-   Both negative controls are clean, including the load-bearing one: a fleet-wide
-   *threshold* error, which is real and not channel-linked, scores 0.0 everywhere. Had
-   it fired, the statistic would be reading generic error rather than channel bias.
+   What it cannot report is *extent*: the p-value floors, so the number of blind
+   analysts is read off the stratified gap instead, which is linear in the share --
+   -0.028 at one blind analyst through -0.250 at nine, in the ratio 1:9. An earlier
+   version of this section reported a z-score, called its invariance across shares a
+   finding, and quoted 8.1 against 1.8. That statistic was withdrawn on 2026-08-06: it
+   is undefined exactly where the negative controls sit, because a noiseless fleet
+   gives the null zero variance, so the controls could not have fired.
+
+**What to do once it fires.** Answered by finding 28, and the answer is not a
+correction. No budget repairs a label at unanimity, but a deployment can decline to
+publish the slice the detector named: on the committed corpus that clears the corrupted
+labels for a tenth of coverage, with no authority and no re-estimation, and it beats
+every untargeted draw in all seven of the eight corpora that can host the experiment. It also inverts the rule a deployment
+would otherwise reach for -- withholding where the fleet is least confident is *exact*
+with one dissenter left and *at chance* at unanimity. The trade holds where the shared
+error is most of the error and reverses where independent noise dominates, which is the
+distinction the detector exists to draw.
 
 **The open problem, stated as precisely as the measurements now allow.** Finding 22
 detects a blind spot aligned with a **known, public partition** of the corpus. A shared

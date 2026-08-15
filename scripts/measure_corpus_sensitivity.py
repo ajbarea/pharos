@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Whether findings 20 to 23 survive the corpus draw nobody chose on principle.
+"""Whether findings 20 to 23 and 28 survive the corpus draw nobody chose on principle.
 
 `measure_governance_sensitivity.py` swept the fleet size and found the compositions were
 hard-coded. Finding 24 then swept the corpus draw on the crossing scan alone and found
@@ -11,7 +11,9 @@ That leaves the obvious exposure. Findings 20 through 23 are measured by four sc
 that each hard-coded `SEED = 7` and did not accept a seed at all, so the corpus was not a
 sweepable dimension of this project's headline governance results. This sweeps all four:
 `measure_audit_policy`, `measure_blind_spot`, `measure_channel_bias` and
-`measure_authority_anchors`.
+`measure_authority_anchors`. `measure_selective_risk` joined them when finding 28 was
+measured, before any of its numbers were written down rather than after --- which is the
+order this file exists to make normal.
 
 Finding 19's anchor prices were the last cell of that. They are a median over 21 *anchor*
 draws inside one corpus, which is an inner multiverse that says nothing about the corpus
@@ -284,6 +286,59 @@ def anchor_row(seed: int) -> dict[str, Any] | None:
     }
 
 
+def selective_row(seed: int) -> dict[str, Any] | None:
+    """Finding 28 at one draw: what abstention buys once the audit budget buys nothing.
+
+    Read only in the regimes where the shared blind spot is the whole of the estimator's
+    error --- the artifact computes that set itself, from the healthy fleet's own error
+    count --- because the slip rate that breaks a healthy fleet is a control for a
+    different claim and no rule aimed at a shared standard can move a column dominated by
+    random noise.
+    """
+    payload = run_at("measure_selective_risk.py", seed)
+    if payload is None:
+        return None
+    findings = payload["findings"]
+    unanimous = max(payload["shares"])
+    shared = payload["shared_only_slip_rates"]
+    at_unanimity = [
+        f for f in payload["fleets"] if f["n_blind"] == unanimous and f["slip_rate"] in shared
+    ]
+    # The bound, per regime: does withholding by provenance remove as much as withholding
+    # the wrong labels themselves would. `None == None` is two policies failing rather than
+    # a tie, which is the defect an independent review caught in `audit_row`.
+    ties = [
+        f["policies"]["channel"]["halved_at"] is not None
+        and f["policies"]["channel"]["halved_at"] == f["policies"]["oracle"]["halved_at"]
+        for f in at_unanimity
+    ]
+    return {
+        "seed": seed,
+        "shared_only_slip_rates": shared,
+        "random_error_control": payload["random_error_control"],
+        "confidence_fails_at_unanimity": not findings["confidence_abstention_works_at_unanimity"],
+        "consensus_fails_at_unanimity": not findings["consensus_abstention_works_at_unanimity"],
+        "provenance_works_at_unanimity": findings["provenance_abstention_works_at_unanimity"],
+        "confidence_works_on_random_error": findings["confidence_abstention_works_on_random_error"],
+        "provenance_ties_the_bound_at_unanimity": bool(ties) and all(ties),
+        "coverage_cost_at_unanimity": [
+            next(
+                (
+                    c["coverage"]
+                    for c in payload["grid"]
+                    if c["n_blind"] == unanimous
+                    and c["slip_rate"] == f["slip_rate"]
+                    and c["policy"] == "channel"
+                    and c["withheld"] == f["policies"]["channel"]["halved_at"]
+                ),
+                None,
+            )
+            for f in at_unanimity
+        ],
+        "false_detection_coverage": [e["coverage_at_20"] for e in payload["false_detection"]],
+    }
+
+
 def channel_row(seed: int) -> dict[str, Any] | None:
     """Finding 22 at one draw: is the blinded channel detected, controls still silent?"""
     payload = run_at("measure_channel_bias.py", seed, ("--permutations", str(PERMUTATIONS)))
@@ -317,7 +372,7 @@ def main() -> int:
             f"alpha {ALPHA}; finding 22 would read as moved when nothing had moved"
         )
 
-    audit, blind, channel, anchors = [], [], [], []
+    audit, blind, channel, anchors, selective = [], [], [], [], []
     for seed in args.draws:
         progress("corpus_sensitivity.draw", seed=seed)
         print(f">>> draw {seed}")
@@ -327,6 +382,8 @@ def main() -> int:
             blind.append(row)
         if (row := anchor_row(seed)) is not None:
             anchors.append(row)
+        if (row := selective_row(seed)) is not None:
+            selective.append(row)
         if not args.skip_channel and (row := channel_row(seed)) is not None:
             channel.append(row)
 
@@ -359,10 +416,12 @@ def main() -> int:
         "blind": blind,
         "channel": channel,
         "anchors": anchors,
+        "selective": selective,
         "auditable_pool_range": [pools[0], pools[-1]] if pools else None,
         "by_composition": sorted(by_composition.values(), key=lambda e: e["n_wrong"]),
         "draws_attempted": len(args.draws),
         "draws_hosting_the_blind_spot": len(blind),
+        "draws_hosting_selective_abstention": len(selective),
         "invariants": {
             #: Finding 20's deep claim, and the one that makes it a bound rather than a
             #: lucky draw. If selection ties the oracle everywhere, no better selection
@@ -397,6 +456,30 @@ def main() -> int:
                 len({r["compositions"][key]["median"] for r in anchors}) == 1
                 for key in ("5", "6", "7")
             ),
+            #: Finding 28, in the four claims it makes. The first two are the failure the
+            #: finding is about and are expected to hold everywhere: a rule reading
+            #: confidence, and its textbook inversion, are both blind to a wrong standard
+            #: nobody dissents from. The third is the deployable action. The fourth is the
+            #: bound, and it is the one finding 26 would predict moves: `channel` ties the
+            #: oracle on a corpus whose difficulty structure is discrete and known, and on
+            #: two of eight draws finding 26 already found that tie failing.
+            "confidence_abstention_fails_at_unanimity_in_every_draw": bool(selective)
+            and all(r["confidence_fails_at_unanimity"] for r in selective),
+            "consensus_abstention_fails_at_unanimity_in_every_draw": bool(selective)
+            and all(r["consensus_fails_at_unanimity"] for r in selective),
+            "provenance_abstention_works_at_unanimity_in_every_draw": bool(selective)
+            and all(r["provenance_works_at_unanimity"] for r in selective),
+            "provenance_abstention_ties_the_bound_in_every_draw": bool(selective)
+            and all(r["provenance_ties_the_bound_at_unanimity"] for r in selective),
+            #: The control that makes the two failures above statements about the shape of
+            #: the error rather than about abstention. A draw where no swept slip rate
+            #: breaks a healthy fleet reports None and is excluded rather than counted.
+            "confidence_abstention_works_on_random_error_wherever_measurable": bool(selective)
+            and all(
+                r["confidence_works_on_random_error"]
+                for r in selective
+                if r["confidence_works_on_random_error"] is not None
+            ),
             #: Finding 22.
             "blinded_channel_detected_and_controls_silent": (
                 bool(channel)
@@ -418,6 +501,7 @@ def main() -> int:
     print()
     print(f"  auditable pool over {len(audit)} draws: {pools[0]} to {pools[-1]}" if pools else "")
     print(f"  blind-spot experiment constructible in {len(blind)}/{len(args.draws)} draws")
+    print(f"  abstention experiment constructible in {len(selective)}/{len(args.draws)} draws")
     print()
     print(f"    {'wrong':>6}{'draws':>7}{'beats uniform':>15}{'ties oracle':>13}")
     print("    " + "-" * 41)

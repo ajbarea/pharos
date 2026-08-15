@@ -1,8 +1,8 @@
 """The argument the findings make, assembled from the artifacts that make it.
 
-`docs/findings.md` is twenty-four findings in reading order, which is the right shape
-for someone auditing a claim and the wrong shape for someone deciding whether the
-result matters. The argument is not twenty-four things. It is one tension and a list
+`docs/findings.md` is every finding in reading order, which is the right shape for
+someone auditing a claim and the wrong shape for someone deciding whether the result
+matters. The argument is not a list that long. It is one tension and a list
 of exits from it, each of which was built and measured rather than argued about.
 
 This module is that list. It exists so the explorer can serve the argument rather than
@@ -366,6 +366,65 @@ ESCAPES = (
                 "Finds every corrupted item in every draw",
                 "corpus_sensitivity.json",
                 "invariants.provenance_finds_every_corrupted_item_in_every_draw",
+            ),
+        ),
+    ),
+    Escape(
+        key="abstention",
+        objection=(
+            "Then stop trying to correct the estimate, and decline to publish the part "
+            "you cannot trust."
+        ),
+        findings=(28,),
+        verdict="bounded",
+        outcome=(
+            "The exit works, and it is the only one left standing at unanimity --- but "
+            "it buys coverage rather than accuracy, and it inverts the rule a deployment "
+            "would otherwise reach for. Withholding where the fleet is least confident "
+            "is exact while one dissenter remains and falls to chance at unanimity, "
+            "because the corrupted items are the ones the fleet agrees on. Withholding "
+            "by the channel the detector named lowers the published error rate below "
+            "every untargeted draw in every corpus draw that can host the experiment, "
+            "with no authority and no re-estimation. The bound comes with it: this holds "
+            "where the shared blind spot is the whole of the error, and reverses where "
+            "independent noise dominates, and a false detection costs the same coverage "
+            "while removing nothing."
+        ),
+        readings=(
+            Reading(
+                "Regimes isolating the shared error",
+                "selective_risk.json",
+                "shared_only_slip_rates",
+            ),
+            Reading(
+                "Confidence-based abstention works at unanimity",
+                "selective_risk.json",
+                "findings.confidence_abstention_works_at_unanimity",
+            ),
+            Reading(
+                "Provenance abstention works at unanimity",
+                "selective_risk.json",
+                "findings.provenance_abstention_works_at_unanimity",
+            ),
+            Reading(
+                "Survives dominant random error",
+                "selective_risk.json",
+                "findings.provenance_abstention_survives_dominant_random_error",
+            ),
+            Reading(
+                "Draws hosting the experiment",
+                "corpus_sensitivity.json",
+                "draws_hosting_selective_abstention",
+            ),
+            Reading(
+                "Provenance works in every draw",
+                "corpus_sensitivity.json",
+                "invariants.provenance_abstention_works_at_unanimity_in_every_draw",
+            ),
+            Reading(
+                "Ties the bound in every draw",
+                "corpus_sensitivity.json",
+                "invariants.provenance_abstention_ties_the_bound_in_every_draw",
             ),
         ),
     ),

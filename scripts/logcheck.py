@@ -46,6 +46,7 @@ SCRIPTS = (
     "measure_audit_policy.py",
     "measure_blind_spot.py",
     "measure_channel_bias.py",
+    "measure_selective_risk.py",
     "measure_estimator_initialization.py",
 )
 
@@ -77,6 +78,12 @@ EXPECTED_WARNINGS = {
     # show. It going quiet again would mean a composition started repairing that the
     # finding says cannot.
     "authority.not_repaired",
+    # Finding 28's bound, and the reason that run is not silent: at the noise level the
+    # random-error control needs, the estimator stops converging. The cells it affects
+    # are named in the artifact and no claim rests on them, so this is a flag travelling
+    # with a number rather than a defect. It going quiet would mean the control was no
+    # longer being measured at a rate that breaks a healthy fleet.
+    "selective_risk.estimator_did_not_converge",
     # Finding 25's result: an initialisation escape exists at the crossing composition.
     # Expected because the sweep was built to find out whether one does, and it does.
     # If it stops firing, no start beats the majority vote anywhere -- a stronger result
@@ -99,6 +106,21 @@ EXPECTED_WARNINGS = {
     "validity.saturated",
     "validity.skewed_classes",
     "validity.empty",
+}
+
+
+#: Warnings expected from ONE script and nowhere else, keyed by that script.
+#:
+#: Scoped rather than added to the set above, because the set above is global and a
+#: global expectation is how a real regression gets filed as routine. The comment on
+#: `inference.glad_did_not_converge` records that exact near-miss: non-convergence was
+#: briefly believed to be a property of the estimator and was in fact a missing prior.
+#: `measure_selective_risk.py` is the one measurement that deliberately runs a fleet
+#: noisy enough to break the EM fit -- it is the control the abstention claims are
+#: bounded by -- and the cells affected are named in its artifact. The same warning from
+#: any other script is still unexpected, which is the point of the scoping.
+SCRIPT_SCOPED_WARNINGS = {
+    "measure_selective_risk.py": frozenset({"inference.federated_em_did_not_converge"}),
 }
 
 
@@ -154,7 +176,9 @@ def main() -> int:
                 continue
             name = str(record.get("event") or record.get("metric") or "?")
             seen_warnings.add(name)
-            if name not in EXPECTED_WARNINGS:
+            if name not in EXPECTED_WARNINGS and name not in SCRIPT_SCOPED_WARNINGS.get(
+                script, frozenset()
+            ):
                 unexpected.append((script, record))
         total.update(levels)
 

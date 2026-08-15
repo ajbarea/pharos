@@ -50,6 +50,49 @@ STATIC = Path(__file__).parent / "static"
 #: understanding the mechanism; the CLI is for measuring it.
 MAX_EVENTS = 400
 
+#: The other half of that bound, and it was missing. Gate cost is events times null
+#: trials, so capping events alone leaves `?events=400&null_trials=100000` -- exactly the
+#: minutes-long job the line above says cannot be started. The published runs use 20.
+MAX_NULL_TRIALS = 40
+
+#: Rows returned by the corpus endpoint. A large corpus with no cap serialises the whole
+#: of it into one response.
+MAX_LIMIT = 200
+
+
+def _bounded(name: str, value: int, low: int, high: int) -> int:
+    """A request parameter inside its range, or a 400 saying which one was not.
+
+    FastAPI coerces the type and this coerces the *range*, which is a different check:
+    `events=-5` is a perfectly good integer and produces an empty corpus, and `events=0`
+    produced a gate result computed over nothing. Both used to reach the generator.
+    """
+    # Lazily, like `create_app` does: fastapi is the `ui` extra and the package has
+    # to import without it.
+    from fastapi import HTTPException
+
+    if value < low or value > high:
+        raise HTTPException(400, f"{name} must be between {low} and {high}")
+    return value
+
+
+def _int_field(payload: dict[str, Any], name: str, default: int, low: int, high: int) -> int:
+    """The same check for a JSON body, where the coercion is ours rather than FastAPI's.
+
+    `int(payload.get("seed", 7))` raises `ValueError` on `{"seed": "abc"}`, which leaves
+    the endpoint returning 500 and a stack trace for what is plainly a bad request.
+    """
+    # Lazily, like `create_app` does: fastapi is the `ui` extra and the package has
+    # to import without it.
+    from fastapi import HTTPException
+
+    raw = payload.get(name, default)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        raise HTTPException(400, f"{name} must be an integer, got {raw!r}") from None
+    return _bounded(name, value, low, high)
+
 
 def _label_payload(label: Label) -> dict[str, Any]:
     return {
@@ -107,8 +150,9 @@ def create_app():
     @app.get("/api/corpus")
     def api_corpus(seed: int = 7, events: int = 40, limit: int = 12) -> dict[str, Any]:
         """A small corpus, its label histogram, export rows, and a sample of reports."""
-        if events > MAX_EVENTS:
-            raise HTTPException(400, f"events must be <= {MAX_EVENTS}")
+        seed = _bounded("seed", seed, 0, 2**31 - 1)
+        events = _bounded("events", events, 1, MAX_EVENTS)
+        limit = _bounded("limit", limit, 1, MAX_LIMIT)
         reports = generate(GeneratorConfig(seed=seed, n_events=events))
         histogram: dict[str, int] = {}
         for report in reports:
@@ -160,8 +204,9 @@ def create_app():
     @app.get("/api/gate")
     def api_gate(seed: int = 7, events: int = 120, null_trials: int = 8) -> dict[str, Any]:
         """The gate on a small corpus. Smaller than the published runs, and says so."""
-        if events > MAX_EVENTS:
-            raise HTTPException(400, f"events must be <= {MAX_EVENTS}")
+        seed = _bounded("seed", seed, 0, 2**31 - 1)
+        events = _bounded("events", events, 1, MAX_EVENTS)
+        null_trials = _bounded("null_trials", null_trials, 0, MAX_NULL_TRIALS)
         reports = generate(GeneratorConfig(seed=seed, n_events=events))
         result = run_gate(reports, null_trials=null_trials)
         return {
@@ -181,8 +226,8 @@ def create_app():
     @app.post("/api/triage")
     def api_triage(payload: dict[str, Any]) -> dict[str, Any]:
         """Run one triage task against the selected model."""
-        seed = int(payload.get("seed", 7))
-        index = int(payload.get("index", 0))
+        seed = _int_field(payload, "seed", 7, 0, 2**31 - 1)
+        index = _int_field(payload, "index", 0, 0, 2**31 - 1)
         spec = models.resolve(payload.get("model"))
 
         reports = generate(GeneratorConfig(seed=seed, n_events=40))
@@ -234,6 +279,8 @@ def create_app():
         cell is a reviewer who objects and whose own correction is still not
         releasable: the objection is real, and acting on it changes nothing.
         """
+        seed = _bounded("seed", seed, 0, 2**31 - 1)
+        index = _bounded("index", index, 0, 2**31 - 1)
         reports = generate(GeneratorConfig(seed=seed, n_events=40))
         tasks = build_triage_tasks(reports)
         if not tasks:

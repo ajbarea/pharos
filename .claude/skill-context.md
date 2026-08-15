@@ -90,8 +90,14 @@ belong here.
 - The shortcut-gate job is blocking and is a release condition, not a formality: a
   corpus whose surface baseline is unmeasured, insignificant against its own null,
   or above the ceiling cannot support a triage claim.
-- expected noise: one `rdflib` DeprecationWarning via `mlcroissant`, upstream.
-  `pip-audit` is currently clean.
+- expected noise: one `rdflib` DeprecationWarning via `mlcroissant`, upstream, once per
+  matrix leg. `pip-audit` is currently clean.
+- the coverage denominator is interpreter-dependent, so one floor is three bars. Under
+  3.14 a bare annotation is not an executable statement (deferred annotations), so
+  dataclass fields leave the denominator: the same commit measures 92.66% on 3.12 and
+  3.13 and 92.26% on 3.14. The strictest leg is the one not required on `main`, and the
+  leg that uploads to Codecov is the most generous. See the comment beside the pytest
+  step in `ci.yml`.
 
 ## slop_ground_truth
 

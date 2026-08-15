@@ -57,13 +57,13 @@ from measure_audit_policy import (
 from measure_authority_anchors import REPAIRED, ladder
 from measure_secure_reliability import contributions_for
 
-from pharos.analyst import AnalystPolicy
+from pharos.analyst import AnalystPolicy, Proposal, evidence_shown
 from pharos.disclosure import DROP_COMPARTMENTS, KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
 from pharos.inference import partition_by_contributor
 from pharos.labels import Compartment, declassify
 from pharos.provenance import run_provenance
-from pharos.tasks import build_triage_tasks
+from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, record
 from pharos.validity import check_sample_size
 
@@ -146,6 +146,97 @@ def blind_fleet(n_blind: int, size: int, *, slip_rate: float = 0.0) -> tuple[Ana
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class ChannelCheck:
+    """Whether this corpus can host a blind-spot experiment at all, and on what evidence."""
+
+    affected: int
+    affected_mean: float
+    corpus_mean: float
+    mean_with: float
+    mean_without: float
+
+
+def assert_channel_usable(
+    tasks: list[TriageTask], *, compartment: Compartment = BLIND
+) -> ChannelCheck:
+    """Refuse a corpus where the blinded channel is not an independent axis.
+
+    Two preconditions, both of which some corpus draws fail, and both of which are
+    refusals rather than failures: a draw that cannot host the experiment says nothing
+    about the finding, which is different from a draw that contradicts it.
+
+    Shared rather than copied. Every measurement that blinds a channel needs exactly this
+    guard, and a second copy is a copy that drifts -- the failure mode being silent by
+    construction, since a script running without the guard produces a well-formed artifact
+    from an invalid construction. `measure_selective_risk` is the second caller.
+    """
+    reference = AnalystPolicy("reference")
+    blind_reviewer = AnalystPolicy("blind", blind_compartment=compartment)
+    affected = [
+        t
+        for t in tasks
+        if blind_reviewer.evidence_visible_to(t) != reference.evidence_visible_to(t)
+        and (len(blind_reviewer.evidence_visible_to(t)) >= reference.escalation_threshold)
+        != (len(reference.evidence_visible_to(t)) >= reference.escalation_threshold)
+    ]
+    corpus_mean = sum(len(evidence_shown(t)) for t in tasks) / len(tasks)
+    affected_mean = (
+        sum(len(evidence_shown(t)) for t in affected) / len(affected) if affected else 0.0
+    )
+
+    # The statistic that actually distinguishes one channel from another: evidence on
+    # tasks carrying it against tasks that do not. `affected_mean` cannot do this job
+    # -- it is 3.00 for every compartment by construction (see the slack constant).
+    carrying = [t for t in tasks if any(compartment in r.label.compartments for r in t.sources)]
+    not_carrying = [t for t in tasks if t not in set(carrying)]
+    mean_with = sum(len(evidence_shown(t)) for t in carrying) / len(carrying) if carrying else 0.0
+    mean_without = (
+        sum(len(evidence_shown(t)) for t in not_carrying) / len(not_carrying)
+        if not_carrying
+        else 0.0
+    )
+    if not affected:
+        get_logger().error(
+            "blindspot.no_effect",
+            extra={"event": "blindspot.no_effect", "compartment": compartment.value},
+        )
+        print(
+            f"a fleet-wide {compartment.value} blind spot changes no verdict on this corpus; "
+            "there is nothing to measure",
+            file=sys.stderr,
+        )
+        raise SystemExit(REFUSED_EXIT)
+    if abs(mean_with - mean_without) > CHANNEL_ENTANGLEMENT_SLACK:
+        # A hard stop, not a warning. An earlier version logged and continued, while the
+        # docs described it as "asserted rather than trusted" -- prose describing code that
+        # did not exist. A channel this entangled with difficulty cannot support the
+        # argument, so producing an artifact from it is worse than failing.
+        get_logger().error(
+            "blindspot.channel_entangled",
+            extra={
+                "event": "blindspot.channel_entangled",
+                "compartment": compartment.value,
+                "mean_with": round(mean_with, 3),
+                "mean_without": round(mean_without, 3),
+            },
+        )
+        print(
+            f"{compartment.value} carries mean evidence {mean_with:.2f} against "
+            f"{mean_without:.2f} without it; that channel is too entangled with "
+            "difficulty to serve as an independent axis",
+            file=sys.stderr,
+        )
+        raise SystemExit(REFUSED_EXIT)
+    return ChannelCheck(
+        affected=len(affected),
+        affected_mean=affected_mean,
+        corpus_mean=corpus_mean,
+        mean_with=mean_with,
+        mean_without=mean_without,
+    )
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Row:
     n_blind: int
     policy: str
@@ -183,8 +274,6 @@ def main() -> int:
     shares = ladder(args.fleet, BLIND_RUNGS)
 
     tasks = build_triage_tasks(generate(GeneratorConfig(seed=args.seed, n_events=args.events)))
-    from pharos.analyst import Proposal, evidence_shown
-
     proposals = {
         t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
         for t in tasks
@@ -195,70 +284,14 @@ def main() -> int:
     # picked out by difficulty after all, this experiment measures the same confound it
     # was built to escape and its result would be meaningless in a way no later check
     # would reveal.
-    reference = AnalystPolicy("reference")
-    blind_reviewer = AnalystPolicy("blind", blind_compartment=BLIND)
-    affected = [
-        t
-        for t in tasks
-        if blind_reviewer.evidence_visible_to(t) != reference.evidence_visible_to(t)
-        and (len(blind_reviewer.evidence_visible_to(t)) >= reference.escalation_threshold)
-        != (len(reference.evidence_visible_to(t)) >= reference.escalation_threshold)
-    ]
-    corpus_mean = sum(len(evidence_shown(t)) for t in tasks) / len(tasks)
-    affected_mean = (
-        sum(len(evidence_shown(t)) for t in affected) / len(affected) if affected else 0.0
-    )
-
-    # The statistic that actually distinguishes one channel from another: evidence on
-    # tasks carrying it against tasks that do not. `affected_mean` cannot do this job
-    # -- it is 3.00 for every compartment by construction (see the slack constant).
-    carrying = [t for t in tasks if any(BLIND in r.label.compartments for r in t.sources)]
-    not_carrying = [t for t in tasks if t not in set(carrying)]
-    mean_with = sum(len(evidence_shown(t)) for t in carrying) / len(carrying) if carrying else 0.0
-    mean_without = (
-        sum(len(evidence_shown(t)) for t in not_carrying) / len(not_carrying)
-        if not_carrying
-        else 0.0
-    )
-    if not affected:
-        get_logger().error(
-            "blindspot.no_effect",
-            extra={"event": "blindspot.no_effect", "compartment": BLIND.value},
-        )
-        print(
-            f"a fleet-wide {BLIND.value} blind spot changes no verdict on this corpus; "
-            "there is nothing to measure",
-            file=sys.stderr,
-        )
-        raise SystemExit(REFUSED_EXIT)
-    if abs(mean_with - mean_without) > CHANNEL_ENTANGLEMENT_SLACK:
-        # A hard stop, not a warning. The previous version logged and continued, while
-        # the docs described it as "asserted rather than trusted" -- prose describing
-        # code that did not exist. A channel this entangled with difficulty cannot
-        # support the argument, so producing an artifact from it is worse than failing.
-        get_logger().error(
-            "blindspot.channel_entangled",
-            extra={
-                "event": "blindspot.channel_entangled",
-                "compartment": BLIND.value,
-                "mean_with": round(mean_with, 3),
-                "mean_without": round(mean_without, 3),
-            },
-        )
-        print(
-            f"{BLIND.value} carries mean evidence {mean_with:.2f} against "
-            f"{mean_without:.2f} without it; that channel is too entangled with "
-            "difficulty to serve as an independent axis",
-            file=sys.stderr,
-        )
-        raise SystemExit(REFUSED_EXIT)
+    check = assert_channel_usable(tasks)
 
     print(
         f"{len(tasks)} tasks, fleet of {args.fleet}, blind spot on {BLIND.value}: "
-        f"{len(affected)} verdicts change. Channel evidence {mean_with:.2f} carrying "
-        f"vs {mean_without:.2f} not. Affected slice sits at {affected_mean:.2f} against "
-        f"a corpus mean of {corpus_mean:.2f} -- the opposite extreme from the boundary "
-        "items a threshold error hits, which is the anti-correlation this rests on."
+        f"{check.affected} verdicts change. Channel evidence {check.mean_with:.2f} carrying "
+        f"vs {check.mean_without:.2f} not. Affected slice sits at {check.affected_mean:.2f} "
+        f"against a corpus mean of {check.corpus_mean:.2f} -- the opposite extreme from the "
+        "boundary items a threshold error hits, which is the anti-correlation this rests on."
     )
 
     # `channel` is finding 22's answer wired into finding 21's failure. Every policy in
@@ -399,11 +432,11 @@ def main() -> int:
         "fleet": args.fleet,
         "events": args.events,
         "blind_compartment": BLIND.value,
-        "affected_verdicts": len(affected),
-        "affected_mean_evidence": round(affected_mean, 3),
-        "corpus_mean_evidence": round(corpus_mean, 3),
-        "channel_mean_with": round(mean_with, 3),
-        "channel_mean_without": round(mean_without, 3),
+        "affected_verdicts": check.affected,
+        "affected_mean_evidence": round(check.affected_mean, 3),
+        "corpus_mean_evidence": round(check.corpus_mean, 3),
+        "channel_mean_with": round(check.mean_with, 3),
+        "channel_mean_without": round(check.mean_without, 3),
         "shares": list(shares),
         "budgets": list(BUDGETS),
         "repaired_threshold": REPAIRED,

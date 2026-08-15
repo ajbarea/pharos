@@ -61,6 +61,30 @@ class GeneratorConfig:
     plant_rate: float = 0.3
     centers: tuple[Center, ...] = CENTERS
 
+    def __post_init__(self) -> None:
+        """Refuse a configuration that cannot describe a corpus.
+
+        Fails closed here rather than at each caller, because every entry point builds
+        one of these: the CLI takes `--events` and `--plant-rate` from a shell, the
+        explorer takes them from a query string, and each measurement script has its own
+        defaults. A rate outside [0, 1] plants a share of a corpus that does not exist
+        and a non-positive event count generates nothing, and neither raises on its own --
+        they produce a well-formed corpus whose manifest records the value that made it
+        meaningless. That is the shape of defect this project keeps having to retract, so
+        the constructor is the place to stop it.
+        """
+        if self.n_events < 1:
+            raise ValueError(f"n_events must be at least 1, got {self.n_events}")
+        if not 0.0 <= self.plant_rate <= 1.0:
+            raise ValueError(f"plant_rate must be between 0 and 1, got {self.plant_rate}")
+        if self.seed < 0:
+            # Not because `random.Random` refuses one -- it does not -- but because a
+            # negative seed is unreachable from the CLI's own reproduction instructions
+            # and from every artifact this project publishes.
+            raise ValueError(f"seed must be non-negative, got {self.seed}")
+        if not self.centers:
+            raise ValueError("centers must not be empty; a corpus needs a channel to arrive on")
+
     def as_dict(self) -> dict[str, object]:
         return {
             "seed": self.seed,

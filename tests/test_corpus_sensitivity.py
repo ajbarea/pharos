@@ -439,3 +439,151 @@ def test_the_sweep_declares_what_it_holds_fixed():
     for name, pin in multiverse["pinned"].items():
         assert pin["why"].strip(), f"{name} is pinned with no reason recorded"
     assert multiverse["pinned"]["fleet"]["value"] == payload["fleet"]
+
+
+def test_finding_28_is_swept_before_it_is_quoted():
+    """Abstention's claims carry the corpus denominator every other governance claim does.
+
+    Findings 20 to 23 were published from one draw and two of their headlines turned out
+    to be that draw. This asserts the same sweep exists for finding 28 -- not what it
+    found, which the invariants below carry, but that it ran at all and that every draw
+    it reports is one the experiment could actually be built on.
+    """
+    payload = artifact("corpus_sensitivity")
+    rows = payload["selective"]
+    assert rows, "the abstention sweep produced no rows; its claims rest on one corpus"
+    assert len(rows) == payload["draws_hosting_selective_abstention"]
+    assert len(rows) <= payload["draws_attempted"]
+    for row in rows:
+        assert row["shared_only_slip_rates"], (
+            f"draw {row['seed']} isolates no regime where the shared blind spot is the "
+            "whole of the error, so it should have refused rather than reported"
+        )
+
+
+def test_the_failure_at_unanimity_is_not_a_property_of_one_corpus():
+    """The half of finding 28 that must hold everywhere, or the finding is a draw."""
+    rows = artifact("corpus_sensitivity")["selective"]
+    for row in rows:
+        assert row["confidence_fails_at_unanimity"], (
+            f"draw {row['seed']}: confidence-based abstention beat every untargeted draw "
+            "at unanimity, which would make finding 21's collapse a property of audit "
+            "budgets rather than of the signal -- a larger result than the published one"
+        )
+        assert row["consensus_fails_at_unanimity"]
+
+
+def test_the_bound_is_reported_as_a_fraction_of_draws_not_as_a_tie():
+    """`provenance ties the bound` is exactly the claim finding 26 had to withdraw once.
+
+    The tie holds on a corpus whose difficulty structure is discrete and known, and the
+    audit form of the same policy already fails it on two draws of eight. Asserting the
+    tie here would re-publish the retraction; asserting that it is *not* universal keeps
+    the manuscript honest about which number to quote.
+    """
+    rows = artifact("corpus_sensitivity")["selective"]
+    ties = sum(1 for r in rows if r["provenance_ties_the_bound_at_unanimity"])
+    assert ties < len(rows), (
+        "provenance abstention now ties the bound in every draw. That is a stronger "
+        "result than the one published and the prose says 'five of seven'; update both "
+        "rather than letting this pass."
+    )
+    assert all(r["provenance_works_at_unanimity"] for r in rows), (
+        "the deployable half must hold in every draw that hosts the experiment"
+    )
+
+
+def test_the_selective_row_reads_only_the_shared_only_regimes(monkeypatch):
+    """A draw's abstention row must not be read from the noise control.
+
+    The high-noise cell exists to test a *different* prediction, and a fleet broken by
+    independent noise says nothing about a rule aimed at a shared standard. Quantifying
+    over it is the defect that made the first version of this measurement report its own
+    result as refuted, so the row builder is given both regimes and must ignore one.
+    """
+    mod = _stub(
+        monkeypatch,
+        {
+            "shares": [0, 9],
+            "shared_only_slip_rates": [0.0],
+            "random_error_control": 0.4,
+            "findings": {
+                "confidence_abstention_works_at_unanimity": False,
+                "consensus_abstention_works_at_unanimity": False,
+                "provenance_abstention_works_at_unanimity": True,
+                "confidence_abstention_works_on_random_error": True,
+            },
+            "fleets": [
+                {
+                    "n_blind": 9,
+                    "slip_rate": 0.0,
+                    "policies": {
+                        "channel": {"halved_at": 12},
+                        "oracle": {"halved_at": 12},
+                    },
+                },
+                {
+                    "n_blind": 9,
+                    "slip_rate": 0.4,
+                    "policies": {
+                        "channel": {"halved_at": None},
+                        "oracle": {"halved_at": 8},
+                    },
+                },
+            ],
+            "grid": [
+                {
+                    "n_blind": 9,
+                    "slip_rate": 0.0,
+                    "policy": "channel",
+                    "withheld": 12,
+                    "coverage": 0.94,
+                }
+            ],
+            "false_detection": [{"coverage_at_20": 0.9}],
+        },
+    )
+    row = mod.selective_row(1)
+    assert row["confidence_fails_at_unanimity"] is True
+    assert row["provenance_works_at_unanimity"] is True
+    assert row["provenance_ties_the_bound_at_unanimity"] is True
+    assert row["coverage_cost_at_unanimity"] == [0.94]
+    assert row["shared_only_slip_rates"] == [0.0]
+
+
+def test_the_selective_row_does_not_credit_a_tie_between_two_failures(monkeypatch):
+    """`None == None` is two policies failing to halve anything, not a tie with the bound.
+
+    This is the defect an independent review caught in `audit_row`, in the one place a
+    second copy of it could live.
+    """
+    mod = _stub(
+        monkeypatch,
+        {
+            "shares": [0, 9],
+            "shared_only_slip_rates": [0.0],
+            "random_error_control": None,
+            "findings": {
+                "confidence_abstention_works_at_unanimity": False,
+                "consensus_abstention_works_at_unanimity": False,
+                "provenance_abstention_works_at_unanimity": False,
+                "confidence_abstention_works_on_random_error": None,
+            },
+            "fleets": [
+                {
+                    "n_blind": 9,
+                    "slip_rate": 0.0,
+                    "policies": {
+                        "channel": {"halved_at": None},
+                        "oracle": {"halved_at": None},
+                    },
+                }
+            ],
+            "grid": [],
+            "false_detection": [],
+        },
+    )
+    row = mod.selective_row(1)
+    assert row["provenance_ties_the_bound_at_unanimity"] is False
+    assert row["coverage_cost_at_unanimity"] == [None]
+    assert row["confidence_works_on_random_error"] is None
