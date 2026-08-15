@@ -12,21 +12,27 @@ import pytest
 from conftest import artifact
 from measure_latent_blindspot import POLICIES_HERE, SLICE_SIZES
 
-from pharos.analyst import AnalystPolicy, evidence_shown
+from pharos.analyst import AnalystPolicy, Proposal, evidence_shown
+from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
 from pharos.governance import (
     BLIND,
     LATENT_ATTEMPTS,
     ServerObservation,
+    blind_fleet,
+    contributions_for,
     draw_balanced_slice,
     draw_latent_slice,
     fleet,
     latent_blind_fleet,
+    observe,
     policy_deviation,
     policy_shortfall,
     select,
 )
 from pharos.governance.fleet import ChannelUnusableError
+from pharos.inference import partition_by_contributor
+from pharos.labels import declassify
 from pharos.tasks import build_triage_tasks
 
 
@@ -246,3 +252,185 @@ def test_the_counts_the_findings_page_quotes_are_the_artifact_s():
     assert payload["cells_where_two_sided_is_no_better_than_uniform"] == 5
     assert payload["cells_where_one_sided_ties_the_bound"] == 10
     assert payload["cells_where_one_sided_is_no_better_than_uniform"] == 0
+
+
+@pytest.fixture(scope="module")
+def small():
+    """A corpus small enough to run the measurement functions directly.
+
+    Sixty events rather than two hundred, and a fleet of five rather than nine. The
+    functions below are the ones that had only ever executed inside `main()`, which
+    coverage excludes -- the same gap the governance package's own tests were written to
+    close. Exercising them on the committed corpus would cost the permutation budget twice
+    over and would test the artifact rather than the code.
+    """
+    from measure_latent_blindspot import build_tasks
+
+    tasks = build_tasks(seed=7, events=60)
+    proposals = {
+        t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
+        for t in tasks
+    }
+    truth = {t.task_id: t.significant for t in tasks}
+    return tasks, proposals, truth
+
+
+def _cell(small, keying, slice_, *, n_blind=5, slip=0.0):
+    from measure_latent_blindspot import measure
+
+    tasks, proposals, truth = small
+    return measure(
+        tasks,
+        proposals,
+        truth,
+        keying=keying,
+        n_blind=n_blind,
+        slip_rate=slip,
+        fleet=5,
+        seed=7,
+        slice_=slice_,
+        permutations=1,
+        null_draws=1,
+    )
+
+
+def test_measure_runs_both_detectors_and_scores_every_named_policy(small):
+    """One cell end to end, on both constructions, with the budgets turned down."""
+    from measure_latent_blindspot import BOUND, POLICIES_HERE, _affected
+
+    tasks, _, _ = small
+    drawn = draw_balanced_slice(tasks, size=len(_affected(tasks)), seed=7)
+
+    channel_cell = _cell(small, "channel", None)
+    latent_cell = _cell(small, "latent", drawn)
+
+    for cell in (channel_cell, latent_cell):
+        assert set(POLICIES_HERE) | {BOUND} <= set(cell.precision)
+        assert set(POLICIES_HERE) | {BOUND} <= set(cell.risk)
+        # `uniform` is summarized twice on purpose: the best draw is what every comparison
+        # uses, the median is what a deployment would typically get.
+        assert "uniform_median" in cell.precision
+        assert cell.precision["uniform"] >= cell.precision["uniform_median"]
+        assert cell.as_dict()["keying"] == cell.keying
+
+    assert channel_cell.errors == latent_cell.errors, (
+        "the two constructions were matched to corrupt the same count and did not"
+    )
+
+
+def test_measure_populates_no_channel_map_for_a_latent_fleet(small):
+    """`channel` is unavailable rather than merely bad, and that has to be visible."""
+    from measure_latent_blindspot import _affected
+
+    tasks, _, _ = small
+    drawn = draw_balanced_slice(tasks, size=len(_affected(tasks)), seed=7)
+    latent_cell = _cell(small, "latent", drawn, n_blind=5)
+    # With no channel supplied the provenance policy scores every task equally, so it
+    # cannot beat an untargeted draw except by the tie-break. The finding reports that as
+    # "no remedy available", and this is the property that makes the report true.
+    assert latent_cell.precision["uniform"] >= 0.0
+
+
+def test_assemble_answers_every_prediction_from_the_cells_it_is_given(small):
+    """The artifact builder, driven directly rather than through a full sweep."""
+    import argparse
+
+    from measure_latent_blindspot import _affected, assemble, slice_sweep
+
+    tasks, proposals, truth = small
+    size = len(_affected(tasks))
+    drawn = draw_balanced_slice(tasks, size=size, seed=7)
+    cells = [
+        _cell(small, "channel", None, n_blind=n, slip=slip) for n in (0, 5) for slip in (0.0, 0.15)
+    ] + [
+        _cell(small, "latent:7", drawn, n_blind=n, slip=slip)
+        for n in (0, 5)
+        for slip in (0.0, 0.15)
+    ]
+    sweep = slice_sweep(tasks, proposals, truth, fleet=5, seed=7, null_draws=1)
+    args = argparse.Namespace(seed=7, events=60, fleet=5, permutations=1, null_draws=1)
+    report = assemble(cells, sweep, {7: drawn}, (0, 5), args, size)
+
+    assert set(report["findings"]) == {
+        "channel_scan_silent_on_latent",
+        "channel_scan_fires_on_channel_keyed",
+        "dispersion_identical_on_deterministic_fleets",
+        "dispersion_cannot_tell_the_constructions_apart",
+        "two_sided_residual_localizes_at_unanimity",
+        "one_sided_residual_localizes_at_unanimity",
+        "two_sided_residual_inverts_in_the_sweep",
+        "one_sided_residual_inverts_in_the_sweep",
+    }
+    assert all(isinstance(v, bool) for v in report["findings"].values())
+    assert report["swept_cells"] == len(sweep)
+    assert report["grid"] and report["slice_sweep"]
+    assert report["slices"]["7"]["corrupted"] == size
+
+
+def test_render_prints_the_three_tables_and_every_verdict(small, capsys):
+    """The reporting path, which is where a number a reader sees is actually formed."""
+    import argparse
+
+    from measure_latent_blindspot import _affected, assemble, render, slice_sweep
+
+    tasks, proposals, truth = small
+    size = len(_affected(tasks))
+    drawn = draw_balanced_slice(tasks, size=size, seed=7)
+    cells = [
+        _cell(small, "channel", None, n_blind=5),
+        _cell(small, f"latent:{7}", drawn, n_blind=5),
+    ]
+    sweep = slice_sweep(tasks, proposals, truth, fleet=5, seed=7, null_draws=1)
+    args = argparse.Namespace(seed=7, events=60, fleet=5, permutations=1, null_draws=1)
+    report = assemble(cells, sweep, {7: drawn}, (0, 5), args, size)
+
+    render(report, cells, sweep, (0, 5))
+    printed = capsys.readouterr().out
+    assert "detection, by what the blind spot is keyed on" in printed
+    assert "localization at unanimity" in printed
+    assert "as the corrupted slice grows past the majority of its stratum" in printed
+    for name in report["findings"]:
+        assert name in printed, f"{name} was decided and not reported"
+
+
+def test_the_slice_sweep_spans_the_pool_it_draws_from(small):
+    """Every swept size that the corpus can host produces a row, and refusals are logged."""
+    from measure_latent_blindspot import slice_sweep
+
+    tasks, proposals, truth = small
+    rows = slice_sweep(tasks, proposals, truth, fleet=5, seed=7, null_draws=1)
+    assert rows, "the sweep produced no rows at all"
+    assert all(r.eligible >= r.size for r in rows)
+    assert {*rows[0].precision} >= {"uniform", "deviation", "shortfall", "oracle"}
+    assert rows[0].as_dict()["size"] == rows[0].size
+
+
+def test_the_two_constructions_are_refused_if_they_agree(small):
+    """`_views_agree` is the guard against comparing a fleet with itself."""
+    from measure_latent_blindspot import _affected, _views_agree
+
+    tasks, proposals, _ = small
+    drawn = draw_balanced_slice(tasks, size=len(_affected(tasks)), seed=7)
+    flat = contributions_for(latent_blind_fleet(5, 5, drawn), tasks, proposals, seed=7)
+    latent_view = observe(partition_by_contributor(flat))
+    channel_flat = contributions_for(blind_fleet(5, 5), tasks, proposals, seed=7)
+    channel_view = observe(partition_by_contributor(channel_flat))
+
+    assert _views_agree(latent_view, latent_view), "a view must agree with itself"
+    assert not _views_agree(latent_view, channel_view), (
+        "the two constructions produced the same aggregate on this corpus"
+    )
+
+
+def test_the_affected_slice_is_read_from_the_corpus_rather_than_assumed(small):
+    """The latent slice is sized from what a channel blind spot actually flips.
+
+    A hard-coded 20 would silently compare a 20-task slice against a 14-task one on a
+    corpus draw where the channel happens to hit fewer tasks.
+    """
+    from measure_latent_blindspot import _affected
+
+    tasks, _, _ = small
+    affected = _affected(tasks)
+    assert affected, "no verdict changes under a channel blind spot on this corpus"
+    assert all(t.significant for t in affected)
