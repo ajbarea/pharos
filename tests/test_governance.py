@@ -236,3 +236,39 @@ def test_the_runner_never_writes_into_results(tmp_path):
     finally:
         (sweep.SCRIPTS / name).unlink(missing_ok=True)
     assert json.loads((sweep.SCRIPTS.parent / "results" / "power.json").read_text())
+
+
+def test_no_two_submodules_define_the_same_public_name():
+    """Two definitions of one name in one package, and the package re-exports one of them.
+
+    `governance.fleet` carried an `AbstentionCell` describing a population rate under a
+    correlation structure, left behind when this package was extracted out of `scripts/`.
+    `governance.abstention` carries a live `AbstentionCell` describing one policy at one
+    budget. Nothing imported the dead one, so nothing failed; the way it *would* have
+    failed is silent, because both are frozen dataclasses and a mistaken import produces
+    a `TypeError` about field names rather than about the wrong class.
+
+    Asserted over the package rather than fixed in the one module, because the extraction
+    that produced it moved thirty-four names and this is the check that says a later one
+    did not land twice.
+    """
+    import importlib
+    import inspect
+    import pkgutil
+
+    import pharos.governance as pkg
+
+    owners: dict[str, list[str]] = {}
+    for info in pkgutil.iter_modules(pkg.__path__):
+        module = importlib.import_module(f"{pkg.__name__}.{info.name}")
+        for name, value in vars(module).items():
+            if name.startswith("_") or not (inspect.isclass(value) or inspect.isfunction(value)):
+                continue
+            # Only names this module defines. An import of a sibling's name is the
+            # sharing this package exists for, and is not a collision.
+            if getattr(value, "__module__", None) != module.__name__:
+                continue
+            owners.setdefault(name, []).append(info.name)
+
+    duplicated = {name: mods for name, mods in owners.items() if len(mods) > 1}
+    assert not duplicated, f"defined in more than one governance submodule: {duplicated}"

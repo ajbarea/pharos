@@ -68,10 +68,12 @@ scattered through it, and nothing in the grouping is a claim about how they rela
 | **Triage baselines and scale** | [3. A corpus bug and a retracted finding](#3-a-corpus-bug-a-retracted-finding-and-a-real-benchmark-target) · [3b. Over-escalation is universal](#3b-over-escalation-is-universal-and-scale-does-not-fix-it) · [4. Answerability against non-leakage](#4-answerability-and-surface-non-leakage-pull-against-each-other) |
 | **Learning the rule** | [5. In-context learning does not close the gap](#5-in-context-learning-does-not-close-the-gap) · [6. Gradient learning does, on clean labels](#6-gradient-learning-does-close-the-gap-on-clean-labels) · [10. A fleet learns its analyst's standard](#10-a-fleet-learns-its-analysts-standard-not-the-worlds) |
 | **What review costs** | [7. Review is abundant; correctness is not](#7-review-is-abundant-what-it-costs-is-correctness) · [8. Right and sloppy beats wrong and careful](#8-being-right-and-sloppy-beats-being-wrong-and-careful) |
-| **Measurement design** | [9. Repeating one prompt measures the wrong thing](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing) · [17. Item difficulty does not separate the two](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst) |
+| **Measurement design** | [9. Repeating one prompt measures the wrong thing](#9-a-measurement-that-repeats-one-prompt-measures-the-wrong-thing) · [17. Item difficulty does not separate the two](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst) · [27. Four guards could be inverted with the suite still green](#27-four-guards-could-be-inverted-with-the-suite-still-green-and-coverage-called-them-all-covered) |
 | **Disclosure and identity** | [11. The stream still names the analyst](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst) · [12. Reliability needs identity where it matters](#12-reliability-cannot-be-estimated-without-identity-where-it-matters) · [13. A tag can replace identity](#13-a-reliability-tag-can-replace-identity-and-the-leak-metric-cannot-tell-you-when) · [16. The cliff assumes independent fleets](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently) |
 | **Cost of running it** | [14. What the agent costs on its hardware](#14-what-the-agent-costs-on-the-hardware-it-is-meant-to-run-on) · [15. The budget is spent on the wrong variable](#15-the-standard-privacy-mechanism-spends-the-budget-on-the-wrong-variable) · [19. What an authority of record costs](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) |
-| **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) · [20. Audit where the fleet splits](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise) · [21. Where that policy stops working](#21-the-corpus-the-audit-policy-cannot-handle-built-on-purpose) · [22. The trace it leaves anyway](#22-the-trace-a-blind-spot-leaves-after-it-stops-leaving-disagreement) |
+| **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) · [20. Audit where the fleet splits](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise) · [21. Where that policy stops working](#21-the-corpus-the-audit-policy-cannot-handle-built-on-purpose) · [22. The trace it leaves anyway](#22-the-trace-a-blind-spot-leaves-after-it-stops-leaving-disagreement) · [23. Provenance finds what is findable](#23-once-the-detector-names-the-channel-provenance-finds-the-corrupted-items-that-are-findable-at-all) |
+| **What a deployment does about it** | [28. Detection converts into coverage, not correction](#28-the-open-problem-answered-detection-converts-into-coverage-not-into-correction) · [29. The shape of the error, read from the aggregate](#29-the-shape-of-the-error-is-visible-from-the-aggregate-and-it-is-cheap-to-read-wrong) |
+| **Whether a result survives a parameter nobody chose** | [24. The crossing is a distribution over corpora](#24-the-crossing-is-a-distribution-over-corpora-not-a-share-and-a-majority-was-nine-analysts-talking) · [25. Not where we pointed the estimator](#25-the-cliff-is-not-where-we-pointed-the-estimator-except-at-the-crossing-itself) · [26. One of the headlines was the corpus](#26-findings-20-to-23-were-measured-on-one-corpus-and-one-of-their-headlines-was-that-corpus) |
 
 ## What these sizes can resolve
 
@@ -2330,8 +2332,8 @@ are read into LIAISON" is not obviously the safer of the two.
 
 !!! warning "Corrected 2026-08-06: the four-wrong row was repairing nothing"
     This finding scored a repair as `agreement >= 0.95`, full stop. Its two siblings ---
-    the audit-policy sweep of [finding 20](#20-no-audit-policy-beats-the-uniform-floor-once-the-fleet-agrees)
-    and the blind-spot sweep of [finding 21](#21-the-audit-policy-stops-working-exactly-where-it-is-needed)
+    the audit-policy sweep of [finding 20](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise)
+    and the blind-spot sweep of [finding 21](#21-the-corpus-the-audit-policy-cannot-handle-built-on-purpose)
     --- both additionally require that some *unanchored* label actually changed, because
     anchoring a task the estimator gets wrong removes it from the denominator and lifts
     the score without correcting anything. Finding 21's threshold table was withdrawn
@@ -2878,7 +2880,7 @@ The noiseless row is the one this finding was first reported on, and it is a deg
 fleet rather than a clean one. On a fleet that makes mistakes at the rate this project
 already treats as realistic, the detector needs **roughly a third to a half** of the
 fleet --- still well short of the unanimity that defeats every audit policy in
-[finding 20](#20-no-audit-policy-beats-the-uniform-floor-once-the-fleet-agrees), which
+[finding 20](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise), which
 is the comparison the finding exists to make.
 
 Note how narrowly the two borderline rows miss: $0.0012$ and $0.0017$ against a
@@ -2898,7 +2900,7 @@ aggregator already holds.
 `scripts/measure_blind_spot.py`, `scripts/measure_audit_policy.py`,
 `results/blind_spot.json`
 
-[Finding 21](#21-the-audit-policy-stops-working-exactly-where-it-is-needed) ends with
+[Finding 21](#21-the-corpus-the-audit-policy-cannot-handle-built-on-purpose) ends with
 every deployable audit policy at chance on a unanimously blind fleet, because all of
 them read *disagreement* and unanimity is its absence.
 [Finding 22](#22-the-trace-a-blind-spot-leaves-after-it-stops-leaving-disagreement)
@@ -2961,7 +2963,7 @@ oracle.** Share of a 20-item audit landing on a corrupted task, at nine of nine 
 **Scope condition, carried with the number every time.** The policy ties the oracle
 *because* the corrupted slice in this corpus is exactly "carries the channel, and shows
 deep evidence" by construction --- the same shape of condition
-[finding 20](#20-no-audit-policy-beats-the-uniform-floor-once-the-fleet-agrees) has to
+[finding 20](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise) has to
 carry. The claim that travels is conditional: **when a wrong standard follows an
 observable partition of the corpus, audit that partition.** A shared error that follows
 no observable partition leaves no trace for finding 22 to detect and no handle for this
@@ -3028,7 +3030,7 @@ the part that survives. What does **not** survive is the first version of this f
     Quote the composition and the fleet, never the phrase.
 
 **This half was already on disk, and nobody read it back into the prose.**
-[Finding 17's fleet sweep](#17-modelling-item-difficulty-does-not-separate-a-hard-item-from-a-wrong-standard-it-converts-one-into-the-other)
+[Finding 17's fleet sweep](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)
 recorded "Dawid-Skene recovers the truth at a bare majority once the fleet reaches 15"
 when it ran, and `fleet_sensitivity.json` has carried `dawid_skene_survives_crossing:
 true` for fleets 15, 25 and 51 ever since. Findings 19 through 23 were written after
@@ -3056,7 +3058,7 @@ reading of the fleet it had.
 
 !!! note "It is still not an escape"
     The margin is bounded by the same share. A house style that reaches 60% of a fleet
-    defeats the estimator at every size measured, and [finding 16](#16-analysts-are-not-independent-draws-and-the-i-i-d-assumption-understates-the-failure-by-two-orders-of-magnitude)
+    defeats the estimator at every size measured, and [finding 16](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently)
     is the reason to expect a house style to reach exactly that far. A larger fleet raises
     the bar; it does not remove it.
 
@@ -3170,7 +3172,7 @@ same yes and different methods. Where the escape exists, restarts find it around
 the time; where it does not, they land on the inverted labelling instead -- agreement near
 0.35, which is label switching, the failure the identifiability machinery in the
 class-conditional model was added to prevent and
-[finding 17's note](#17-modelling-item-difficulty-does-not-separate-a-hard-item-from-a-wrong-standard-it-converts-one-into-the-other)
+[finding 17's note](#17-adding-item-difficulty-does-not-separate-a-hard-case-from-a-wrong-analyst)
 already records there.
 
 !!! warning "What this does and does not license"
@@ -3640,7 +3642,7 @@ corpus shows. What it cannot do is diagnose a
 fleet with no disagreement anywhere: with every analyst deterministic and identical there
 is no variance to compare against, and the artifact reports that cell as **undiagnosable**
 rather than as clean. That distinction is the same one this page keeps arriving at from
-different directions -- a silent instrument and a instrument reporting nothing wrong are
+different directions -- a silent instrument and an instrument reporting nothing wrong are
 different claims.
 
 !!! warning "The first version of this test could not fire"
