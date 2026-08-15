@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "4ffc91d36aab",
+    "git_commit": "a12fba76cf9e",
     "git_dirty": false,
-    "generated_at": "2026-08-15T18:20:46+00:00",
+    "generated_at": "2026-08-15T19:25:36+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -2889,16 +2889,53 @@
       "slip_rate": 0.0,
       "eligible": 69,
       "rejected": 0,
-      "errors": 10,
+      "errors": {
+        "median": 10.0,
+        "min": 10.0,
+        "max": 10.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.15,
-        "uniform_median": 0.05,
-        "margin": 0.1,
-        "posterior": 0.1,
-        "consensus": 0.1,
-        "deviation": 0.5,
-        "shortfall": 0.5,
-        "oracle": 0.5
+        "uniform": {
+          "median": 0.15,
+          "min": 0.1,
+          "max": 0.2
+        },
+        "uniform_median": {
+          "median": 0.05,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "margin": {
+          "median": 0.05,
+          "min": 0.0,
+          "max": 0.1
+        },
+        "posterior": {
+          "median": 0.05,
+          "min": 0.05,
+          "max": 0.15
+        },
+        "consensus": {
+          "median": 0.05,
+          "min": 0.0,
+          "max": 0.1
+        },
+        "deviation": {
+          "median": 0.5,
+          "min": 0.5,
+          "max": 0.5
+        },
+        "shortfall": {
+          "median": 0.5,
+          "min": 0.5,
+          "max": 0.5
+        },
+        "oracle": {
+          "median": 0.5,
+          "min": 0.5,
+          "max": 0.5
+        }
       }
     },
     {
@@ -2906,16 +2943,53 @@
       "slip_rate": 0.15,
       "eligible": 69,
       "rejected": 0,
-      "errors": 11,
+      "errors": {
+        "median": 11.0,
+        "min": 11.0,
+        "max": 11.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.2,
-        "uniform_median": 0.05,
-        "margin": 0.05,
-        "posterior": 0.05,
-        "consensus": 0.05,
-        "deviation": 0.55,
-        "shortfall": 0.5,
-        "oracle": 0.55
+        "uniform": {
+          "median": 0.2,
+          "min": 0.15,
+          "max": 0.2
+        },
+        "uniform_median": {
+          "median": 0.05,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "margin": {
+          "median": 0.05,
+          "min": 0.05,
+          "max": 0.1
+        },
+        "posterior": {
+          "median": 0.05,
+          "min": 0.05,
+          "max": 0.15
+        },
+        "consensus": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.05
+        },
+        "deviation": {
+          "median": 0.55,
+          "min": 0.55,
+          "max": 0.55
+        },
+        "shortfall": {
+          "median": 0.5,
+          "min": 0.5,
+          "max": 0.5
+        },
+        "oracle": {
+          "median": 0.55,
+          "min": 0.55,
+          "max": 0.55
+        }
       }
     },
     {
@@ -2923,16 +2997,53 @@
       "slip_rate": 0.0,
       "eligible": 69,
       "rejected": 0,
-      "errors": 20,
+      "errors": {
+        "median": 20.0,
+        "min": 20.0,
+        "max": 20.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.25,
-        "uniform_median": 0.1,
-        "margin": 0.25,
-        "posterior": 0.25,
-        "consensus": 0.25,
-        "deviation": 1.0,
-        "shortfall": 1.0,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.2,
+          "min": 0.2,
+          "max": 0.35
+        },
+        "uniform_median": {
+          "median": 0.1,
+          "min": 0.05,
+          "max": 0.1
+        },
+        "margin": {
+          "median": 0.15,
+          "min": 0.1,
+          "max": 0.25
+        },
+        "posterior": {
+          "median": 0.15,
+          "min": 0.1,
+          "max": 0.25
+        },
+        "consensus": {
+          "median": 0.15,
+          "min": 0.1,
+          "max": 0.25
+        },
+        "deviation": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "shortfall": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     },
     {
@@ -2940,16 +3051,53 @@
       "slip_rate": 0.15,
       "eligible": 69,
       "rejected": 0,
-      "errors": 21,
+      "errors": {
+        "median": 21.0,
+        "min": 20.0,
+        "max": 21.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.25,
-        "uniform_median": 0.15,
-        "margin": 0.15,
-        "posterior": 0.1,
-        "consensus": 0.05,
-        "deviation": 0.95,
-        "shortfall": 1.0,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.25,
+          "min": 0.2,
+          "max": 0.35
+        },
+        "uniform_median": {
+          "median": 0.1,
+          "min": 0.05,
+          "max": 0.15
+        },
+        "margin": {
+          "median": 0.1,
+          "min": 0.05,
+          "max": 0.15
+        },
+        "posterior": {
+          "median": 0.1,
+          "min": 0.1,
+          "max": 0.15
+        },
+        "consensus": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.1
+        },
+        "deviation": {
+          "median": 0.95,
+          "min": 0.85,
+          "max": 1.0
+        },
+        "shortfall": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     },
     {
@@ -2957,16 +3105,53 @@
       "slip_rate": 0.0,
       "eligible": 69,
       "rejected": 0,
-      "errors": 30,
+      "errors": {
+        "median": 30.0,
+        "min": 30.0,
+        "max": 30.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.25,
-        "uniform_median": 0.15,
-        "margin": 0.3,
-        "posterior": 0.3,
-        "consensus": 0.3,
-        "deviation": 1.0,
-        "shortfall": 1.0,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.25,
+          "min": 0.25,
+          "max": 0.4
+        },
+        "uniform_median": {
+          "median": 0.15,
+          "min": 0.1,
+          "max": 0.15
+        },
+        "margin": {
+          "median": 0.2,
+          "min": 0.15,
+          "max": 0.3
+        },
+        "posterior": {
+          "median": 0.2,
+          "min": 0.15,
+          "max": 0.3
+        },
+        "consensus": {
+          "median": 0.2,
+          "min": 0.15,
+          "max": 0.3
+        },
+        "deviation": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "shortfall": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     },
     {
@@ -2974,16 +3159,53 @@
       "slip_rate": 0.15,
       "eligible": 69,
       "rejected": 0,
-      "errors": 31,
+      "errors": {
+        "median": 31.0,
+        "min": 30.0,
+        "max": 31.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.25,
-        "uniform_median": 0.15,
-        "margin": 0.15,
-        "posterior": 0.15,
-        "consensus": 0.05,
-        "deviation": 0.65,
-        "shortfall": 1.0,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.3,
+          "min": 0.25,
+          "max": 0.4
+        },
+        "uniform_median": {
+          "median": 0.15,
+          "min": 0.15,
+          "max": 0.15
+        },
+        "margin": {
+          "median": 0.1,
+          "min": 0.05,
+          "max": 0.2
+        },
+        "posterior": {
+          "median": 0.15,
+          "min": 0.15,
+          "max": 0.15
+        },
+        "consensus": {
+          "median": 0.05,
+          "min": 0.05,
+          "max": 0.1
+        },
+        "deviation": {
+          "median": 0.65,
+          "min": 0.55,
+          "max": 0.75
+        },
+        "shortfall": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     },
     {
@@ -2991,16 +3213,53 @@
       "slip_rate": 0.0,
       "eligible": 69,
       "rejected": 0,
-      "errors": 40,
+      "errors": {
+        "median": 40.0,
+        "min": 40.0,
+        "max": 40.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.35,
-        "uniform_median": 0.2,
-        "margin": 0.3,
-        "posterior": 0.3,
-        "consensus": 0.3,
-        "deviation": 0.0,
-        "shortfall": 1.0,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.35,
+          "min": 0.3,
+          "max": 0.45
+        },
+        "uniform_median": {
+          "median": 0.2,
+          "min": 0.2,
+          "max": 0.2
+        },
+        "margin": {
+          "median": 0.3,
+          "min": 0.15,
+          "max": 0.35
+        },
+        "posterior": {
+          "median": 0.3,
+          "min": 0.15,
+          "max": 0.35
+        },
+        "consensus": {
+          "median": 0.3,
+          "min": 0.15,
+          "max": 0.35
+        },
+        "deviation": {
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "shortfall": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     },
     {
@@ -3008,16 +3267,53 @@
       "slip_rate": 0.15,
       "eligible": 69,
       "rejected": 0,
-      "errors": 40,
+      "errors": {
+        "median": 40.0,
+        "min": 40.0,
+        "max": 41.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.35,
-        "uniform_median": 0.2,
-        "margin": 0.1,
-        "posterior": 0.1,
-        "consensus": 0.05,
-        "deviation": 0.3,
-        "shortfall": 1.0,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.35,
+          "min": 0.3,
+          "max": 0.45
+        },
+        "uniform_median": {
+          "median": 0.2,
+          "min": 0.2,
+          "max": 0.2
+        },
+        "margin": {
+          "median": 0.1,
+          "min": 0.1,
+          "max": 0.15
+        },
+        "posterior": {
+          "median": 0.2,
+          "min": 0.1,
+          "max": 0.25
+        },
+        "consensus": {
+          "median": 0.1,
+          "min": 0.05,
+          "max": 0.15
+        },
+        "deviation": {
+          "median": 0.3,
+          "min": 0.2,
+          "max": 0.3
+        },
+        "shortfall": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     },
     {
@@ -3025,16 +3321,53 @@
       "slip_rate": 0.0,
       "eligible": 69,
       "rejected": 0,
-      "errors": 50,
+      "errors": {
+        "median": 50.0,
+        "min": 50.0,
+        "max": 50.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.35,
-        "uniform_median": 0.25,
-        "margin": 0.3,
-        "posterior": 0.3,
-        "consensus": 0.3,
-        "deviation": 0.05,
-        "shortfall": 1.0,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.35,
+          "min": 0.35,
+          "max": 0.45
+        },
+        "uniform_median": {
+          "median": 0.25,
+          "min": 0.25,
+          "max": 0.25
+        },
+        "margin": {
+          "median": 0.35,
+          "min": 0.15,
+          "max": 0.4
+        },
+        "posterior": {
+          "median": 0.35,
+          "min": 0.15,
+          "max": 0.4
+        },
+        "consensus": {
+          "median": 0.35,
+          "min": 0.15,
+          "max": 0.4
+        },
+        "deviation": {
+          "median": 0.05,
+          "min": 0.05,
+          "max": 0.05
+        },
+        "shortfall": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     },
     {
@@ -3042,16 +3375,53 @@
       "slip_rate": 0.15,
       "eligible": 69,
       "rejected": 0,
-      "errors": 50,
+      "errors": {
+        "median": 50.0,
+        "min": 50.0,
+        "max": 50.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.35,
-        "uniform_median": 0.25,
-        "margin": 0.1,
-        "posterior": 0.05,
-        "consensus": 0.1,
-        "deviation": 0.2,
-        "shortfall": 1.0,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.35,
+          "min": 0.35,
+          "max": 0.45
+        },
+        "uniform_median": {
+          "median": 0.25,
+          "min": 0.25,
+          "max": 0.25
+        },
+        "margin": {
+          "median": 0.15,
+          "min": 0.1,
+          "max": 0.15
+        },
+        "posterior": {
+          "median": 0.15,
+          "min": 0.05,
+          "max": 0.2
+        },
+        "consensus": {
+          "median": 0.1,
+          "min": 0.1,
+          "max": 0.2
+        },
+        "deviation": {
+          "median": 0.1,
+          "min": 0.05,
+          "max": 0.2
+        },
+        "shortfall": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     },
     {
@@ -3059,16 +3429,53 @@
       "slip_rate": 0.0,
       "eligible": 69,
       "rejected": 0,
-      "errors": 60,
+      "errors": {
+        "median": 60.0,
+        "min": 60.0,
+        "max": 60.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.4,
-        "uniform_median": 0.3,
-        "margin": 0.35,
-        "posterior": 0.35,
-        "consensus": 0.35,
-        "deviation": 0.55,
-        "shortfall": 1.0,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.45,
+          "min": 0.4,
+          "max": 0.5
+        },
+        "uniform_median": {
+          "median": 0.3,
+          "min": 0.3,
+          "max": 0.3
+        },
+        "margin": {
+          "median": 0.35,
+          "min": 0.25,
+          "max": 0.4
+        },
+        "posterior": {
+          "median": 0.35,
+          "min": 0.25,
+          "max": 0.4
+        },
+        "consensus": {
+          "median": 0.35,
+          "min": 0.25,
+          "max": 0.4
+        },
+        "deviation": {
+          "median": 0.55,
+          "min": 0.55,
+          "max": 0.55
+        },
+        "shortfall": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     },
     {
@@ -3076,16 +3483,53 @@
       "slip_rate": 0.15,
       "eligible": 69,
       "rejected": 0,
-      "errors": 60,
+      "errors": {
+        "median": 60.0,
+        "min": 60.0,
+        "max": 60.0
+      },
+      "draws": 5,
       "precision": {
-        "uniform": 0.4,
-        "uniform_median": 0.3,
-        "margin": 0.2,
-        "posterior": 0.15,
-        "consensus": 0.2,
-        "deviation": 0.25,
-        "shortfall": 0.5,
-        "oracle": 1.0
+        "uniform": {
+          "median": 0.45,
+          "min": 0.4,
+          "max": 0.5
+        },
+        "uniform_median": {
+          "median": 0.3,
+          "min": 0.3,
+          "max": 0.3
+        },
+        "margin": {
+          "median": 0.2,
+          "min": 0.2,
+          "max": 0.2
+        },
+        "posterior": {
+          "median": 0.2,
+          "min": 0.15,
+          "max": 0.25
+        },
+        "consensus": {
+          "median": 0.2,
+          "min": 0.2,
+          "max": 0.2
+        },
+        "deviation": {
+          "median": 0.25,
+          "min": 0.25,
+          "max": 0.25
+        },
+        "shortfall": {
+          "median": 0.5,
+          "min": 0.4,
+          "max": 0.55
+        },
+        "oracle": {
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        }
       }
     }
   ],

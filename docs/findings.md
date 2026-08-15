@@ -3712,22 +3712,22 @@ scan failing.
 | `shortfall` | 1.00 | 1.00-1.00 |
 | `oracle` | 1.00 | 1.00-1.00 |
 
-**As the corrupted slice grows past the majority of its stratum.** The pool of tasks a discounted report can flip is 69 on this corpus, so the crossing sits between the two middle rows.
+**As the corrupted slice grows past the majority of its stratum.** The pool of tasks a discounted report can flip is 69 on this corpus, so the crossing sits between the two middle rows. Every cell is the median over 5 slice draws with the range beside it, because a slice is a sample and this sweep quoted one draw of it as a constant until it did not.
 
 | Slice | slip | errors | `uniform` (best of 21) | `deviation` | `shortfall` |
 | --- | --- | --- | --- | --- | --- |
-| 10 of 69 | 0.0 | 10 | 0.15 | 0.50 | 0.50 |
-| 10 of 69 | 0.15 | 11 | 0.20 | 0.55 | 0.50 |
-| 20 of 69 | 0.0 | 20 | 0.25 | 1.00 | 1.00 |
-| 20 of 69 | 0.15 | 21 | 0.25 | 0.95 | 1.00 |
-| 30 of 69 | 0.0 | 30 | 0.25 | 1.00 | 1.00 |
-| 30 of 69 | 0.15 | 31 | 0.25 | 0.65 | 1.00 |
-| 40 of 69 | 0.0 | 40 | 0.35 | 0.00 | 1.00 |
-| 40 of 69 | 0.15 | 40 | 0.35 | 0.30 | 1.00 |
-| 50 of 69 | 0.0 | 50 | 0.35 | 0.05 | 1.00 |
-| 50 of 69 | 0.15 | 50 | 0.35 | 0.20 | 1.00 |
-| 60 of 69 | 0.0 | 60 | 0.40 | 0.55 | 1.00 |
-| 60 of 69 | 0.15 | 60 | 0.40 | 0.25 | 0.50 |
+| 10 of 69 | 0.0 | 10 | 0.15 (0.10-0.20) | 0.50 (0.50-0.50) | 0.50 (0.50-0.50) |
+| 10 of 69 | 0.15 | 11 | 0.20 (0.15-0.20) | 0.55 (0.55-0.55) | 0.50 (0.50-0.50) |
+| 20 of 69 | 0.0 | 20 | 0.20 (0.20-0.35) | 1.00 (1.00-1.00) | 1.00 (1.00-1.00) |
+| 20 of 69 | 0.15 | 21 | 0.25 (0.20-0.35) | 0.95 (0.85-1.00) | 1.00 (1.00-1.00) |
+| 30 of 69 | 0.0 | 30 | 0.25 (0.25-0.40) | 1.00 (1.00-1.00) | 1.00 (1.00-1.00) |
+| 30 of 69 | 0.15 | 31 | 0.30 (0.25-0.40) | 0.65 (0.55-0.75) | 1.00 (1.00-1.00) |
+| 40 of 69 | 0.0 | 40 | 0.35 (0.30-0.45) | 0.00 (0.00-0.00) | 1.00 (1.00-1.00) |
+| 40 of 69 | 0.15 | 40 | 0.35 (0.30-0.45) | 0.30 (0.20-0.30) | 1.00 (1.00-1.00) |
+| 50 of 69 | 0.0 | 50 | 0.35 (0.35-0.45) | 0.05 (0.05-0.05) | 1.00 (1.00-1.00) |
+| 50 of 69 | 0.15 | 50 | 0.35 (0.35-0.45) | 0.10 (0.05-0.20) | 1.00 (1.00-1.00) |
+| 60 of 69 | 0.0 | 60 | 0.45 (0.40-0.50) | 0.55 (0.55-0.55) | 1.00 (1.00-1.00) |
+| 60 of 69 | 0.15 | 60 | 0.45 (0.40-0.50) | 0.25 (0.25-0.25) | 0.50 (0.40-0.55) |
 <!-- END GENERATED: latent-blindspot -->
 
 **Detection survives the loss of the partition, exactly.** At every share of a
@@ -3738,8 +3738,15 @@ corrupts and not on which ones, so two slices of the same size in the same strat
 same number to it. Once analysts slip independently the two fleets are different draws and
 the indices separate by hundredths; the channel-keyed value then sits **inside the range
 five latent slice draws produce, in every cell**. The statistic cannot tell the two
-constructions apart. The scan, on the same fleets, names PARTNER on one and is silent on
-the other at every share and both slip rates.
+constructions apart.
+
+The scan is the mirror image. It is **silent on the latent construction in every cell**,
+and it names PARTNER on the channel-keyed twin wherever it can name anything --- which is
+not everywhere, and the table says so: at a 15% slip rate it does not fire below five of
+nine, which is finding 22's own detection floor rather than anything this construction
+did. The rows where both columns read silent are the rows where the instrument has no
+power, and reading them as agreement would be the mistake the paragraph above exists to
+prevent.
 
 **Localization survives too, and that was predicted to fail.** The docstring's third
 prediction was that ranking tasks by their within-stratum residual --- the per-task
@@ -3763,20 +3770,27 @@ corrupted slice sets its own stratum's rate the *clean* tasks become the outlier
 `deviation` falls to or below an untargeted draw in **5 of the 12 swept cells, none of them
 below 40 of the 69 eligible tasks** --- the pool's majority is 35, and the first inversion
 is on the other side of it. The worst cell is 40 of 69 on a noiseless fleet, where it lands
-**0.00** of a 20-item withhold on a wrong label against an untargeted 0.35. That is the
-failure mode that matters, because a rule that is merely uninformative wastes a budget and
-a rule that is anti-informative spends it on correct labels. Degradation starts earlier
-than inversion: at 30 of 69 with analysts slipping it is already at 0.65 against a perfect
-1.00 one row above.
+**0.00** of a 20-item withhold on a wrong label, in all five slice draws, against an
+untargeted 0.35. That is the failure mode that matters, because a rule that is merely
+uninformative wastes a budget and a rule that is anti-informative spends it on correct
+labels. Degradation starts earlier than inversion: at 30 of 69 with analysts slipping it is
+already at a median 0.65 against a perfect 1.00 one row above.
+
+Every cell in that sweep is a median over the same five slice draws the grid uses, with its
+range printed beside it. It was measured at **one** draw first, and the difference is
+instructive rather than cosmetic: the structural claims are identical across draws --- the
+same inverted sizes, the same tie count --- while individual cells move by up to a tenth,
+so a single draw would have published 0.10 and 0.75 as though they were constants. This
+page has retracted five numbers that were properties of one sample.
 
 **Signing the residual removes the crossing, and names the assumption that does it.**
 `shortfall` is the same statistic read one-sided: audit where a stratum votes *low*, not
 where it votes far. A blind spot is a failure to credit evidence and a reviewer who credits
 less escalates less, so the corrupted tasks vote low whether they are ten of a stratum or
-fifty. It never falls to an untargeted draw anywhere in the sweep, and it **ties the oracle
-in 10 of the 12 cells**. Both misses are worth naming rather than rounding away: at 10 of
-69 with slip it takes 0.50 against the bound's 0.55, one task short, and at 60 of 69 with
-slip it takes 0.50 against 1.00, which is the real limit and is the subject of the
+fifty. It never falls to an untargeted draw in any cell of the sweep, and it **ties the oracle
+in 10 of the 12**. Both misses are worth naming rather than rounding away: at 10 of 69 with
+slip it takes 0.50 against the bound's 0.55, one task short, and at 60 of 69 with slip it
+takes a median 0.50 against 1.00, which is the real limit and is the subject of the
 paragraph below.
 
 That directional assumption is the scope condition and it is not new here: finding 22's
@@ -3788,8 +3802,9 @@ it no longer needs a nameable channel, and it still needs to know which way its 
 are wrong.
 
 **Where it does break.** At 60 of 69 corrupted, with analysts slipping at 0.15, `shortfall`
-falls to 0.50 against the oracle's 1.00 --- nine of the sixty-nine remain clean, and a
-rate estimated from a stratum that is seven-eighths corrupted is no longer a reference. That is
+falls to a median 0.50 against the oracle's 1.00 --- nine of the sixty-nine remain clean,
+and a rate estimated from a stratum that is seven-eighths corrupted is no longer a
+reference. That is
 the same shape as every other limit on this page: the statistic needs a majority of the
 stratum to be doing the right thing, which is a weaker requirement than the majority of the
 *fleet* that findings 19 to 21 needed, and is a different quantity rather than a smaller
