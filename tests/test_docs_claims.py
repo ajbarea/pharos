@@ -128,3 +128,33 @@ def test_the_extractors_can_fail():
     }
     assert paths_named_in("`results/*.json` are tracked") == {"results/*.json"}
     assert paths_named_in("a `dict` is not a path, nor is `uv sync`") == set()
+
+
+def test_the_package_ships_its_type_information():
+    """`ty` gates every annotation in this package, and none of it reaches a consumer
+    without this marker.
+
+    PEP 561: a package without `py.typed` is treated as untyped by every downstream
+    checker, however thoroughly it is annotated. The repository enforces types on itself
+    and shipped none of that guarantee outward, which is the same shape as a guard whose
+    result nothing reads.
+    """
+    assert (ROOT / "src" / "pharos" / "py.typed").is_file()
+    # And the wheel has to carry it. `packages = ["src/pharos"]` includes package data by
+    # default under hatchling; asserting the file's presence in the source tree is only
+    # half the claim, so pin the build configuration that carries it too.
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    assert 'packages = ["src/pharos"]' in pyproject
+
+
+def test_the_repository_says_how_to_cite_it():
+    """A public testbed a paper points at needs a citation record, and the record has to
+    name the artifact rather than a person's best guess at it."""
+    import yaml
+
+    citation = yaml.safe_load((ROOT / "CITATION.cff").read_text(encoding="utf-8"))
+    assert citation["cff-version"].startswith("1.2")
+    assert citation["authors"], "no authors recorded"
+    assert citation["license"] == "MIT", "the citation record disagrees with LICENSE"
+    assert (ROOT / "LICENSE").is_file()
+    assert citation["repository-code"].endswith("/pharos")
