@@ -1215,8 +1215,10 @@ def latent_blindspot() -> str:
         "",
         "**Localization at unanimity**, where every disagreement-reading rule is already "
         f"at chance. Share of a {payload['report_budget']}-item withhold that landed on a "
-        "label the estimator got wrong, over every slice draw and slip rate. `oracle` "
-        "reads ground truth and is a bound rather than a method.",
+        "label the estimator got wrong, over every slice draw and slip rate. `uniform` is "
+        "the **best** of 21 untargeted draws rather than their median, because a median is "
+        "not a floor and finding 28 had to retract a claim that beat one. `oracle` reads "
+        "ground truth and is a bound rather than a method.",
         "",
         "| Rule | median | range |",
         "| --- | --- | --- |",
@@ -1235,7 +1237,7 @@ def latent_blindspot() -> str:
         f"tasks a discounted report can flip is {sweep[0]['eligible']} on this corpus, so "
         "the crossing sits between the two middle rows.",
         "",
-        "| Slice | slip | errors | `uniform` | `deviation` | `shortfall` |",
+        "| Slice | slip | errors | `uniform` (best of 21) | `deviation` | `shortfall` |",
         "| --- | --- | --- | --- | --- | --- |",
     ]
     for row in sweep:

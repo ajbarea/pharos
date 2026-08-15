@@ -3746,8 +3746,11 @@ prediction was that ranking tasks by their within-stratum residual --- the per-t
 summands of the index --- would do no better than an untargeted draw at unanimity, on
 finding 21's reasoning that a unanimously blind fleet leaves nothing to distinguish a
 corrupted task from a merely unusual one. It is wrong. At unanimity `deviation` lands a
-median **1.00** of a 20-item withhold on a wrong label against an untargeted draw's 0.10,
-tying the oracle, with no channel named and no detection required first.
+median **1.00** of a 20-item withhold on a wrong label against the **best** of 21
+untargeted draws at 0.25, tying the oracle, with no channel named and no detection required
+first. The three disagreement-reading rules are all *below* that untargeted floor on the
+same fleets --- `margin` and `posterior` at 0.15, `consensus` at 0.10 --- which is finding
+28's result arriving again from a fleet with no channel in it.
 
 The reconciliation is the sentence above: the index is invariant to *which* tasks a
 standard corrupts, and its summands are not. A sum over residuals discards the information
@@ -3757,10 +3760,10 @@ a rank over the same residuals keeps, and finding 29 read only the sum.
 was that if localization worked at all it would work only while the corrupted slice was a
 minority of its stratum, and the sweep was run to find the crossing. It is there. Once the
 corrupted slice sets its own stratum's rate the *clean* tasks become the outliers, and
-`deviation` falls to or below an untargeted draw in **4 of the 12 swept cells, none of them
+`deviation` falls to or below an untargeted draw in **5 of the 12 swept cells, none of them
 below 40 of the 69 eligible tasks** --- the pool's majority is 35, and the first inversion
 is on the other side of it. The worst cell is 40 of 69 on a noiseless fleet, where it lands
-**0.00** of a 20-item withhold on a wrong label against an untargeted 0.20. That is the
+**0.00** of a 20-item withhold on a wrong label against an untargeted 0.35. That is the
 failure mode that matters, because a rule that is merely uninformative wastes a budget and
 a rule that is anti-informative spends it on correct labels. Degradation starts earlier
 than inversion: at 30 of 69 with analysts slipping it is already at 0.65 against a perfect

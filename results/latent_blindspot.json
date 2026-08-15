@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "3a11156e4ea8",
-    "git_dirty": true,
-    "generated_at": "2026-08-15T17:46:40+00:00",
+    "git_commit": "99264ba15e3f",
+    "git_dirty": false,
+    "generated_at": "2026-08-15T18:06:34+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -699,6 +699,10 @@
     50,
     60
   ],
+  "swept_cells": 12,
+  "cells_where_two_sided_is_no_better_than_uniform": 4,
+  "cells_where_one_sided_ties_the_bound": 10,
+  "cells_where_one_sided_is_no_better_than_uniform": 0,
   "unconverged_cells": [],
   "grid": [
     {

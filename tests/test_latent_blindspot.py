@@ -236,13 +236,13 @@ def test_the_sweep_crosses_the_stratum_majority():
 def test_the_counts_the_findings_page_quotes_are_the_artifact_s():
     """The two hand-typed numbers in the prose, tied to the artifact that produced them.
 
-    "4 of the 12 swept cells" and "ties the oracle in 10 of the 12" are counts a reader
+    "5 of the 12 swept cells" and "ties the oracle in 10 of the 12" are counts a reader
     would otherwise have to take on trust, and this project has already had a hand-typed
     summary of a generated table go stale in silence. Written here rather than generated
     into the page because they are sentences rather than rows.
     """
     payload = artifact("latent_blindspot.json")
     assert payload["swept_cells"] == 12
-    assert payload["cells_where_two_sided_is_no_better_than_uniform"] == 4
+    assert payload["cells_where_two_sided_is_no_better_than_uniform"] == 5
     assert payload["cells_where_one_sided_ties_the_bound"] == 10
     assert payload["cells_where_one_sided_is_no_better_than_uniform"] == 0

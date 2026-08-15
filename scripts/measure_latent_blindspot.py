@@ -210,10 +210,14 @@ def measure(
     risk: dict[str, float] = {}
     for name in (*POLICIES_HERE, BOUND):
         if name == "uniform":
-            # A sample, not an exact number. Compared against the *best* of the same 21
-            # draws everywhere else in this work, so both summaries are recorded: the
-            # median is what a deployment would typically get, the best is the floor a
-            # targeted rule has to clear.
+            # A sample, not an exact number, and the summary that goes into every
+            # comparison is the *best* of the 21 draws rather than their median. This is
+            # not a stylistic choice: finding 28 reported confidence-based abstention as
+            # working at unanimity on a gap of 0.006 against the median of the same 21
+            # draws, and the claim reversed once the comparison was against the best. A
+            # median is not a floor, so a targeted rule beating it has beaten a coin flip
+            # half the time. The median is published beside it for the reader who wants to
+            # know what a deployment would typically draw.
             cells = [
                 score(
                     n_blind=n_blind,
@@ -225,7 +229,9 @@ def measure(
                 )
                 for draw in UNIFORM_SEEDS
             ]
-            precision[name] = round(sorted(c.precision for c in cells)[len(cells) // 2], 4)
+            found = sorted(c.precision for c in cells)
+            precision[name] = round(max(found), 4)
+            precision["uniform_median"] = round(found[len(found) // 2], 4)
             risk[name] = round(min(c.risk for c in cells), 4)
             continue
         cell = score(
