@@ -638,15 +638,40 @@ Verified 2026-08-15.
   permutation scan and the parametric dispersion null, and both floor at `1/(m+1)`.
   The script asserts that floor sits below alpha before it measures anything.
 
-**What is deliberately not claimed.** The literature on latent structure in crowd
-labelling -- worker-clustering models, latent-class extensions of minimax entropy, and
-the 2026 correlated-annotator work -- is adjacent and was read, and none of it is cited
-as grounding because every method in it reads a **per-annotator stream**. That is the
-one thing this setting does not have, so the comparison would be decorative. The
-honest statement is the one finding 29 already makes about the index of dispersion:
-overdispersion diagnostics are standard wherever counts are modelled, what was not
-found is prior work applying them under this observation model, and that is a statement
-about our search rather than about the literature.
+- Wu, J., Kou, Z., Zeng, H., Huang, W., Liu, B., Gu, H., Jia, Y., Jiang, D., Liu, Y., &
+  Geng, X. (2026). Trustworthy Federated Label Distribution Learning under Annotation
+  Quality Disparity. [arXiv:2605.04827](https://arxiv.org/abs/2605.04827) (v1 6 May 2026,
+  v2 10 May 2026)
+  **Marks the boundary** on the federated side, and does it twice. FedQual is the nearest
+  current work on unreliable annotation in a federated setting, and its two mechanisms
+  both need what this setting does not have: reliability-aware aggregation reweights
+  **per-client contributions**, which is the identity finding 18's protocol removes, and
+  the quality it estimates is *disparity between* clients. A blind spot every client
+  shares is invisible to it by construction -- reweighting toward the reliable clients
+  does nothing when there are none. Finding 30 operates in exactly that regime.
+
+- Chen, J., Xu, S., Feng, J., Gao, Z., & Yang, Z. (2026). AHEAD: Advancing Multi-Class
+  Label Aggregation with Interpretable Cross-Annotator Modeling.
+  [arXiv:2607.18465](https://arxiv.org/abs/2607.18465) (20 July 2026)
+  **Marks the same boundary** on the crowdsourcing side. Cross-annotator modelling is the
+  closest thing in the label-aggregation literature to reading structure the individual
+  annotator does not reveal, and it still builds **annotator-specific confusion
+  matrices**. It models how annotators differ; the failure this testbed measures is what
+  they agree on.
+
+**What is deliberately not claimed.** The three papers above, with FedDS, are the current
+state of the nearest literature, and the pattern across them is the finding's actual
+position rather than a claim of novelty: every one reads a **per-annotator stream** and
+every one targets *differences between* annotators. This setting has neither -- only
+per-task vote sums -- and the error is one the annotators share. The wider literature on
+latent structure in crowd labelling (worker-clustering models, latent-class extensions of
+minimax entropy) was read and is not cited as grounding for the same reason: the
+comparison would be decorative when the observation models do not meet.
+
+The honest statement about the instrument is the one finding 29 already makes:
+overdispersion diagnostics are standard wherever counts are modelled, what was not found
+is prior work applying them under this observation model, and that is a statement about
+our search rather than about the literature.
 
 ## Open: claims not yet grounded
 
