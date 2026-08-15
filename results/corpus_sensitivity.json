@@ -1325,14 +1325,15 @@
     "the_shape_index_is_calibrated_in_every_draw": true,
     "the_shape_index_tracks_the_shared_share_in_every_draw": true,
     "the_shape_index_picks_the_winning_rule_in_every_draw": false,
+    "the_shape_index_price_is_a_constant": false,
     "blinded_channel_detected_and_controls_silent": true,
     "the_auditable_pool_is_a_constant": false
   },
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "e764cdc8a977",
+    "git_commit": "8e46347bd7fc",
     "git_dirty": false,
-    "generated_at": "2026-08-15T09:23:50+00:00",
+    "generated_at": "2026-08-15T10:42:02+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
