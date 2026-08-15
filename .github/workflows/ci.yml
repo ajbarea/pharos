@@ -71,18 +71,22 @@ jobs:
       # is exactly its 20 annotation-only lines. The run this comment was written from
       # measured 92.66% on 3.12 and 3.13 and 92.26% on 3.14 from one commit.
       #
-      # Two consequences worth seeing rather than rediscovering: the strictest leg is
-      # 3.14, which is *not* a required check on main; and the leg that uploads to
-      # Codecov is 3.13, which is the most generous. Neither is wrong, and neither is
-      # what a reader would assume from a single "92%".
+      # Since the legs disagree, the two things that speak for the project -- the
+      # required check on main and the number Codecov publishes -- are both taken from
+      # 3.14, the strictest of them. The alternative shape is to upload each leg's
+      # partial and enforce once over the combined report; it would report the same
+      # verdict here, because nothing in src/ or scripts/ branches on interpreter
+      # version and so no leg can cover a line another cannot reach. It would only
+      # start to matter if version-conditional code appeared.
       - run: >
           uv run pytest --cov=pharos --cov=scripts --cov-branch
           --cov-report=term-missing --cov-report=xml --cov-fail-under=92
           --junitxml=junit.xml -o junit_family=legacy
-      # Only one matrix leg uploads. Three identical reports would be merged into the
-      # same commit for no added signal and would race each other doing it.
+      # Only one matrix leg uploads. Three reports would be merged into the same commit
+      # and would race each other doing it, and the merge would resolve to the most
+      # generous of the three rather than the one the gate is set against.
       - name: Upload coverage to Codecov
-        if: matrix.python-version == '3.13'
+        if: matrix.python-version == '3.14'
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           files: coverage.xml
@@ -91,7 +95,7 @@ jobs:
           fail_ci_if_error: true
           disable_search: true
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() && matrix.python-version == '3.13' }}
+        if: ${{ !cancelled() && matrix.python-version == '3.14' }}
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           files: junit.xml
