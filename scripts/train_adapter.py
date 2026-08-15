@@ -48,14 +48,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from measure_rule_learnability import (
-    INSTRUCTION_NO_RULE,
-    _reports_block,
-    parse_verdict,
-)
 
 from pharos.analyst import DEFAULT_ENSEMBLE, AnalystPolicy
 from pharos.generate import GeneratorConfig, generate
+from pharos.prompting import INSTRUCTION_NO_RULE, parse_verdict, reports_block
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, log_execution_context, progress, record
@@ -148,7 +144,7 @@ def verdict_text(significant: bool) -> str:
 
 def prompt_for(task: TriageTask) -> str:
     """Byte-identical to the prompt finding 5 scored, so the two are comparable."""
-    return f"{_reports_block(task)}\n\n{INSTRUCTION_NO_RULE}"
+    return f"{reports_block(task)}\n\n{INSTRUCTION_NO_RULE}"
 
 
 def world_targets(tasks: list[TriageTask]) -> dict[str, bool]:

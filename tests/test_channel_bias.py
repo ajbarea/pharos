@@ -2,16 +2,10 @@
 
 import pytest
 from conftest import artifact
-from measure_channel_bias import (
-    ALPHA,
-    Detection,
-    detect,
-    scan,
-    stratified_delta,
-    verdict_rates,
-)
+from measure_channel_bias import Detection, detect, scan, stratified_delta, verdict_rates
 
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import ALPHA
 from pharos.labels import Compartment
 from pharos.tasks import build_triage_tasks
 

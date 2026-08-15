@@ -17,6 +17,7 @@ nav = [
       { "The release decision" = "reference/disclosure.md" },
       { "Reporting a noisy measurement" = "reference/uncertainty.md" },
       { "Corpus schema" = "reference/corpus-schema.md" },
+      { "Governance kit" = "reference/governance.md" },
   ]},
   { "Choosing a model" = "models.md" },
   { "Releasing a corpus" = "releasing.md" },

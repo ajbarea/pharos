@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty secure authority audit blindspot channel-bias selective-risk fleet-sensitivity teacher-fleet logcheck docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty secure authority audit blindspot channel-bias selective-risk error-shape fleet-sensitivity teacher-fleet logcheck docs-tables explorer ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -112,6 +112,10 @@ selective-risk:            ## What abstention buys once the audit budget buys no
 	@mkdir -p results
 	uv run python scripts/measure_selective_risk.py --out results/selective_risk.json
 
+error-shape:               ## Whether the shape of the error is visible from the aggregate (no model)
+	@mkdir -p results
+	uv run python scripts/measure_error_shape.py --out results/error_shape.json
+
 governance-sensitivity:    ## Whether findings 19-23 survive a fleet other than nine (no model)
 	@mkdir -p results
 	uv run python scripts/measure_governance_sensitivity.py --out results/governance_sensitivity.json
@@ -173,6 +177,7 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_blind_spot.py
 	uv run python scripts/measure_channel_bias.py
 	uv run python scripts/measure_selective_risk.py
+	uv run python scripts/measure_error_shape.py
 	uv run python scripts/measure_estimator_initialization.py
 	uv run python scripts/measure_fleet_sensitivity.py
 	uv run python scripts/logcheck.py

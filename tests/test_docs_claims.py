@@ -128,3 +128,94 @@ def test_the_extractors_can_fail():
     }
     assert paths_named_in("`results/*.json` are tracked") == {"results/*.json"}
     assert paths_named_in("a `dict` is not a path, nor is `uv sync`") == set()
+
+
+def test_the_package_ships_its_type_information():
+    """`ty` gates every annotation in this package, and none of it reaches a consumer
+    without this marker.
+
+    PEP 561: a package without `py.typed` is treated as untyped by every downstream
+    checker, however thoroughly it is annotated. The repository enforces types on itself
+    and shipped none of that guarantee outward, which is the same shape as a guard whose
+    result nothing reads.
+    """
+    assert (ROOT / "src" / "pharos" / "py.typed").is_file()
+    # And the wheel has to carry it. `packages = ["src/pharos"]` includes package data by
+    # default under hatchling; asserting the file's presence in the source tree is only
+    # half the claim, so pin the build configuration that carries it too.
+    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    assert 'packages = ["src/pharos"]' in pyproject
+
+
+def test_the_repository_says_how_to_cite_it():
+    """A public testbed a paper points at needs a citation record, and the record has to
+    name the artifact rather than a person's best guess at it."""
+    import yaml
+
+    citation = yaml.safe_load((ROOT / "CITATION.cff").read_text(encoding="utf-8"))
+    assert citation["cff-version"].startswith("1.2")
+    assert citation["authors"], "no authors recorded"
+    assert citation["license"] == "MIT", "the citation record disagrees with LICENSE"
+    assert (ROOT / "LICENSE").is_file()
+    assert citation["repository-code"].endswith("/pharos")
+
+
+def _script_imports() -> dict[str, list[str]]:
+    """Which scripts import which other scripts, by module name."""
+    import re
+
+    found: dict[str, list[str]] = {}
+    for path in sorted((ROOT / "scripts").glob("*.py")):
+        modules = sorted(
+            set(
+                re.findall(
+                    r"^from (measure_\w+|train_adapter) import", path.read_text(), re.MULTILINE
+                )
+            )
+        )
+        if modules:
+            found[path.name] = modules
+    return found
+
+
+def test_no_script_imports_another():
+    """The library boundary, enforced rather than intended.
+
+    Thirty-four names crossed script boundaries before `pharos.governance` and
+    `pharos.prompting` existed, two files were each imported by seven others, and one
+    import reached past a leading underscore. A boundary nothing checks is a boundary that
+    erodes the next time a measurement needs something a neighbour already has.
+
+    There is no allowlist. If a script needs what another script has, the shared thing
+    belongs in the package -- which is also the answer for anyone using this testbed to
+    measure their own policy, since they cannot import a script at all.
+    """
+    offenders = _script_imports()
+    assert not offenders, (
+        f"these scripts import other scripts: {offenders}. Move the shared symbol into "
+        "the package rather than importing across experiment files."
+    )
+
+
+def test_no_script_redefines_what_the_package_exports():
+    """Two definitions of one idea is the state the extraction removed.
+
+    It happened during that extraction: the audit-scoring functions were moved and the
+    originals left behind, so the script kept using its own copy while the package held
+    another. Coverage surfaced it; this makes it fail directly.
+    """
+    import re
+
+    import pharos.governance as governance
+
+    exported = set(governance.__all__)
+    clashes = {}
+    for path in sorted((ROOT / "scripts").glob("*.py")):
+        defined = set(re.findall(r"^(?:def|class) (\w+)", path.read_text(), re.MULTILINE))
+        overlap = defined & exported
+        if overlap:
+            clashes[path.name] = sorted(overlap)
+    assert not clashes, (
+        f"these scripts redefine names the package exports: {clashes}. Either the script "
+        "should import it, or the two are different things and one needs a better name."
+    )

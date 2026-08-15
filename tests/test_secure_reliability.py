@@ -1,21 +1,11 @@
 """Findings 18 and 19: the estimator under a sum, and what an authority costs."""
 
 import pytest
-from measure_authority_anchors import (
-    ANCHOR_COUNTS,
-    ANCHOR_SEED,
-    ANCHOR_SEEDS,
-    COMPOSITIONS,
-    REPAIRED,
-    choose_anchors,
-    summarize_thresholds,
-)
+from measure_authority_anchors import ANCHOR_COUNTS, ANCHOR_SEED, ANCHOR_SEEDS, COMPOSITIONS
 from measure_secure_reliability import (
     CLIFF_GAP,
     Readership,
     _cliff,
-    contributions_for,
-    fleet_of,
     measure_readership,
     sweep_equivalence,
 )
@@ -24,6 +14,13 @@ from pharos.analyst import Proposal
 from pharos.disclosure import DROP_COMPARTMENTS, KEEP_COMPARTMENTS
 from pharos.fleet import assign_fleet
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import (
+    REPAIRED,
+    choose_anchors,
+    contributions_for,
+    fleet_of,
+    summarize_thresholds,
+)
 from pharos.labels import declassify
 from pharos.tasks import build_triage_tasks
 

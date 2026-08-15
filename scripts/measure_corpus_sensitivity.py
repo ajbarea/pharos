@@ -50,10 +50,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from measure_audit_policy import DEPLOYABLE
-from measure_blind_spot import REFUSED_EXIT
-from measure_channel_bias import ALPHA
-
+from pharos.governance import ALPHA, DEPLOYABLE, REFUSED_EXIT
 from pharos.provenance import run_provenance
 from pharos.telemetry import get_logger, progress, record
 
@@ -114,6 +111,8 @@ KNOWN_FALSE = frozenset(
         "selection_beats_uniform_in_every_draw",
         "provenance_ties_the_oracle_bound_in_every_draw",
         "provenance_finds_every_corrupted_item_in_every_draw",
+        "the_shape_index_picks_the_winning_rule_in_every_draw",
+        "the_shape_index_price_is_a_constant",
         "the_auditable_pool_is_a_constant",
         "the_anchor_price_is_a_constant",
     }
@@ -339,6 +338,34 @@ def selective_row(seed: int) -> dict[str, Any] | None:
     }
 
 
+def error_shape_row(seed: int) -> dict[str, Any] | None:
+    """Finding 29 at one draw: is the shape of the error visible, and is it actionable?
+
+    Two questions rather than one, because they came apart. The index tracking the shared
+    share is a claim about the statistic; picking the rule that wins is a claim about
+    what a deployment should do with it, and the second can fail while the first holds.
+    """
+    payload = run_at("measure_error_shape.py", seed)
+    if payload is None:
+        return None
+    findings = payload["findings"]
+    decidable = payload["decidable_cells"]
+    correct = payload["correct_predictions"]
+    return {
+        "seed": seed,
+        "calibrated_on_a_healthy_fleet": findings["index_is_calibrated_on_a_healthy_fleet"],
+        "rises_with_the_shared_share": findings["index_rises_with_the_shared_share"],
+        "picks_the_winning_rule_everywhere": findings["the_index_picks_the_rule_that_wins"],
+        "silent_fleet_reports_undiagnosable": findings["a_silent_fleet_reports_undiagnosable"],
+        "decidable_cells": decidable,
+        "correct_predictions": correct,
+        #: The number the accuracy rate does not carry. A predictor wrong in a cell where
+        #: both rules are within a task of each other has cost almost nothing, and this
+        #: work has already published one rate that read as worse than it was.
+        "worst_cost_of_a_wrong_call": payload["worst_cost_of_a_wrong_call"],
+    }
+
+
 def channel_row(seed: int) -> dict[str, Any] | None:
     """Finding 22 at one draw: is the blinded channel detected, controls still silent?"""
     payload = run_at("measure_channel_bias.py", seed, ("--permutations", str(PERMUTATIONS)))
@@ -372,7 +399,7 @@ def main() -> int:
             f"alpha {ALPHA}; finding 22 would read as moved when nothing had moved"
         )
 
-    audit, blind, channel, anchors, selective = [], [], [], [], []
+    audit, blind, channel, anchors, selective, shape = [], [], [], [], [], []
     for seed in args.draws:
         progress("corpus_sensitivity.draw", seed=seed)
         print(f">>> draw {seed}")
@@ -384,6 +411,8 @@ def main() -> int:
             anchors.append(row)
         if (row := selective_row(seed)) is not None:
             selective.append(row)
+        if (row := error_shape_row(seed)) is not None:
+            shape.append(row)
         if not args.skip_channel and (row := channel_row(seed)) is not None:
             channel.append(row)
 
@@ -417,11 +446,13 @@ def main() -> int:
         "channel": channel,
         "anchors": anchors,
         "selective": selective,
+        "error_shape": shape,
         "auditable_pool_range": [pools[0], pools[-1]] if pools else None,
         "by_composition": sorted(by_composition.values(), key=lambda e: e["n_wrong"]),
         "draws_attempted": len(args.draws),
         "draws_hosting_the_blind_spot": len(blind),
         "draws_hosting_selective_abstention": len(selective),
+        "draws_hosting_the_shape_test": len(shape),
         "invariants": {
             #: Finding 20's deep claim, and the one that makes it a bound rather than a
             #: lucky draw. If selection ties the oracle everywhere, no better selection
@@ -480,6 +511,32 @@ def main() -> int:
                 for r in selective
                 if r["confidence_works_on_random_error"] is not None
             ),
+            #: Finding 29, in the three claims it separates. The first two are about the
+            #: statistic and are expected to hold; the third is about acting on it and is
+            #: published as false on the committed corpus, because the index gets two
+            #: near-tie cells wrong. Registering all three is what makes a change in any
+            #: of them visible.
+            "the_shape_index_is_calibrated_in_every_draw": bool(shape)
+            and all(r["calibrated_on_a_healthy_fleet"] for r in shape),
+            "the_shape_index_tracks_the_shared_share_in_every_draw": bool(shape)
+            and all(r["rises_with_the_shared_share"] for r in shape),
+            "the_shape_index_picks_the_winning_rule_in_every_draw": bool(shape)
+            and all(r["picks_the_winning_rule_everywhere"] for r in shape),
+            #: Finding 29's price, and the reason this invariant exists at all. The
+            #: committed corpus's worst wrong call cost 0.011 of published error rate,
+            #: and that number reached a findings page, a manuscript abstract, a
+            #: contribution list and a conclusion before this sweep ran. Across draws it
+            #: ranges to 0.05. Same shape as finding 19's anchor prices, caught one step
+            #: earlier.
+            "the_shape_index_price_is_a_constant": bool(shape)
+            and len(
+                {
+                    r["worst_cost_of_a_wrong_call"]
+                    for r in shape
+                    if r["worst_cost_of_a_wrong_call"] is not None
+                }
+            )
+            <= 1,
             #: Finding 22.
             "blinded_channel_detected_and_controls_silent": (
                 bool(channel)
@@ -502,6 +559,7 @@ def main() -> int:
     print(f"  auditable pool over {len(audit)} draws: {pools[0]} to {pools[-1]}" if pools else "")
     print(f"  blind-spot experiment constructible in {len(blind)}/{len(args.draws)} draws")
     print(f"  abstention experiment constructible in {len(selective)}/{len(args.draws)} draws")
+    print(f"  shape test constructible in {len(shape)}/{len(args.draws)} draws")
     print()
     print(f"    {'wrong':>6}{'draws':>7}{'beats uniform':>15}{'ties oracle':>13}")
     print("    " + "-" * 41)

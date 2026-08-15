@@ -429,6 +429,70 @@ ESCAPES = (
         ),
     ),
     Escape(
+        key="errorshape",
+        objection=(
+            "Then tell me which of those two rules applies to my fleet, without giving me "
+            "a second fleet to compare against."
+        ),
+        findings=(29,),
+        verdict="bounded",
+        outcome=(
+            "Answerable, and with less than the detector needs. Within an evidence "
+            "stratum a fleet applying one rule votes identically, so independent slips "
+            "are binomial and a shared standard is not --- it splits the stratum into "
+            "two deterministic groups, and a mixture of two rates is overdispersed. The "
+            "index of dispersion reads 1 on a fleet with no shared blind spot at every "
+            "noise level and rises with the share carrying one, needing only per-task "
+            "vote sums, contributor counts and public evidence counts: no channel to "
+            "name, no per-analyst stream, no ground truth. What bounds it is that it "
+            "goes quiet as independent noise rises, and it names the wrong rule in the "
+            "cells where it does --- confidently, not by abstaining. The saving grace is "
+            "measured rather than assumed: those cells are ones where the winning rule "
+            "beats an untargeted draw by about one task, so following the index there "
+            "costs a hundredth of the published error rate. It cannot diagnose a fleet "
+            "with no disagreement anywhere at all, and says so rather than reporting it "
+            "clean."
+        ),
+        readings=(
+            Reading(
+                "Calibrated on a healthy fleet",
+                "error_shape.json",
+                "findings.index_is_calibrated_on_a_healthy_fleet",
+            ),
+            Reading(
+                "Rises with the shared share",
+                "error_shape.json",
+                "findings.index_rises_with_the_shared_share",
+            ),
+            Reading(
+                "Picks the winning rule everywhere",
+                "error_shape.json",
+                "findings.the_index_picks_the_rule_that_wins",
+            ),
+            Reading(
+                "Cells where a rule wins at all",
+                "error_shape.json",
+                "decidable_cells",
+            ),
+            Reading(
+                "Of those, called correctly",
+                "error_shape.json",
+                "correct_predictions",
+            ),
+            Reading(
+                "Worst cost of a wrong call",
+                "error_shape.json",
+                "worst_cost_of_a_wrong_call",
+                "{:.4f}",
+            ),
+            Reading(
+                "Draws hosting the test",
+                "corpus_sensitivity.json",
+                "draws_hosting_the_shape_test",
+            ),
+        ),
+    ),
+    Escape(
         key="fleetsize",
         objection="Does any of this depend on the fleet being nine analysts?",
         findings=(24,),

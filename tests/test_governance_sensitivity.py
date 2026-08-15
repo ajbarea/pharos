@@ -3,10 +3,11 @@
 import pytest
 from conftest import artifact
 from measure_audit_policy import AUDIT_RUNGS
-from measure_authority_anchors import ANCHOR_RUNGS, RUNGS, ladder, majority
-from measure_blind_spot import BLIND_RUNGS
-from measure_channel_bias import ALPHA, CHANNEL_RUNGS
+from measure_authority_anchors import ANCHOR_RUNGS
+from measure_channel_bias import CHANNEL_RUNGS
 from measure_governance_sensitivity import SWEEP_PERMUTATIONS, _better
+
+from pharos.governance import ALPHA, BLIND_RUNGS, RUNGS, ladder, majority
 
 #: What each script's constant tuple was before the ladder replaced it. These are the
 #: published compositions: every number in findings 19-23 was measured at one of them.

@@ -32,11 +32,10 @@ from math import comb
 from pathlib import Path
 from typing import Any
 
-from measure_rule_learnability import build_prompt, parse_verdict
-
 from pharos.attribute import DEFAULT_ENDPOINT, DEFAULT_MODEL, generate_text
 from pharos.generate import GeneratorConfig, generate
 from pharos.models import resolve
+from pharos.prompting import build_prompt, parse_verdict
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, progress, record

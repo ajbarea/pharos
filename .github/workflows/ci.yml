@@ -232,6 +232,14 @@ jobs:
       # at all, so a corpus change that moved the detection threshold shows up here.
       - name: Price what abstention buys where auditing buys nothing
         run: uv run python scripts/measure_selective_risk.py
+      # Finding 29, and two guards rather than one. It refuses a null too coarse to fire
+      # -- the p-value floors at 1/(m+1), and the first version of this script compared
+      # that floor against a smaller alpha, so every cell would have read as not
+      # overdispersed including the fleet whose index is 9.00. It also carries the
+      # calibration control: a fleet with no shared blind spot must sit at an index of 1,
+      # and if that ever stops holding the statistic is reading something else.
+      - name: Test whether the shape of the error is visible from the aggregate
+        run: uv run python scripts/measure_error_shape.py
       # Finding 25's sweep, and the guard on the one degree of freedom underneath every
       # cliff finding. The escape it reports must stay confined to the crossing: if a
       # start ever recovers the truth past it, findings 12 and 17-24 are measuring a

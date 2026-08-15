@@ -34,14 +34,11 @@ Needs no model and no network. Slow rather than heavy: every cell is a fresh EM 
 
 import argparse
 import json
-import subprocess
-import sys
-import tempfile
 from pathlib import Path
 from typing import Any
 
-from measure_correlated_fleets import exact_wrong_majority
-
+from pharos.governance import exact_wrong_majority
+from pharos.governance.sweep import MeasurementFailedError, run_measurement
 from pharos.provenance import run_provenance
 from pharos.telemetry import get_logger, progress, record
 
@@ -55,36 +52,16 @@ FLEETS = (5, 9, 15, 25, 51)
 
 
 def run_at(script: str, fleet: int, extra: tuple[str, ...] = ()) -> dict[str, Any]:
-    """One measurement at one fleet size, read back from a temporary artifact.
+    """One measurement at one fleet size.
 
-    Shelling out rather than importing: each script owns its own defaults, argument
-    parsing and validity checks, and re-implementing that here would let this sweep and
-    the committed artifacts drift apart. The temporary file is the point -- a
-    sensitivity sweep must not overwrite `results/`.
+    A thin call into `pharos.governance.sweep`, which both sensitivity sweeps share. This
+    one refuses nothing: a fleet size is always constructible, so any non-zero exit is a
+    bug and is raised rather than being counted as a point that could not be measured.
     """
-    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as fh:
-        out = Path(fh.name)
-    try:
-        completed = subprocess.run(  # noqa: S603
-            [
-                sys.executable,
-                str(ROOT / "scripts" / script),
-                "--fleet",
-                str(fleet),
-                "--out",
-                str(out),
-                *extra,
-            ],
-            capture_output=True,
-            text=True,
-            cwd=ROOT,
-            check=False,
-        )
-        if completed.returncode != 0 or not out.stat().st_size:
-            raise SystemExit(f"{script} failed at --fleet {fleet}:\n{completed.stderr[-800:]}")
-        return json.loads(out.read_text(encoding="utf-8"))
-    finally:
-        out.unlink(missing_ok=True)
+    payload = run_measurement(script, ["--fleet", str(fleet), *extra], allow_refusal=False)
+    if payload is None:  # pragma: no cover -- allow_refusal is False, so this cannot happen
+        raise MeasurementFailedError(f"{script} refused at --fleet {fleet}")
+    return payload
 
 
 def consensus_row(fleet: int) -> dict[str, Any]:

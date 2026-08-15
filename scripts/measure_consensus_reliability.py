@@ -46,6 +46,7 @@ from pathlib import Path
 from pharos.analyst import Action, AnalystPolicy, Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import WRONG_THRESHOLD, fleet_of
 from pharos.inference import dawid_skene
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
@@ -63,7 +64,6 @@ FLEET = 9
 #: The wrong standard the mistaken share of the fleet holds. Two-of-three rather than
 #: one-of-three because it is the *closer* error: a control that cannot survive the
 #: near-miss has no chance against the gross one.
-WRONG_THRESHOLD = 2
 
 #: Contributor agreement below which the oracle drops a contributor. The oracle is a
 #: bound, not a proposal: it is handed the per-contributor truth that any real method
@@ -120,15 +120,6 @@ def _agreement(rows: Sequence[tuple[str, str, bool]], truth: dict[str, bool]) ->
     if not rows:
         return None
     return sum(v == truth[t] for t, _, v in rows) / len(rows)
-
-
-def fleet_of(n_wrong: int, size: int = FLEET) -> tuple[AnalystPolicy, ...]:
-    """`n_wrong` analysts holding the wrong standard, the rest holding the right one."""
-    right = [AnalystPolicy(f"right-{i}") for i in range(size - n_wrong)]
-    wrong = [
-        AnalystPolicy(f"wrong-{i}", escalation_threshold=WRONG_THRESHOLD) for i in range(n_wrong)
-    ]
-    return tuple(right + wrong)
 
 
 def conditions(

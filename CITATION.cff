@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: >-
+  If you use this testbed, cite the software. The corpus it generates is
+  reproducible from a seed, so citing a version is citing the data.
+title: "Pharos: a labeled corpus generator and acceptance gate for measuring a governed disclosure boundary"
+abstract: >-
+  Pharos generates a labeled corpus of maritime watch reporting whose objects
+  carry classification levels and cross-cutting compartments over a product
+  lattice, and gates whether a generated corpus may be used at all. It is the
+  testbed a disclosure-boundary argument is measured on: the corpus, the
+  acceptance gate that can refuse it, the simulated analyst fleet, and the
+  aggregator-side machinery those measurements run through.
+type: software
+authors:
+  - given-names: Arnaldo
+    family-names: Barea
+    email: ajb6289@rit.edu
+    affiliation: Rochester Institute of Technology
+repository-code: "https://github.com/ajbarea/pharos"
+url: "https://ajbarea.github.io/pharos/"
+license: MIT
+keywords:
+  - federated learning
+  - disclosure boundary
+  - synthetic corpus
+  - annotator disagreement
+  - evaluation methodology

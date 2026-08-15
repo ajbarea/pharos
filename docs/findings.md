@@ -205,6 +205,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `decode_stability` | 30 | yes | - |
 | `difficulty_confound` | 200 | yes | - |
 | `edge_cost` | 199 | yes | - |
+| `error_shape` | 69 | yes | - |
 | `fleet_linkage` | 200 | yes | - |
 | `label_fidelity` | 40 | yes | - |
 | `learnability` | 600 | **no** | **rows[0]**: accuracy 0.482 does not beat the majority floor 0.685: this is not evidence of capability |
@@ -254,7 +255,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**27 of 59** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**27 of 60** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 **Carrying no validity assessment, which is a gap rather than a pass:** `corpus_sensitivity`, `estimator_initialization`, `governance_sensitivity`.
 
@@ -3231,6 +3232,11 @@ as the `--fleet` defect finding 24 found, and all invisible from the committed a
 | Provenance abstention beats every untargeted draw | 28 | **7** | 7 |
 | Provenance abstention ties the bound | 28 | **5** | 7 |
 | Confidence abstention works on *random* error | 28 | **5** | 7 |
+| The shape index is calibrated on a healthy fleet | 29 | **7** | 7 |
+| It rises with the shared share | 29 | **7** | 7 |
+| It picks the winning rule in every cell | 29 | **3** | 7 |
+
+Finding 29's index picks the rule that wins in **56 of 64** decidable cells across 7 draws. What a wrong call costs is **0.011 to 0.050** of published error rate, and the committed corpus is at the cheap end: quoting its 0.011 as the price of a wrong call would be reporting the draw again.
 | Blinded channel detected, controls silent | 22 | **8** | 8 |
 
 Fleet of 9, 8 corpus draws, every denominator stated. Finding 21's experiment needs a blind channel orthogonal to item difficulty and refuses to run where they are entangled, so it is constructible on **7 of 8** draws; a draw that cannot host the negative control says nothing about the finding and is excluded rather than counted against it.
@@ -3539,3 +3545,109 @@ draw. `results/corpus_sensitivity.json` carries each denominator.
     one task, well inside the spread of the baseline it was beating. Withholding 20 random
     labels of two hundred removes an error now and then, so the median is not a floor. The
     comparison is now against the *best* of the 21 draws, and the claim reversed.
+
+## 29. The shape of the error is visible from the aggregate, and it is cheap to read wrong
+
+`scripts/measure_error_shape.py`, `results/error_shape.json`
+
+[Finding 28](#28-the-open-problem-answered-detection-converts-into-coverage-not-into-correction)
+ends on a fork it cannot resolve from inside. Withholding by the named channel is right
+where the error is shared; withholding by confidence is right where it is independent;
+each is wrong in the other regime. That measurement decided which regime it was in by
+checking a **healthy control fleet's** error count -- which an experimenter has and a
+deployment does not.
+
+**The statistic.** Condition on the evidence stratum, as finding 22's detector does.
+Within a stratum every task shows the same evidence, so a fleet applying one rule votes
+the same way on all of them and the per-task vote sum varies only as its analysts slip.
+Independent slips are exactly binomial. A *shared* error is not: it splits the stratum
+into the tasks the shared standard corrupts and the tasks it does not, and a mixture of
+two rates carries more variance than a binomial at their mean. So the **index of
+dispersion** -- observed variance over binomial variance, pooled across strata -- sits at
+1 under independent error and rises above it when part of the error is shared.
+
+It reads per-task vote sums, per-task contributor counts, and the public evidence count.
+That is **strictly less than finding 22's detector needs**: no channel to name, no
+per-analyst stream, no ground truth, no control fleet. Overdispersion diagnostics are
+standard wherever counts are modelled; what we did not find prior work for is this
+application, and that is a statement about our search rather than about the literature.
+
+<!-- BEGIN GENERATED: error-shape -->
+**Index of dispersion** --- observed variance of the per-task vote sums over the binomial variance at the same rate, within evidence stratum. 1 is independent error; above 1 is a shared component. `--` is a fleet with no variance anywhere, which cannot be diagnosed rather than being diagnosed as clean.
+
+| Blind of 9 | slip 0.0 | slip 0.05 | slip 0.15 | slip 0.25 | slip 0.4 |
+| --- | --- | --- | --- | --- | --- |
+| 0 | -- | 1.10 | 0.96 | 1.08 | 1.08 |
+| 1 | 0.73 | 1.06 | 0.95 | 0.89 | 1.01 |
+| 3 | 2.36 | 1.62 | 1.11 | 0.95 | 0.93 |
+| 5 | 4.23 | 2.61 | 1.44 | 1.05 | 0.82 |
+| 7 | 6.42 | 3.67 | 1.83 | 1.11 | 0.95 |
+| 9 | 9.00 | 5.32 | 2.57 | 1.49 | 0.96 |
+
+**Which rule wins, and which the index picks.** `C` is withholding by the named channel, `F` is withholding by confidence, `b` is both beating an untargeted draw, `-` is neither, `?` is a fleet the index cannot diagnose.
+
+| Blind of 9 | slip 0.0 | slip 0.05 | slip 0.15 | slip 0.25 | slip 0.4 |
+| --- | --- | --- | --- | --- | --- |
+| 0 | ?/? | ?/F | ?/F | F/F | F/F |
+| 1 | ?/F | ?/F | -/F | F/F | -/F |
+| 3 | ?/C | ?/C | F/F | b/F | C/F ⚠ |
+| 5 | ?/C | b/C | b/C | b/F | -/F |
+| 7 | b/C | b/C | b/C | b/F | C/F ⚠ |
+| 9 | C/C | C/C | C/C | C/C | -/F |
+
+The index picks the rule that wins in **8 of 10** cells where a rule wins at all. The rate is the less useful half of that sentence: what a wrong call costs is **0.011** of published error rate at worst, because the cells it misses are ones where the winning rule beats an untargeted draw by about one task.
+
+| Missed cell | Wins | Index says | Cost | Channel | Confidence | Best uniform |
+| --- | --- | --- | --- | --- | --- | --- |
+| 3 blind, slip 0.4 | channel | confidence | 0.0111 | 0.3056 | 0.3167 | 0.3111 |
+| 7 blind, slip 0.4 | channel | confidence | 0.0111 | 0.3556 | 0.3667 | 0.3667 |
+<!-- END GENERATED: error-shape -->
+
+**What holds.** The index is calibrated on a fleet with no shared blind spot -- it sits
+at 1 at every slip rate that produces any dispersion at all -- and it rises monotonically
+with the share of the fleet carrying the blind spot, reaching 9.00 on a noiseless fleet
+where every analyst is blind. It falls back toward 1 as independent noise rises, which is
+the mechanism working as described rather than failing: noise fills in the gap between
+the two groups a shared standard creates.
+
+**What does not, and the prediction it refutes.** The docstring predicted that
+thresholding the index would pick the winning rule in most cells *and that its failures
+would land in the ambiguous cells where neither rule dominates*. The first half holds and
+the second is wrong. Both misses are cells where a rule genuinely wins and the index
+confidently names the other one -- a wrong recommendation rather than an abstention,
+which is the worse failure mode.
+
+**Why the rate is the less useful half.** Both missed cells sit at the highest slip rate,
+where the estimator is already carrying 65 and 76 wrong labels of two hundred, and where
+the winning rule beats the best untargeted draw by about one task. Following the index
+there costs **0.011** of published error rate on this corpus. The accuracy rate says 8 of
+10; the cost says the two misses are nearly free, and the second number is the one a
+deployment acts on.
+
+**And the cost is a draw, which the sweep caught before this page quoted it as a
+property.** Across the seven corpus draws that host the test the index picks correctly in
+**56 of 64** decidable cells, and the worst wrong call costs **0.011 to 0.050** -- the
+committed corpus sitting at the cheap end of that range. An earlier version of this
+paragraph, and of the manuscript passage it feeds, said "a hundredth of the published
+error rate" without a denominator. That is the single-draw shape this project has
+retracted five times, caught here by the sweep rather than by a reader.
+
+**The honest form of the answer.** The shape of the error *is* estimable from what the
+aggregator already holds, and the estimate is worth acting on because its errors are
+confined to the regime where the choice barely matters -- at a price that ranges to five
+hundredths of the published error rate across draws rather than the one hundredth this
+corpus shows. What it cannot do is diagnose a
+fleet with no disagreement anywhere: with every analyst deterministic and identical there
+is no variance to compare against, and the artifact reports that cell as **undiagnosable**
+rather than as clean. That distinction is the same one this page keeps arriving at from
+different directions -- a silent instrument and a instrument reporting nothing wrong are
+different claims.
+
+!!! warning "The first version of this test could not fire"
+    The null is parametric -- simulate each stratum's counts as binomial at its own rate
+    -- and a simulated p-value floors at 1/(m+1). The script documented 400 draws as
+    putting that floor "comfortably below" an alpha of 0.001. It does not: 1/401 is
+    0.0025, which is **larger**, so every cell would have read as not overdispersed no
+    matter how extreme, including the fleet whose index is 9.00. The arithmetic is now
+    asserted at run time and refuses, in the same form
+    `measure_corpus_sensitivity.py` already used on finding 22's permutation count.

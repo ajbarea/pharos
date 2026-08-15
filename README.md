@@ -146,7 +146,7 @@ the system it serves.
 
 ## What has been measured
 
-Twenty-eight findings so far, each reproducible from a named script and each backed by a
+Twenty-nine findings so far, each reproducible from a named script and each backed by a
 committed artifact in `results/` that records the version, commit, platform, model,
 and seed behind it. **They are provisional**: two of the first three did not survive
 remeasurement at larger n, a third was retracted outright after a generator bug, and a
@@ -186,6 +186,7 @@ corrections, and the caveats.
 | 26 | Findings 20 to 23 were measured on one corpus, and one of their headlines was that corpus |
 | 27 | Four guards could be inverted with the suite still green, and coverage called them all covered |
 | 28 | The open problem, answered: detection converts into coverage, not into correction |
+| 29 | The shape of the error is visible from the aggregate, and it is cheap to read wrong |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -209,6 +210,7 @@ make audit       # which items to rule on, and what a fallible authority buys (n
 make blindspot   # where that policy stops working, built on purpose (no model)
 make channel-bias # whether a unanimous blind spot leaves any trace at all (no model)
 make selective-risk # what abstention buys once the audit budget buys nothing (no model)
+make error-shape # whether the shape of the error is visible from the aggregate (no model)
 
 # Sensitivity: whether a finding survives a parameter nobody chose on principle
 make fleet-sensitivity  # findings 12, 16 and 17 across fleets of 5 to 51 (no model)

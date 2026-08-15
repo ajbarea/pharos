@@ -20,12 +20,6 @@ import pytest
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from measure_rule_learnability import (  # noqa: E402
-    INSTRUCTION_NO_RULE,
-    balanced_shots,
-    build_prompt,
-    parse_verdict,
-)
 from train_adapter import (  # noqa: E402
     prompt_for,
     tokenize_masked,
@@ -39,6 +33,12 @@ from validate_gate_externally import (  # noqa: E402
 )
 
 from pharos.generate import GeneratorConfig, generate  # noqa: E402
+from pharos.prompting import (  # noqa: E402
+    INSTRUCTION_NO_RULE,
+    balanced_shots,
+    build_prompt,
+    parse_verdict,
+)
 from pharos.tasks import build_triage_tasks  # noqa: E402
 
 REPORTS = generate(GeneratorConfig(seed=3, n_events=80))
@@ -332,6 +332,7 @@ def test_the_policy_pair_is_exactly_the_ruling_under_test():
     """The finding is bimodal on ONE ruling: may a low-capacity output shed its
     sources' compartments. The grid must contain both sides of it and differ in
     nothing else, or the comparison is confounded."""
+
     from measure_federation_eligibility import POLICIES
 
     assert len(POLICIES) == 2

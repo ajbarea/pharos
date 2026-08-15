@@ -2,18 +2,21 @@
 
 import pytest
 from conftest import artifact
-from measure_audit_policy import (
-    AUTHORITY_ERROR,
-    BUDGETS,
+from measure_audit_policy import AUTHORITY_ERROR, BUDGETS
+from measure_audit_policy import Row as AuditRow
+
+from pharos.governance import (
     DEPLOYABLE,
     POLICIES,
+    AuditOutcome,
     ServerObservation,
     authority_ruling,
+    baseline_errors,
+    evaluate_audit,
     observe,
     select,
     threshold,
 )
-from measure_audit_policy import Row as AuditRow
 
 
 def _view(votes, seen, posterior):
@@ -184,7 +187,6 @@ def _tiny_fleet():
 
 
 def test_baseline_errors_counts_the_pool_the_estimator_covers_not_the_corpus():
-    from measure_audit_policy import baseline_errors
 
     partitioned, truth = _tiny_fleet()
     pool, errors = baseline_errors(partitioned, truth)
@@ -200,20 +202,19 @@ def test_an_outcome_reports_what_was_corrected_not_merely_what_was_removed():
     targets errors climbs toward 1.000 without changing a single label. `mechanical` is
     that climb; `corrected` is what is left over once it is subtracted.
     """
-    from measure_audit_policy import baseline_errors, evaluate, observe
 
     partitioned, truth = _tiny_fleet()
     baseline = baseline_errors(partitioned, truth)
     view = observe(partitioned)
 
-    zero = evaluate(
+    zero = evaluate_audit(
         partitioned, view, truth, policy="oracle", budget=0, error=0.0, baseline=baseline
     )
     assert zero.hits == 0
     assert zero.corrected == 0
     assert zero.agreement == pytest.approx(zero.mechanical, abs=1e-9)
 
-    one = evaluate(
+    one = evaluate_audit(
         partitioned, view, truth, policy="oracle", budget=1, error=0.0, baseline=baseline
     )
     # The oracle anchors a task the estimator gets wrong, so it leaves the pool.
@@ -228,12 +229,11 @@ def test_an_outcome_reports_what_was_corrected_not_merely_what_was_removed():
 
 
 def test_genuine_is_false_when_the_score_rose_only_by_deletion():
-    from measure_audit_policy import Outcome
 
-    deletion_only = Outcome(
+    deletion_only = AuditOutcome(
         agreement=0.95, scored=20, remaining_errors=5, hits=5, mechanical=0.95, corrected=0
     )
-    real = Outcome(
+    real = AuditOutcome(
         agreement=1.0, scored=20, remaining_errors=0, hits=5, mechanical=0.75, corrected=5
     )
     assert not deletion_only.genuine
@@ -241,11 +241,10 @@ def test_genuine_is_false_when_the_score_rose_only_by_deletion():
 
 
 def test_evaluate_computes_its_own_baseline_when_none_is_given():
-    from measure_audit_policy import evaluate, observe
 
     partitioned, truth = _tiny_fleet()
     view = observe(partitioned)
-    out = evaluate(partitioned, view, truth, policy="uniform", budget=0, error=0.0)
+    out = evaluate_audit(partitioned, view, truth, policy="uniform", budget=0, error=0.0)
     assert out.scored == 4
     assert out.corrected == 0
 

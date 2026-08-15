@@ -2,6 +2,8 @@
 
 from conftest import artifact
 
+from pharos.governance import REFUSED_EXIT
+
 
 def test_the_seed_is_a_sweepable_dimension_of_every_governance_script():
     """The defect finding 26 exists because of, asserted so it cannot come back.
@@ -319,7 +321,6 @@ def test_a_draw_that_refuses_by_design_is_excluded(monkeypatch):
     difficulty. That draw cannot host the negative control and says nothing about the
     finding, so it leaves the denominator rather than counting against it.
     """
-    from measure_blind_spot import REFUSED_EXIT
 
     mod = _fake_subprocess(monkeypatch, returncode=REFUSED_EXIT, stderr="too entangled")
     assert mod.run_at("measure_blind_spot.py", 23) is None
@@ -346,7 +347,6 @@ def test_run_at_returns_the_artifact_the_script_wrote(monkeypatch):
 
 def test_a_refused_draw_produces_no_row_of_any_kind(monkeypatch):
     """All three builders drop the draw rather than emitting a partial row."""
-    from measure_blind_spot import REFUSED_EXIT
 
     mod = _fake_subprocess(monkeypatch, returncode=REFUSED_EXIT, stderr="refused")
     assert mod.audit_row(23) is None

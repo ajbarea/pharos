@@ -47,6 +47,7 @@ SCRIPTS = (
     "measure_blind_spot.py",
     "measure_channel_bias.py",
     "measure_selective_risk.py",
+    "measure_error_shape.py",
     "measure_estimator_initialization.py",
 )
 
@@ -121,6 +122,12 @@ EXPECTED_WARNINGS = {
 #: any other script is still unexpected, which is the point of the scoping.
 SCRIPT_SCOPED_WARNINGS = {
     "measure_selective_risk.py": frozenset({"inference.federated_em_did_not_converge"}),
+    #: Finding 29 runs the same high-noise cells for the same reason -- they are the
+    #: regime whose diagnosis is the question -- and its own miss warning is expected
+    #: while the dispersion index gets two near-tie cells wrong.
+    "measure_error_shape.py": frozenset(
+        {"inference.federated_em_did_not_converge", "error_shape.rule_choice_missed"}
+    ),
 }
 
 

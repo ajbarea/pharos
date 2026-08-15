@@ -1,66 +1,40 @@
 #!/usr/bin/env python3
 """What a deployment can do once the detector fires, when the audit budget buys nothing.
 
-Findings 19 to 21 priced an *authority of record* and found the same wall from three
-directions: at unanimity no budget on the ladder repairs a label, in any of eight corpus
-draws, and every selection policy that reads disagreement falls to chance because a
-unanimously blind fleet has no disagreement to read. Finding 22 then showed the regime is
-nonetheless *detectable* from the aggregate alone --- a conditional dependence between the
-verdict rate and the blinded channel, inside the per-task sums finding 18's secure
-aggregation already reveals. That left the question this script exists for, and it was
-carried as the open problem: **a fleet that knows which regime it is in still has nothing
-to select on, so what should it do?**
+Findings 19 to 21 close off correction at unanimity from three directions: no budget on
+the anchor ladder repairs a label, every disagreement-reading policy falls to chance, and
+both hold across corpus draws. Finding 22 detects the regime anyway. That leaves the
+question this script answers: a fleet that knows which regime it is in still has nothing
+to select on, so what should it do?
 
-Auditing is not the only action available. A deployment that cannot correct a label can
-still decline to publish it. That is selective prediction, and it is the standard move:
-predict where the model is confident, abstain where it is not. The 2026 form of the rule
-states it as agreement --- predict only when the label is forced, that is when every
-consistent hypothesis agrees, and abstain otherwise [Khosravani, arXiv:2605.02611]. Read
-across to a fleet of analysts, that rule says publish where the fleet is unanimous.
+Auditing is not the only action. A deployment that cannot correct a label can decline to
+publish it. That is selective prediction, whose 2026 form states the licence as agreement
+-- predict only where the label is *forced*, abstain otherwise [Khosravani,
+arXiv:2605.02611]. Read across to a fleet of analysts, that rule says publish where the
+fleet is unanimous, and this corpus makes unanimity the failure.
 
-This corpus is built to say what happens to that rule when unanimity is the failure.
+No authority, no anchors, no re-estimation: the estimator runs once per fleet and each
+policy chooses labels to withhold. Two numbers per cell and neither is readable alone --
+the errors among labels still published, and how many are published at all. Withholding
+here is deletion by design rather than by accident: nothing claims a repair, and a policy
+that withholds correct labels raises its own risk, which is what makes the metric honest
+without an oracle.
 
-**What is measured.** No authority, no anchors, no re-estimation: the estimator runs once
-per fleet and each policy chooses a set of tasks to *withhold*. Two numbers per cell, and
-neither is readable without the other:
+**Predictions, before the run.** (1) Where the error is random, confidence-based
+abstention works. (2) Where it is shared and unanimous, the same rule does nothing,
+because the corrupted items are the ones the fleet agrees on hardest. (3) Withholding
+where the fleet agrees *most* beats confidence at unanimity, weakly. (4) Withholding by
+the channel the detector named is the only deployable rule that lowers risk there, and its
+cost is set by the channel's prevalence rather than by how many labels are wrong. (5) On a
+healthy fleet that same rule is pure cost, and the price is reported rather than assumed
+small.
 
-  selective risk   errors among the labels still published, over the labels published
-  coverage         how many labels are published at all
+If (2) and (4) hold, detection converts into coverage rather than into correction. If (2)
+fails, finding 21's collapse is a property of audit budgets rather than of the signal,
+which is a larger result and must be reported as one.
 
-**Withholding is deletion, and here that is the point rather than the defect.** Findings
-19 and 20 scored agreement over unanchored tasks, so anchoring a task the estimator got
-wrong lifted the score without correcting anything, and that was an artifact because those
-findings claimed *repair*. Nothing here claims repair. A withheld label is withheld, the
-coverage column prices exactly what was given up to remove it, and a policy that withholds
-correct labels raises its own risk rather than lowering it. That asymmetry is what makes
-the metric honest without an oracle.
-
-**The prediction, stated before the run.**
-
-1. On a fleet whose errors are *random* --- healthy analysts slipping independently ---
-   confidence-based abstention works: `margin` and `posterior` lower selective risk well
-   below `uniform`, because a slip shows up as disagreement.
-2. On a fleet whose errors are *shared* and unanimous, the same rule does nothing. The
-   corrupted items are the ones the fleet agrees on hardest, so a confidence ranking sorts
-   them to the safe end and abstention removes correct labels instead.
-3. `consensus` --- withhold where the fleet agrees most --- is the textbook inversion and
-   will beat confidence at unanimity, but only weakly, because at unanimity almost
-   everything is unanimous and the ranking is nearly arbitrary within that set.
-4. `channel` --- withhold what the detector named --- is the only deployable rule that
-   lowers risk in the shared regime, and its coverage cost is set by how prevalent the
-   channel is rather than by how many labels are wrong. That is a worse trade than any
-   audit would be and it is available, which is the whole claim.
-5. On a healthy fleet the same rule is pure cost: a false detection withholds a slice of
-   the corpus and removes nothing, and that price is reported rather than assumed small.
-
-If 2 and 4 hold, the answer to the open problem is that detection converts into
-*coverage* rather than into correction, and the exchange rate is the channel's prevalence.
-If 2 fails --- if confidence-based abstention works at unanimity after all --- then finding
-21's collapse is a property of audit budgets rather than of the signal, which would be a
-larger result than this one and must be reported as such.
-
-Needs no model and no network. One EM fit per fleet, so the sweep is cheap: every policy
-and every budget is set arithmetic over the same posterior.
+Needs no model and no network. One EM fit per fleet, so every policy and budget is set
+arithmetic over the same posterior.
 
     uv run python scripts/measure_selective_risk.py --out results/selective_risk.json
 """
@@ -68,26 +42,31 @@ and every budget is set arithmetic over the same posterior.
 import argparse
 import json
 import sys
-from dataclasses import dataclass, replace
 from pathlib import Path
 from statistics import median
 from typing import Any
 
-from measure_audit_policy import POLICY_SEED, ServerObservation, observe, select
-from measure_authority_anchors import ladder
-from measure_blind_spot import (
-    BLIND,
-    BLIND_RUNGS,
-    REFUSED_EXIT,
-    assert_channel_usable,
-    blind_fleet,
-)
-from measure_secure_reliability import MASK_SEED, contributions_for
-
-from pharos.analyst import Proposal, evidence_shown
+from pharos.analyst import Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
-from pharos.inference import federated_dawid_skene, partition_by_contributor
+from pharos.governance import (
+    BLIND,
+    BLIND_RUNGS,
+    HALVED,
+    POLICY_SEED,
+    REFUSED_EXIT,
+    REPORT_BUDGET,
+    UNIFORM_SEEDS,
+    AbstentionCell,
+    ChannelUnusableError,
+    assert_channel_usable,
+    beats_every_draw,
+    first_budget_halving,
+    fleet_view,
+    ladder,
+    score,
+    select,
+)
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
 from pharos.tasks import build_triage_tasks
@@ -133,23 +112,6 @@ WITHHELD = (0, 2, 5, 8, 12, 20, 30, 45, 60)
 DEPLOYABLE = ("uniform", "margin", "posterior", "consensus", "channel")
 BOUND = "oracle"
 
-#: Draws of the uniform baseline. Uniform is a sample where every other policy here is an
-#: exact function of the aggregate, and comparing one draw of a variable quantity against
-#: an exact one is how a policy gets credited with the margin the draw supplied. Finding
-#: 19 measured that spread at 2 to 30 items on this corpus, so it is reported as a median
-#: with its range here too.
-UNIFORM_SEEDS = tuple(POLICY_SEED + i for i in range(21))
-
-#: The budget every summary column is quoted at. A constant rather than a literal in
-#: three places: the artifact publishes it, and the docs block and both manuscripts read
-#: it from there, so a change moves the tables instead of making them disagree.
-REPORT_BUDGET = 20
-
-#: What counts as risk removed. Half the errors the fleet started with --- a chosen
-#: constant, published so a reader can move it, in the same spirit as the 0.95 agreement
-#: bar findings 19 and 20 report their thresholds against.
-HALVED = 0.5
-
 #: What this sweep varies and what it holds fixed. Declared in the artifact rather than
 #: left to be read off the code, because a multiverse chosen after seeing which dimensions
 #: are kind to the result is not a robustness check.
@@ -179,88 +141,6 @@ MULTIVERSE = {
         },
     },
 }
-
-
-@dataclass(frozen=True, slots=True, kw_only=True)
-class Cell:
-    """One policy at one budget, on one fleet."""
-
-    n_blind: int
-    slip_rate: float
-    policy: str
-    withheld: int
-    coverage: float
-    published: int
-    risk: float
-    errors_published: int
-    caught: int
-    precision: float
-
-    def as_dict(self) -> dict[str, object]:
-        return {
-            "n_blind": self.n_blind,
-            "slip_rate": self.slip_rate,
-            "policy": self.policy,
-            "withheld": self.withheld,
-            "coverage": self.coverage,
-            "published": self.published,
-            "risk": self.risk,
-            "errors_published": self.errors_published,
-            "caught": self.caught,
-            "precision": self.precision,
-        }
-
-
-def score(
-    *,
-    n_blind: int,
-    slip_rate: float,
-    policy: str,
-    withheld: tuple[str, ...],
-    pool: tuple[str, ...],
-    wrong: frozenset[str],
-) -> Cell:
-    """What one withholding decision published, and what it got wrong anyway.
-
-    Risk is over *published* labels, so withholding a correct label raises it. That is
-    what stops this metric from rewarding abstention for its own sake, and it is why no
-    oracle is needed to read the table: a policy that withholds indiscriminately is
-    visibly punished in the same column it would otherwise be flattered in.
-    """
-    held = set(withheld)
-    published = [task for task in pool if task not in held]
-    errors = sum(1 for task in published if task in wrong)
-    return Cell(
-        n_blind=n_blind,
-        slip_rate=slip_rate,
-        policy=policy,
-        withheld=len(held),
-        coverage=round(len(published) / len(pool), 4) if pool else 0.0,
-        published=len(published),
-        risk=round(errors / len(published), 4) if published else 0.0,
-        errors_published=errors,
-        caught=len(held & wrong),
-        precision=round(len(held & wrong) / len(held), 4) if held else 0.0,
-    )
-
-
-def first_budget_halving(cells: list[Cell], base_errors: int) -> int | None:
-    """Smallest budget whose published labels carry at most half the errors it started with.
-
-    Counted in *errors*, not in the risk rate. The rate falls when correct labels are
-    withheld as well, so a threshold read off the rate would credit a policy for shrinking
-    the corpus. This is the deletion artifact findings 19 and 20 had to retract, in the one
-    place on this page where it could still get in.
-    """
-    target = base_errors * HALVED
-    return next(
-        (
-            c.withheld
-            for c in sorted(cells, key=lambda c: c.withheld)
-            if c.errors_published <= target
-        ),
-        None,
-    )
 
 
 def detector_fired(slip_rate: float, n_blind: int, *, seed: int) -> bool | None:
@@ -298,60 +178,6 @@ def detector_fired(slip_rate: float, n_blind: int, *, seed: int) -> bool | None:
     return None
 
 
-def beats_every_draw(theirs: float | None, draws: list[float]) -> bool:
-    """Whether a targeted risk is below the *best* of the untargeted draws it is compared to.
-
-    A module-level function rather than a closure so it can be tested against the case it
-    exists for: a policy that merely beats the median of a variable baseline. Withholding
-    20 random labels of two hundred removes an error now and then, so the median uniform
-    risk is not a floor. At unanimity `margin` came in at 0.094 against a median 0.100 and
-    a best draw of 0.089, and reading the first comparison as a win credited the policy
-    with one task's worth of luck.
-    """
-    return theirs is not None and bool(draws) and theirs < min(draws)
-
-
-def _fleet_view(
-    tasks: list[Any],
-    proposals: dict[str, Proposal],
-    *,
-    n_blind: int,
-    fleet: int,
-    slip_rate: float,
-    seed: int,
-) -> tuple[ServerObservation, dict[str, bool], bool]:
-    """The aggregator's view of one fleet, the labels it would publish, and whether it converged.
-
-    Convergence travels with the labels because it has to: at the slip rates where a
-    healthy fleet breaks at all, the EM fit stops converging, and a risk column computed
-    off a fit that ran out of iterations is a different quantity from one computed off a
-    fit that finished. This project already publishes flags rather than filtering on them,
-    and this is one more.
-    """
-    flat = contributions_for(
-        blind_fleet(n_blind, fleet, slip_rate=slip_rate), tasks, proposals, seed=seed
-    )
-    partitioned = partition_by_contributor(flat)
-    view = observe(partitioned)
-    by_id = {t.task_id: t for t in tasks}
-    # What the detector hands over. Supplied at EVERY share, including shares where
-    # finding 22's detector would not have fired, because two of the cells this script
-    # needs are exactly those: the healthy fleet, where handing over a channel is the
-    # false-detection control and its cost is the number reported.
-    #
-    # That makes the `channel` column deployable only where the detector fires, which is
-    # not every row of the grid. Rather than leave that to a caption, each fleet records
-    # `detector_fired` from finding 22's own artifact, and the tests assert that every
-    # cell a claim rests on is one where it did.
-    carries = {
-        task: any(BLIND in r.label.compartments for r in by_id[task].sources)
-        for task in view.posterior
-    }
-    evidence = {task: len(evidence_shown(by_id[task])) for task in view.posterior}
-    estimate = federated_dawid_skene(partitioned, seed=MASK_SEED)
-    return replace(view, carries=carries, evidence=evidence), estimate.labels(), estimate.converged
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--events", type=int, default=EVENTS)
@@ -374,7 +200,13 @@ def main() -> int:
     # experiment either, and a script that skipped the check would still write a
     # well-formed artifact -- which is the failure mode worth guarding, because nothing
     # downstream could tell it apart from a valid one.
-    check = assert_channel_usable(tasks)
+    try:
+        check = assert_channel_usable(tasks)
+    except ChannelUnusableError as refusal:
+        # The exit code is this script's contract with the corpus sweep; the library
+        # raises and the protocol stays here.
+        print(refusal, file=sys.stderr)
+        raise SystemExit(REFUSED_EXIT) from refusal
     print(
         f"{len(tasks)} tasks, fleet of {args.fleet}, blind spot on {BLIND.value}: "
         f"{check.affected} verdicts change, on a slice sitting at "
@@ -382,14 +214,14 @@ def main() -> int:
         f"{check.corpus_mean:.2f}"
     )
 
-    cells: list[Cell] = []
+    cells: list[AbstentionCell] = []
     fleets: list[dict[str, Any]] = []
     uniform_spread: list[dict[str, Any]] = []
 
     for slip_rate in args.slip_rates:
         for n_blind in shares:
             progress("selective_risk.fleet", n_blind=n_blind, slip_rate=slip_rate)
-            view, labels, converged = _fleet_view(
+            view, labels, converged = fleet_view(
                 tasks,
                 proposals,
                 n_blind=n_blind,
@@ -419,7 +251,7 @@ def main() -> int:
             for policy in (*DEPLOYABLE, BOUND):
                 if policy == "uniform":
                     continue
-                block: list[Cell] = []
+                block: list[AbstentionCell] = []
                 for budget in budgets:
                     held = select(policy, view, truth, budget, seed=POLICY_SEED)
                     cell = score(
@@ -454,7 +286,7 @@ def main() -> int:
             # Uniform is a draw, so it is re-run per seed and reported as a median with
             # its range. The median draw is what the comparison row uses.
             draws: list[int | None] = []
-            uniform_cells: dict[int, list[Cell]] = {b: [] for b in budgets}
+            uniform_cells: dict[int, list[AbstentionCell]] = {b: [] for b in budgets}
             for seed in UNIFORM_SEEDS:
                 block = []
                 for budget in budgets:
@@ -520,7 +352,7 @@ def main() -> int:
             for budget in budgets:
                 block = uniform_cells[budget]
                 cells.append(
-                    Cell(
+                    AbstentionCell(
                         n_blind=n_blind,
                         slip_rate=slip_rate,
                         policy="uniform",
@@ -665,19 +497,12 @@ def main() -> int:
         }
         for rate in args.slip_rates
     ]
-    # Where the shared blind spot is the *whole* of what the estimator gets wrong: the slip
-    # rates at which a fleet with no blind spot has zero errors, so every error at any
-    # other share is attributable to the shared standard. The criterion is read off the
-    # healthy row rather than chosen, which matters, because the alternative is picking the
-    # regimes a claim survives in after seeing it survive there.
-    #
-    # This distinction was forced by the measurement and is not cosmetic. The first version
-    # quantified every claim over all three slip rates and reported prediction 4 as
-    # refuted, on the strength of a rate that had been added as prediction 1's control: at
-    # 0.40 a healthy fleet already carries 74 estimator errors, so the shared blind spot is
-    # a small minority of the damage and no rule aimed at it can move the column. That is a
-    # real bound and it is published below as its own line, rather than folded into the
-    # claim it does not bear on.
+    # Where the shared blind spot is the *whole* of the estimator's error: the slip rates
+    # at which a healthy fleet has none. Read off the healthy row rather than chosen, so
+    # the regimes a claim is quantified over cannot be picked after seeing where it
+    # survives. Quantifying over the high-noise control instead reported the provenance
+    # result as refuted by a regime it was never aimed at; that bound is published below
+    # as its own line.
     shared_only = [rate for rate in args.slip_rates if fleet_at(healthy, rate)["base_errors"] == 0]
     if not shared_only:
         # A refusal, not a crash, and it carries the declared exit code so a sweep counts

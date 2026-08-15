@@ -1156,6 +1156,93 @@ def selective_risk() -> str:
     return "\n".join(lines)
 
 
+def error_shape() -> str:
+    """Finding 29: the dispersion index across the share-by-noise grid, and what it costs.
+
+    The index and the rule choice in one block, because the interesting result is the
+    disagreement between them: the statistic tracks the shared share cleanly and still
+    picks the wrong rule in two cells, and a page carrying only the first would read as a
+    solved problem.
+    """
+    path = RESULTS / "error_shape.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make error-shape` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    cells = payload.get("cells") or []
+    if not cells:
+        _fail("error_shape.json carries no cells; refusing to emit an empty table")
+
+    rates = payload["slip_rates"]
+    lines = [
+        "**Index of dispersion** --- observed variance of the per-task vote sums over the "
+        "binomial variance at the same rate, within evidence stratum. 1 is independent "
+        "error; above 1 is a shared component. `--` is a fleet with no variance anywhere, "
+        "which cannot be diagnosed rather than being diagnosed as clean.",
+        "",
+        "| Blind of {} | ".format(payload["fleet"]) + " | ".join(f"slip {r}" for r in rates) + " |",
+        "| --- |" + " --- |" * len(rates),
+    ]
+    for share in payload["shares"]:
+        row = []
+        for rate in rates:
+            cell = next(c for c in cells if c["n_blind"] == share and c["slip_rate"] == rate)
+            index = cell["dispersion"]["index"]
+            row.append("--" if index is None else f"{index:.2f}")
+        lines.append(f"| {share} | " + " | ".join(row) + " |")
+
+    lines += [
+        "",
+        "**Which rule wins, and which the index picks.** `C` is withholding by the named "
+        "channel, `F` is withholding by confidence, `b` is both beating an untargeted "
+        "draw, `-` is neither, `?` is a fleet the index cannot diagnose.",
+        "",
+        "| Blind of {} | ".format(payload["fleet"]) + " | ".join(f"slip {r}" for r in rates) + " |",
+        "| --- |" + " --- |" * len(rates),
+    ]
+    codes = {"channel": "C", "confidence": "F", "either": "b", "neither": "-"}
+    for share in payload["shares"]:
+        row = []
+        for rate in rates:
+            cell = next(c for c in cells if c["n_blind"] == share and c["slip_rate"] == rate)
+            actual = codes.get(cell["actual_winner"] or "", "?")
+            guess = {"channel": "C", "confidence": "F"}.get(cell["predicted_rule"] or "", "?")
+            mark = "" if cell["correct"] or not cell["decidable"] else " ⚠"
+            row.append(f"{actual}/{guess}{mark}")
+        lines.append(f"| {share} | " + " | ".join(row) + " |")
+
+    missed = [c for c in cells if c["decidable"] and not c["correct"]]
+    worst = payload.get("worst_cost_of_a_wrong_call")
+    lines += [
+        "",
+        f"The index picks the rule that wins in **{payload['correct_predictions']} of "
+        f"{payload['decidable_cells']}** cells where a rule wins at all. The rate is the "
+        "less useful half of that sentence: what a wrong call costs is "
+        + (
+            f"**{worst:.3f}** of published error rate at worst"
+            if worst is not None
+            else "not computable here"
+        )
+        + ", because the cells it misses are ones where the winning rule beats an "
+        "untargeted draw by about one task.",
+    ]
+    if missed:
+        lines += [
+            "",
+            "| Missed cell | Wins | Index says | Cost | Channel | Confidence | Best uniform |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
+        ]
+        for cell in missed:
+            risk = cell["risk"]
+            lines.append(
+                f"| {cell['n_blind']} blind, slip {cell['slip_rate']} | "
+                f"{cell['actual_winner']} | {cell['predicted_rule']} | "
+                f"{cell['cost_of_following_the_prediction']:.4f} | "
+                f"{risk['channel']:.4f} | {risk['confidence']:.4f} | "
+                f"{risk['uniform_best']:.4f} |"
+            )
+    return "\n".join(lines)
+
+
 def corpus_sensitivity() -> str:
     """Finding 26: whether findings 20-23 survive the corpus draw, claim by claim."""
     path = RESULTS / "corpus_sensitivity.json"
@@ -1223,6 +1310,33 @@ def corpus_sensitivity() -> str:
             f"**{sum(1 for r in measurable if r['confidence_works_on_random_error'])}** "
             f"| {len(measurable)} |"
         )
+    if shape := payload.get("error_shape"):
+        hosted_shape = len(shape)
+        decidable = sum(r["decidable_cells"] for r in shape)
+        correct = sum(r["correct_predictions"] for r in shape)
+        costs = sorted(
+            r["worst_cost_of_a_wrong_call"]
+            for r in shape
+            if r["worst_cost_of_a_wrong_call"] is not None
+        )
+        lines += [
+            f"| The shape index is calibrated on a healthy fleet | 29 | "
+            f"**{sum(1 for r in shape if r['calibrated_on_a_healthy_fleet'])}** | {hosted_shape} |",
+            f"| It rises with the shared share | 29 | "
+            f"**{sum(1 for r in shape if r['rises_with_the_shared_share'])}** | {hosted_shape} |",
+            f"| It picks the winning rule in every cell | 29 | "
+            f"**{sum(1 for r in shape if r['picks_the_winning_rule_everywhere'])}** "
+            f"| {hosted_shape} |",
+        ]
+        if costs:
+            lines += [
+                "",
+                f"Finding 29's index picks the rule that wins in **{correct} of {decidable}** "
+                f"decidable cells across {hosted_shape} draws. What a wrong call costs is "
+                f"**{costs[0]:.3f} to {costs[-1]:.3f}** of published error rate, and the "
+                f"committed corpus is at the cheap end: quoting its {costs[0]:.3f} as the "
+                "price of a wrong call would be reporting the draw again.",
+            ]
     if payload.get("channel"):
         detected = sum(
             1
@@ -1326,6 +1440,7 @@ BLOCKS = {
     "privacy-budget": privacy_budget,
     "channel-bias": channel_bias,
     "selective-risk": selective_risk,
+    "error-shape": error_shape,
 }
 
 #: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --

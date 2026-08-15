@@ -32,20 +32,21 @@ Needs no model and no network.
 
 import argparse
 import json
-from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from random import Random
-
-from measure_secure_reliability import (
-    MASK_SEED,
-    contributions_for,
-    fleet_of,
-)
 
 from pharos.analyst import Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import (
+    MASK_SEED,
+    ThresholdSpread,
+    choose_anchors,
+    contributions_for,
+    fleet_of,
+    ladder,
+    summarize_thresholds,
+)
 from pharos.inference import (
     agreement_with,
     federated_dawid_skene,
@@ -68,53 +69,6 @@ FLEET = 9
 #: reaches is not a measurement, so the range runs until every repairable composition
 #: is repaired and the one that never repairs can be named as such.
 ANCHOR_COUNTS = (0, 1, 2, 3, 5, 8, 12, 20, 30, 50, 80, 100, 120, 150, 180)
-
-
-def majority(fleet: int) -> int:
-    """Smallest number of analysts that carries a vote. Fleets here are odd, so no ties."""
-    return fleet // 2 + 1
-
-
-#: Fleet positions the composition constants encode, as functions of the fleet size
-#: rather than as counts.
-#:
-#: Findings 19 through 23 were all measured at nine analysts and wrote their
-#: compositions as absolute tuples -- `(4, 5, 6, 7, 9)` here, `(5, 6, 7)` in the audit
-#: policy, `(0, 3, 5, 7, 8, 9)` in the blind spot. Every one of those reads as an
-#: arbitrary tuple until you know that 5 is the majority crossing at nine and 4 is the
-#: row below it.
-#:
-#: That made `--fleet` misleading rather than merely unused. Each script skips a
-#: composition larger than the fleet, so at `--fleet 5` the audit policy measured only
-#: 5-of-5 -- unanimity, not the bare majority the row was there to price -- and printed
-#: the two skipped rows as "none" beside it, where "none" elsewhere means swept and
-#: never repaired. The blind spot named its unanimity row "9 of 5". A reader could not
-#: tell an unmeasured cell from a measured failure.
-#:
-#: Written as positions, the ladder is the same experiment at any fleet, and it
-#: reproduces every committed constant exactly at nine (asserted in the tests).
-RUNGS: dict[str, Callable[[int], int]] = {
-    "none": lambda fleet: 0,
-    "one": lambda fleet: 1,
-    "two": lambda fleet: 2,
-    "one-third": lambda fleet: round(fleet / 3),
-    "below": lambda fleet: majority(fleet) - 1,
-    "majority": majority,
-    "two-thirds": lambda fleet: round(2 * fleet / 3),
-    "seven-ninths": lambda fleet: round(7 * fleet / 9),
-    "all-but-one": lambda fleet: fleet - 1,
-    "unanimous": lambda fleet: fleet,
-}
-
-
-def ladder(fleet: int, rungs: Sequence[str]) -> tuple[int, ...]:
-    """The named positions as counts at this fleet, deduplicated and ordered.
-
-    Deduplication is not incidental: at small fleets distinct rungs collide (at five,
-    the majority and two-thirds are both 3), and a sweep that measured the same
-    composition twice would report it as two agreeing observations.
-    """
-    return tuple(sorted({min(fleet, max(0, RUNGS[rung](fleet))) for rung in rungs}))
 
 
 #: Which fleet compositions to price. Below the cliff there is nothing to repair, so
@@ -153,82 +107,6 @@ ANCHOR_SEEDS = tuple(909 + i for i in range(21))
 #: The draw whose full agreement grid is printed and published. One seed's grid is what
 #: a reader can follow; the spread is what the claim rests on.
 ANCHOR_SEED = ANCHOR_SEEDS[0]
-
-
-def choose_anchors(task_ids: Sequence[str], count: int, *, seed: int) -> tuple[str, ...]:
-    """Which tasks the authority rules on, drawn without regard to difficulty.
-
-    A uniform draw on purpose. An authority that audited the *hardest* items would
-    look better and would be assuming the thing in question: knowing which items are
-    hard is knowing where the fleet is wrong, which is what the estimate was supposed
-    to establish. Uniform is the honest floor, and a targeted policy can only beat it.
-
-    Nested across budgets, which `random.sample` is not. One shuffled order is drawn
-    and sliced, so the draw at budget `b` is a subset of the draw at any larger budget
-    -- the same property `select` gives the targeted policies by construction, and the
-    reason `tests/test_audit_policy.py` could only assert nesting for those. A fresh
-    `sample` per budget returns a uniform subset of the right size, so each cell was
-    individually honest, but the sweep then moved two things at once: a threshold read
-    off it could sit where a *different set of items* was audited rather than where
-    more of them were. Slicing one order isolates the budget, and each prefix is still
-    a uniform random subset of its size.
-    """
-    if not count:
-        return ()
-    order = list(task_ids)
-    # `sample` raised on an oversized count; a slice would quietly return fewer and
-    # report a budget that was never spent, so the loudness is kept explicitly.
-    if count > len(order):
-        raise ValueError(f"anchor budget {count} exceeds the {len(order)} available tasks")
-    Random(seed).shuffle(order)  # noqa: S311
-    return tuple(sorted(order[:count]))
-
-
-@dataclass(frozen=True, slots=True, kw_only=True)
-class ThresholdSpread:
-    """What the audited-items price looks like across draws, rather than in one.
-
-    `reached` is the censoring: a draw that never repairs within the sweep has no
-    finite threshold, and averaging it in at the sweep's maximum would report the
-    experiment's edge as a measurement. So the median is taken over the ordered draws
-    with unreached ones sorted last, which yields `None` when more than half of them
-    never repair -- the honest answer being "usually not reached", not a number.
-    """
-
-    n_wrong: int
-    seeds: int
-    reached: int
-    median: int | None
-    lowest: int | None
-    highest: int | None
-
-    def as_dict(self) -> dict[str, object]:
-        return {
-            "n_wrong": self.n_wrong,
-            "seeds": self.seeds,
-            "reached": self.reached,
-            "median": self.median,
-            "lowest": self.lowest,
-            "highest": self.highest,
-        }
-
-
-def summarize_thresholds(n_wrong: int, thresholds: Sequence[int | None]) -> ThresholdSpread:
-    """Median and range of a censored threshold, over one draw per seed."""
-    if not thresholds:
-        raise ValueError("no draws to summarize")
-    reached = sorted(t for t in thresholds if t is not None)
-    # Unreached sort after every finite value, so the median lands on `None` exactly
-    # when at least half the draws failed to repair.
-    ordered: list[int | None] = [*reached, *([None] * (len(thresholds) - len(reached)))]
-    return ThresholdSpread(
-        n_wrong=n_wrong,
-        seeds=len(thresholds),
-        reached=len(reached),
-        median=ordered[(len(ordered) - 1) // 2],
-        lowest=reached[0] if reached else None,
-        highest=reached[-1] if reached else None,
-    )
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
