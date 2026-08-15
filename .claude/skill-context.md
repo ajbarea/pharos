@@ -80,10 +80,12 @@ belong here.
 
 - workflows: `.github/workflows/ci.yml` (lint-and-test on 3.12/3.13/3.14,
   shortcut-gate), `.github/workflows/docs.yml` (Zensical build + Pages deploy)
-- required checks on `main`: `lint-and-test (3.12)`, `lint-and-test (3.13)`,
-  `shortcut-gate` (which also replays the analyst grid over the committed
-  verdicts). Note 3.14 is in the matrix but not yet required, since it was
-  added after protection was configured.
+- required checks on `main`: all three `lint-and-test` legs plus `shortcut-gate`
+  (which also replays the analyst grid over the committed verdicts). 3.14 was
+  added late, and until 2026-08-15 it was the only leg not required — while also
+  being the strictest coverage denominator, since a bare annotation is not an
+  executable statement there. The Codecov upload moved to the same leg for the
+  same reason: the number the project publishes should be its least flattering one.
 - `cancel-in-progress` is scoped to pull requests. It was unconditional once, and
   6 of 15 runs were cancelled on main; one real failure went unobserved because the
   run that would have shown it fixed was itself cancelled.
