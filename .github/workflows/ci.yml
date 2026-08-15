@@ -63,6 +63,18 @@ jobs:
       # remaining gap is load_corpora(), which downloads public datasets and cannot
       # run here. The margin is deliberate -- an earlier floor sat 0.04 points under
       # the measurement and any new line turned the build red.
+      #
+      # The same floor is a different bar on each leg, and the difference is the
+      # interpreter rather than the code. Under 3.14 a bare annotation is no longer an
+      # executable statement, so every dataclass field drops out of the denominator:
+      # `measure_audit_policy.py` counts 128 statements on 3.12 and 108 on 3.14, which
+      # is exactly its 20 annotation-only lines. The run this comment was written from
+      # measured 92.66% on 3.12 and 3.13 and 92.26% on 3.14 from one commit.
+      #
+      # Two consequences worth seeing rather than rediscovering: the strictest leg is
+      # 3.14, which is *not* a required check on main; and the leg that uploads to
+      # Codecov is 3.13, which is the most generous. Neither is wrong, and neither is
+      # what a reader would assume from a single "92%".
       - run: >
           uv run pytest --cov=pharos --cov=scripts --cov-branch
           --cov-report=term-missing --cov-report=xml --cov-fail-under=92
