@@ -3539,3 +3539,72 @@ draw. `results/corpus_sensitivity.json` carries each denominator.
     one task, well inside the spread of the baseline it was beating. Withholding 20 random
     labels of two hundred removes an error now and then, so the median is not a floor. The
     comparison is now against the *best* of the 21 draws, and the claim reversed.
+
+## 29. The shape of the error is visible from the aggregate, and it is cheap to read wrong
+
+`scripts/measure_error_shape.py`, `results/error_shape.json`
+
+[Finding 28](#28-the-open-problem-answered-detection-converts-into-coverage-not-into-correction)
+ends on a fork it cannot resolve from inside. Withholding by the named channel is right
+where the error is shared; withholding by confidence is right where it is independent;
+each is wrong in the other regime. That measurement decided which regime it was in by
+checking a **healthy control fleet's** error count -- which an experimenter has and a
+deployment does not.
+
+**The statistic.** Condition on the evidence stratum, as finding 22's detector does.
+Within a stratum every task shows the same evidence, so a fleet applying one rule votes
+the same way on all of them and the per-task vote sum varies only as its analysts slip.
+Independent slips are exactly binomial. A *shared* error is not: it splits the stratum
+into the tasks the shared standard corrupts and the tasks it does not, and a mixture of
+two rates carries more variance than a binomial at their mean. So the **index of
+dispersion** -- observed variance over binomial variance, pooled across strata -- sits at
+1 under independent error and rises above it when part of the error is shared.
+
+It reads per-task vote sums, per-task contributor counts, and the public evidence count.
+That is **strictly less than finding 22's detector needs**: no channel to name, no
+per-analyst stream, no ground truth, no control fleet. Overdispersion diagnostics are
+standard wherever counts are modelled; what we did not find prior work for is this
+application, and that is a statement about our search rather than about the literature.
+
+<!-- BEGIN GENERATED: error-shape -->
+(pending regeneration)
+<!-- END GENERATED: error-shape -->
+
+**What holds.** The index is calibrated on a fleet with no shared blind spot -- it sits
+at 1 at every slip rate that produces any dispersion at all -- and it rises monotonically
+with the share of the fleet carrying the blind spot, reaching 9.00 on a noiseless fleet
+where every analyst is blind. It falls back toward 1 as independent noise rises, which is
+the mechanism working as described rather than failing: noise fills in the gap between
+the two groups a shared standard creates.
+
+**What does not, and the prediction it refutes.** The docstring predicted that
+thresholding the index would pick the winning rule in most cells *and that its failures
+would land in the ambiguous cells where neither rule dominates*. The first half holds and
+the second is wrong. Both misses are cells where a rule genuinely wins and the index
+confidently names the other one -- a wrong recommendation rather than an abstention,
+which is the worse failure mode.
+
+**Why the rate is the less useful half.** Both missed cells sit at the highest slip rate,
+where the estimator is already carrying 65 and 76 wrong labels of two hundred, and where
+the winning rule beats the best untargeted draw by about one task. Following the index
+there costs **0.011** of published error rate. The accuracy rate says 8 of 10; the cost
+says the two misses are nearly free, and the second number is the one a deployment acts
+on.
+
+**The honest form of the answer.** The shape of the error *is* estimable from what the
+aggregator already holds, and the estimate is worth acting on because its errors are
+confined to the regime where the choice barely matters. What it cannot do is diagnose a
+fleet with no disagreement anywhere: with every analyst deterministic and identical there
+is no variance to compare against, and the artifact reports that cell as **undiagnosable**
+rather than as clean. That distinction is the same one this page keeps arriving at from
+different directions -- a silent instrument and a instrument reporting nothing wrong are
+different claims.
+
+!!! warning "The first version of this test could not fire"
+    The null is parametric -- simulate each stratum's counts as binomial at its own rate
+    -- and a simulated p-value floors at 1/(m+1). The script documented 400 draws as
+    putting that floor "comfortably below" an alpha of 0.001. It does not: 1/401 is
+    0.0025, which is **larger**, so every cell would have read as not overdispersed no
+    matter how extreme, including the fleet whose index is 9.00. The arithmetic is now
+    asserted at run time and refuses, in the same form
+    `measure_corpus_sensitivity.py` already used on finding 22's permutation count.

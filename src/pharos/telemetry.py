@@ -382,6 +382,11 @@ _METRIC_META: dict[str, tuple[str, str]] = {
         "{task}",
         "Audited items needed to repair, at one blind-spot share and policy",
     ),
+    "error_shape.dispersion": (
+        "1",
+        "Observed variance of per-task vote sums over the binomial variance at the same "
+        "rate; 1 is independent error, above 1 is a shared component",
+    ),
     "selective_risk.cell": (
         "1",
         "Errors among published labels, under one abstention policy and withhold budget",
