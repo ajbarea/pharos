@@ -41,13 +41,10 @@ import random
 from pathlib import Path
 from typing import Any
 
-from measure_audit_policy import EVENTS
-from measure_authority_anchors import REPAIRED, majority
-from measure_secure_reliability import contributions_for, fleet_of
-
 from pharos.analyst import Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import REPAIRED, contributions_for, fleet_of, majority
 from pharos.inference import agreement_with, dawid_skene, log_likelihood
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
@@ -60,6 +57,12 @@ LOG = get_logger()
 #: the smallest fleet finding 24 showed surviving a bare majority, so it carries a
 #: composition that is broken at nine and healthy at fifteen and separates "the start
 #: matters" from "the composition matters".
+
+#: Corpus size. Defined here rather than imported from another measurement: it is an
+#: experiment parameter, and importing one script's parameter into another is how a change
+#: to one silently moves the other.
+EVENTS = 200
+
 FLEETS = (9, 15)
 
 #: Corpus draws. Not a robustness garnish -- the first run of this sweep was a single

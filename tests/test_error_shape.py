@@ -8,9 +8,9 @@ with no variance at all has to read as *undiagnosable* rather than as either.
 
 import pytest
 from conftest import artifact
-from measure_audit_policy import ServerObservation
-from measure_blind_spot import REFUSED_EXIT
-from measure_error_shape import ALPHA, MIN_STRATUM, _monotone, dispersion
+from measure_error_shape import _monotone
+
+from pharos.governance import ALPHA, MIN_STRATUM, REFUSED_EXIT, ServerObservation, dispersion
 
 # A stratum large enough to be scored, with every task seen by the same nine analysts.
 FLEET = 9
@@ -215,3 +215,78 @@ def test_an_undecidable_cell_is_not_counted_as_a_correct_call(report):
             assert not cell["decidable"]
             assert not cell["correct"]
     assert report["decidable_cells"] == sum(1 for c in report["cells"] if c["decidable"])
+
+
+def test_the_cost_of_a_wrong_call_is_none_where_it_was_never_tested():
+    """Zero and "not applicable" are different, and only one of them means it was free.
+
+    An undecidable cell, an undiagnosable fleet, and a rule whose risk was never computed
+    all have no cost to report. Returning 0.0 for those would read as "following the
+    prediction cost nothing" in exactly the cells where the prediction was never scored.
+    """
+    from measure_error_shape import Outcome, _cost
+
+    priced = Outcome(winner="channel", risk={"channel": 0.10, "confidence": 0.15})
+    assert _cost(priced, "channel", "confidence") == pytest.approx(0.05)
+    assert _cost(priced, "channel", "channel") == 0.0
+    assert _cost(priced, "either", "channel") is None, "an undecidable cell was priced"
+    assert _cost(priced, "channel", None) is None, "an undiagnosable fleet was priced"
+    assert _cost(Outcome(winner="channel", risk={}), "channel", "confidence") is None
+
+
+def test_the_winner_is_decided_against_the_best_untargeted_draw():
+    """A rule wins only by beating every uniform draw, and both winning is not a win.
+
+    Constructed so the answer is known: the wrong labels are exactly the tasks carrying
+    the channel, and they are the ones the fleet is most unanimous about, so provenance
+    selects them and confidence cannot.
+    """
+    from measure_error_shape import winning_rule
+
+    from pharos.governance import ServerObservation
+
+    # Sixty tasks and fifteen wrong, against a twenty-label withhold. Fewer wrong labels
+    # than that and a lucky uniform draw sweeps them all, which ties rather than losing --
+    # the same reason the measurement compares against the best of twenty-one draws.
+    pool = [f"t{i}" for i in range(60)]
+    wrong = set(pool[:15])
+    # Unanimous on the corrupted tasks, split everywhere else: confidence looks away from
+    # exactly the items that are wrong.
+    votes = {t: (9.0 if t in wrong else 5.0) for t in pool}
+    labels = dict.fromkeys(pool, True)
+    truth = {t: (t not in wrong) for t in pool}
+    view = ServerObservation(
+        votes=votes,
+        seen=dict.fromkeys(pool, 9.0),
+        posterior={t: (0.99 if t in wrong else 0.55) for t in pool},
+        evidence={t: (3 if t in wrong else 1) for t in pool},
+        carries={t: (t in wrong) for t in pool},
+    )
+    outcome = winning_rule(view, labels, truth)
+    assert outcome.winner == "channel", outcome
+    channel, confidence, floor = (
+        outcome.risk["channel"],
+        outcome.risk["confidence"],
+        outcome.risk["uniform_best"],
+    )
+    assert channel is not None and confidence is not None and floor is not None
+    assert channel < floor
+    assert confidence >= floor
+
+
+def test_a_fleet_with_nothing_wrong_prices_no_rule():
+    """Scoring a fleet the estimator already gets right would mark both rules down for
+    failing to remove errors that do not exist."""
+    from measure_error_shape import winning_rule
+
+    from pharos.governance import ServerObservation
+
+    pool = [f"t{i}" for i in range(40)]
+    view = ServerObservation(
+        votes=dict.fromkeys(pool, 9.0),
+        seen=dict.fromkeys(pool, 9.0),
+        posterior=dict.fromkeys(pool, 0.99),
+    )
+    outcome = winning_rule(view, dict.fromkeys(pool, True), dict.fromkeys(pool, True))
+    assert outcome.winner is None
+    assert outcome.risk == {}

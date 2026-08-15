@@ -41,15 +41,11 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from measure_audit_policy import EVENTS, observe
-from measure_authority_anchors import REPAIRED, majority
-from measure_channel_bias import ALPHA
-from measure_fleet_sensitivity import run_at
-from measure_secure_reliability import contributions_for, fleet_of
-
 from pharos.analyst import Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import ALPHA, REPAIRED, contributions_for, fleet_of, majority, observe
+from pharos.governance.sweep import MeasurementFailedError, run_measurement
 from pharos.inference import partition_by_contributor
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
@@ -62,6 +58,12 @@ LOG = get_logger()
 #: multiverses can be read against each other, minus 51: the audit sweep fits a fresh
 #: EM per policy per composition per budget, and at 51 analysts that is hours for a
 #: cell whose answer 25 already gives. Odd throughout so "majority" needs no tie rule.
+
+#: Corpus size. Defined here rather than imported from another measurement: it is an
+#: experiment parameter, and importing one script's parameter into another is how a change
+#: to one silently moves the other.
+EVENTS = 200
+
 FLEETS = (5, 9, 15, 25)
 
 #: Permutations for the channel detector inside the sweep. The same count the committed
@@ -83,6 +85,19 @@ SWEEP_PERMUTATIONS = 4200
 #: blind-spot and channel sub-sweeps each shell out to a script of their own and cost
 #: minutes per fleet, so multiplying them by eight would put this script in hours.
 DRAWS = (1, 7, 11, 23, 101, 202, 303, 404)
+
+
+def run_at(script: str, fleet: int, extra: tuple[str, ...] = ()) -> dict[str, Any]:
+    """One measurement at one fleet size, through the shared sweep runner.
+
+    Refuses nothing: a fleet size is always constructible, so a non-zero exit is a bug
+    rather than a point that could not be measured. The corpus sweep makes the opposite
+    choice, and both now say which they are making.
+    """
+    payload = run_measurement(script, ["--fleet", str(fleet), *extra], allow_refusal=False)
+    if payload is None:  # pragma: no cover -- allow_refusal is False
+        raise MeasurementFailedError(f"{script} refused at --fleet {fleet}")
+    return payload
 
 
 def cliff_scan(fleet: int, seed: int) -> list[dict[str, Any]]:

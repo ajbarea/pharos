@@ -16,7 +16,7 @@ from dataclasses import dataclass
 __all__ = [
     "HALVED",
     "REPORT_BUDGET",
-    "Cell",
+    "AbstentionCell",
     "beats_every_draw",
     "first_budget_halving",
     "score",
@@ -33,7 +33,7 @@ HALVED = 0.5
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
-class Cell:
+class AbstentionCell:
     """One policy at one budget, on one fleet."""
 
     n_blind: int
@@ -70,7 +70,7 @@ def score(
     withheld: tuple[str, ...],
     pool: tuple[str, ...],
     wrong: frozenset[str],
-) -> Cell:
+) -> AbstentionCell:
     """What one withholding decision published, and what it got wrong anyway.
 
     Risk is over *published* labels, so withholding a correct label raises it. That is
@@ -81,7 +81,7 @@ def score(
     held = set(withheld)
     published = [task for task in pool if task not in held]
     errors = sum(1 for task in published if task in wrong)
-    return Cell(
+    return AbstentionCell(
         n_blind=n_blind,
         slip_rate=slip_rate,
         policy=policy,
@@ -95,7 +95,7 @@ def score(
     )
 
 
-def first_budget_halving(cells: list[Cell], base_errors: int) -> int | None:
+def first_budget_halving(cells: list[AbstentionCell], base_errors: int) -> int | None:
     """Smallest budget whose published labels carry at most half the errors it started with.
 
     Counted in *errors*, not in the risk rate. The rate falls when correct labels are

@@ -3232,6 +3232,11 @@ as the `--fleet` defect finding 24 found, and all invisible from the committed a
 | Provenance abstention beats every untargeted draw | 28 | **7** | 7 |
 | Provenance abstention ties the bound | 28 | **5** | 7 |
 | Confidence abstention works on *random* error | 28 | **5** | 7 |
+| The shape index is calibrated on a healthy fleet | 29 | **7** | 7 |
+| It rises with the shared share | 29 | **7** | 7 |
+| It picks the winning rule in every cell | 29 | **3** | 7 |
+
+Finding 29's index picks the rule that wins in **56 of 64** decidable cells across 7 draws. What a wrong call costs is **0.011 to 0.050** of published error rate, and the committed corpus is at the cheap end: quoting its 0.011 as the price of a wrong call would be reporting the draw again.
 | Blinded channel detected, controls silent | 22 | **8** | 8 |
 
 Fleet of 9, 8 corpus draws, every denominator stated. Finding 21's experiment needs a blind channel orthogonal to item difficulty and refuses to run where they are entangled, so it is constructible on **7 of 8** draws; a draw that cannot host the negative control says nothing about the finding and is excluded rather than counted against it.
@@ -3615,13 +3620,23 @@ which is the worse failure mode.
 **Why the rate is the less useful half.** Both missed cells sit at the highest slip rate,
 where the estimator is already carrying 65 and 76 wrong labels of two hundred, and where
 the winning rule beats the best untargeted draw by about one task. Following the index
-there costs **0.011** of published error rate. The accuracy rate says 8 of 10; the cost
-says the two misses are nearly free, and the second number is the one a deployment acts
-on.
+there costs **0.011** of published error rate on this corpus. The accuracy rate says 8 of
+10; the cost says the two misses are nearly free, and the second number is the one a
+deployment acts on.
+
+**And the cost is a draw, which the sweep caught before this page quoted it as a
+property.** Across the seven corpus draws that host the test the index picks correctly in
+**56 of 64** decidable cells, and the worst wrong call costs **0.011 to 0.050** -- the
+committed corpus sitting at the cheap end of that range. An earlier version of this
+paragraph, and of the manuscript passage it feeds, said "a hundredth of the published
+error rate" without a denominator. That is the single-draw shape this project has
+retracted five times, caught here by the sweep rather than by a reader.
 
 **The honest form of the answer.** The shape of the error *is* estimable from what the
 aggregator already holds, and the estimate is worth acting on because its errors are
-confined to the regime where the choice barely matters. What it cannot do is diagnose a
+confined to the regime where the choice barely matters -- at a price that ranges to five
+hundredths of the published error rate across draws rather than the one hundredth this
+corpus shows. What it cannot do is diagnose a
 fleet with no disagreement anywhere: with every analyst deterministic and identical there
 is no variance to compare against, and the artifact reports that cell as **undiagnosable**
 rather than as clean. That distinction is the same one this page keeps arriving at from

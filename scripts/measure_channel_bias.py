@@ -69,14 +69,10 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from random import Random
 
-from measure_audit_policy import observe
-from measure_authority_anchors import ladder
-from measure_blind_spot import blind_fleet
-from measure_secure_reliability import contributions_for
-
 from pharos.analyst import AnalystPolicy, Proposal, evidence_shown
 from pharos.disclosure import DROP_COMPARTMENTS, KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import blind_fleet, contributions_for, ladder, observe
 from pharos.inference import partition_by_contributor
 from pharos.labels import Compartment, declassify
 from pharos.provenance import run_provenance

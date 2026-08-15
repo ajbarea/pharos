@@ -39,12 +39,11 @@ import random
 from dataclasses import dataclass
 from pathlib import Path
 
-from measure_rule_learnability import balanced_shots, build_prompt, parse_verdict
-
 from pharos.analyst import DEFAULT_ENSEMBLE, AnalystPolicy
 from pharos.attribute import DEFAULT_ENDPOINT, DEFAULT_MODEL, generate_text
 from pharos.generate import GeneratorConfig, generate
 from pharos.models import resolve
+from pharos.prompting import balanced_shots, build_prompt, parse_verdict
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.telemetry import get_logger, progress

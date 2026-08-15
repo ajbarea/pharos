@@ -5,17 +5,12 @@ from typing import Any
 
 import pytest
 from conftest import artifact
-from measure_blind_spot import (
-    BLIND,
-    BUDGETS,
-    CHANNEL_ENTANGLEMENT_SLACK,
-    SHARES,
-    blind_fleet,
-)
+from measure_blind_spot import BUDGETS, SHARES
 
 from pharos.analyst import AnalystPolicy, evidence_shown
 from pharos.disclosure import DROP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import BLIND, CHANNEL_ENTANGLEMENT_SLACK, blind_fleet
 from pharos.labels import Compartment
 from pharos.tasks import build_triage_tasks
 

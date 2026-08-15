@@ -158,3 +158,64 @@ def test_the_repository_says_how_to_cite_it():
     assert citation["license"] == "MIT", "the citation record disagrees with LICENSE"
     assert (ROOT / "LICENSE").is_file()
     assert citation["repository-code"].endswith("/pharos")
+
+
+def _script_imports() -> dict[str, list[str]]:
+    """Which scripts import which other scripts, by module name."""
+    import re
+
+    found: dict[str, list[str]] = {}
+    for path in sorted((ROOT / "scripts").glob("*.py")):
+        modules = sorted(
+            set(
+                re.findall(
+                    r"^from (measure_\w+|train_adapter) import", path.read_text(), re.MULTILINE
+                )
+            )
+        )
+        if modules:
+            found[path.name] = modules
+    return found
+
+
+def test_no_script_imports_another():
+    """The library boundary, enforced rather than intended.
+
+    Thirty-four names crossed script boundaries before `pharos.governance` and
+    `pharos.prompting` existed, two files were each imported by seven others, and one
+    import reached past a leading underscore. A boundary nothing checks is a boundary that
+    erodes the next time a measurement needs something a neighbour already has.
+
+    There is no allowlist. If a script needs what another script has, the shared thing
+    belongs in the package -- which is also the answer for anyone using this testbed to
+    measure their own policy, since they cannot import a script at all.
+    """
+    offenders = _script_imports()
+    assert not offenders, (
+        f"these scripts import other scripts: {offenders}. Move the shared symbol into "
+        "the package rather than importing across experiment files."
+    )
+
+
+def test_no_script_redefines_what_the_package_exports():
+    """Two definitions of one idea is the state the extraction removed.
+
+    It happened during that extraction: the audit-scoring functions were moved and the
+    originals left behind, so the script kept using its own copy while the package held
+    another. Coverage surfaced it; this makes it fail directly.
+    """
+    import re
+
+    import pharos.governance as governance
+
+    exported = set(governance.__all__)
+    clashes = {}
+    for path in sorted((ROOT / "scripts").glob("*.py")):
+        defined = set(re.findall(r"^(?:def|class) (\w+)", path.read_text(), re.MULTILINE))
+        overlap = defined & exported
+        if overlap:
+            clashes[path.name] = sorted(overlap)
+    assert not clashes, (
+        f"these scripts redefine names the package exports: {clashes}. Either the script "
+        "should import it, or the two are different things and one needs a better name."
+    )

@@ -9,16 +9,17 @@ record.
 
 import pytest
 from conftest import artifact
-from measure_blind_spot import REFUSED_EXIT, assert_channel_usable
-from measure_selective_risk import (
+
+from pharos.generate import GeneratorConfig, generate
+from pharos.governance import (
     HALVED,
-    Cell,
+    AbstentionCell,
+    ChannelUnusableError,
+    assert_channel_usable,
     beats_every_draw,
     first_budget_halving,
     score,
 )
-
-from pharos.generate import GeneratorConfig, generate
 from pharos.labels import Compartment
 from pharos.tasks import build_triage_tasks
 
@@ -59,8 +60,8 @@ def test_a_perfect_withhold_reaches_zero_risk_without_claiming_a_repair():
     assert perfect.coverage == 0.8
 
 
-def _cell(withheld: int, errors: int, published: int) -> Cell:
-    return Cell(
+def _cell(withheld: int, errors: int, published: int) -> AbstentionCell:
+    return AbstentionCell(
         n_blind=9,
         slip_rate=0.0,
         policy="p",
@@ -113,9 +114,8 @@ def test_the_channel_guard_refuses_a_channel_entangled_with_difficulty():
     difficulty confound the blind-spot design exists to escape.
     """
     tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=200)))
-    with pytest.raises(SystemExit) as excinfo:
+    with pytest.raises(ChannelUnusableError, match="entangled"):
         assert_channel_usable(tasks, compartment=Compartment.SENSOR)
-    assert excinfo.value.code == REFUSED_EXIT
 
 
 def test_the_channel_guard_accepts_the_channel_the_finding_uses():
@@ -280,10 +280,9 @@ def test_the_aggregator_view_carries_provenance_evidence_and_convergence():
     Small on purpose: forty events and a fleet of three, which is seconds rather than the
     minutes the full grid takes.
     """
-    from measure_selective_risk import _fleet_view
-
     from pharos.analyst import Proposal
     from pharos.disclosure import KEEP_COMPARTMENTS
+    from pharos.governance import fleet_view
     from pharos.labels import declassify
 
     tasks = build_triage_tasks(generate(GeneratorConfig(seed=7, n_events=40)))
@@ -291,7 +290,7 @@ def test_the_aggregator_view_carries_provenance_evidence_and_convergence():
         t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
         for t in tasks
     }
-    view, labels, converged = _fleet_view(
+    view, labels, converged = fleet_view(
         tasks, proposals, n_blind=3, fleet=3, slip_rate=0.0, seed=7
     )
 
@@ -310,9 +309,7 @@ def test_a_cell_serialises_every_field_it_reports():
     silently stops being published while every table above it still renders."""
     from dataclasses import fields
 
-    from measure_selective_risk import Cell
-
-    cell = Cell(
+    cell = AbstentionCell(
         n_blind=9,
         slip_rate=0.0,
         policy="channel",
@@ -324,7 +321,7 @@ def test_a_cell_serialises_every_field_it_reports():
         caught=20,
         precision=1.0,
     )
-    assert set(cell.as_dict()) == {f.name for f in fields(Cell)}
+    assert set(cell.as_dict()) == {f.name for f in fields(AbstentionCell)}
 
 
 def test_an_absent_detector_artifact_is_not_a_detection(tmp_path, monkeypatch):

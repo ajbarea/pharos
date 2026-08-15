@@ -16,6 +16,7 @@ same experiment runs at any fleet size.
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from math import comb
 
 from pharos.analyst import Action, AnalystPolicy, Proposal, evidence_shown
 from pharos.disclosure import DROP_COMPARTMENTS
@@ -36,6 +37,7 @@ __all__ = [
     "assert_channel_usable",
     "blind_fleet",
     "contributions_for",
+    "exact_wrong_majority",
     "fleet_of",
     "ladder",
     "majority",
@@ -92,24 +94,13 @@ def majority(fleet: int) -> int:
     return fleet // 2 + 1
 
 
-#: Fleet positions the composition constants encode, as functions of the fleet size
-#: rather than as counts.
+#: Fleet positions as functions of the size, rather than as counts.
 #:
-#: Findings 19 through 23 were all measured at nine analysts and wrote their
-#: compositions as absolute tuples -- `(4, 5, 6, 7, 9)` here, `(5, 6, 7)` in the audit
-#: policy, `(0, 3, 5, 7, 8, 9)` in the blind spot. Every one of those reads as an
-#: arbitrary tuple until you know that 5 is the majority crossing at nine and 4 is the
-#: row below it.
-#:
-#: That made `--fleet` misleading rather than merely unused. Each script skips a
-#: composition larger than the fleet, so at `--fleet 5` the audit policy measured only
-#: 5-of-5 -- unanimity, not the bare majority the row was there to price -- and printed
-#: the two skipped rows as "none" beside it, where "none" elsewhere means swept and
-#: never repaired. The blind spot named its unanimity row "9 of 5". A reader could not
-#: tell an unmeasured cell from a measured failure.
-#:
-#: Written as positions, the ladder is the same experiment at any fleet, and it
-#: reproduces every committed constant exactly at nine (asserted in the tests).
+#: Written as counts, `--fleet` was misleading rather than merely unused: a composition
+#: larger than the fleet was skipped and printed as "none", which elsewhere means swept
+#: and never repaired, so an unmeasured cell read as a measured failure. As positions the
+#: ladder is the same experiment at any size, and reproduces every committed constant at
+#: nine (asserted in the tests).
 RUNGS: dict[str, Callable[[int], int]] = {
     "none": lambda fleet: 0,
     "one": lambda fleet: 1,
@@ -300,3 +291,64 @@ def assert_channel_usable(
         mean_with=mean_with,
         mean_without=mean_without,
     )
+
+
+def exact_wrong_majority(rate: float, *, schools: int, fleet: int) -> float:
+    """Exact probability that a wrong standard holds the majority. No sampling.
+
+    `fleet` is a required argument here rather than defaulting to nine. The default was a
+    module-level constant in the script this came from, and a sweep over fleet sizes that
+    forgot to pass it would have silently priced every size at nine.
+
+    Each school is wrong independently with probability `rate`, and every school is the
+    same size, so the fleet crosses the majority when more than half its *members* are
+    wrong. With equal schools that is a binomial over schools rather than over people,
+    which is precisely why clustering matters: the same expected error rate is carried
+    by fewer, larger, all-or-nothing draws.
+    """
+    per_school = fleet // schools
+    needed = fleet // 2 + 1
+    return float(
+        sum(
+            comb(schools, j) * rate**j * (1 - rate) ** (schools - j)
+            for j in range(schools + 1)
+            if j * per_school >= needed
+        )
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class AbstentionCell:
+    """One population rate under one correlation structure."""
+
+    rate: float
+    structure: str
+    schools: int
+    draws: int
+    wrong_majority_rate: float
+    mean_consensus: float
+    #: Expected agreement for Dawid-Skene, composed the same way as consensus.
+    mean_dawid_skene: float
+    worst_consensus: float
+    agreement_if_majority: float | None
+    agreement_if_not: float | None
+    expected_agreement: float
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "rate": self.rate,
+            "structure": self.structure,
+            "schools": self.schools,
+            "draws": self.draws,
+            "wrong_majority_rate": round(self.wrong_majority_rate, 4),
+            "mean_consensus": round(self.mean_consensus, 4),
+            "mean_dawid_skene": round(self.mean_dawid_skene, 4),
+            "worst_consensus": round(self.worst_consensus, 4),
+            "agreement_if_majority": (
+                None if self.agreement_if_majority is None else round(self.agreement_if_majority, 4)
+            ),
+            "agreement_if_not": (
+                None if self.agreement_if_not is None else round(self.agreement_if_not, 4)
+            ),
+            "expected_agreement": round(self.expected_agreement, 4),
+        }

@@ -1310,6 +1310,33 @@ def corpus_sensitivity() -> str:
             f"**{sum(1 for r in measurable if r['confidence_works_on_random_error'])}** "
             f"| {len(measurable)} |"
         )
+    if shape := payload.get("error_shape"):
+        hosted_shape = len(shape)
+        decidable = sum(r["decidable_cells"] for r in shape)
+        correct = sum(r["correct_predictions"] for r in shape)
+        costs = sorted(
+            r["worst_cost_of_a_wrong_call"]
+            for r in shape
+            if r["worst_cost_of_a_wrong_call"] is not None
+        )
+        lines += [
+            f"| The shape index is calibrated on a healthy fleet | 29 | "
+            f"**{sum(1 for r in shape if r['calibrated_on_a_healthy_fleet'])}** | {hosted_shape} |",
+            f"| It rises with the shared share | 29 | "
+            f"**{sum(1 for r in shape if r['rises_with_the_shared_share'])}** | {hosted_shape} |",
+            f"| It picks the winning rule in every cell | 29 | "
+            f"**{sum(1 for r in shape if r['picks_the_winning_rule_everywhere'])}** "
+            f"| {hosted_shape} |",
+        ]
+        if costs:
+            lines += [
+                "",
+                f"Finding 29's index picks the rule that wins in **{correct} of {decidable}** "
+                f"decidable cells across {hosted_shape} draws. What a wrong call costs is "
+                f"**{costs[0]:.3f} to {costs[-1]:.3f}** of published error rate, and the "
+                f"committed corpus is at the cheap end: quoting its {costs[0]:.3f} as the "
+                "price of a wrong call would be reporting the draw again.",
+            ]
     if payload.get("channel"):
         detected = sum(
             1

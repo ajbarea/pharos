@@ -47,13 +47,13 @@ import json
 import statistics
 from collections import Counter
 from dataclasses import dataclass
-from math import comb
 from pathlib import Path
 from random import Random
 
 from pharos.analyst import Action, AnalystPolicy, Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import exact_wrong_majority
 from pharos.inference import agreement_with, dawid_skene
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
@@ -75,26 +75,6 @@ RATES = (0.1, 0.2, 0.3, 0.4, 0.5)
 #: Fleet draws per cell. The quantity being estimated is a probability over draws, so
 #: this is the sample size that matters, not the task count.
 DRAWS = 60
-
-
-def exact_wrong_majority(rate: float, *, schools: int, fleet: int = FLEET) -> float:
-    """Exact probability that a wrong standard holds the majority. No sampling.
-
-    Each school is wrong independently with probability `rate`, and every school is the
-    same size, so the fleet crosses the majority when more than half its *members* are
-    wrong. With equal schools that is a binomial over schools rather than over people,
-    which is precisely why clustering matters: the same expected error rate is carried
-    by fewer, larger, all-or-nothing draws.
-    """
-    per_school = fleet // schools
-    needed = fleet // 2 + 1
-    return float(
-        sum(
-            comb(schools, j) * rate**j * (1 - rate) ** (schools - j)
-            for j in range(schools + 1)
-            if j * per_school >= needed
-        )
-    )
 
 
 @dataclass(frozen=True, slots=True)

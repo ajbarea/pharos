@@ -1208,6 +1208,78 @@
       ]
     }
   ],
+  "error_shape": [
+    {
+      "seed": 1,
+      "calibrated_on_a_healthy_fleet": true,
+      "rises_with_the_shared_share": true,
+      "picks_the_winning_rule_everywhere": true,
+      "silent_fleet_reports_undiagnosable": true,
+      "decidable_cells": 11,
+      "correct_predictions": 11,
+      "worst_cost_of_a_wrong_call": null
+    },
+    {
+      "seed": 7,
+      "calibrated_on_a_healthy_fleet": true,
+      "rises_with_the_shared_share": true,
+      "picks_the_winning_rule_everywhere": false,
+      "silent_fleet_reports_undiagnosable": true,
+      "decidable_cells": 10,
+      "correct_predictions": 8,
+      "worst_cost_of_a_wrong_call": 0.0111
+    },
+    {
+      "seed": 11,
+      "calibrated_on_a_healthy_fleet": true,
+      "rises_with_the_shared_share": true,
+      "picks_the_winning_rule_everywhere": true,
+      "silent_fleet_reports_undiagnosable": true,
+      "decidable_cells": 6,
+      "correct_predictions": 6,
+      "worst_cost_of_a_wrong_call": null
+    },
+    {
+      "seed": 101,
+      "calibrated_on_a_healthy_fleet": true,
+      "rises_with_the_shared_share": true,
+      "picks_the_winning_rule_everywhere": false,
+      "silent_fleet_reports_undiagnosable": true,
+      "decidable_cells": 9,
+      "correct_predictions": 7,
+      "worst_cost_of_a_wrong_call": 0.0222
+    },
+    {
+      "seed": 202,
+      "calibrated_on_a_healthy_fleet": true,
+      "rises_with_the_shared_share": true,
+      "picks_the_winning_rule_everywhere": true,
+      "silent_fleet_reports_undiagnosable": true,
+      "decidable_cells": 9,
+      "correct_predictions": 9,
+      "worst_cost_of_a_wrong_call": null
+    },
+    {
+      "seed": 303,
+      "calibrated_on_a_healthy_fleet": true,
+      "rises_with_the_shared_share": true,
+      "picks_the_winning_rule_everywhere": false,
+      "silent_fleet_reports_undiagnosable": true,
+      "decidable_cells": 11,
+      "correct_predictions": 10,
+      "worst_cost_of_a_wrong_call": 0.0223
+    },
+    {
+      "seed": 404,
+      "calibrated_on_a_healthy_fleet": true,
+      "rises_with_the_shared_share": true,
+      "picks_the_winning_rule_everywhere": false,
+      "silent_fleet_reports_undiagnosable": true,
+      "decidable_cells": 8,
+      "correct_predictions": 5,
+      "worst_cost_of_a_wrong_call": 0.05
+    }
+  ],
   "auditable_pool_range": [
     83,
     99
@@ -1235,6 +1307,7 @@
   "draws_attempted": 8,
   "draws_hosting_the_blind_spot": 7,
   "draws_hosting_selective_abstention": 7,
+  "draws_hosting_the_shape_test": 7,
   "invariants": {
     "selection_ties_the_oracle_bound_in_every_draw": false,
     "selection_beats_uniform_in_every_draw": false,
@@ -1249,14 +1322,17 @@
     "provenance_abstention_works_at_unanimity_in_every_draw": true,
     "provenance_abstention_ties_the_bound_in_every_draw": false,
     "confidence_abstention_works_on_random_error_wherever_measurable": false,
+    "the_shape_index_is_calibrated_in_every_draw": true,
+    "the_shape_index_tracks_the_shared_share_in_every_draw": true,
+    "the_shape_index_picks_the_winning_rule_in_every_draw": false,
     "blinded_channel_detected_and_controls_silent": true,
     "the_auditable_pool_is_a_constant": false
   },
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "8ee6fe1a175b",
+    "git_commit": "e764cdc8a977",
     "git_dirty": false,
-    "generated_at": "2026-08-14T23:42:31+00:00",
+    "generated_at": "2026-08-15T09:23:50+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",

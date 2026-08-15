@@ -1,63 +1,33 @@
 #!/usr/bin/env python3
 """Whether a fleet can tell how much of its error is shared, from the aggregate alone.
 
-Finding 28 ends on a fork it cannot resolve. Withholding by the channel the detector
-named is the right move where the shared blind spot is the whole of the estimator's
-error; withholding by confidence is the right move where the error is independent noise;
-each is wrong in the other regime. The measurement establishes which regime it is in by
-*checking a healthy fleet's error count* --- which is an experimenter's move, not a
-deployment's. A deployment has one fleet and no control.
+Finding 28 leaves a fork a deployment cannot resolve from inside: withholding by the named
+channel is right where the error is shared, withholding by confidence is right where it is
+independent, and each is wrong in the other regime. That measurement decided which regime
+it was in by checking a *healthy control fleet*, which an experimenter has and a deployment
+does not.
 
-So the question this script asks is the one left over: **is the shape of the error
-estimable from what the aggregator already sees?**
+The statistic is an index of dispersion over per-task vote sums, conditioned on the
+evidence stratum. Within a stratum a fleet applying one rule votes identically, so
+independent slips are exactly binomial; a shared standard is not, because it splits the
+stratum into two deterministic groups and a mixture of two rates carries more variance
+than a binomial at their mean. It reads vote sums, contributor counts and public evidence
+counts -- strictly less than finding 22's detector, which also needs a channel to name.
 
-**The statistic, and why it is the right shape.** Condition on the evidence stratum, as
-finding 22's detector does. Within a stratum every task shows the same number of defining
-facts, so a fleet applying one rule votes the same way on all of them, and the per-task
-vote sum varies only as its analysts slip. Independent slips are exactly binomial: the
-variance of the vote sum is $np(1-p)$. A *shared* error is not --- it splits the stratum
-into two deterministic groups, the tasks the shared standard corrupts and the tasks it
-does not, and a mixture of two rates has more variance than a binomial at their mean.
+The null is parametric rather than a permutation: dispersion has no second label to
+shuffle, so the null is "these counts are binomial at this stratum's own rate" and it is
+simulated. That assumes a shape a permutation would not, which is a real weakening.
 
-So the index of dispersion --- observed variance over binomial variance, pooled across
-strata --- is near 1 when the error is independent and above 1 when part of it is shared.
-The instrument is standard (overdispersion diagnostics are routine wherever counts are
-modelled); the application is the part we did not find prior work for, and that is stated
-as a search rather than as a claim about the literature.
+**Predictions, before the run.** (1) On a fleet with no shared blind spot the index sits at
+1 wherever there is any dispersion at all. (2) It rises with the share carrying the blind
+spot and falls as independent noise rises. (3) Thresholded against its own null it picks
+the rule finding 28 says wins, and its failures land in cells where neither rule dominates.
+(4) A fleet that never disagrees is reported *undiagnosable* rather than clean, because
+there is no variance to compare against.
 
-**What it needs, and what it does not.** Per-task vote sums, per-task contributor counts,
-and the public evidence count of each task. That is strictly *less* than finding 22's
-detector, which also needs a channel to name. No per-analyst stream, no ground truth, no
-healthy reference fleet. If this works, a deployment can pick between finding 28's rules
-with what it already has.
-
-**The null is parametric, not a permutation, and that is a deliberate difference.**
-Finding 22 shuffles channel labels within a stratum because it tests an association
-between two things it can both see. Dispersion has no second label to shuffle: the null
-is "these counts are binomial at this stratum's own rate", so it is simulated. Reported
-as such, because a parametric null assumes a shape where a permutation null does not, and
-that is a real weakening.
-
-**The predictions, stated before the run.**
-
-1. On a fleet with no shared blind spot, the dispersion index sits at 1 at every slip
-   rate that produces any dispersion at all.
-2. It rises with the share of the fleet carrying the blind spot, at a fixed slip rate,
-   and falls as the slip rate rises at a fixed share --- noise fills in the gap between
-   the two groups the shared error creates.
-3. Thresholding it against its own null picks the rule finding 28 says wins, in most
-   cells of the grid, and the cells it gets wrong are the mixed ones where neither rule
-   dominates. That last clause is a prediction about *where* it fails, and it is the
-   half most likely to be refuted.
-4. On a noiseless healthy fleet the statistic is undefined rather than low: with every
-   analyst deterministic and identical there is no variance anywhere to compare against.
-   That is reported as *not diagnosable*, which is a different answer from "no shared
-   component", and conflating the two would be the same defect as reading a silent guard
-   as a passing one.
-
-If 1 and 2 hold and 3 fails, the honest conclusion is that the shape is *visible* and not
-*actionable*, and finding 28's advice stays conditional on something a deployment cannot
-check. Say so rather than softening it.
+If (1) and (2) hold and (3) fails, the shape is visible and not actionable, and finding
+28's advice stays conditional on something a deployment cannot check. Say that rather than
+softening it.
 
 Needs no model and no network.
 
@@ -70,24 +40,28 @@ import sys
 from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
-from random import Random
 from typing import Any
-
-from measure_audit_policy import ServerObservation
-from measure_blind_spot import BLIND, REFUSED_EXIT, assert_channel_usable
-from measure_selective_risk import (
-    REPORT_BUDGET,
-    UNIFORM_SEEDS,
-    beats_every_draw,
-    score,
-)
-from measure_selective_risk import (
-    _fleet_view as fleet_view,
-)
 
 from pharos.analyst import Proposal, evidence_shown
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import (
+    ALPHA,
+    BLIND,
+    MIN_STRATUM,
+    NULL_DRAWS,
+    REFUSED_EXIT,
+    REPORT_BUDGET,
+    UNIFORM_SEEDS,
+    ChannelUnusableError,
+    ServerObservation,
+    assert_channel_usable,
+    beats_every_draw,
+    dispersion,
+    fleet_view,
+    score,
+    select,
+)
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
 from pharos.tasks import build_triage_tasks
@@ -106,25 +80,6 @@ FLEET = 9
 #: name the regime from outside.
 SHARES = (0, 1, 3, 5, 7, 9)
 SLIP_RATES = (0.0, 0.05, 0.15, 0.25, 0.40)
-
-#: Draws of the parametric null per cell. The p-value floors at 1/(m+1), so this bounds
-#: the smallest claim the test can make, and it has to sit *below* the alpha it is
-#: compared against or the test cannot fire at all.
-#:
-#: The first version of this line said 400 draws put the floor "comfortably below" an
-#: alpha of 0.001. It does not: 1/401 is 0.0025, which is larger, so every cell would have
-#: read as not-overdispersed no matter how extreme -- including the fleet whose index is
-#: 9.00. The arithmetic is now asserted at run time rather than described here, in the
-#: same form measure_corpus_sensitivity uses on finding 22's permutation count.
-NULL_DRAWS = 2000
-
-#: Significance for "this fleet is overdispersed". Matched to finding 22's alpha so the
-#: two detectors are read on the same scale.
-ALPHA = 0.001
-
-#: A stratum contributes only if it has at least this many tasks. A dispersion index over
-#: two tasks is a number, and it is not an estimate.
-MIN_STRATUM = 10
 
 #: What this sweep varies and what it pins.
 MULTIVERSE = {
@@ -145,103 +100,6 @@ MULTIVERSE = {
         },
     },
 }
-
-
-@dataclass(frozen=True, slots=True)
-class Dispersion:
-    """The index, its null, and the evidence base it was computed over."""
-
-    index: float | None
-    p_value: float | None
-    strata: int
-    tasks: int
-    #: Strata dropped because a rate of exactly 0 or 1 leaves no binomial variance to
-    #: compare against. Reported rather than filtered silently: on a noiseless healthy
-    #: fleet this is *every* stratum, and that is the finding rather than a missing row.
-    degenerate_strata: int
-
-    def as_dict(self) -> dict[str, object]:
-        return {
-            "index": self.index,
-            "p_value": self.p_value,
-            "strata": self.strata,
-            "tasks": self.tasks,
-            "degenerate_strata": self.degenerate_strata,
-        }
-
-
-def dispersion(
-    view: ServerObservation,
-    evidence: dict[str, int],
-    *,
-    draws: int = NULL_DRAWS,
-    seed: int = 0,
-) -> Dispersion:
-    """Observed variance of the vote sums over the binomial variance at the same rate.
-
-    Pooled across strata rather than averaged: a stratum of eighty tasks and a stratum of
-    twelve are not two equal observations of the same quantity, and averaging their
-    indices would let the small one move the answer as much as the large one.
-
-    The null simulates each stratum's counts as binomial at that stratum's own observed
-    rate, which is the hypothesis being tested: one rate per stratum, analysts
-    independent. A p-value is the share of simulated fleets at least as dispersed as this
-    one, computed as (b+1)/(m+1) so it is never zero.
-    """
-    strata: dict[int, list[tuple[float, float]]] = {}
-    for task, votes in view.votes.items():
-        seen = view.seen.get(task, 0.0)
-        if seen <= 0:
-            continue
-        strata.setdefault(evidence.get(task, -1), []).append((votes, seen))
-
-    observed = 0.0
-    expected = 0.0
-    used: list[tuple[list[tuple[float, float]], float]] = []
-    degenerate = 0
-    tasks = 0
-    for rows in strata.values():
-        if len(rows) < MIN_STRATUM:
-            continue
-        total_votes = sum(v for v, _ in rows)
-        total_seen = sum(n for _, n in rows)
-        rate = total_votes / total_seen
-        variance = sum(n * rate * (1.0 - rate) for _, n in rows)
-        if variance <= 0.0:
-            # A stratum every analyst answered identically. There is no binomial variance
-            # to compare against, so it carries no information about dispersion -- which
-            # is different from carrying information that there is none.
-            degenerate += 1
-            continue
-        observed += sum((v - n * rate) ** 2 for v, n in rows)
-        expected += variance
-        used.append((rows, rate))
-        tasks += len(rows)
-
-    if not used:
-        return Dispersion(index=None, p_value=None, strata=0, tasks=0, degenerate_strata=degenerate)
-
-    index = observed / expected
-    rng = Random(seed)  # noqa: S311  -- a null distribution, not a security boundary
-    at_least_as_extreme = 0
-    for _ in range(draws):
-        null_observed = 0.0
-        null_expected = 0.0
-        for rows, rate in used:
-            for _, n in rows:
-                drawn = sum(1 for _ in range(int(n)) if rng.random() < rate)
-                null_observed += (drawn - n * rate) ** 2
-                null_expected += n * rate * (1.0 - rate)
-        if null_observed / null_expected >= index:
-            at_least_as_extreme += 1
-    p_value = (at_least_as_extreme + 1) / (draws + 1)
-    return Dispersion(
-        index=round(index, 4),
-        p_value=round(p_value, 6),
-        strata=len(used),
-        tasks=tasks,
-        degenerate_strata=degenerate,
-    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -276,8 +134,6 @@ def winning_rule(
         return Outcome(winner=None, risk={})
 
     def risk_of(policy: str) -> float | None:
-        from measure_audit_policy import select
-
         held = select(policy, view, truth, REPORT_BUDGET, seed=UNIFORM_SEEDS[0])
         return score(
             n_blind=0, slip_rate=0.0, policy=policy, withheld=held, pool=pool, wrong=wrong
@@ -285,8 +141,6 @@ def winning_rule(
 
     uniform_draws = []
     for draw_seed in UNIFORM_SEEDS:
-        from measure_audit_policy import select
-
         held = select("uniform", view, truth, REPORT_BUDGET, seed=draw_seed)
         uniform_draws.append(
             score(
@@ -333,7 +187,11 @@ def main() -> int:
     # The same precondition finding 21 refuses on, applied here for the same reason: a
     # corpus whose blinded channel is entangled with item difficulty cannot host any of
     # this, and would still produce a well-formed artifact.
-    check = assert_channel_usable(tasks)
+    try:
+        check = assert_channel_usable(tasks)
+    except ChannelUnusableError as refusal:
+        print(refusal, file=sys.stderr)
+        raise SystemExit(REFUSED_EXIT) from refusal
     proposals = {
         t.task_id: Proposal(t.task_id, not t.significant, declassify(t.label, KEEP_COMPARTMENTS))
         for t in tasks

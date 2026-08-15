@@ -50,10 +50,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from measure_audit_policy import DEPLOYABLE
-from measure_blind_spot import REFUSED_EXIT
-from measure_channel_bias import ALPHA
-
+from pharos.governance import ALPHA, DEPLOYABLE, REFUSED_EXIT
 from pharos.provenance import run_provenance
 from pharos.telemetry import get_logger, progress, record
 
@@ -115,6 +112,7 @@ KNOWN_FALSE = frozenset(
         "provenance_ties_the_oracle_bound_in_every_draw",
         "provenance_finds_every_corrupted_item_in_every_draw",
         "the_shape_index_picks_the_winning_rule_in_every_draw",
+        "the_shape_index_price_is_a_constant",
         "the_auditable_pool_is_a_constant",
         "the_anchor_price_is_a_constant",
     }
@@ -524,6 +522,21 @@ def main() -> int:
             and all(r["rises_with_the_shared_share"] for r in shape),
             "the_shape_index_picks_the_winning_rule_in_every_draw": bool(shape)
             and all(r["picks_the_winning_rule_everywhere"] for r in shape),
+            #: Finding 29's price, and the reason this invariant exists at all. The
+            #: committed corpus's worst wrong call cost 0.011 of published error rate,
+            #: and that number reached a findings page, a manuscript abstract, a
+            #: contribution list and a conclusion before this sweep ran. Across draws it
+            #: ranges to 0.05. Same shape as finding 19's anchor prices, caught one step
+            #: earlier.
+            "the_shape_index_price_is_a_constant": bool(shape)
+            and len(
+                {
+                    r["worst_cost_of_a_wrong_call"]
+                    for r in shape
+                    if r["worst_cost_of_a_wrong_call"] is not None
+                }
+            )
+            <= 1,
             #: Finding 22.
             "blinded_channel_detected_and_controls_silent": (
                 bool(channel)

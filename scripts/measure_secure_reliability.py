@@ -47,7 +47,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from pharos.analyst import Action, AnalystPolicy, Proposal
+from pharos.analyst import Proposal
 from pharos.disclosure import DROP_COMPARTMENTS, KEEP_COMPARTMENTS, DeclassificationPolicy
 from pharos.fleet import (
     FLEET_CEILING,
@@ -57,6 +57,12 @@ from pharos.fleet import (
     contribute,
 )
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import (
+    MASK_SEED,
+    WRONG_THRESHOLD,
+    contributions_for,
+    fleet_of,
+)
 from pharos.inference import (
     agreement_with,
     dawid_skene,
@@ -73,15 +79,10 @@ from pharos.validity import check_sample_size
 SEED = 7
 EVENTS = 200
 FLEET = 9
-WRONG_THRESHOLD = 2
 
 # Matched to finding 11, whose attack is the one this protocol is meant to starve.
 FLEET_SEED = 11
 LINKAGE_FLEET = 200
-
-#: Mask seed for the aggregation rounds. Distinct from the corpus seed so a corpus
-#: change cannot silently alter the protocol's randomness as well.
-MASK_SEED = 4242
 
 #: Agreement gap that counts as the cliff, matching finding 12's threshold.
 CLIFF_GAP = 0.01
@@ -91,46 +92,6 @@ CLIFF_GAP = 0.01
 #: protocol quantizes at (~2.7e-7 for nine contributors) and far below anything that
 #: could move a label.
 EQUIVALENCE_BOUND = 1e-3
-
-
-def fleet_of(n_wrong: int, size: int) -> tuple[AnalystPolicy, ...]:
-    """`n_wrong` analysts holding the wrong standard, the rest holding the right one.
-
-    Reproduced from finding 12 rather than imported, because that script defines it
-    against its own module-level constant and this one has to sweep the size.
-    """
-    right = [AnalystPolicy(f"right-{i}") for i in range(size - n_wrong)]
-    wrong = [
-        AnalystPolicy(f"wrong-{i}", escalation_threshold=WRONG_THRESHOLD) for i in range(n_wrong)
-    ]
-    return tuple(right + wrong)
-
-
-def contributions_for(
-    policies: Sequence[AnalystPolicy],
-    tasks: Sequence[TriageTask],
-    proposals: dict[str, Proposal],
-    *,
-    seed: int,
-) -> list[tuple[str, str, bool]]:
-    """Flat `(task, contributor, verdict)` rows, exactly as finding 12 builds them.
-
-    A rejection contributes nothing rather than counting as a vote, which is finding
-    7's result and is preserved here so the two measurements see the same stream.
-    """
-    rows: list[tuple[str, str, bool]] = []
-    for policy in policies:
-        for task in tasks:
-            decision = policy.review(task, proposals[task.task_id], seed=seed)
-            if decision.action is Action.ACCEPT:
-                verdict: bool | None = proposals[task.task_id].verdict
-            elif decision.action is Action.REVISE:
-                verdict = decision.corrected_verdict
-            else:
-                verdict = None
-            if verdict is not None:
-                rows.append((task.task_id, policy.name, verdict))
-    return rows
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
