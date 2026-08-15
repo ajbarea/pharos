@@ -205,6 +205,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `decode_stability` | 30 | yes | - |
 | `difficulty_confound` | 200 | yes | - |
 | `edge_cost` | 199 | yes | - |
+| `error_shape` | 69 | yes | - |
 | `fleet_linkage` | 200 | yes | - |
 | `label_fidelity` | 40 | yes | - |
 | `learnability` | 600 | **no** | **rows[0]**: accuracy 0.482 does not beat the majority floor 0.685: this is not evidence of capability |
@@ -254,7 +255,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**27 of 59** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**27 of 60** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 **Carrying no validity assessment, which is a gap rather than a pass:** `corpus_sensitivity`, `estimator_initialization`, `governance_sensitivity`.
 
@@ -3567,7 +3568,34 @@ standard wherever counts are modelled; what we did not find prior work for is th
 application, and that is a statement about our search rather than about the literature.
 
 <!-- BEGIN GENERATED: error-shape -->
-(pending regeneration)
+**Index of dispersion** --- observed variance of the per-task vote sums over the binomial variance at the same rate, within evidence stratum. 1 is independent error; above 1 is a shared component. `--` is a fleet with no variance anywhere, which cannot be diagnosed rather than being diagnosed as clean.
+
+| Blind of 9 | slip 0.0 | slip 0.05 | slip 0.15 | slip 0.25 | slip 0.4 |
+| --- | --- | --- | --- | --- | --- |
+| 0 | -- | 1.10 | 0.96 | 1.08 | 1.08 |
+| 1 | 0.73 | 1.06 | 0.95 | 0.89 | 1.01 |
+| 3 | 2.36 | 1.62 | 1.11 | 0.95 | 0.93 |
+| 5 | 4.23 | 2.61 | 1.44 | 1.05 | 0.82 |
+| 7 | 6.42 | 3.67 | 1.83 | 1.11 | 0.95 |
+| 9 | 9.00 | 5.32 | 2.57 | 1.49 | 0.96 |
+
+**Which rule wins, and which the index picks.** `C` is withholding by the named channel, `F` is withholding by confidence, `b` is both beating an untargeted draw, `-` is neither, `?` is a fleet the index cannot diagnose.
+
+| Blind of 9 | slip 0.0 | slip 0.05 | slip 0.15 | slip 0.25 | slip 0.4 |
+| --- | --- | --- | --- | --- | --- |
+| 0 | ?/? | ?/F | ?/F | F/F | F/F |
+| 1 | ?/F | ?/F | -/F | F/F | -/F |
+| 3 | ?/C | ?/C | F/F | b/F | C/F ⚠ |
+| 5 | ?/C | b/C | b/C | b/F | -/F |
+| 7 | b/C | b/C | b/C | b/F | C/F ⚠ |
+| 9 | C/C | C/C | C/C | C/C | -/F |
+
+The index picks the rule that wins in **8 of 10** cells where a rule wins at all. The rate is the less useful half of that sentence: what a wrong call costs is **0.011** of published error rate at worst, because the cells it misses are ones where the winning rule beats an untargeted draw by about one task.
+
+| Missed cell | Wins | Index says | Cost | Channel | Confidence | Best uniform |
+| --- | --- | --- | --- | --- | --- | --- |
+| 3 blind, slip 0.4 | channel | confidence | 0.0111 | 0.3056 | 0.3167 | 0.3111 |
+| 7 blind, slip 0.4 | channel | confidence | 0.0111 | 0.3556 | 0.3667 | 0.3667 |
 <!-- END GENERATED: error-shape -->
 
 **What holds.** The index is calibrated on a fleet with no shared blind spot -- it sits

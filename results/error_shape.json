@@ -1,0 +1,741 @@
+{
+  "provenance": {
+    "pharos_version": "0.1.0",
+    "git_commit": "95cd9204fcf6",
+    "git_dirty": false,
+    "generated_at": "2026-08-15T09:02:37+00:00",
+    "python": "3.14.4",
+    "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "executable": ".venv/bin/python3",
+    "seed": 7
+  },
+  "fleet": 9,
+  "events": 200,
+  "blind_compartment": "PARTNER",
+  "shares": [
+    0,
+    1,
+    3,
+    5,
+    7,
+    9
+  ],
+  "slip_rates": [
+    0.0,
+    0.05,
+    0.15,
+    0.25,
+    0.4
+  ],
+  "null_draws": 2000,
+  "alpha": 0.001,
+  "min_stratum": 10,
+  "multiverse": {
+    "swept": {
+      "blind_share": [
+        0,
+        1,
+        3,
+        5,
+        7,
+        9
+      ],
+      "slip_rate": [
+        0.0,
+        0.05,
+        0.15,
+        0.25,
+        0.4
+      ]
+    },
+    "pinned": {
+      "corpus_seed": {
+        "value": 7,
+        "why": "the corpus dimension belongs to measure_corpus_sensitivity.py"
+      },
+      "fleet": {
+        "value": 9,
+        "why": "the size every published governance number was measured at"
+      },
+      "blind_compartment": {
+        "value": "PARTNER",
+        "why": "the one channel on this corpus whose evidence is not entangled with item difficulty"
+      }
+    }
+  },
+  "cells": [
+    {
+      "n_blind": 0,
+      "slip_rate": 0.0,
+      "dispersion": {
+        "index": null,
+        "p_value": null,
+        "strata": 0,
+        "tasks": 0,
+        "degenerate_strata": 4
+      },
+      "base_errors": 0,
+      "converged": true,
+      "actual_winner": null,
+      "predicted_rule": null,
+      "risk": {},
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 1,
+      "slip_rate": 0.0,
+      "dispersion": {
+        "index": 0.7338,
+        "p_value": 0.844578,
+        "strata": 1,
+        "tasks": 69,
+        "degenerate_strata": 3
+      },
+      "base_errors": 0,
+      "converged": true,
+      "actual_winner": null,
+      "predicted_rule": "confidence",
+      "risk": {},
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 3,
+      "slip_rate": 0.0,
+      "dispersion": {
+        "index": 2.3583,
+        "p_value": 0.0005,
+        "strata": 1,
+        "tasks": 69,
+        "degenerate_strata": 3
+      },
+      "base_errors": 0,
+      "converged": true,
+      "actual_winner": null,
+      "predicted_rule": "channel",
+      "risk": {},
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 5,
+      "slip_rate": 0.0,
+      "dispersion": {
+        "index": 4.2322,
+        "p_value": 0.0005,
+        "strata": 1,
+        "tasks": 69,
+        "degenerate_strata": 3
+      },
+      "base_errors": 0,
+      "converged": true,
+      "actual_winner": null,
+      "predicted_rule": "channel",
+      "risk": {},
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 7,
+      "slip_rate": 0.0,
+      "dispersion": {
+        "index": 6.4179,
+        "p_value": 0.0005,
+        "strata": 1,
+        "tasks": 69,
+        "degenerate_strata": 3
+      },
+      "base_errors": 20,
+      "converged": true,
+      "actual_winner": "either",
+      "predicted_rule": "channel",
+      "risk": {
+        "channel": 0.0,
+        "confidence": 0.0,
+        "uniform_best": 0.0778
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 9,
+      "slip_rate": 0.0,
+      "dispersion": {
+        "index": 9.0,
+        "p_value": 0.0005,
+        "strata": 1,
+        "tasks": 69,
+        "degenerate_strata": 3
+      },
+      "base_errors": 20,
+      "converged": true,
+      "actual_winner": "channel",
+      "predicted_rule": "channel",
+      "risk": {
+        "channel": 0.0,
+        "confidence": 0.0889,
+        "uniform_best": 0.0778
+      },
+      "cost_of_following_the_prediction": 0.0,
+      "decidable": true,
+      "correct": true
+    },
+    {
+      "n_blind": 0,
+      "slip_rate": 0.05,
+      "dispersion": {
+        "index": 1.1011,
+        "p_value": 0.206397,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 0,
+      "converged": true,
+      "actual_winner": null,
+      "predicted_rule": "confidence",
+      "risk": {},
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 1,
+      "slip_rate": 0.05,
+      "dispersion": {
+        "index": 1.0579,
+        "p_value": 0.313843,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 0,
+      "converged": true,
+      "actual_winner": null,
+      "predicted_rule": "confidence",
+      "risk": {},
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 3,
+      "slip_rate": 0.05,
+      "dispersion": {
+        "index": 1.625,
+        "p_value": 0.0005,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 0,
+      "converged": true,
+      "actual_winner": null,
+      "predicted_rule": "channel",
+      "risk": {},
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 5,
+      "slip_rate": 0.05,
+      "dispersion": {
+        "index": 2.6062,
+        "p_value": 0.0005,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 20,
+      "converged": true,
+      "actual_winner": "either",
+      "predicted_rule": "channel",
+      "risk": {
+        "channel": 0.0,
+        "confidence": 0.0056,
+        "uniform_best": 0.0778
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 7,
+      "slip_rate": 0.05,
+      "dispersion": {
+        "index": 3.6721,
+        "p_value": 0.0005,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 20,
+      "converged": true,
+      "actual_winner": "either",
+      "predicted_rule": "channel",
+      "risk": {
+        "channel": 0.0,
+        "confidence": 0.0444,
+        "uniform_best": 0.0778
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 9,
+      "slip_rate": 0.05,
+      "dispersion": {
+        "index": 5.3229,
+        "p_value": 0.0005,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 20,
+      "converged": true,
+      "actual_winner": "channel",
+      "predicted_rule": "channel",
+      "risk": {
+        "channel": 0.0,
+        "confidence": 0.1111,
+        "uniform_best": 0.0778
+      },
+      "cost_of_following_the_prediction": 0.0,
+      "decidable": true,
+      "correct": true
+    },
+    {
+      "n_blind": 0,
+      "slip_rate": 0.15,
+      "dispersion": {
+        "index": 0.9555,
+        "p_value": 0.634183,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 0,
+      "converged": true,
+      "actual_winner": null,
+      "predicted_rule": "confidence",
+      "risk": {},
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 1,
+      "slip_rate": 0.15,
+      "dispersion": {
+        "index": 0.9453,
+        "p_value": 0.684158,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 2,
+      "converged": true,
+      "actual_winner": "neither",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.0111,
+        "confidence": 0.0,
+        "uniform_best": 0.0
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 3,
+      "slip_rate": 0.15,
+      "dispersion": {
+        "index": 1.1065,
+        "p_value": 0.15992,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 4,
+      "converged": true,
+      "actual_winner": "confidence",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.0167,
+        "confidence": 0.0056,
+        "uniform_best": 0.0111
+      },
+      "cost_of_following_the_prediction": 0.0,
+      "decidable": true,
+      "correct": true
+    },
+    {
+      "n_blind": 5,
+      "slip_rate": 0.15,
+      "dispersion": {
+        "index": 1.4398,
+        "p_value": 0.001,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 15,
+      "converged": true,
+      "actual_winner": "either",
+      "predicted_rule": "channel",
+      "risk": {
+        "channel": 0.0111,
+        "confidence": 0.0167,
+        "uniform_best": 0.0556
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 7,
+      "slip_rate": 0.15,
+      "dispersion": {
+        "index": 1.8286,
+        "p_value": 0.0005,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 20,
+      "converged": true,
+      "actual_winner": "either",
+      "predicted_rule": "channel",
+      "risk": {
+        "channel": 0.0,
+        "confidence": 0.0667,
+        "uniform_best": 0.0778
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 9,
+      "slip_rate": 0.15,
+      "dispersion": {
+        "index": 2.5653,
+        "p_value": 0.0005,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 21,
+      "converged": true,
+      "actual_winner": "channel",
+      "predicted_rule": "channel",
+      "risk": {
+        "channel": 0.0056,
+        "confidence": 0.1056,
+        "uniform_best": 0.0833
+      },
+      "cost_of_following_the_prediction": 0.0,
+      "decidable": true,
+      "correct": true
+    },
+    {
+      "n_blind": 0,
+      "slip_rate": 0.25,
+      "dispersion": {
+        "index": 1.079,
+        "p_value": 0.197401,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 8,
+      "converged": true,
+      "actual_winner": "confidence",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.0389,
+        "confidence": 0.0222,
+        "uniform_best": 0.0333
+      },
+      "cost_of_following_the_prediction": 0.0,
+      "decidable": true,
+      "correct": true
+    },
+    {
+      "n_blind": 1,
+      "slip_rate": 0.25,
+      "dispersion": {
+        "index": 0.889,
+        "p_value": 0.872064,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 11,
+      "converged": true,
+      "actual_winner": "confidence",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.05,
+        "confidence": 0.0167,
+        "uniform_best": 0.05
+      },
+      "cost_of_following_the_prediction": 0.0,
+      "decidable": true,
+      "correct": true
+    },
+    {
+      "n_blind": 3,
+      "slip_rate": 0.25,
+      "dispersion": {
+        "index": 0.9488,
+        "p_value": 0.685657,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 13,
+      "converged": true,
+      "actual_winner": "either",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.05,
+        "confidence": 0.0333,
+        "uniform_best": 0.0611
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 5,
+      "slip_rate": 0.25,
+      "dispersion": {
+        "index": 1.049,
+        "p_value": 0.289855,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 17,
+      "converged": true,
+      "actual_winner": "either",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.0389,
+        "confidence": 0.0556,
+        "uniform_best": 0.0722
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 7,
+      "slip_rate": 0.25,
+      "dispersion": {
+        "index": 1.1103,
+        "p_value": 0.131434,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 29,
+      "converged": true,
+      "actual_winner": "either",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.0556,
+        "confidence": 0.1056,
+        "uniform_best": 0.1278
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 9,
+      "slip_rate": 0.25,
+      "dispersion": {
+        "index": 1.4931,
+        "p_value": 0.0005,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 27,
+      "converged": true,
+      "actual_winner": "channel",
+      "predicted_rule": "channel",
+      "risk": {
+        "channel": 0.0444,
+        "confidence": 0.1222,
+        "uniform_best": 0.1167
+      },
+      "cost_of_following_the_prediction": 0.0,
+      "decidable": true,
+      "correct": true
+    },
+    {
+      "n_blind": 0,
+      "slip_rate": 0.4,
+      "dispersion": {
+        "index": 1.0761,
+        "p_value": 0.202399,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 74,
+      "converged": false,
+      "actual_winner": "confidence",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.3778,
+        "confidence": 0.3389,
+        "uniform_best": 0.35
+      },
+      "cost_of_following_the_prediction": 0.0,
+      "decidable": true,
+      "correct": true
+    },
+    {
+      "n_blind": 1,
+      "slip_rate": 0.4,
+      "dispersion": {
+        "index": 1.0129,
+        "p_value": 0.422289,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 72,
+      "converged": false,
+      "actual_winner": "neither",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.3667,
+        "confidence": 0.3389,
+        "uniform_best": 0.3389
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 3,
+      "slip_rate": 0.4,
+      "dispersion": {
+        "index": 0.9274,
+        "p_value": 0.757121,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 65,
+      "converged": false,
+      "actual_winner": "channel",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.3056,
+        "confidence": 0.3167,
+        "uniform_best": 0.3111
+      },
+      "cost_of_following_the_prediction": 0.0111,
+      "decidable": true,
+      "correct": false
+    },
+    {
+      "n_blind": 5,
+      "slip_rate": 0.4,
+      "dispersion": {
+        "index": 0.824,
+        "p_value": 0.967516,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 99,
+      "converged": false,
+      "actual_winner": "neither",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.5,
+        "confidence": 0.4944,
+        "uniform_best": 0.4722
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    },
+    {
+      "n_blind": 7,
+      "slip_rate": 0.4,
+      "dispersion": {
+        "index": 0.9461,
+        "p_value": 0.695652,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 76,
+      "converged": false,
+      "actual_winner": "channel",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.3556,
+        "confidence": 0.3667,
+        "uniform_best": 0.3667
+      },
+      "cost_of_following_the_prediction": 0.0111,
+      "decidable": true,
+      "correct": false
+    },
+    {
+      "n_blind": 9,
+      "slip_rate": 0.4,
+      "dispersion": {
+        "index": 0.9584,
+        "p_value": 0.645177,
+        "strata": 4,
+        "tasks": 200,
+        "degenerate_strata": 0
+      },
+      "base_errors": 94,
+      "converged": false,
+      "actual_winner": "neither",
+      "predicted_rule": "confidence",
+      "risk": {
+        "channel": 0.4611,
+        "confidence": 0.4667,
+        "uniform_best": 0.45
+      },
+      "cost_of_following_the_prediction": null,
+      "decidable": false,
+      "correct": false
+    }
+  ],
+  "findings": {
+    "index_is_calibrated_on_a_healthy_fleet": true,
+    "index_rises_with_the_shared_share": true,
+    "the_index_picks_the_rule_that_wins": false,
+    "a_silent_fleet_reports_undiagnosable": true
+  },
+  "decidable_cells": 10,
+  "correct_predictions": 8,
+  "worst_cost_of_a_wrong_call": 0.0111,
+  "validity": {
+    "n": 69,
+    "quotable": true,
+    "concerns": []
+  },
+  "tasks_min": 69
+}
