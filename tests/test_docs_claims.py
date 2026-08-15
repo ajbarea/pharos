@@ -68,6 +68,57 @@ def paths_named_in(text: str) -> set[str]:
     }
 
 
+def headings_in(text: str) -> set[str]:
+    """The anchors a page defines, slugged the way the docs site and GitHub both slug them.
+
+    Lowercase, punctuation dropped, whitespace to hyphens. Emphasis markers go with the
+    punctuation, which matters because several headings here carry a quoted phrase.
+    """
+    return {
+        re.sub(r"\s+", "-", re.sub(r"[^\w\s-]", "", heading.lower()).strip())
+        for heading in re.findall(r"^#{1,6}\s+(.+?)\s*$", text, re.MULTILINE)
+    }
+
+
+def anchor_links_in(text: str) -> set[tuple[str, str]]:
+    """`(page, anchor)` for every in-repository link that names a fragment.
+
+    `page` is empty for a same-page link. External links are excluded by requiring the
+    target to be a fragment or a relative Markdown file, since an anchor on somebody
+    else's site is not this repository's claim to check.
+    """
+    found: set[tuple[str, str]] = set()
+    for target in re.findall(r"\]\(([^)\s]+)\)", text):
+        if target.startswith(("http://", "https://", "mailto:")) or "#" not in target:
+            continue
+        page, _, anchor = target.partition("#")
+        if page and not page.endswith(".md"):
+            continue
+        found.add((page, anchor))
+    return found
+
+
+@pytest.mark.parametrize("page", _docs(), ids=lambda p: str(p.relative_to(ROOT)))
+def test_every_anchor_the_docs_link_to_exists(page):
+    """A retitled heading leaves every link to it pointing at nothing, and the page still
+    builds, still deploys, and still reads fine.
+
+    This is the same rot the two checks below catch in commands and paths, in the one
+    remaining mechanical claim these pages make. It found four dead links on the day it
+    was written -- findings 16, 17, 20 and 21 had each been retitled and the eight links
+    into them were never chased -- which is the failure mode rather than a hypothesis
+    about one.
+    """
+    dangling: list[str] = []
+    for target, anchor in sorted(anchor_links_in(page.read_text())):
+        other = (page.parent / target).resolve() if target else page
+        if not other.exists():
+            dangling.append(f"{target}#{anchor} (no such page)")
+        elif anchor not in headings_in(other.read_text()):
+            dangling.append(f"{target}#{anchor}")
+    assert not dangling, f"{page.relative_to(ROOT)} links to headings that do not exist: {dangling}"
+
+
 @pytest.mark.parametrize("page", _docs(), ids=lambda p: str(p.relative_to(ROOT)))
 def test_every_make_target_the_docs_name_exists(page):
     targets = _make_targets()
@@ -128,6 +179,16 @@ def test_the_extractors_can_fail():
     }
     assert paths_named_in("`results/*.json` are tracked") == {"results/*.json"}
     assert paths_named_in("a `dict` is not a path, nor is `uv sync`") == set()
+
+    assert headings_in('## 24. A share, and "a majority" was nine\ntext\n') == {
+        "24-a-share-and-a-majority-was-nine"
+    }
+    assert headings_in("not a heading: # inside a line") == set()
+    assert anchor_links_in("[a](#here) and [b](findings.md#there)") == {
+        ("", "here"),
+        ("findings.md", "there"),
+    }
+    assert anchor_links_in("[c](https://example.com/x#frag) and [d](findings.md)") == set()
 
 
 def test_the_package_ships_its_type_information():
