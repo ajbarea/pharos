@@ -23,9 +23,11 @@ __all__ = [
     "choose_anchors",
     "policy_channel",
     "policy_consensus",
+    "policy_deviation",
     "policy_margin",
     "policy_oracle",
     "policy_posterior",
+    "policy_shortfall",
     "select",
 ]
 
@@ -105,6 +107,83 @@ def policy_consensus(view: ServerObservation, _truth: dict[str, bool]) -> dict[s
     return {task: -view.margin(task) for task in view.posterior}
 
 
+def policy_deviation(view: ServerObservation, _truth: dict[str, bool]) -> dict[str, float]:
+    """Localization without a partition: audit where the vote sum deviates from its stratum.
+
+    The one policy here that needs neither a channel to name nor a disagreement to read.
+    Finding 29's index of dispersion is a *sum* of squared within-stratum residuals, and it
+    detects a shared error from vote sums alone. This asks the obvious next question: the
+    summands are per task, so ranking by them should point at the tasks the shared standard
+    corrupts, and finding 28's remedy would no longer need a name to withhold by.
+
+    Within an evidence stratum every analyst applying one rule votes the same way, so the
+    stratum's rate is what the fleet does on tasks of that difficulty and a task far from
+    it is a task something else acted on. Reads per-task vote sums, contributor counts and
+    the public evidence count -- the same three inputs as the index, and strictly less than
+    `policy_channel` needs.
+
+    Ties break toward the lower task id, as every policy here does, so a budget sweep stays
+    nested.
+    """
+    if not view.evidence:
+        # No strata, no residual. Scoring every task equally rather than pooling them into
+        # one stratum: an unstratified residual is a different statistic, and reporting it
+        # under this name is how a policy gets credited for a comparison it did not make.
+        return dict.fromkeys(view.posterior, 1.0)
+
+    totals: dict[int, tuple[float, float]] = {}
+    for task in view.posterior:
+        level = view.evidence.get(task, -1)
+        votes, seen = totals.get(level, (0.0, 0.0))
+        totals[level] = (votes + view.votes.get(task, 0.0), seen + view.seen.get(task, 0.0))
+
+    scores: dict[str, float] = {}
+    for task in view.posterior:
+        level = view.evidence.get(task, -1)
+        votes, seen = totals[level]
+        rate = votes / seen if seen else 0.0
+        expected = view.seen.get(task, 0.0) * rate
+        # Negated: `select` audits the lowest scores, and the candidates here are the
+        # tasks furthest from what their stratum did.
+        scores[task] = -abs(view.votes.get(task, 0.0) - expected)
+    return scores
+
+
+def policy_shortfall(view: ServerObservation, _truth: dict[str, bool]) -> dict[str, float]:
+    """`policy_deviation` read one-sided: audit where the stratum votes *low*, not far.
+
+    The two-sided form is what the index of dispersion literally sums, and it carries the
+    index's blindness to direction with it: once the corrupted tasks are the majority of
+    their stratum, they set the rate and the *clean* tasks become the outliers, so the rule
+    inverts. Signing it removes that, because a blind spot is a failure to credit evidence
+    and a reviewer who credits less escalates less. The corrupted tasks vote low whether
+    they are two of a stratum or fifty.
+
+    That is a directional assumption and it is the scope condition on everything this
+    policy buys. It is not a new one: finding 22's detector is already one-sided, for
+    exactly this reason and stated in exactly these terms. A shared error that *raised* the
+    rate -- a fleet crediting something it should not -- would need the mirror of this rule,
+    and reading which of the two a fleet has is not something this signal supplies.
+    """
+    if not view.evidence:
+        return dict.fromkeys(view.posterior, 1.0)
+
+    totals: dict[int, tuple[float, float]] = {}
+    for task in view.posterior:
+        level = view.evidence.get(task, -1)
+        votes, seen = totals.get(level, (0.0, 0.0))
+        totals[level] = (votes + view.votes.get(task, 0.0), seen + view.seen.get(task, 0.0))
+
+    scores: dict[str, float] = {}
+    for task in view.posterior:
+        votes, seen = totals[view.evidence.get(task, -1)]
+        rate = votes / seen if seen else 0.0
+        # Not negated, unlike `policy_deviation`: `select` audits the lowest scores, and
+        # the candidates here are the tasks that fell furthest *below* their stratum.
+        scores[task] = view.votes.get(task, 0.0) - view.seen.get(task, 0.0) * rate
+    return scores
+
+
 def policy_oracle(view: ServerObservation, truth: dict[str, bool]) -> dict[str, float]:
     """A bound, not a method: audit exactly the tasks the fleet currently gets wrong.
 
@@ -118,7 +197,9 @@ def policy_oracle(view: ServerObservation, truth: dict[str, bool]) -> dict[str, 
 
 POLICIES: dict[str, Policy] = {
     "channel": policy_channel,
+    "deviation": policy_deviation,
     "margin": policy_margin,
+    "shortfall": policy_shortfall,
     "posterior": policy_posterior,
     "consensus": policy_consensus,
     "oracle": policy_oracle,
@@ -131,6 +212,12 @@ POLICIES: dict[str, Policy] = {
 #: have named a channel first, which has not happened in a fleet holding a *threshold*
 #: error -- there is no channel to name, so it would degrade to an arbitrary draw
 #: wearing a policy's name. `measure_blind_spot` adds it back where the detector fires.
+#:
+#: `deviation` is absent for a third reason, and it is the one worth stating: it *is*
+#: deployable, needing no prior detection at all. What this tuple actually names is the
+#: policy set findings 19 through 28 proposed, which four committed artifacts are measured
+#: against. Adding a fifth member here would silently move all four. Finding 30 names its
+#: own list instead, and this constant stays the historical one.
 DEPLOYABLE = ("uniform", "margin", "posterior", "consensus")
 
 

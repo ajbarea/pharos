@@ -48,6 +48,7 @@ SCRIPTS = (
     "measure_channel_bias.py",
     "measure_selective_risk.py",
     "measure_error_shape.py",
+    "measure_latent_blindspot.py",
     "measure_estimator_initialization.py",
 )
 

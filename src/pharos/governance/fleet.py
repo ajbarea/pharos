@@ -15,8 +15,9 @@ same experiment runs at any fleet size.
 """
 
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from math import comb
+from random import Random
 
 from pharos.analyst import Action, AnalystPolicy, Proposal, evidence_shown
 from pharos.disclosure import DROP_COMPARTMENTS
@@ -28,18 +29,27 @@ __all__ = [
     "BLIND",
     "BLIND_RUNGS",
     "CHANNEL_ENTANGLEMENT_SLACK",
+    "LATENT_ATTEMPTS",
+    "LATENT_CARRIAGE_QUANTILE",
+    "LATENT_NULL_DRAWS",
+    "LATENT_SEED_STRIDE",
+    "LATENT_SLICE",
     "MASK_SEED",
     "REFUSED_EXIT",
     "RUNGS",
     "WRONG_THRESHOLD",
     "ChannelCheck",
     "ChannelUnusableError",
+    "LatentSlice",
     "assert_channel_usable",
     "blind_fleet",
     "contributions_for",
+    "draw_balanced_slice",
+    "draw_latent_slice",
     "exact_wrong_majority",
     "fleet_of",
     "ladder",
+    "latent_blind_fleet",
     "majority",
 ]
 
@@ -315,3 +325,254 @@ def exact_wrong_majority(rate: float, *, schools: int, fleet: int) -> float:
             if j * per_school >= needed
         )
     )
+
+
+#: How many verdicts a latent blind spot corrupts, matched to what `BLIND` corrupts on
+#: the committed corpus. Finding 21 measured PARTNER changing 20 verdicts of 200, all of
+#: them on tasks showing all three defining facts. The latent construction below corrupts
+#: the same count in the same stratum, so the two differ in exactly one respect: whether
+#: the corrupted slice follows a channel a detector can name.
+LATENT_SLICE = 20
+
+#: How lopsided a drawn slice may be, as a quantile of what uniform draws from the same
+#: pool produce. Not a gap in carriage share: a fixed one was tried first and refused the
+#: committed corpus at 0.155 against a slack of 0.15, which was the guard measuring
+#: sampling noise rather than lopsidedness. Twenty tasks drawn from a pool of a few dozen
+#: put a compartment's carriage share several points either side of the pool's by
+#: arithmetic, and eight compartments give the maximum of eight such gaps.
+#:
+#: So the threshold is read off the draw's own null. The slice is a uniform draw from the
+#: eligible stratum, so balance holds in expectation by construction and this guard exists
+#: only against a *seed* that drew a genuinely lopsided one -- a slice loading onto LIAISON
+#: would be findable by a channel scan, and finding 30 would report the scan succeeding as
+#: the scan failing. A draw more extreme than this share of its own null is refused, and
+#: every draw's percentile is published whether it passes or not.
+LATENT_CARRIAGE_QUANTILE = 0.99
+
+#: Uniform draws used to calibrate that quantile.
+LATENT_NULL_DRAWS = 2000
+
+#: Draws `draw_balanced_slice` may refuse before giving up. Generous, because refusing is
+#: cheap and the alternative -- a structural refusal reported as bad luck -- is not.
+LATENT_ATTEMPTS = 50
+
+#: Gap between the seeds a rejection rule walks. Consecutive integers would make two
+#: measurements at neighbouring seeds share their retry sequences, so a corpus sweep would
+#: quietly correlate its draws.
+LATENT_SEED_STRIDE = 1009
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class LatentSlice:
+    """A shared blind spot with no channel behind it, and the evidence that it has none."""
+
+    #: The reports every blind analyst declines to credit.
+    distrusted: frozenset[str]
+    #: The tasks whose verdict that changes, which is the oracle for this construction.
+    corrupted: frozenset[str]
+    #: Tasks the draw could have picked from: those showing all three defining facts, the
+    #: only ones where discounting a report can change a verdict at all.
+    eligible: int
+    #: Largest gap, over every compartment, between the slice's carriage of it and that of
+    #: the eligible tasks it was drawn from.
+    worst_carriage_gap: float
+    #: Where that gap sits in the distribution of the same statistic over uniform draws
+    #: from the same pool. This is the number to read: the gap alone has no scale, and a
+    #: reader cannot tell 0.16 on this corpus from 0.16 on another.
+    carriage_percentile: float
+    #: Draws refused by the balance precondition before this one was accepted. Published
+    #: because a rejection rule is a selection rule: a reader is entitled to know how many
+    #: slices this corpus had to discard, and a count that climbs is a corpus where a
+    #: balanced slice of this size barely exists.
+    rejected: int = 0
+
+    def as_dict(self) -> dict[str, object]:
+        return {
+            "distrusted": len(self.distrusted),
+            "corrupted": len(self.corrupted),
+            "eligible": self.eligible,
+            "worst_carriage_gap": round(self.worst_carriage_gap, 4),
+            "carriage_percentile": round(self.carriage_percentile, 4),
+            "rejected": self.rejected,
+        }
+
+
+def draw_latent_slice(
+    tasks: Sequence[TriageTask],
+    *,
+    size: int = LATENT_SLICE,
+    seed: int,
+) -> LatentSlice:
+    """Reports to distrust so that `size` verdicts flip, on a slice nothing names.
+
+    Discounting reporting can only change a verdict on a task that shows all three
+    defining facts, because the world's rule is a conjunction over three and a reviewer
+    who loses one falls below it. That is the same stratum `BLIND` acts on, and drawing
+    from it uniformly is what makes the resulting slice unpredictable from public
+    structure: within the stratum, membership is a coin flip that no column of the corpus
+    records.
+
+    For each drawn task one defining fact is chosen and every report carrying it is
+    distrusted. Removing the fact rather than one report is required, not tidier:
+    corroborated facts reach a reviewer through more than one report --- which is finding
+    1's result --- so distrusting a single report often changes nothing, and a draw that
+    silently changed fewer verdicts than it reports would price the experiment wrong.
+
+    Raises `ChannelUnusableError` where the corpus cannot supply the slice, on the same
+    terms as `assert_channel_usable`: a corpus that cannot host the construction says
+    nothing about the finding.
+    """
+    reference = AnalystPolicy("reference")
+    eligible = [t for t in tasks if len(evidence_shown(t)) >= reference.escalation_threshold]
+    if len(eligible) < size:
+        get_logger().error(
+            "latent.pool_too_small",
+            extra={"event": "latent.pool_too_small", "eligible": len(eligible), "size": size},
+        )
+        raise ChannelUnusableError(
+            f"a latent slice of {size} needs that many tasks showing all "
+            f"{reference.escalation_threshold} defining facts; this corpus has {len(eligible)}"
+        )
+
+    rng = Random(seed)  # noqa: S311  -- an experimental draw, not a security boundary
+    drawn = rng.sample(sorted(eligible, key=lambda t: t.task_id), size)
+    distrusted: set[str] = set()
+    corrupted: set[str] = set()
+    for task in drawn:
+        fact = rng.choice(sorted(evidence_shown(task)))
+        distrusted |= {r.report_id for r in task.sources if fact in r.fact_ids}
+        corrupted.add(task.task_id)
+
+    blinded = AnalystPolicy("blind", distrusted_reports=frozenset(distrusted))
+    actually = {
+        t.task_id
+        for t in tasks
+        if (len(blinded.evidence_visible_to(t)) >= reference.escalation_threshold)
+        != (len(reference.evidence_visible_to(t)) >= reference.escalation_threshold)
+    }
+    if actually != corrupted:
+        # Loud rather than reconciled. The two disagree only if a report id is shared
+        # across tasks or a fact survives its own removal, and either means the
+        # construction is not what this docstring says it is.
+        raise ChannelUnusableError(
+            f"the draw intended to flip {len(corrupted)} verdicts and flips "
+            f"{len(actually)}; the slice is not the set it was drawn as"
+        )
+
+    pool = sorted({t.task_id for t in eligible})
+    by_id = {t.task_id: t for t in tasks}
+    carries = {
+        compartment: {
+            task: any(compartment in r.label.compartments for r in by_id[task].sources)
+            for task in pool
+        }
+        for compartment in Compartment
+    }
+
+    def worst_gap(slice_ids: set[str]) -> float:
+        """Largest carriage gap between a slice of the pool and the rest of it."""
+        rest = [t for t in pool if t not in slice_ids]
+        inside = sorted(slice_ids)
+        gaps = []
+        for flags in carries.values():
+            here = sum(flags[t] for t in inside) / len(inside) if inside else 0.0
+            there = sum(flags[t] for t in rest) / len(rest) if rest else 0.0
+            gaps.append(abs(here - there))
+        return max(gaps, default=0.0)
+
+    worst = worst_gap(corrupted)
+    null_rng = Random(seed + 1)  # noqa: S311  -- a null distribution, not a security boundary
+    null = [worst_gap(set(null_rng.sample(pool, size))) for _ in range(LATENT_NULL_DRAWS)]
+    percentile = sum(1 for g in null if g <= worst) / len(null)
+    if percentile > LATENT_CARRIAGE_QUANTILE:
+        get_logger().error(
+            "latent.slice_nameable",
+            extra={
+                "event": "latent.slice_nameable",
+                "worst_carriage_gap": round(worst, 4),
+                "carriage_percentile": round(percentile, 4),
+            },
+        )
+        raise ChannelUnusableError(
+            f"the drawn slice's worst carriage gap of {worst:.2f} sits at the "
+            f"{percentile:.1%} point of uniform draws from the same pool; a channel scan "
+            "could plausibly name it, which is the construction this measurement avoids"
+        )
+    return LatentSlice(
+        distrusted=frozenset(distrusted),
+        corrupted=frozenset(corrupted),
+        eligible=len(eligible),
+        worst_carriage_gap=worst,
+        carriage_percentile=percentile,
+    )
+
+
+def draw_balanced_slice(
+    tasks: Sequence[TriageTask],
+    *,
+    size: int = LATENT_SLICE,
+    seed: int,
+    attempts: int = LATENT_ATTEMPTS,
+) -> LatentSlice:
+    """The first draw at or below the balance quantile, and how many were refused first.
+
+    A rejection rule rather than a hand-picked seed, and the difference matters. Balance is
+    a *precondition* of this construction -- a slice a channel scan could name measures the
+    scan working and reports it as the scan failing -- so it is fixed before the run and is
+    independent of everything the experiment goes on to measure. Choosing a seed after
+    seeing which one produced the nicer result would be the opposite, and this project has
+    retracted enough single draws to want the distinction written down.
+
+    Small slices need it most: at 20 of 69 the first draw passes at the 79th percentile,
+    and at 5 of 69 the same seed lands at the 99.7th, because the worst of eight carriage
+    gaps over a five-task draw is wide by arithmetic. The count of refusals is carried on
+    the result rather than logged and forgotten.
+    """
+    rejected = 0
+    for offset in range(attempts):
+        try:
+            drawn = draw_latent_slice(tasks, size=size, seed=seed + offset * LATENT_SEED_STRIDE)
+        except ChannelUnusableError as refusal:
+            if "carriage gap" not in str(refusal):
+                # A pool too small, or a draw that did not flip what it drew. Neither is
+                # fixed by another seed, and retrying would turn a structural refusal into
+                # `attempts` identical failures and then a misleading message.
+                raise
+            rejected += 1
+            continue
+        return replace(drawn, rejected=rejected)
+    raise ChannelUnusableError(
+        f"no balanced slice of {size} in {attempts} draws; on this corpus a slice that "
+        "size cannot be drawn without a compartment scan being able to name it"
+    )
+
+
+def latent_blind_fleet(
+    n_blind: int,
+    size: int,
+    slice_: LatentSlice,
+    *,
+    slip_rate: float = 0.0,
+) -> tuple[AnalystPolicy, ...]:
+    """`blind_fleet`, with the shared blind spot keyed on reports instead of a channel.
+
+    Everything else is held: the same fleet size, the same compartment-shedding ruling
+    (required for the same structural reason -- under the fail-closed default the affected
+    tasks are escalated on disclosure grounds and contribute no verdict at all), and the
+    same independent slip rate. The single difference is what the blind analysts discount,
+    which is what makes this the negative control for a detector that scans channels.
+    """
+    sighted = [
+        AnalystPolicy(f"sighted-{i}", release_policy=DROP_COMPARTMENTS, slip_rate=slip_rate)
+        for i in range(size - n_blind)
+    ]
+    blind = [
+        AnalystPolicy(
+            f"blind-{i}",
+            distrusted_reports=slice_.distrusted,
+            release_policy=DROP_COMPARTMENTS,
+            slip_rate=slip_rate,
+        )
+        for i in range(n_blind)
+    ]
+    return tuple(sighted + blind)

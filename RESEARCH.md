@@ -612,6 +612,42 @@ Verified 2026-08-01.
   recovers a label distribution from **model updates**, and remains effective under
   differential privacy. Finding 11 observes no model updates at all.
 
+### A shared error with no observable partition, and finding 30
+
+Verified 2026-08-15.
+
+- Wang, N.-S., Yaldiz, D. N., Bakman, Y. F., & Karimireddy, S. P. (2025). Conformal
+  Prediction Adaptive to Unknown Subpopulation Shifts.
+  [arXiv:2506.05583](https://arxiv.org/abs/2506.05583) (v1 5 June 2025, v2 6 November
+  2025)
+  **Grounds** that "the subpopulation is unknown and has to be inferred" is a posed
+  problem with current methods rather than a framing invented here, and **marks the
+  boundary** of what finding 30 adds. That work infers subpopulation membership from
+  individual datapoints in order to keep a coverage guarantee valid; finding 30's
+  aggregator holds no datapoints at all, only a per-task vote sum and a contributor
+  count, because finding 18's secure-aggregation protocol removed everything else. The
+  two therefore answer the same question under incomparable observation models, and the
+  reason the residual rule is worth reporting is the observation model rather than the
+  statistic, which is elementary.
+
+- Phipson, B., & Smyth, G. K. (2010). Permutation P-values Should Never Be Zero:
+  Calculating Exact P-values When Permutations Are Randomly Drawn.
+  *Statistical Applications in Genetics and Molecular Biology*, 9(1), Article 39.
+  [doi:10.2202/1544-6115.1585](https://doi.org/10.2202/1544-6115.1585)
+  Already cited for finding 22 and load-bearing again here: finding 30 runs both the
+  permutation scan and the parametric dispersion null, and both floor at `1/(m+1)`.
+  The script asserts that floor sits below alpha before it measures anything.
+
+**What is deliberately not claimed.** The literature on latent structure in crowd
+labelling -- worker-clustering models, latent-class extensions of minimax entropy, and
+the 2026 correlated-annotator work -- is adjacent and was read, and none of it is cited
+as grounding because every method in it reads a **per-annotator stream**. That is the
+one thing this setting does not have, so the comparison would be decorative. The
+honest statement is the one finding 29 already makes about the index of dispersion:
+overdispersion diagnostics are standard wherever counts are modelled, what was not
+found is prior work applying them under this observation model, and that is a statement
+about our search rather than about the literature.
+
 ## Open: claims not yet grounded
 
 Kept explicit so silence does not read as coverage.

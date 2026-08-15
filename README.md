@@ -187,6 +187,7 @@ corrections, and the caveats.
 | 27 | Four guards could be inverted with the suite still green, and coverage called them all covered |
 | 28 | The open problem, answered: detection converts into coverage, not into correction |
 | 29 | The shape of the error is visible from the aggregate, and it is cheap to read wrong |
+| 30 | The blind spot with no name is detected the same, and located by the same signal read one-sided |
 
 The gate's calibration result is the one finding with support from outside this
 generator: the same probe run against three public corpora exceeds its own
@@ -211,6 +212,7 @@ make blindspot   # where that policy stops working, built on purpose (no model)
 make channel-bias # whether a unanimous blind spot leaves any trace at all (no model)
 make selective-risk # what abstention buys once the audit budget buys nothing (no model)
 make error-shape # whether the shape of the error is visible from the aggregate (no model)
+make latent-blindspot # whether a blind spot with no nameable channel is findable (no model)
 
 # Sensitivity: whether a finding survives a parameter nobody chose on principle
 make fleet-sensitivity  # findings 12, 16 and 17 across fleets of 5 to 51 (no model)
@@ -348,13 +350,25 @@ with one dissenter left and *at chance* at unanimity. The trade holds where the 
 error is most of the error and reverses where independent noise dominates, which is the
 distinction the detector exists to draw.
 
-**The open problem, stated as precisely as the measurements now allow.** Finding 22
-detects a blind spot aligned with a **known, public partition** of the corpus. A shared
-error that follows no observable partition would leave no trace in it either, and
-nothing here says how to find one. That is the honest residue: the class of failure this
-repository can now catch is the class that is *correlated with something already
-written down*, and whether that covers the failures a real watch floor produces is a
-question about operational data rather than about this generator.
+**The open problem, withdrawn as stated, and what replaced it.** Finding 22 detects a
+blind spot aligned with a known, public partition of the corpus, and this section used to
+close by saying that a shared error following no observable partition would leave no trace
+and that nothing here said how to find one. [Finding
+30](https://ajbarea.github.io/pharos/findings/#30-the-blind-spot-with-no-name-is-detected-the-same-and-located-by-the-same-signal-read-one-sided)
+built that error on purpose --- analysts who discount a set of individual reports rather
+than a channel, drawn to corrupt the same 20 verdicts in the same evidence stratum --- and
+neither half of the sentence held. The channel scan is silent on it, as expected. The index
+of dispersion cannot tell it from the channel-keyed version at all: identical on
+deterministic fleets, and inside the spread of five slice draws everywhere else. And
+ranking tasks by the same statistic's per-task summands, read one-sided, recovers the
+corrupted slice and ties an oracle with nothing named.
+
+What is left is narrower and is a question about the world rather than about this
+generator. The rule reads a *consistent depression* of a stratum's verdict rate, so it
+needs the shared error to act the same way on the tasks it touches and to push in a known
+direction --- the same one-sidedness finding 22's detector already assumes. Whether a real
+watch floor's shared errors have that shape is a claim about operational data, and no
+corpus generated here can settle it.
 
 ## License
 

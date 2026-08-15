@@ -244,6 +244,13 @@ jobs:
       # and if that ever stops holding the statistic is reading something else.
       - name: Test whether the shape of the error is visible from the aggregate
         run: uv run python scripts/measure_error_shape.py
+      # Finding 30, and the negative control that makes it a comparison rather than a
+      # demonstration: the channel scan must stay silent on the latent construction and
+      # must fire on the channel-keyed one built from the same corpus. If those two ever
+      # agree, the two fleets are the same fleet under different names and every number
+      # the finding quotes is a fleet compared with itself.
+      - name: Test whether a blind spot with no nameable channel is still findable
+        run: uv run python scripts/measure_latent_blindspot.py
       # Finding 25's sweep, and the guard on the one degree of freedom underneath every
       # cliff finding. The escape it reports must stay confined to the crossing: if a
       # start ever recovers the truth past it, findings 12 and 17-24 are measuring a

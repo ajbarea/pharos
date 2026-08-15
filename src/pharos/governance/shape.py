@@ -16,6 +16,7 @@ between remedies is what this testbed adds.
 from dataclasses import dataclass
 from random import Random
 
+from pharos.governance.channel import ALPHA
 from pharos.governance.view import ServerObservation
 
 __all__ = ["ALPHA", "MIN_STRATUM", "NULL_DRAWS", "Dispersion", "dispersion"]
@@ -25,9 +26,9 @@ __all__ = ["ALPHA", "MIN_STRATUM", "NULL_DRAWS", "Dispersion", "dispersion"]
 #: that lower this must check the arithmetic; the measurement script asserts it.
 NULL_DRAWS = 2000
 
-#: Significance for "this fleet is overdispersed", matched to the channel detector's alpha
-#: so the two are read on the same scale.
-ALPHA = 0.001
+# `ALPHA` is re-exported from the channel detector rather than restated. The two are read
+# on the same scale on purpose, and two literals that must agree are two literals that
+# will eventually disagree.
 
 #: A stratum contributes only if it has at least this many tasks. A dispersion index over
 #: two tasks is a number, and it is not an estimate.

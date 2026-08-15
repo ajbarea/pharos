@@ -1156,6 +1156,97 @@ def selective_risk() -> str:
     return "\n".join(lines)
 
 
+def latent_blindspot() -> str:
+    """Finding 30: what each detector and each rule does when the slice has no name.
+
+    Three tables, because the finding is three separate answers to one question and a page
+    carrying any two of them would read as a different result. The scan and the index
+    together say detection survives; the unanimity summary says localization does too; the
+    slice sweep says which form of the rule that depends on.
+    """
+    path = RESULTS / "latent_blindspot.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make latent-blindspot` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    grid = payload.get("grid") or []
+    sweep = payload.get("slice_sweep") or []
+    spread = payload.get("dispersion_spread") or []
+    if not grid or not sweep or not spread:
+        _fail("latent_blindspot.json is missing a section; refusing to emit a partial table")
+
+    fleet = payload["fleet"]
+    lines = [
+        "**What each detector says, by what the blind spot is keyed on.** `scan` is the "
+        "channel detector of finding 22, which enumerates the corpus's compartments. "
+        "`index` is the dispersion statistic of finding 29, which enumerates nothing. The "
+        "latent columns are the median and range over "
+        f"{len(payload['slice_seeds'])} slice draws; `--` is a fleet with no variance to "
+        "read.",
+        "",
+        f"| Blind of {fleet} | slip | scan, channel-keyed | scan, latent | "
+        "index, channel-keyed | index, latent (range) |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in spread:
+        cell = next(
+            c
+            for c in grid
+            if c["keying"] == "channel"
+            and c["n_blind"] == row["n_blind"]
+            and c["slip_rate"] == row["slip_rate"]
+        )
+        latent = [
+            c
+            for c in grid
+            if c["keying"].startswith("latent")
+            and c["n_blind"] == row["n_blind"]
+            and c["slip_rate"] == row["slip_rate"]
+        ]
+        fired = ", ".join(cell["channels_fired"]) or "silent"
+        latent_fired = ", ".join(sorted({ch for c in latent for ch in c["channels_fired"]}))
+        lines.append(
+            f"| {row['n_blind']} | {row['slip_rate']} | {fired} | {latent_fired or 'silent'} "
+            f"| {row['channel_index']:.2f} | {row['latent_median']:.2f} "
+            f"({row['latent_min']:.2f}-{row['latent_max']:.2f}) |"
+        )
+
+    summary = payload["unanimity_precision"]
+    lines += [
+        "",
+        "**Localization at unanimity**, where every disagreement-reading rule is already "
+        f"at chance. Share of a {payload['report_budget']}-item withhold that landed on a "
+        "label the estimator got wrong, over every slice draw and slip rate. `oracle` "
+        "reads ground truth and is a bound rather than a method.",
+        "",
+        "| Rule | median | range |",
+        "| --- | --- | --- |",
+    ]
+    for rule, stats in summary.items():
+        if stats["median"] is None:
+            lines.append(f"| `{rule}` | -- | -- |")
+            continue
+        lines.append(
+            f"| `{rule}` | {stats['median']:.2f} | {stats['min']:.2f}-{stats['max']:.2f} |"
+        )
+
+    lines += [
+        "",
+        "**As the corrupted slice grows past the majority of its stratum.** The pool of "
+        f"tasks a discounted report can flip is {sweep[0]['eligible']} on this corpus, so "
+        "the crossing sits between the two middle rows.",
+        "",
+        "| Slice | slip | errors | `uniform` | `deviation` | `shortfall` |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in sweep:
+        lines.append(
+            f"| {row['size']} of {row['eligible']} | {row['slip_rate']} | {row['errors']} "
+            f"| {row['precision']['uniform']:.2f} | {row['precision']['deviation']:.2f} "
+            f"| {row['precision']['shortfall']:.2f} |"
+        )
+    return "\n".join(lines)
+
+
 def error_shape() -> str:
     """Finding 29: the dispersion index across the share-by-noise grid, and what it costs.
 
@@ -1441,6 +1532,7 @@ BLOCKS = {
     "channel-bias": channel_bias,
     "selective-risk": selective_risk,
     "error-shape": error_shape,
+    "latent-blindspot": latent_blindspot,
 }
 
 #: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --
