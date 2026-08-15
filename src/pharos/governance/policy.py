@@ -107,6 +107,35 @@ def policy_consensus(view: ServerObservation, _truth: dict[str, bool]) -> dict[s
     return {task: -view.margin(task) for task in view.posterior}
 
 
+def _stratum_residuals(view: ServerObservation) -> dict[str, float] | None:
+    """Each task's vote sum less what its evidence stratum's rate predicts.
+
+    `None` where the view carries no strata, which the two callers turn into a flat score.
+    Pooling every task into one stratum instead would be a different statistic, and
+    reporting it under either policy's name is how a rule gets credited for a comparison it
+    never made.
+
+    One definition for both rules. They differ in how they read this quantity -- one takes
+    its magnitude, the other its sign -- and that difference is the whole of finding 30's
+    scope condition, so it should be the only thing that differs in the code as well.
+    """
+    if not view.evidence:
+        return None
+
+    totals: dict[int, tuple[float, float]] = {}
+    for task in view.posterior:
+        level = view.evidence.get(task, -1)
+        votes, seen = totals.get(level, (0.0, 0.0))
+        totals[level] = (votes + view.votes.get(task, 0.0), seen + view.seen.get(task, 0.0))
+
+    residuals: dict[str, float] = {}
+    for task in view.posterior:
+        votes, seen = totals[view.evidence.get(task, -1)]
+        rate = votes / seen if seen else 0.0
+        residuals[task] = view.votes.get(task, 0.0) - view.seen.get(task, 0.0) * rate
+    return residuals
+
+
 def policy_deviation(view: ServerObservation, _truth: dict[str, bool]) -> dict[str, float]:
     """Localization without a partition: audit where the vote sum deviates from its stratum.
 
@@ -125,28 +154,12 @@ def policy_deviation(view: ServerObservation, _truth: dict[str, bool]) -> dict[s
     Ties break toward the lower task id, as every policy here does, so a budget sweep stays
     nested.
     """
-    if not view.evidence:
-        # No strata, no residual. Scoring every task equally rather than pooling them into
-        # one stratum: an unstratified residual is a different statistic, and reporting it
-        # under this name is how a policy gets credited for a comparison it did not make.
+    residuals = _stratum_residuals(view)
+    if residuals is None:
         return dict.fromkeys(view.posterior, 1.0)
-
-    totals: dict[int, tuple[float, float]] = {}
-    for task in view.posterior:
-        level = view.evidence.get(task, -1)
-        votes, seen = totals.get(level, (0.0, 0.0))
-        totals[level] = (votes + view.votes.get(task, 0.0), seen + view.seen.get(task, 0.0))
-
-    scores: dict[str, float] = {}
-    for task in view.posterior:
-        level = view.evidence.get(task, -1)
-        votes, seen = totals[level]
-        rate = votes / seen if seen else 0.0
-        expected = view.seen.get(task, 0.0) * rate
-        # Negated: `select` audits the lowest scores, and the candidates here are the
-        # tasks furthest from what their stratum did.
-        scores[task] = -abs(view.votes.get(task, 0.0) - expected)
-    return scores
+    # Negated: `select` audits the lowest scores, and the candidates here are the tasks
+    # furthest from what their stratum did, in either direction.
+    return {task: -abs(residual) for task, residual in residuals.items()}
 
 
 def policy_shortfall(view: ServerObservation, _truth: dict[str, bool]) -> dict[str, float]:
@@ -165,23 +178,12 @@ def policy_shortfall(view: ServerObservation, _truth: dict[str, bool]) -> dict[s
     rate -- a fleet crediting something it should not -- would need the mirror of this rule,
     and reading which of the two a fleet has is not something this signal supplies.
     """
-    if not view.evidence:
+    residuals = _stratum_residuals(view)
+    if residuals is None:
         return dict.fromkeys(view.posterior, 1.0)
-
-    totals: dict[int, tuple[float, float]] = {}
-    for task in view.posterior:
-        level = view.evidence.get(task, -1)
-        votes, seen = totals.get(level, (0.0, 0.0))
-        totals[level] = (votes + view.votes.get(task, 0.0), seen + view.seen.get(task, 0.0))
-
-    scores: dict[str, float] = {}
-    for task in view.posterior:
-        votes, seen = totals[view.evidence.get(task, -1)]
-        rate = votes / seen if seen else 0.0
-        # Not negated, unlike `policy_deviation`: `select` audits the lowest scores, and
-        # the candidates here are the tasks that fell furthest *below* their stratum.
-        scores[task] = view.votes.get(task, 0.0) - view.seen.get(task, 0.0) * rate
-    return scores
+    # Not negated, unlike `policy_deviation`: `select` audits the lowest scores, and the
+    # candidates here are the tasks that fell furthest *below* their stratum.
+    return dict(residuals)
 
 
 def policy_oracle(view: ServerObservation, truth: dict[str, bool]) -> dict[str, float]:
@@ -197,11 +199,11 @@ def policy_oracle(view: ServerObservation, truth: dict[str, bool]) -> dict[str, 
 
 POLICIES: dict[str, Policy] = {
     "channel": policy_channel,
-    "deviation": policy_deviation,
     "margin": policy_margin,
-    "shortfall": policy_shortfall,
     "posterior": policy_posterior,
     "consensus": policy_consensus,
+    "deviation": policy_deviation,
+    "shortfall": policy_shortfall,
     "oracle": policy_oracle,
 }
 

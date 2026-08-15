@@ -297,11 +297,10 @@ class AnalystPolicy:
         """
         if self.blind_compartment is None and not self.distrusted_reports:
             return evidence_shown(task)
+        blinded = self.blind_compartment
         shown: set[str] = set()
         for report in task.sources:
-            if self.blind_compartment is not None and self.blind_compartment in (
-                report.label.compartments
-            ):
+            if blinded is not None and blinded in report.label.compartments:
                 continue
             if report.report_id in self.distrusted_reports:
                 continue

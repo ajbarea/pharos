@@ -3700,11 +3700,11 @@ scan failing.
 | 7 | 0.15 | PARTNER | silent | 1.83 | 1.84 (1.70-1.92) |
 | 9 | 0.15 | PARTNER | silent | 2.57 | 2.53 (2.50-2.57) |
 
-**Localization at unanimity**, where every disagreement-reading rule is already at chance. Share of a 20-item withhold that landed on a label the estimator got wrong, over every slice draw and slip rate. `oracle` reads ground truth and is a bound rather than a method.
+**Localization at unanimity**, where every disagreement-reading rule is already at chance. Share of a 20-item withhold that landed on a label the estimator got wrong, over every slice draw and slip rate. `uniform` is the **best** of 21 untargeted draws rather than their median, because a median is not a floor and finding 28 had to retract a claim that beat one. `oracle` reads ground truth and is a bound rather than a method.
 
 | Rule | median | range |
 | --- | --- | --- |
-| `uniform` | 0.10 | 0.05-0.15 |
+| `uniform` | 0.25 | 0.20-0.35 |
 | `margin` | 0.15 | 0.05-0.25 |
 | `posterior` | 0.15 | 0.10-0.25 |
 | `consensus` | 0.10 | 0.00-0.25 |
@@ -3714,20 +3714,20 @@ scan failing.
 
 **As the corrupted slice grows past the majority of its stratum.** The pool of tasks a discounted report can flip is 69 on this corpus, so the crossing sits between the two middle rows.
 
-| Slice | slip | errors | `uniform` | `deviation` | `shortfall` |
+| Slice | slip | errors | `uniform` (best of 21) | `deviation` | `shortfall` |
 | --- | --- | --- | --- | --- | --- |
-| 10 of 69 | 0.0 | 10 | 0.05 | 0.50 | 0.50 |
-| 10 of 69 | 0.15 | 11 | 0.05 | 0.55 | 0.50 |
-| 20 of 69 | 0.0 | 20 | 0.10 | 1.00 | 1.00 |
-| 20 of 69 | 0.15 | 21 | 0.15 | 0.95 | 1.00 |
-| 30 of 69 | 0.0 | 30 | 0.15 | 1.00 | 1.00 |
-| 30 of 69 | 0.15 | 31 | 0.15 | 0.65 | 1.00 |
-| 40 of 69 | 0.0 | 40 | 0.20 | 0.00 | 1.00 |
-| 40 of 69 | 0.15 | 40 | 0.20 | 0.30 | 1.00 |
-| 50 of 69 | 0.0 | 50 | 0.25 | 0.05 | 1.00 |
-| 50 of 69 | 0.15 | 50 | 0.25 | 0.20 | 1.00 |
-| 60 of 69 | 0.0 | 60 | 0.30 | 0.55 | 1.00 |
-| 60 of 69 | 0.15 | 60 | 0.30 | 0.25 | 0.50 |
+| 10 of 69 | 0.0 | 10 | 0.15 | 0.50 | 0.50 |
+| 10 of 69 | 0.15 | 11 | 0.20 | 0.55 | 0.50 |
+| 20 of 69 | 0.0 | 20 | 0.25 | 1.00 | 1.00 |
+| 20 of 69 | 0.15 | 21 | 0.25 | 0.95 | 1.00 |
+| 30 of 69 | 0.0 | 30 | 0.25 | 1.00 | 1.00 |
+| 30 of 69 | 0.15 | 31 | 0.25 | 0.65 | 1.00 |
+| 40 of 69 | 0.0 | 40 | 0.35 | 0.00 | 1.00 |
+| 40 of 69 | 0.15 | 40 | 0.35 | 0.30 | 1.00 |
+| 50 of 69 | 0.0 | 50 | 0.35 | 0.05 | 1.00 |
+| 50 of 69 | 0.15 | 50 | 0.35 | 0.20 | 1.00 |
+| 60 of 69 | 0.0 | 60 | 0.40 | 0.55 | 1.00 |
+| 60 of 69 | 0.15 | 60 | 0.40 | 0.25 | 0.50 |
 <!-- END GENERATED: latent-blindspot -->
 
 **Detection survives the loss of the partition, exactly.** At every share of a
