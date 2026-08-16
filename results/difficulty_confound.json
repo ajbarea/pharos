@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "1fe63ec6fc24",
+    "git_commit": "791bdba0b55c",
     "git_dirty": false,
-    "generated_at": "2026-08-03T21:51:07+00:00",
+    "generated_at": "2026-08-16T11:30:01+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",

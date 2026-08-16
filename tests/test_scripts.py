@@ -2225,6 +2225,32 @@ def test_build_fleet_splits_wrong_standards_from_slip():
     assert len(wrong) == 3
     assert len(mixed) == mdc.FLEET
 
+    # The cell the sweep does not contain, which is why a copy of this constructor drifted
+    # here unnoticed: it slipped the right analysts and not the wrong ones. Every cell the
+    # grid runs has either no wrong analyst or no slip, so the two definitions agreed
+    # everywhere they were asked. The knobs are separate, and separate means each reaches
+    # the whole fleet rather than half of it.
+    both = mdc.build_fleet(3, 0.15)
+    assert all(p.slip_rate == 0.15 for p in both), (
+        "slip must reach every analyst, as it does in `blind_fleet` and "
+        "`latent_blind_fleet`; a slip that stops at the wrong analysts is a third "
+        "condition wearing a second one's name"
+    )
+    assert len([p for p in both if p.escalation_threshold == mdc.WRONG_THRESHOLD]) == 3
+
+
+def test_the_script_and_the_package_agree_on_the_wrong_standard():
+    """One `= 2`, not two. The fleet is built by the package; the name must mean the same.
+
+    A script that disagreed with `pharos.governance` about the wrong standard would build
+    a fleet whose composition and whose reported `wrong_threshold` came apart, and the
+    artifact would name a threshold no analyst held.
+    """
+    from pharos.governance.fleet import WRONG_THRESHOLD as PACKAGED_WRONG_THRESHOLD
+
+    mdc = _difficulty_module()
+    assert mdc.WRONG_THRESHOLD is PACKAGED_WRONG_THRESHOLD
+
 
 def test_collect_drops_a_reviewer_who_supplied_no_verdict():
     """A rejection is not a label. Counting it as one would move every number here."""

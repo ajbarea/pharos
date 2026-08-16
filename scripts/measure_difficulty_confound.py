@@ -40,6 +40,8 @@ from pathlib import Path
 from pharos.analyst import Action, AnalystPolicy, Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import fleet_of
+from pharos.governance.fleet import WRONG_THRESHOLD as _WRONG_THRESHOLD
 from pharos.inference import agreement_with, cc_rasch, dawid_skene, glad
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
@@ -52,8 +54,13 @@ SEED = 7
 EVENTS = 200
 FLEET = 9
 
-#: The wrong standard, matching findings 12 and 16 so the three are comparable.
-WRONG_THRESHOLD = 2
+#: The wrong standard, matching findings 12 and 16 so the three are comparable. Imported
+#: rather than restated: this was a second `= 2` beside the package's, and the fleet it
+#: describes is now built by `fleet_of`, so a script that disagreed with the package about
+#: the wrong standard would have built a fleet whose name and behaviour came apart. Two
+#: literals that must agree are two literals that will eventually disagree, which is the
+#: reason `shape.ALPHA` is a re-export.
+WRONG_THRESHOLD = _WRONG_THRESHOLD
 
 
 def compositions(fleet: int) -> tuple[tuple[str, int, float], ...]:
@@ -205,11 +212,14 @@ def carries_the_claim(row: "Row") -> bool:
 
 
 def build_fleet(n_wrong: int, slip: float, fleet: int = FLEET) -> tuple[AnalystPolicy, ...]:
-    right = [AnalystPolicy(f"right-{i}", slip_rate=slip) for i in range(fleet - n_wrong)]
-    wrong = [
-        AnalystPolicy(f"wrong-{i}", escalation_threshold=WRONG_THRESHOLD) for i in range(n_wrong)
-    ]
-    return tuple(right + wrong)
+    """This script's fleet, which is `fleet_of` with this script's default size.
+
+    It used to build the two lists itself, and had drifted: the slip reached the right
+    analysts and not the wrong ones. No published number depended on it, because the sweep
+    runs the wrong rows at slip 0 and the slipping row with no wrong analysts, so the two
+    definitions agreed on every cell the grid contains.
+    """
+    return fleet_of(n_wrong, fleet, slip_rate=slip)
 
 
 def collect(
