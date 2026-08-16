@@ -272,3 +272,58 @@ def test_no_two_submodules_define_the_same_public_name():
 
     duplicated = {name: mods for name, mods in owners.items() if len(mods) > 1}
     assert not duplicated, f"defined in more than one governance submodule: {duplicated}"
+
+
+def test_no_script_restates_a_constant_the_package_already_owns():
+    """A second literal for a shared constant, which is how one of them goes stale.
+
+    The guard above asks the question of `pharos.governance`'s own submodules. It cannot
+    see the other half of the codebase: a measurement script writing its own `= 2` beside
+    a package that exports the same name and the same value. That is not a hypothetical
+    shape. It was fixed four separate times before this test existed --- `shape.ALPHA`
+    became a re-export, `measure_difficulty_confound` stopped defining `WRONG_THRESHOLD`,
+    the untargeted-draw count moved from two captions into the artifact, and a dead
+    `LATENT_SLICE` default came out --- and the fourth time is where a guard is cheaper
+    than a fifth fix.
+
+    Equal values only, deliberately. A script whose `SEED` differs from something in the
+    package is not restating it; a script whose value *agrees* today is the one that can
+    silently stop agreeing, and it is also the only case where an import is
+    unambiguously the same program.
+    """
+    import ast
+    import importlib
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+
+    exported: dict[str, object] = {}
+    for module in ("pharos.governance", "pharos.analyst", "pharos.tasks", "pharos.inference"):
+        loaded = importlib.import_module(module)
+        for name in dir(loaded):
+            if name.isupper() and not name.startswith("_"):
+                exported.setdefault(name, getattr(loaded, name))
+
+    restated: list[str] = []
+    for path in sorted((root / "scripts").glob("*.py")):
+        for node in ast.parse(path.read_text(encoding="utf-8")).body:
+            if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+                continue
+            target = node.targets[0]
+            if not isinstance(target, ast.Name) or not target.id.isupper():
+                continue
+            try:
+                value = ast.literal_eval(node.value)
+            except (ValueError, TypeError, SyntaxError):
+                # A name, a call, or an expression: already reading something rather
+                # than restating a literal, which is the shape being asked for.
+                continue
+            if target.id in exported and exported[target.id] == value:
+                restated.append(f"{path.name}:{target.id} = {value!r}")
+
+    assert not restated, (
+        "scripts restating a constant the package exports with the same value: "
+        f"{restated}. Import it, so the two cannot disagree. If the script genuinely "
+        "means a different quantity that happens to share a name and a value today, "
+        "rename it -- the collision is the problem either way."
+    )
