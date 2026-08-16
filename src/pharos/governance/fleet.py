@@ -150,16 +150,30 @@ def ladder(fleet: int, rungs: Sequence[str]) -> tuple[int, ...]:
     return tuple(sorted({min(fleet, max(0, RUNGS[rung](fleet))) for rung in rungs}))
 
 
-def fleet_of(n_wrong: int, size: int) -> tuple[AnalystPolicy, ...]:
+def fleet_of(n_wrong: int, size: int, *, slip_rate: float = 0.0) -> tuple[AnalystPolicy, ...]:
     """`n_wrong` analysts holding the wrong standard, the rest holding the right one.
 
     One definition rather than two. This was reproduced in a second script with a comment
     explaining that it had to be, because the original was written against its own
-    module-level constant; the constant moved here with it and the copy is gone.
+    module-level constant; the constant moved here with it.
+
+    The copy outlived that note. `measure_difficulty_confound.build_fleet` was still
+    building the same two lists, and it had drifted in the one way a reader would not
+    look for: it applied `slip_rate` to the *right* analysts only, where `blind_fleet` and
+    `latent_blind_fleet` apply it to every analyst they build. Nothing published moved,
+    because that script sweeps no cell with both a wrong analyst and a slip -- the wrong
+    rows run at slip 0 and the slipping row has no wrong analysts -- so the divergence sat
+    in the one cell the grid does not contain. A copy that agrees on every case you run is
+    the kind that is discovered by the case you add.
+
+    `slip_rate` therefore applies to the whole fleet, which is what the two other builders
+    in this module mean by it, and the script now asks for a fleet rather than building
+    one.
     """
-    right = [AnalystPolicy(f"right-{i}") for i in range(size - n_wrong)]
+    right = [AnalystPolicy(f"right-{i}", slip_rate=slip_rate) for i in range(size - n_wrong)]
     wrong = [
-        AnalystPolicy(f"wrong-{i}", escalation_threshold=WRONG_THRESHOLD) for i in range(n_wrong)
+        AnalystPolicy(f"wrong-{i}", escalation_threshold=WRONG_THRESHOLD, slip_rate=slip_rate)
+        for i in range(n_wrong)
     ]
     return tuple(right + wrong)
 
