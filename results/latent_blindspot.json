@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "fbbd9272a657",
+    "git_commit": "938ea27c7d3f",
     "git_dirty": false,
-    "generated_at": "2026-08-16T10:11:11+00:00",
+    "generated_at": "2026-08-16T12:23:46+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -46,6 +46,7 @@
     "deviation",
     "shortfall"
   ],
+  "uniform_draws": 21,
   "bound": "oracle",
   "report_budget": 20,
   "alpha": 0.001,
