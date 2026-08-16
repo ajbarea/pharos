@@ -56,6 +56,12 @@ SCRIPTS = (
 #: model-backed measurements the list above deliberately excludes.
 VALIDITY_PREFIX = "validity."
 
+#: Event families raised inside the library rather than by the measurement that provokes
+#: them. A scoped tolerance for one of these is earned by the script driving that regime,
+#: so the event name will not appear in the script's own source and reachability has to
+#: stop looking for it there.
+LIBRARY_RAISED = ("inference.",)
+
 #: Warnings this project expects to see, each a real finding rather than a defect.
 #: A warning absent from here is worth looking at; one of these going missing is worth
 #: looking at harder, because it means a finding stopped reporting itself.
@@ -141,6 +147,46 @@ SCRIPT_SCOPED_WARNINGS = {
 }
 
 
+def verify_scoped_exemptions() -> list[str]:
+    """Check that every scoped tolerance still names something real.
+
+    `EXPECTED_WARNINGS` is checked in both directions: an unexpected one fails, and one
+    that stops firing fails too, because a finding that quietly stops reporting itself
+    looks exactly like a clean run. `SCRIPT_SCOPED_WARNINGS` had neither. It is the more
+    dangerous list of the two, because a scoped entry widens what one script may say
+    without anybody being told when the reason expires.
+
+    Firing is the wrong thing to require of these -- they are regime-dependent, and
+    `latent_blindspot.size_refused` fires only on a corpus that refuses a draw, which the
+    committed one does not. So the check is reachability: the script must exist, must be
+    one this command runs, and must still contain the event it is excused for. An entry
+    naming an event no script emits is a tolerance with nothing behind it, sitting ready
+    to absorb the next thing that happens to use that name.
+    """
+    problems: list[str] = []
+    for script, events in SCRIPT_SCOPED_WARNINGS.items():
+        path = ROOT / "scripts" / script
+        if script not in SCRIPTS:
+            problems.append(f"{script} is scoped but is not in SCRIPTS, so it never runs here")
+            continue
+        if not path.is_file():
+            problems.append(f"{script} is scoped but no longer exists")
+            continue
+        source = path.read_text(encoding="utf-8")
+        for event in sorted(events):
+            # The emitting script, or the library it calls. `inference.*` is raised inside
+            # `pharos.inference` and only travels through the measurement, so a scoped
+            # entry for it is earned by the script provoking that regime rather than by
+            # the string appearing in its file.
+            reachable = event in source or event.startswith(LIBRARY_RAISED)
+            if not reachable:
+                problems.append(
+                    f"{script} is excused for {event!r}, which it no longer emits. "
+                    "Remove the entry, or the exemption is covering something else now."
+                )
+    return problems
+
+
 def run(script: str, *, debug: bool) -> tuple[list[dict[str, object]], int]:
     """Run one script and return its structured log records and exit code."""
     env_level = "DEBUG" if debug else "INFO"
@@ -176,6 +222,20 @@ def main() -> int:
     seen_warnings: set[str] = set()
     failures: list[str] = []
 
+    # Before running anything, because a stale tolerance is cheaper to report than to
+    # diagnose and this needs no measurement to decide.
+    stale_exemptions = verify_scoped_exemptions()
+
+    #: Which scoped tolerances actually suppressed something this run. Ruff's `RUF100`
+    #: is the standard here -- a suppression is valid only if the thing it excuses is
+    #: really triggered -- and a tolerance that suppresses nothing is the shape a stale
+    #: one has. It is reported rather than failed, because some of these are legitimately
+    #: regime-dependent: `latent_blindspot.size_refused` fires only on a corpus that
+    #: refuses a draw, and the committed one does not. Failing on unused would delete a
+    #: correct entry; saying nothing lets an expired one sit forever. Naming it is the
+    #: re-review that security tooling schedules on a timer, run every time instead.
+    used_scope: dict[str, set[str]] = {}
+
     for script in SCRIPTS:
         records, code = run(script, debug=args.debug)
         if code != 0:
@@ -193,6 +253,8 @@ def main() -> int:
                 continue
             name = str(record.get("event") or record.get("metric") or "?")
             seen_warnings.add(name)
+            if name in SCRIPT_SCOPED_WARNINGS.get(script, frozenset()):
+                used_scope.setdefault(script, set()).add(name)
             if name not in EXPECTED_WARNINGS and name not in SCRIPT_SCOPED_WARNINGS.get(
                 script, frozenset()
             ):
@@ -206,6 +268,22 @@ def main() -> int:
         print("\nSCRIPTS THAT FAILED:")
         for f in failures:
             print(f"  {f}")
+
+    if stale_exemptions:
+        print("\nSCOPED TOLERANCES THAT NO LONGER NAME ANYTHING:")
+        for problem in stale_exemptions:
+            print(f"  {problem}")
+
+    dormant = sorted(
+        (script, event)
+        for script, events in SCRIPT_SCOPED_WARNINGS.items()
+        for event in events
+        if event not in used_scope.get(script, set())
+    )
+    if dormant:
+        print("\nscoped tolerances that suppressed nothing this run -- re-read the reason:")
+        for script, event in dormant:
+            print(f"  {script}: {event}")
 
     if unexpected:
         print("\nUNEXPECTED WARNINGS -- these are the ones to look at:")
@@ -240,7 +318,7 @@ def main() -> int:
             print(f"  {name}")
 
     print("=" * 68)
-    return 1 if (failures or unexpected or core_missing) else 0
+    return 1 if (failures or unexpected or core_missing or stale_exemptions) else 0
 
 
 if __name__ == "__main__":

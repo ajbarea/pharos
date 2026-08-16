@@ -136,6 +136,43 @@ def test_every_expected_warning_has_something_that_emits_it():
     )
 
 
+def test_every_scoped_warning_still_names_something_its_script_emits():
+    """The same question as above, asked of the list that had nobody asking it.
+
+    `EXPECTED_WARNINGS` is checked in both directions -- unexpected fails, and stopping
+    firing fails. `SCRIPT_SCOPED_WARNINGS` had neither, and it is the more dangerous of
+    the two: it widens what one named script may say, so a reason that has expired keeps
+    excusing that script alone, where nobody is looking.
+    """
+    logcheck = _logcheck_module()
+    assert logcheck.SCRIPT_SCOPED_WARNINGS, "nothing is scoped; this test is now vacuous"
+    assert not logcheck.verify_scoped_exemptions()
+
+
+def test_a_scoped_tolerance_that_stopped_meaning_anything_fails_the_check(monkeypatch):
+    """Tripped rather than trusted, which is the property the check itself is about.
+
+    Both halves: an event the named script no longer emits, and a script this command
+    does not run. Either makes the entry a tolerance with nothing behind it, sitting
+    ready to absorb the next thing that happens to use the name.
+    """
+    logcheck = _logcheck_module()
+
+    monkeypatch.setattr(
+        logcheck,
+        "SCRIPT_SCOPED_WARNINGS",
+        {"measure_error_shape.py": frozenset({"error_shape.event_that_never_was"})},
+    )
+    stale = logcheck.verify_scoped_exemptions()
+    assert stale and "no longer emits" in stale[0]
+
+    monkeypatch.setattr(
+        logcheck, "SCRIPT_SCOPED_WARNINGS", {"measure_not_a_script.py": frozenset({"a.b"})}
+    )
+    unknown = logcheck.verify_scoped_exemptions()
+    assert unknown and "not in SCRIPTS" in unknown[0]
+
+
 def test_run_collects_structured_records_and_ignores_the_rest(tmp_path, monkeypatch):
     """Only JSON lines carrying a `logger` are records. Plain output is not evidence."""
     logcheck = _logcheck_module()
