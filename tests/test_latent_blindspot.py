@@ -524,6 +524,60 @@ def test_a_size_the_corpus_cannot_host_is_skipped_and_said_so(small, monkeypatch
     )
 
 
+def test_the_control_needs_every_unanimity_cell_to_fire_not_just_one(small):
+    """Both halves of the negative control read the same way, and this is the half that did not.
+
+    There are two unanimity cells, one per slip rate. Read as `any`, a change that killed
+    detectability at 0.15 while leaving 0.0 intact would have passed the control on the
+    surviving cell -- half a comparison reporting as a whole one, which is the defect the
+    control was added to close, one level down.
+
+    Trips the guard rather than asserting it exists: one silenced cell must flip the
+    verdict, and the artifact's own True must not survive it.
+    """
+    import argparse
+    from dataclasses import replace
+
+    from measure_latent_blindspot import assemble, slice_sweep
+
+    tasks, proposals, truth = small
+    size = len(_channel_affected(tasks))
+    drawn = draw_balanced_slice(tasks, size=size, seed=7)
+    cells = [
+        _cell(small, "channel", None, n_blind=n, slip=slip) for n in (0, 5) for slip in (0.0, 0.15)
+    ] + [
+        _cell(small, "latent:7", drawn, n_blind=n, slip=slip)
+        for n in (0, 5)
+        for slip in (0.0, 0.15)
+    ]
+    sweep = slice_sweep(tasks, proposals, truth, fleet=5, seed=7, null_draws=1)
+    args = argparse.Namespace(seed=7, events=60, fleet=5, permutations=1, null_draws=1)
+
+    # Both unanimity cells made to fire, rather than hoping this corpus makes them. The
+    # small corpus has no scan power at 0.15, and a test that depended on that would be
+    # measuring the generator instead of the quantifier it exists to pin.
+    def firing(cell):
+        at_unanimity = cell.keying == "channel" and cell.n_blind == 5
+        return replace(cell, channels_fired=("PARTNER",)) if at_unanimity else cell
+
+    both = [firing(c) for c in cells]
+    intact = _mapping(assemble(both, sweep, {7: drawn}, (0, 5), args, size)["findings"])
+    assert intact["channel_scan_fires_on_channel_keyed"] is True, (
+        "both unanimity cells fire and the control still says otherwise"
+    )
+
+    silenced = [
+        replace(c, channels_fired=())
+        if (c.keying == "channel" and c.n_blind == 5 and c.slip_rate == 0.15)
+        else c
+        for c in both
+    ]
+    after = _mapping(assemble(silenced, sweep, {7: drawn}, (0, 5), args, size)["findings"])
+    assert after["channel_scan_fires_on_channel_keyed"] is False, (
+        "silencing one unanimity cell left the control passing; it is reading `any` again"
+    )
+
+
 def test_a_refusal_the_corpus_owns_is_not_confused_with_one_a_draw_owns():
     """The predicate two call sites disagreed on, now asserted on the exception itself.
 

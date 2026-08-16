@@ -3738,8 +3738,8 @@ corrupts and not on which ones, so two slices of the same size in the same strat
 same number to it. Once analysts slip independently the two fleets are different draws and
 the indices separate by a tenth at worst and hundredths typically --- 0.13 in the widest
 cell, under 0.10 in every other; the channel-keyed value then sits **inside the range
-five latent slice draws produce, in every cell that could fail**. The statistic cannot tell the two
-constructions apart.
+five latent slice draws produce, in every cell that could fail**. The statistic cannot
+tell the two constructions apart.
 
 The scan is the mirror image. It is **silent on the latent construction in every cell**,
 and it names PARTNER on the channel-keyed twin wherever it can name anything --- which is

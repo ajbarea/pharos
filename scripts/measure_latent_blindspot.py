@@ -605,7 +605,13 @@ def assemble(
     # nothing is True, and a verdict that is true from zero data is the shape of a control
     # that has quietly stopped running.
     scan_silent = bool(latent) and all(not c.channels_fired for c in latent)
-    scan_fires = [c for c in channel if c.n_blind >= unanimous and c.channels_fired]
+    # Both halves of one control, so both are read the same way. This half was `any` while
+    # its mirror above was `all`: there are two unanimity cells, one per slip rate, and a
+    # change that killed detectability at 0.15 while leaving 0.0 intact would have passed
+    # the control on the surviving cell. That is the same shape as the defect this control
+    # was added to close -- half a comparison reporting as a whole one -- one level down.
+    at_unanimity_channel = [c for c in channel if c.n_blind >= unanimous]
+    scan_fires = bool(at_unanimity_channel) and all(c.channels_fired for c in at_unanimity_channel)
 
     # Prediction 2, as a number rather than as an impression: the same fleet share and
     # slip under two keyings must give the same index, because the index never read the
@@ -661,6 +667,12 @@ def assemble(
 
     inverted = no_better_than_uniform("deviation")
 
+    # The eligible pool, read off a row rather than recomputed from the corpus. Every row
+    # carries the same number by construction -- eligibility is a property of the corpus and
+    # the threshold, not of the draw -- and reading it here keeps one definition of "the
+    # pool" between the sweep that filtered on it and the artifact that reports it.
+    pool = sweep[0].eligible if sweep else 0
+
     # Prediction 2, operationalized the only way the data supports. Equality is the right
     # test where both fleets are deterministic: at slip 0 the two constructions corrupt the
     # same *number* of tasks in the same stratum, and the index reads how many and never
@@ -714,7 +726,7 @@ def assemble(
     findings = {
         # 1: the constructions are matched, which everything else rests on.
         "channel_scan_silent_on_latent": scan_silent,
-        "channel_scan_fires_on_channel_keyed": bool(scan_fires),
+        "channel_scan_fires_on_channel_keyed": scan_fires,
         # 2: the index does not need the partition.
         "dispersion_identical_on_deterministic_fleets": bool(deterministic) and identical,
         "dispersion_cannot_tell_the_constructions_apart": indistinguishable,
@@ -770,12 +782,19 @@ def assemble(
         #: `cells_where_two_sided_is_no_better_than_uniform` below, which is what the prose
         #: quotes; the two answer different questions and now each says which.
         "inverted_sizes": sorted(set(inverted)),
-        #: Sizes the sweep asked for and did not run, because the eligible pool is smaller
-        #: than the size. Empty on the committed corpus, and published rather than inferred
-        #: from a short table: a row that is missing and a row that was never requested look
-        #: the same to a reader, and only one of them is a result.
-        "sizes_the_corpus_cannot_host": [
-            s for s in SLICE_SIZES if s not in {r.size for r in sweep}
+        #: Sizes the sweep asked for and did not run, split by which of the two reasons it
+        #: was. Both empty on the committed corpus, and published rather than inferred from
+        #: a short table: a row that is missing and a row that was never requested look the
+        #: same to a reader, and only one of them is a result.
+        #:
+        #: Split because the first draft of this field was one list derived by subtracting
+        #: the sizes that produced rows, under the name `sizes_the_corpus_cannot_host` --
+        #: which is true of a size larger than the pool and false of a size the pool can
+        #: host whose every draw was refused as lopsided. One name over two causes, on a
+        #: branch whose subject is names that overstate what they cover.
+        "sizes_the_corpus_cannot_host": [s for s in SLICE_SIZES if s > pool],
+        "sizes_no_balanced_draw_reached": [
+            s for s in SLICE_SIZES if s <= pool and s not in {r.size for r in sweep}
         ],
         #: The two counts the findings page quotes in prose. Published rather than left to
         #: be counted off a table by hand: this project has had a hand-typed summary of a
