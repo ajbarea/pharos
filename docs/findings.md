@@ -3684,7 +3684,7 @@ channel would be found by the scan and this finding would report the scan workin
 scan failing.
 
 <!-- BEGIN GENERATED: latent-blindspot -->
-**What each detector says, by what the blind spot is keyed on.** `scan` is the channel detector of finding 22, which enumerates the corpus's compartments. `index` is the dispersion statistic of finding 29, which enumerates nothing. The latent columns are the median and range over 5 slice draws; `--` is a fleet with no variance to read.
+**What each detector says, by what the blind spot is keyed on.** `scan` is the channel detector of finding 22, which enumerates the corpus's compartments. `index` is the dispersion statistic of finding 29, which enumerates nothing. The latent columns are the median and range over 5 slice draws; `--` is a fleet with no variance to read. The unblinded row is marked `ref`: with no blind analyst the two constructions build the same fleet, so it cannot disagree and is excluded from the verdict, which rests on the 10 rows that can.
 
 | Blind of 9 | slip | scan, channel-keyed | scan, latent | index, channel-keyed | index, latent (range) |
 | --- | --- | --- | --- | --- | --- |
@@ -3693,7 +3693,7 @@ scan failing.
 | 5 | 0.0 | PARTNER | silent | 4.23 | 4.23 (4.23-4.23) |
 | 7 | 0.0 | PARTNER | silent | 6.42 | 6.42 (6.42-6.42) |
 | 9 | 0.0 | PARTNER | silent | 9.00 | 9.00 (9.00-9.00) |
-| 0 | 0.15 | silent | silent | 0.96 | 0.96 (0.96-0.96) |
+| 0 (ref) | 0.15 | silent | silent | 0.96 | 0.96 (0.96-0.96) |
 | 1 | 0.15 | silent | silent | 0.95 | 0.93 (0.89-0.96) |
 | 3 | 0.15 | silent | silent | 1.11 | 1.12 (1.03-1.18) |
 | 5 | 0.15 | PARTNER | silent | 1.44 | 1.46 (1.36-1.53) |
@@ -3705,8 +3705,8 @@ scan failing.
 | Rule | median | range |
 | --- | --- | --- |
 | `uniform` | 0.25 | 0.20-0.35 |
-| `margin` | 0.15 | 0.05-0.25 |
-| `posterior` | 0.15 | 0.10-0.25 |
+| `margin` | 0.12 | 0.05-0.25 |
+| `posterior` | 0.12 | 0.10-0.25 |
 | `consensus` | 0.10 | 0.00-0.25 |
 | `deviation` | 1.00 | 0.85-1.00 |
 | `shortfall` | 1.00 | 1.00-1.00 |
@@ -3714,20 +3714,20 @@ scan failing.
 
 **As the corrupted slice grows past the majority of its stratum.** The pool of tasks a discounted report can flip is 69 on this corpus, so the crossing sits between the two middle rows. Every cell is the median over 5 slice draws with the range beside it, because a slice is a sample and this sweep quoted one draw of it as a constant until it did not.
 
-| Slice | slip | errors | `uniform` (best of 21) | `deviation` | `shortfall` |
-| --- | --- | --- | --- | --- | --- |
-| 10 of 69 | 0.0 | 10 | 0.15 (0.10-0.20) | 0.50 (0.50-0.50) | 0.50 (0.50-0.50) |
-| 10 of 69 | 0.15 | 11 | 0.20 (0.15-0.20) | 0.55 (0.55-0.55) | 0.50 (0.50-0.50) |
-| 20 of 69 | 0.0 | 20 | 0.20 (0.20-0.35) | 1.00 (1.00-1.00) | 1.00 (1.00-1.00) |
-| 20 of 69 | 0.15 | 21 | 0.25 (0.20-0.35) | 0.95 (0.85-1.00) | 1.00 (1.00-1.00) |
-| 30 of 69 | 0.0 | 30 | 0.25 (0.25-0.40) | 1.00 (1.00-1.00) | 1.00 (1.00-1.00) |
-| 30 of 69 | 0.15 | 31 | 0.30 (0.25-0.40) | 0.65 (0.55-0.75) | 1.00 (1.00-1.00) |
-| 40 of 69 | 0.0 | 40 | 0.35 (0.30-0.45) | 0.00 (0.00-0.00) | 1.00 (1.00-1.00) |
-| 40 of 69 | 0.15 | 40 | 0.35 (0.30-0.45) | 0.30 (0.20-0.30) | 1.00 (1.00-1.00) |
-| 50 of 69 | 0.0 | 50 | 0.35 (0.35-0.45) | 0.05 (0.05-0.05) | 1.00 (1.00-1.00) |
-| 50 of 69 | 0.15 | 50 | 0.35 (0.35-0.45) | 0.10 (0.05-0.20) | 1.00 (1.00-1.00) |
-| 60 of 69 | 0.0 | 60 | 0.45 (0.40-0.50) | 0.55 (0.55-0.55) | 1.00 (1.00-1.00) |
-| 60 of 69 | 0.15 | 60 | 0.45 (0.40-0.50) | 0.25 (0.25-0.25) | 0.50 (0.40-0.55) |
+| Slice | slip | draws | errors | `uniform` (best of 21) | `deviation` | `shortfall` |
+| --- | --- | --- | --- | --- | --- | --- |
+| 10 of 69 | 0.0 | 5 | 10 | 0.15 (0.10-0.20) | 0.50 (0.50-0.50) | 0.50 (0.50-0.50) |
+| 10 of 69 | 0.15 | 5 | 11 | 0.20 (0.15-0.20) | 0.55 (0.55-0.55) | 0.50 (0.50-0.50) |
+| 20 of 69 | 0.0 | 5 | 20 | 0.20 (0.20-0.35) | 1.00 (1.00-1.00) | 1.00 (1.00-1.00) |
+| 20 of 69 | 0.15 | 5 | 21 | 0.25 (0.20-0.35) | 0.95 (0.85-1.00) | 1.00 (1.00-1.00) |
+| 30 of 69 | 0.0 | 5 | 30 | 0.25 (0.25-0.40) | 1.00 (1.00-1.00) | 1.00 (1.00-1.00) |
+| 30 of 69 | 0.15 | 5 | 31 | 0.30 (0.25-0.40) | 0.65 (0.55-0.75) | 1.00 (1.00-1.00) |
+| 40 of 69 | 0.0 | 5 | 40 | 0.35 (0.30-0.45) | 0.00 (0.00-0.00) | 1.00 (1.00-1.00) |
+| 40 of 69 | 0.15 | 5 | 40 | 0.35 (0.30-0.45) | 0.30 (0.20-0.30) | 1.00 (1.00-1.00) |
+| 50 of 69 | 0.0 | 5 | 50 | 0.35 (0.35-0.45) | 0.05 (0.05-0.05) | 1.00 (1.00-1.00) |
+| 50 of 69 | 0.15 | 5 | 50 | 0.35 (0.35-0.45) | 0.10 (0.05-0.20) | 1.00 (1.00-1.00) |
+| 60 of 69 | 0.0 | 5 | 60 | 0.45 (0.40-0.50) | 0.55 (0.55-0.55) | 1.00 (1.00-1.00) |
+| 60 of 69 | 0.15 | 5 | 60 | 0.45 (0.40-0.50) | 0.25 (0.25-0.25) | 0.50 (0.40-0.55) |
 <!-- END GENERATED: latent-blindspot -->
 
 **Detection survives the loss of the partition, exactly.** At every share of a
@@ -3736,8 +3736,9 @@ deterministic fleet the two constructions give the *same* index --- 0.73, 2.36, 
 statistic: within a stratum the index depends on how many tasks the shared standard
 corrupts and not on which ones, so two slices of the same size in the same stratum are the
 same number to it. Once analysts slip independently the two fleets are different draws and
-the indices separate by hundredths; the channel-keyed value then sits **inside the range
-five latent slice draws produce, in every cell**. The statistic cannot tell the two
+the indices separate by a tenth at worst and hundredths typically --- 0.13 in the widest
+cell, under 0.10 in every other; the channel-keyed value then sits **inside the range
+five latent slice draws produce, in every cell that could fail**. The statistic cannot tell the two
 constructions apart.
 
 The scan is the mirror image. It is **silent on the latent construction in every cell**,
@@ -3756,7 +3757,7 @@ corrupted task from a merely unusual one. It is wrong. At unanimity `deviation` 
 median **1.00** of a 20-item withhold on a wrong label against the **best** of 21
 untargeted draws at 0.25, tying the oracle, with no channel named and no detection required
 first. The three disagreement-reading rules are all *below* that untargeted floor on the
-same fleets --- `margin` and `posterior` at 0.15, `consensus` at 0.10 --- which is finding
+same fleets --- `margin` and `posterior` at 0.12, `consensus` at 0.10 --- which is finding
 28's result arriving again from a fleet with no channel in it.
 
 The reconciliation is the sentence above: the index is invariant to *which* tasks a

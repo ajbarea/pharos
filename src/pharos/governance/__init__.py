@@ -41,6 +41,7 @@ from pharos.governance.channel import (
     Detection,
     compartment_carriage,
     detect,
+    rates_from,
     scan_channels,
     stratified_delta,
     verdict_rates,
@@ -66,6 +67,7 @@ from pharos.governance.fleet import (
     contributions_for,
     draw_balanced_slice,
     draw_latent_slice,
+    eligible_pool,
     exact_wrong_majority,
     fleet_of,
     ladder,
@@ -95,7 +97,7 @@ from pharos.governance.shape import (
     Dispersion,
     dispersion,
 )
-from pharos.governance.view import ServerObservation, fleet_view, observe
+from pharos.governance.view import ServerObservation, fleet_view, observe, observed
 
 __all__ = [
     "ALPHA",
@@ -146,6 +148,7 @@ __all__ = [
     "dispersion",
     "draw_balanced_slice",
     "draw_latent_slice",
+    "eligible_pool",
     "evaluate_audit",
     "exact_wrong_majority",
     "first_budget_halving",
@@ -155,6 +158,7 @@ __all__ = [
     "latent_blind_fleet",
     "majority",
     "observe",
+    "observed",
     "policy_channel",
     "policy_consensus",
     "policy_deviation",
@@ -162,6 +166,7 @@ __all__ = [
     "policy_oracle",
     "policy_posterior",
     "policy_shortfall",
+    "rates_from",
     "scan_channels",
     "score",
     "select",

@@ -356,7 +356,8 @@ close by saying that a shared error following no observable partition would leav
 and that nothing here said how to find one. [Finding
 30](docs/findings.md#30-the-blind-spot-with-no-name-is-detected-the-same-and-located-by-the-same-signal-read-one-sided)
 built that error on purpose --- analysts who discount a set of individual reports rather
-than a channel, drawn to corrupt the same 20 verdicts in the same evidence stratum --- and
+than a channel, drawn to corrupt the same *number* of verdicts in the same evidence
+stratum --- a different 20 tasks, which the construction requires and a test asserts --- and
 neither half of the sentence held. The channel scan is silent on it, as expected. The index
 of dispersion cannot tell it from the channel-keyed version at all: identical on
 deterministic fleets, and inside the spread of five slice draws everywhere else. And

@@ -17,10 +17,10 @@ from dataclasses import dataclass, field, replace
 
 from pharos.analyst import Proposal, evidence_shown
 from pharos.governance.fleet import BLIND, MASK_SEED, blind_fleet, contributions_for
-from pharos.inference import federated_dawid_skene, partition_by_contributor
+from pharos.inference import FederatedDawidSkene, federated_dawid_skene, partition_by_contributor
 from pharos.tasks import TriageTask
 
-__all__ = ["ServerObservation", "fleet_view", "observe"]
+__all__ = ["ServerObservation", "fleet_view", "observe", "observed"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,8 +68,21 @@ class ServerObservation:
         return abs(2.0 * self.votes.get(task, 0.0) - n) / n
 
 
-def observe(partitioned: dict[str, list[tuple[str, bool]]]) -> ServerObservation:
-    """The aggregator's view, assembled the way finding 18's protocol produces it."""
+def observed(
+    partitioned: dict[str, list[tuple[str, bool]]],
+) -> tuple[ServerObservation, FederatedDawidSkene]:
+    """The aggregator's view *and* the fit behind it, for callers that need both.
+
+    `observe` discards the estimate, so a caller wanting `converged` or the estimate's
+    own labels had no way to ask for them and re-ran the fit instead. Finding 30's
+    measurement did exactly that three times per cell -- once inside `observe`, once for
+    the labels, and once more inside `verdict_rates`. Returning both is how one fit serves
+    every reader of it.
+
+    `observe` stays the narrow door: a selection policy must not see the estimate object,
+    only the posterior the server holds. This is for measurement scripts assembling a
+    cell, not for anything a policy is handed.
+    """
     votes: dict[str, float] = {}
     seen: dict[str, float] = {}
     for rows in partitioned.values():
@@ -77,7 +90,12 @@ def observe(partitioned: dict[str, list[tuple[str, bool]]]) -> ServerObservation
             votes[task] = votes.get(task, 0.0) + (1.0 if verdict else 0.0)
             seen[task] = seen.get(task, 0.0) + 1.0
     estimate = federated_dawid_skene(partitioned, seed=MASK_SEED)
-    return ServerObservation(votes, seen, dict(estimate.posterior))
+    return ServerObservation(votes, seen, dict(estimate.posterior)), estimate
+
+
+def observe(partitioned: dict[str, list[tuple[str, bool]]]) -> ServerObservation:
+    """The aggregator's view, assembled the way finding 18's protocol produces it."""
+    return observed(partitioned)[0]
 
 
 def fleet_view(

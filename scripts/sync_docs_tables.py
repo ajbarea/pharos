@@ -1181,7 +1181,10 @@ def latent_blindspot() -> str:
         "`index` is the dispersion statistic of finding 29, which enumerates nothing. The "
         "latent columns are the median and range over "
         f"{len(payload['slice_seeds'])} slice draws; `--` is a fleet with no variance to "
-        "read.",
+        "read. The unblinded row is marked `ref`: with no blind analyst the two "
+        "constructions build the same fleet, so it cannot disagree and is excluded from "
+        f"the verdict, which rests on the {payload['dispersion_cells_that_could_falsify']} "
+        "rows that can.",
         "",
         f"| Blind of {fleet} | slip | scan, channel-keyed | scan, latent | "
         "index, channel-keyed | index, latent (range) |",
@@ -1204,8 +1207,9 @@ def latent_blindspot() -> str:
         ]
         fired = ", ".join(cell["channels_fired"]) or "silent"
         latent_fired = ", ".join(sorted({ch for c in latent for ch in c["channels_fired"]}))
+        blind = row["n_blind"] if row["informative"] else f"{row['n_blind']} (ref)"
         lines.append(
-            f"| {row['n_blind']} | {row['slip_rate']} | {fired} | {latent_fired or 'silent'} "
+            f"| {blind} | {row['slip_rate']} | {fired} | {latent_fired or 'silent'} "
             f"| {row['channel_index']:.2f} | {row['latent_median']:.2f} "
             f"({row['latent_min']:.2f}-{row['latent_max']:.2f}) |"
         )
@@ -1231,24 +1235,37 @@ def latent_blindspot() -> str:
             f"| `{rule}` | {stats['median']:.2f} | {stats['min']:.2f}-{stats['max']:.2f} |"
         )
 
+    # Every row publishes its own draw count because a lopsided draw can be refused, and
+    # the caption used to hard-code row zero's for the whole table -- the generator
+    # publishing a per-row number and then quoting a constant over it, which is the same
+    # error the median column was carrying. Stated as a range when the rows disagree, and
+    # the `draws` column carries the per-row truth either way.
+    counts = sorted({int(row["draws"]) for row in sweep})
+    over = (
+        f"{counts[0]}"
+        if len(counts) == 1
+        else f"{counts[0]}-{counts[-1]}, per the `draws` column,"
+    )
     lines += [
         "",
         "**As the corrupted slice grows past the majority of its stratum.** The pool of "
         f"tasks a discounted report can flip is {sweep[0]['eligible']} on this corpus, so "
         "the crossing sits between the two middle rows. Every cell is the median over "
-        f"{sweep[0]['draws']} slice draws with the range beside it, because a slice is a "
+        f"{over} slice draws with the range beside it, because a slice is a "
         "sample and this sweep quoted one draw of it as a constant until it did not.",
         "",
-        "| Slice | slip | errors | `uniform` (best of 21) | `deviation` | `shortfall` |",
-        "| --- | --- | --- | --- | --- | --- |",
+        "| Slice | slip | draws | errors | `uniform` (best of 21) | `deviation` | `shortfall` |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
     ]
     for row in sweep:
         cells = []
         for rule in ("uniform", "deviation", "shortfall"):
-            spread = row["precision"][rule]
-            cells.append(f"{spread['median']:.2f} ({spread['min']:.2f}-{spread['max']:.2f})")
+            rule_spread = row["precision"][rule]
+            cells.append(
+                f"{rule_spread['median']:.2f} ({rule_spread['min']:.2f}-{rule_spread['max']:.2f})"
+            )
         lines.append(
-            f"| {row['size']} of {row['eligible']} | {row['slip_rate']} "
+            f"| {row['size']} of {row['eligible']} | {row['slip_rate']} | {row['draws']} "
             f"| {row['errors']['median']:.0f} | " + " | ".join(cells) + " |"
         )
     return "\n".join(lines)

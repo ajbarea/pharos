@@ -659,7 +659,9 @@ Verified 2026-08-15.
   matrices**. It models how annotators differ; the failure this testbed measures is what
   they agree on.
 
-**What is deliberately not claimed.** The three papers above, with FedDS, are the current
+**What is deliberately not claimed.** The three papers above, with FedDS (Dong, Zhu, Shang
+and Xue, *Information Sciences* 745:123425, 2026 --- cited in full at finding 12, where its
+diagonal-dominance assumption is what the cliff violates), are the current
 state of the nearest literature, and the pattern across them is the finding's actual
 position rather than a claim of novelty: every one reads a **per-annotator stream** and
 every one targets *differences between* annotators. This setting has neither -- only

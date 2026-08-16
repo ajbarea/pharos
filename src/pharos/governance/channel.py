@@ -26,7 +26,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from random import Random
 
-from pharos.governance.view import observe
+from pharos.governance.view import ServerObservation, observe
 from pharos.labels import Compartment
 from pharos.tasks import TriageTask
 
@@ -38,6 +38,7 @@ __all__ = [
     "Detection",
     "compartment_carriage",
     "detect",
+    "rates_from",
     "scan_channels",
     "stratified_delta",
     "verdict_rates",
@@ -95,6 +96,16 @@ class Detection:
         }
 
 
+def rates_from(view: ServerObservation) -> dict[str, float]:
+    """The same rates, off a view the caller already has.
+
+    One definition, two entry points. A caller holding a `ServerObservation` had to pass
+    the partitioned stream back to `verdict_rates` instead, which re-ran the Dawid-Skene
+    fit inside `observe` to recompute two sums it was already holding.
+    """
+    return {task: view.votes[task] / view.seen[task] for task in view.seen if view.seen[task] > 0}
+
+
 def verdict_rates(partitioned: dict[str, list[tuple[str, bool]]]) -> dict[str, float]:
     """Each task's share of significant verdicts, as the aggregator already sees it.
 
@@ -102,8 +113,7 @@ def verdict_rates(partitioned: dict[str, list[tuple[str, bool]]]) -> dict[str, f
     distinguishable here, which is the point: the statistic must survive the protocol that
     made finding 11's attack impossible.
     """
-    view = observe(partitioned)
-    return {task: view.votes[task] / view.seen[task] for task in view.seen if view.seen[task] > 0}
+    return rates_from(observe(partitioned))
 
 
 def stratified_delta(

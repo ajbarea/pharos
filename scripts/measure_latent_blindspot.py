@@ -55,6 +55,7 @@ Needs no model and no network.
 
 import argparse
 import json
+import statistics
 import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -64,7 +65,6 @@ from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
 from pharos.governance import (
     BLIND,
-    MASK_SEED,
     REFUSED_EXIT,
     REPORT_BUDGET,
     UNIFORM_SEEDS,
@@ -77,17 +77,19 @@ from pharos.governance import (
     contributions_for,
     dispersion,
     draw_balanced_slice,
+    eligible_pool,
     ladder,
     latent_blind_fleet,
     observe,
+    observed,
+    rates_from,
     scan_channels,
     score,
     select,
-    verdict_rates,
 )
 from pharos.governance.channel import ALPHA, PERMUTATION_SEED, PERMUTATIONS
 from pharos.governance.shape import NULL_DRAWS
-from pharos.inference import federated_dawid_skene, partition_by_contributor
+from pharos.inference import partition_by_contributor
 from pharos.labels import declassify
 from pharos.provenance import run_provenance
 from pharos.tasks import TriageTask, build_triage_tasks
@@ -188,17 +190,23 @@ def measure(
     )
     flat = contributions_for(policies, tasks, proposals, seed=seed)
     partitioned = partition_by_contributor(flat)
-    view = observe(partitioned)
+    # One fit, three readers. This ran `federated_dawid_skene` three times per cell on the
+    # same input at the same seed -- inside `observe`, again for the labels, and again
+    # inside `verdict_rates` -- recomputing a deterministic result it already held. Worth
+    # about 15s of a 2m58s run measured end to end, which is smaller than it looks like it
+    # should be: the permutation nulls dominate, not the fits. Kept for the duplication
+    # rather than the seconds. The numbers are unchanged by construction: same seed, same
+    # input, same fit.
+    view, estimate = observed(partitioned)
     by_id = {t.task_id: t for t in tasks}
     evidence = {task: len(evidence_shown(by_id[task])) for task in view.posterior}
     view = replace(view, evidence=evidence)
 
-    estimate = federated_dawid_skene(partitioned, seed=MASK_SEED)
     labels = estimate.labels()
     wrong = frozenset(task for task, called in labels.items() if called != truth[task])
 
     detections = scan_channels(
-        verdict_rates(partitioned),
+        rates_from(view),
         compartment_carriage(tasks, view.posterior),
         evidence,
         permutations=permutations,
@@ -450,11 +458,24 @@ class SweepRow:
         }
 
 
+def _median(values: list[float]) -> float:
+    """The median, including the even case, rounded the way every table here rounds.
+
+    One definition, because there were three and they were the same wrong one:
+    `sorted(v)[len(v) // 2]` is the *upper* median on an even sample, and it silently
+    published 0.15 for `margin` and `posterior` where both are 0.125. That sample is even
+    by construction rather than by luck -- the unanimity summary is five slice draws times
+    two slip rates -- and the error runs one way, always in the rule's favour, which is the
+    direction a reader is least able to discount.
+    """
+    return round(statistics.median(values), 4)
+
+
 def _spread(values: list[float]) -> dict[str, float]:
     """Median, min and max of one rule at one cell, across slice draws."""
     ordered = sorted(values)
     return {
-        "median": round(ordered[len(ordered) // 2], 4),
+        "median": _median(values),
         "min": round(ordered[0], 4),
         "max": round(ordered[-1], 4),
     }
@@ -483,7 +504,26 @@ def slice_sweep(
     quoted values move by up to a tenth.
     """
     rows: list[SweepRow] = []
+    # Which sizes this corpus can host, asked before drawing rather than discovered by
+    # catching the refusal. A size larger than the eligible pool is a property of the
+    # corpus and is knowable up front; learning it from an exception meant the row simply
+    # was not there, and an absent row and a row that was never asked for look identical
+    # in the artifact. The committed corpus hosts all six; a smaller one says which it
+    # dropped and why.
+    pool = len(eligible_pool(tasks))
+    unhostable = [size for size in SLICE_SIZES if size > pool]
+    if unhostable:
+        LOG.warning(
+            "latent_blindspot.size_unhostable",
+            extra={
+                "event": "latent_blindspot.size_unhostable",
+                "sizes": unhostable,
+                "eligible": pool,
+            },
+        )
     for size in SLICE_SIZES:
+        if size > pool:
+            continue
         for slip in SLIP_RATES:
             progress("latent_blindspot.slice_sweep", size=size, slip_rate=slip)
             gathered: dict[str, list[float]] = {}
@@ -493,6 +533,13 @@ def slice_sweep(
                 try:
                     slice_ = draw_balanced_slice(tasks, size=size, seed=slice_seed)
                 except ChannelUnusableError as refusal:
+                    # Only a refusal this draw owns is skippable. A structural one -- a pool
+                    # too small for this size, a slice that flips nothing -- is not fixed by
+                    # another seed, so catching it here refused all five draws, emptied
+                    # `drawn_at`, and dropped the row through the `continue` below: the
+                    # artifact would publish a sweep with no trace of the size it skipped.
+                    if refusal.structural:
+                        raise
                     # A size this corpus cannot host at this draw is skipped and said so,
                     # not zeroed. Skipping the draw rather than the whole cell keeps a size
                     # that most draws can host in the sweep, with a smaller denominator.
@@ -638,6 +685,15 @@ def assemble(
         ]
         if not draws or chan.dispersion_index is None:
             continue
+        # A row can only test the claim if the two fleets are actually two fleets. At
+        # `n_blind == 0` they are not: `latent_blind_fleet` and `blind_fleet` both build
+        # the same tuple of sighted analysts and an empty blind list, so the row compares a
+        # fleet with itself and reads as agreement whatever the statistic does. `main`
+        # already refuses that comparison through `_views_agree`, but only at full
+        # unanimity. Published rather than dropped, because a reader looking for the
+        # unblinded reference row should find it; excluded from the verdict below, because
+        # a cell that cannot fail is not evidence that nothing failed.
+        informative = chan.n_blind > 0
         spread.append(
             {
                 "n_blind": chan.n_blind,
@@ -645,11 +701,15 @@ def assemble(
                 "channel_index": chan.dispersion_index,
                 "latent_min": min(draws),
                 "latent_max": max(draws),
-                "latent_median": sorted(draws)[len(draws) // 2],
+                "latent_median": _median(draws),
                 "channel_inside_latent_spread": min(draws) <= chan.dispersion_index <= max(draws),
+                "informative": informative,
             }
         )
-    indistinguishable = bool(spread) and all(row["channel_inside_latent_spread"] for row in spread)
+    testable = [row for row in spread if row["informative"]]
+    indistinguishable = bool(testable) and all(
+        row["channel_inside_latent_spread"] for row in testable
+    )
 
     findings = {
         # 1: the constructions are matched, which everything else rests on.
@@ -690,18 +750,31 @@ def assemble(
         "dispersion_pairs": [p.as_dict() for p in paired],
         "dispersion_spread": spread,
         "worst_dispersion_gap": worst_index_gap,
+        #: How many of those rows could have falsified the claim, which is fewer than the
+        #: table is long. The unblinded row compares a fleet with itself; the deterministic
+        #: rows are identical by construction and are asserted separately.
+        "dispersion_cells_that_could_falsify": len(testable),
         "unanimity_precision": {
             rule: {
-                "median": round(sorted(at_unanimity(rule))[len(at_unanimity(rule)) // 2], 4)
-                if at_unanimity(rule)
-                else None,
+                "median": _median(at_unanimity(rule)) if at_unanimity(rule) else None,
                 "min": min(at_unanimity(rule), default=None),
                 "max": max(at_unanimity(rule), default=None),
                 "draws": len(at_unanimity(rule)),
             }
             for rule in (*POLICIES_HERE, BOUND)
         },
-        "inverted_sizes": inverted,
+        #: The *sizes* at which the two-sided rule turned, deduplicated, because the field
+        #: is named for sizes and `no_better_than_uniform` returns one entry per swept cell
+        #: -- two per size, one per slip rate -- so it read `[40, 40, 50, 50, 60]` and a
+        #: reader taking the name at its word saw a size listed twice. The per-cell count is
+        #: `cells_where_two_sided_is_no_better_than_uniform` below, which is what the prose
+        #: quotes; the two answer different questions and now each says which.
+        "inverted_sizes": sorted(set(inverted)),
+        #: Sizes the sweep asked for and did not run, because the eligible pool is smaller
+        #: than the size. Empty on the committed corpus, and published rather than inferred
+        #: from a short table: a row that is missing and a row that was never requested look
+        #: the same to a reader, and only one of them is a result.
+        "sizes_the_corpus_cannot_host": [s for s in SLICE_SIZES if s not in {r.size for r in sweep}],
         #: The two counts the findings page quotes in prose. Published rather than left to
         #: be counted off a table by hand: this project has had a hand-typed summary of a
         #: generated table go stale silently, and these are the same shape.

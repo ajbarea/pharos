@@ -46,6 +46,7 @@ __all__ = [
     "contributions_for",
     "draw_balanced_slice",
     "draw_latent_slice",
+    "eligible_pool",
     "exact_wrong_majority",
     "fleet_of",
     "ladder",
@@ -96,7 +97,22 @@ class ChannelUnusableError(Exception):
     reason to stderr and exits `REFUSED_EXIT`, which is what `measure_corpus_sensitivity`
     matches on to tell a draw that cannot host the experiment from a draw that crashed.
     Those are different results and only one of them belongs in a denominator.
+
+    `structural` says whether another draw could fix it, and callers must branch on it
+    rather than on the message. Two of them were reading `"carriage gap" not in str(...)`
+    and they disagreed the moment a third refusal was added: the balance rule's *exhaustion*
+    ("no balanced slice in N draws") is a property of the draw, says nothing about carriage
+    gaps in its text, and was correctly retried in one place and wrongly re-raised in the
+    other. A predicate spelled out in prose in two files is a predicate that will hold in
+    one of them.
     """
+
+    def __init__(self, message: str, *, structural: bool = True) -> None:
+        super().__init__(message)
+        #: True where the corpus itself is the obstacle -- too few eligible tasks, a slice
+        #: that flips nothing, a channel entangled with difficulty. False where this
+        #: particular draw is, which another seed may well fix.
+        self.structural = structural
 
 
 def majority(fleet: int) -> int:
@@ -327,11 +343,18 @@ def exact_wrong_majority(rate: float, *, schools: int, fleet: int) -> float:
     )
 
 
-#: How many verdicts a latent blind spot corrupts, matched to what `BLIND` corrupts on
-#: the committed corpus. Finding 21 measured PARTNER changing 20 verdicts of 200, all of
-#: them on tasks showing all three defining facts. The latent construction below corrupts
-#: the same count in the same stratum, so the two differ in exactly one respect: whether
-#: the corrupted slice follows a channel a detector can name.
+#: How many verdicts a latent blind spot corrupts on the committed corpus, as documentation
+#: of what the measurement finds rather than as an input to it. Finding 21 measured PARTNER
+#: changing 20 verdicts of 200, all on tasks showing all three defining facts, and the
+#: latent construction corrupts the same count in the same stratum -- so the two differ in
+#: exactly one respect: whether the corrupted slice follows a channel a detector can name.
+#:
+#: Deliberately **not** a default for `size` on either draw. It was one, and that is the
+#: second derivation the measurement script explicitly refuses to make: the script sizes
+#: the slice from `check.affected`, read off the corpus, "rather than from a second
+#: derivation of it". A default nobody passes is a number that agrees with the corpus until
+#: the corpus moves and then disagrees in silence. Every call site passes `size=`, so the
+#: default was never exercised and its only possible effect was to be wrong later.
 LATENT_SLICE = 20
 
 #: How lopsided a drawn slice may be, as a quantile of what uniform draws from the same
@@ -399,10 +422,22 @@ class LatentSlice:
         }
 
 
+def eligible_pool(tasks: Sequence[TriageTask]) -> list[TriageTask]:
+    """The tasks a discounted report can flip at all: those showing every defining fact.
+
+    Named and shared because a caller that wants to know whether a slice size is drawable
+    should be able to ask, rather than draw one and read the answer off an exception. The
+    sweep did the latter, which is why a size the corpus could not host vanished from its
+    artifact instead of being reported as skipped.
+    """
+    reference = AnalystPolicy("reference")
+    return [t for t in tasks if len(evidence_shown(t)) >= reference.escalation_threshold]
+
+
 def draw_latent_slice(
     tasks: Sequence[TriageTask],
     *,
-    size: int = LATENT_SLICE,
+    size: int,
     seed: int,
 ) -> LatentSlice:
     """Reports to distrust so that `size` verdicts flip, on a slice nothing names.
@@ -425,7 +460,7 @@ def draw_latent_slice(
     nothing about the finding.
     """
     reference = AnalystPolicy("reference")
-    eligible = [t for t in tasks if len(evidence_shown(t)) >= reference.escalation_threshold]
+    eligible = eligible_pool(tasks)
     if len(eligible) < size:
         get_logger().error(
             "latent.pool_too_small",
@@ -505,7 +540,8 @@ def draw_latent_slice(
         raise ChannelUnusableError(
             f"the drawn slice's worst carriage gap of {worst:.2f} sits at the "
             f"{percentile:.1%} point of uniform draws from the same pool; a channel scan "
-            "could plausibly name it, which is the construction this measurement avoids"
+            "could plausibly name it, which is the construction this measurement avoids",
+            structural=False,
         )
     return LatentSlice(
         distrusted=frozenset(distrusted),
@@ -519,7 +555,7 @@ def draw_latent_slice(
 def draw_balanced_slice(
     tasks: Sequence[TriageTask],
     *,
-    size: int = LATENT_SLICE,
+    size: int,
     seed: int,
     attempts: int = LATENT_ATTEMPTS,
 ) -> LatentSlice:
@@ -542,7 +578,7 @@ def draw_balanced_slice(
         try:
             drawn = draw_latent_slice(tasks, size=size, seed=seed + offset * LATENT_SEED_STRIDE)
         except ChannelUnusableError as refusal:
-            if "carriage gap" not in str(refusal):
+            if refusal.structural:
                 # A pool too small, or a draw that did not flip what it drew. Neither is
                 # fixed by another seed, and retrying would turn a structural refusal into
                 # `attempts` identical failures and then a misleading message.
@@ -552,7 +588,12 @@ def draw_balanced_slice(
         return replace(drawn, rejected=rejected)
     raise ChannelUnusableError(
         f"no balanced slice of {size} in {attempts} draws; on this corpus a slice that "
-        "size cannot be drawn without a compartment scan being able to name it"
+        "size cannot be drawn without a compartment scan being able to name it",
+        # Exhaustion of the balance rule, not a property of the corpus: every one of the
+        # `attempts` refusals was a carriage gap, and a different starting seed walks a
+        # different sequence. A caller sweeping several seeds may reasonably skip this
+        # draw and carry on with a smaller denominator; a caller drawing once may not.
+        structural=False,
     )
 
 

@@ -129,6 +129,15 @@ SCRIPT_SCOPED_WARNINGS = {
     "measure_error_shape.py": frozenset(
         {"inference.federated_em_did_not_converge", "error_shape.rule_choice_missed"}
     ),
+    #: Finding 30's sweep refuses a slice draw whose carriage is lopsided and carries on
+    #: with a smaller denominator, publishing the per-row draw count so the reader can see
+    #: it. That path was tolerated in the script and not here, so the one refusal it is
+    #: designed to absorb would have failed the gate under "unexpected warning" -- a
+    #: deliberate tolerance and a guard disagreeing about the same event. It stays scoped:
+    #: the same warning from anywhere else is still unexpected. It is also not in the
+    #: global set above, because it fires only on a lopsided draw and demanding it fire
+    #: would make a well-behaved corpus look broken.
+    "measure_latent_blindspot.py": frozenset({"latent_blindspot.size_refused"}),
 }
 
 

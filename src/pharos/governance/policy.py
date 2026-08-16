@@ -145,6 +145,16 @@ def policy_deviation(view: ServerObservation, _truth: dict[str, bool]) -> dict[s
     summands are per task, so ranking by them should point at the tasks the shared standard
     corrupts, and finding 28's remedy would no longer need a name to withhold by.
 
+    The residual is the index's summand, over a slightly wider set of strata. `dispersion`
+    scores only strata with at least `MIN_STRATUM` tasks and non-zero binomial variance,
+    because an index over two tasks is a number and not an estimate; the ranking here pools
+    every stratum in the view, since dropping a stratum from a *rank* only means those tasks
+    can never be selected. On the committed corpus the distinction is empty -- the four
+    evidence strata hold 40, 39, 52 and 69 tasks -- so it is a statement about the general
+    case, not a caveat on the published numbers. Said because "the same statistic's
+    summands" is the sentence finding 30's reconciliation rests on, and it is true of the
+    quantity rather than of the stratum set.
+
     Within an evidence stratum every analyst applying one rule votes the same way, so the
     stratum's rate is what the fleet does on tasks of that difficulty and a task far from
     it is a task something else acted on. Reads per-task vote sums, contributor counts and
