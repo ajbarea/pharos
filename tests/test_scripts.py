@@ -2246,10 +2246,10 @@ def test_the_script_and_the_package_agree_on_the_wrong_standard():
     a fleet whose composition and whose reported `wrong_threshold` came apart, and the
     artifact would name a threshold no analyst held.
     """
-    from pharos.governance.fleet import WRONG_THRESHOLD as packaged
+    from pharos.governance.fleet import WRONG_THRESHOLD as PACKAGED_WRONG_THRESHOLD
 
     mdc = _difficulty_module()
-    assert mdc.WRONG_THRESHOLD is packaged
+    assert mdc.WRONG_THRESHOLD is PACKAGED_WRONG_THRESHOLD
 
 
 def test_collect_drops_a_reviewer_who_supplied_no_verdict():
