@@ -41,7 +41,6 @@ from pharos.governance.channel import (
     Detection,
     compartment_carriage,
     detect,
-    rates_from,
     scan_channels,
     stratified_delta,
     verdict_rates,
@@ -54,7 +53,6 @@ from pharos.governance.fleet import (
     LATENT_CARRIAGE_QUANTILE,
     LATENT_NULL_DRAWS,
     LATENT_SEED_STRIDE,
-    LATENT_SLICE,
     MASK_SEED,
     REFUSED_EXIT,
     RUNGS,
@@ -97,7 +95,7 @@ from pharos.governance.shape import (
     Dispersion,
     dispersion,
 )
-from pharos.governance.view import ServerObservation, fleet_view, observe, observed
+from pharos.governance.view import ServerObservation, fleet_view, observe, observe_with_estimate
 
 __all__ = [
     "ALPHA",
@@ -110,7 +108,6 @@ __all__ = [
     "LATENT_CARRIAGE_QUANTILE",
     "LATENT_NULL_DRAWS",
     "LATENT_SEED_STRIDE",
-    "LATENT_SLICE",
     "MASK_SEED",
     "MIN_STRATUM",
     "NULL_DRAWS",
@@ -158,7 +155,7 @@ __all__ = [
     "latent_blind_fleet",
     "majority",
     "observe",
-    "observed",
+    "observe_with_estimate",
     "policy_channel",
     "policy_consensus",
     "policy_deviation",
@@ -166,7 +163,6 @@ __all__ = [
     "policy_oracle",
     "policy_posterior",
     "policy_shortfall",
-    "rates_from",
     "scan_channels",
     "score",
     "select",

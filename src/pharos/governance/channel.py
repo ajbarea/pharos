@@ -26,7 +26,7 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, replace
 from random import Random
 
-from pharos.governance.view import ServerObservation, observe
+from pharos.governance.view import observe
 from pharos.labels import Compartment
 from pharos.tasks import TriageTask
 
@@ -38,7 +38,6 @@ __all__ = [
     "Detection",
     "compartment_carriage",
     "detect",
-    "rates_from",
     "scan_channels",
     "stratified_delta",
     "verdict_rates",
@@ -96,24 +95,18 @@ class Detection:
         }
 
 
-def rates_from(view: ServerObservation) -> dict[str, float]:
-    """The same rates, off a view the caller already has.
-
-    One definition, two entry points. A caller holding a `ServerObservation` had to pass
-    the partitioned stream back to `verdict_rates` instead, which re-ran the Dawid-Skene
-    fit inside `observe` to recompute two sums it was already holding.
-    """
-    return {task: view.votes[task] / view.seen[task] for task in view.seen if view.seen[task] > 0}
-
-
 def verdict_rates(partitioned: dict[str, list[tuple[str, bool]]]) -> dict[str, float]:
     """Each task's share of significant verdicts, as the aggregator already sees it.
 
     Read from the per-task vote sums of finding 18's protocol. No contributor is
     distinguishable here, which is the point: the statistic must survive the protocol that
     made finding 11's attack impossible.
+
+    The arithmetic is `ServerObservation.rates`; this is the entry point for a caller
+    holding the partitioned stream rather than a view. A caller who already has the view
+    should call the method, and not hand the stream back to be re-observed.
     """
-    return rates_from(observe(partitioned))
+    return observe(partitioned).rates()
 
 
 def stratified_delta(

@@ -33,7 +33,6 @@ __all__ = [
     "LATENT_CARRIAGE_QUANTILE",
     "LATENT_NULL_DRAWS",
     "LATENT_SEED_STRIDE",
-    "LATENT_SLICE",
     "MASK_SEED",
     "REFUSED_EXIT",
     "RUNGS",
@@ -342,20 +341,6 @@ def exact_wrong_majority(rate: float, *, schools: int, fleet: int) -> float:
         )
     )
 
-
-#: How many verdicts a latent blind spot corrupts on the committed corpus, as documentation
-#: of what the measurement finds rather than as an input to it. Finding 21 measured PARTNER
-#: changing 20 verdicts of 200, all on tasks showing all three defining facts, and the
-#: latent construction corrupts the same count in the same stratum -- so the two differ in
-#: exactly one respect: whether the corrupted slice follows a channel a detector can name.
-#:
-#: Deliberately **not** a default for `size` on either draw. It was one, and that is the
-#: second derivation the measurement script explicitly refuses to make: the script sizes
-#: the slice from `check.affected`, read off the corpus, "rather than from a second
-#: derivation of it". A default nobody passes is a number that agrees with the corpus until
-#: the corpus moves and then disagrees in silence. Every call site passes `size=`, so the
-#: default was never exercised and its only possible effect was to be wrong later.
-LATENT_SLICE = 20
 
 #: How lopsided a drawn slice may be, as a quantile of what uniform draws from the same
 #: pool produce. Not a gap in carriage share: a fixed one was tried first and refused the

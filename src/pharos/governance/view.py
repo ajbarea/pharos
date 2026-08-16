@@ -20,7 +20,7 @@ from pharos.governance.fleet import BLIND, MASK_SEED, blind_fleet, contributions
 from pharos.inference import FederatedDawidSkene, federated_dawid_skene, partition_by_contributor
 from pharos.tasks import TriageTask
 
-__all__ = ["ServerObservation", "fleet_view", "observe", "observed"]
+__all__ = ["ServerObservation", "fleet_view", "observe", "observe_with_estimate"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,8 +67,18 @@ class ServerObservation:
             return 1.0
         return abs(2.0 * self.votes.get(task, 0.0) - n) / n
 
+    def rates(self) -> dict[str, float]:
+        """Each task's share of significant verdicts, for tasks anybody saw.
 
-def observed(
+        Arithmetic on the two sums this class already holds, so it belongs beside `margin`
+        rather than in the channel detector that happens to be its heaviest reader. It sat
+        there as a free function taking a view, which meant reading a rate off a view
+        required importing the module for scanning channels.
+        """
+        return {task: self.votes[task] / self.seen[task] for task in self.seen if self.seen[task]}
+
+
+def observe_with_estimate(
     partitioned: dict[str, list[tuple[str, bool]]],
 ) -> tuple[ServerObservation, FederatedDawidSkene]:
     """The aggregator's view *and* the fit behind it, for callers that need both.
@@ -95,7 +105,7 @@ def observed(
 
 def observe(partitioned: dict[str, list[tuple[str, bool]]]) -> ServerObservation:
     """The aggregator's view, assembled the way finding 18's protocol produces it."""
-    return observed(partitioned)[0]
+    return observe_with_estimate(partitioned)[0]
 
 
 def fleet_view(

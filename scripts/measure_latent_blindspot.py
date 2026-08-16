@@ -81,8 +81,7 @@ from pharos.governance import (
     ladder,
     latent_blind_fleet,
     observe,
-    observed,
-    rates_from,
+    observe_with_estimate,
     scan_channels,
     score,
     select,
@@ -197,7 +196,7 @@ def measure(
     # should be: the permutation nulls dominate, not the fits. Kept for the duplication
     # rather than the seconds. The numbers are unchanged by construction: same seed, same
     # input, same fit.
-    view, estimate = observed(partitioned)
+    view, estimate = observe_with_estimate(partitioned)
     by_id = {t.task_id: t for t in tasks}
     evidence = {task: len(evidence_shown(by_id[task])) for task in view.posterior}
     view = replace(view, evidence=evidence)
@@ -206,7 +205,7 @@ def measure(
     wrong = frozenset(task for task, called in labels.items() if called != truth[task])
 
     detections = scan_channels(
-        rates_from(view),
+        view.rates(),
         compartment_carriage(tasks, view.posterior),
         evidence,
         permutations=permutations,
