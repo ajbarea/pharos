@@ -1,9 +1,9 @@
 {
   "provenance": {
     "pharos_version": "0.1.0",
-    "git_commit": "1d3e21c59bb3",
+    "git_commit": "f22b72da2587",
     "git_dirty": false,
-    "generated_at": "2026-08-15T19:29:37+00:00",
+    "generated_at": "2026-08-16T09:43:18+00:00",
     "python": "3.14.4",
     "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "executable": ".venv/bin/python3",
@@ -555,7 +555,8 @@
       "latent_min": 0.7338,
       "latent_max": 0.7338,
       "latent_median": 0.7338,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     },
     {
       "n_blind": 3,
@@ -564,7 +565,8 @@
       "latent_min": 2.3583,
       "latent_max": 2.3583,
       "latent_median": 2.3583,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     },
     {
       "n_blind": 5,
@@ -573,7 +575,8 @@
       "latent_min": 4.2322,
       "latent_max": 4.2322,
       "latent_median": 4.2322,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     },
     {
       "n_blind": 7,
@@ -582,7 +585,8 @@
       "latent_min": 6.4179,
       "latent_max": 6.4179,
       "latent_median": 6.4179,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     },
     {
       "n_blind": 9,
@@ -591,7 +595,8 @@
       "latent_min": 9.0,
       "latent_max": 9.0,
       "latent_median": 9.0,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     },
     {
       "n_blind": 0,
@@ -600,7 +605,8 @@
       "latent_min": 0.9555,
       "latent_max": 0.9555,
       "latent_median": 0.9555,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": false
     },
     {
       "n_blind": 1,
@@ -609,7 +615,8 @@
       "latent_min": 0.8885,
       "latent_max": 0.958,
       "latent_median": 0.934,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     },
     {
       "n_blind": 3,
@@ -618,7 +625,8 @@
       "latent_min": 1.0336,
       "latent_max": 1.1784,
       "latent_median": 1.1244,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     },
     {
       "n_blind": 5,
@@ -627,7 +635,8 @@
       "latent_min": 1.3615,
       "latent_max": 1.5286,
       "latent_median": 1.4552,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     },
     {
       "n_blind": 7,
@@ -636,7 +645,8 @@
       "latent_min": 1.695,
       "latent_max": 1.9233,
       "latent_median": 1.8432,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     },
     {
       "n_blind": 9,
@@ -645,10 +655,12 @@
       "latent_min": 2.4981,
       "latent_max": 2.5653,
       "latent_median": 2.526,
-      "channel_inside_latent_spread": true
+      "channel_inside_latent_spread": true,
+      "informative": true
     }
   ],
   "worst_dispersion_gap": 0.1336,
+  "dispersion_cells_that_could_falsify": 10,
   "unanimity_precision": {
     "uniform": {
       "median": 0.25,
@@ -657,13 +669,13 @@
       "draws": 10
     },
     "margin": {
-      "median": 0.15,
+      "median": 0.125,
       "min": 0.05,
       "max": 0.25,
       "draws": 10
     },
     "posterior": {
-      "median": 0.15,
+      "median": 0.125,
       "min": 0.1,
       "max": 0.25,
       "draws": 10
@@ -695,11 +707,10 @@
   },
   "inverted_sizes": [
     40,
-    40,
-    50,
     50,
     60
   ],
+  "sizes_the_corpus_cannot_host": [],
   "swept_cells": 12,
   "cells_where_two_sided_is_no_better_than_uniform": 5,
   "cells_where_one_sided_ties_the_bound": 10,
