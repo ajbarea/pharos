@@ -9,7 +9,7 @@ the second of those and reported success for a day.
 """
 
 import pytest
-from conftest import artifact
+from conftest import ROOT, artifact
 from measure_latent_blindspot import POLICIES_HERE, SLICE_SIZES
 
 from pharos.analyst import AnalystPolicy, Proposal, evidence_shown
@@ -223,6 +223,24 @@ def test_the_artifact_carries_the_evidence_behind_each_verdict():
     for name, slice_ in payload["slices"].items():
         assert slice_["corrupted"] == payload["channel_affected"], name
         assert slice_["carriage_percentile"] <= 0.99, name
+
+
+def test_the_untargeted_draw_count_is_read_from_the_data_not_typed():
+    """The caption's `best of N` must move when the sweep does.
+
+    It was a literal `21` in two generated captions while the tuple behind it is
+    `range(21)` in `pharos.governance.policy`. Widening the sweep would have left both
+    captions claiming the old count -- a published number with nothing behind it, which is
+    the failure mode the generated-table convention exists to prevent.
+    """
+    from pharos.governance import UNIFORM_SEEDS
+
+    payload = artifact("latent_blindspot.json")
+    assert payload["uniform_draws"] == len(UNIFORM_SEEDS)
+
+    page = (ROOT / "docs" / "findings.md").read_text(encoding="utf-8")
+    assert f"best** of {len(UNIFORM_SEEDS)} untargeted draws" in page
+    assert f"best of {len(UNIFORM_SEEDS)}" in page
 
 
 def test_the_published_median_is_the_median_on_an_even_sample():

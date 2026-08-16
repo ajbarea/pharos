@@ -749,6 +749,12 @@ def assemble(
         "slice_sizes": list(SLICE_SIZES),
         "slice_seeds": list(SLICE_SEEDS),
         "policies": list(POLICIES_HERE),
+        #: How many untargeted draws `uniform` is the best of. Published because two
+        #: generated captions stated it as a literal `21` while the tuple behind it is
+        #: `range(21)` in another module: widening the sweep would have left both captions
+        #: claiming the old count, under a number a reader has no way to check. The
+        #: federated-forge caption cannot state it at all today for the same reason.
+        "uniform_draws": len(UNIFORM_SEEDS),
         "bound": BOUND,
         "report_budget": REPORT_BUDGET,
         "alpha": ALPHA,
