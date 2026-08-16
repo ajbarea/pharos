@@ -1242,9 +1242,7 @@ def latent_blindspot() -> str:
     # the `draws` column carries the per-row truth either way.
     counts = sorted({int(row["draws"]) for row in sweep})
     over = (
-        f"{counts[0]}"
-        if len(counts) == 1
-        else f"{counts[0]}-{counts[-1]}, per the `draws` column,"
+        f"{counts[0]}" if len(counts) == 1 else f"{counts[0]}-{counts[-1]}, per the `draws` column,"
     )
     lines += [
         "",

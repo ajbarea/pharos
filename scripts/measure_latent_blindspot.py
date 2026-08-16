@@ -774,7 +774,9 @@ def assemble(
         #: than the size. Empty on the committed corpus, and published rather than inferred
         #: from a short table: a row that is missing and a row that was never requested look
         #: the same to a reader, and only one of them is a result.
-        "sizes_the_corpus_cannot_host": [s for s in SLICE_SIZES if s not in {r.size for r in sweep}],
+        "sizes_the_corpus_cannot_host": [
+            s for s in SLICE_SIZES if s not in {r.size for r in sweep}
+        ],
         #: The two counts the findings page quotes in prose. Published rather than left to
         #: be counted off a table by hand: this project has had a hand-typed summary of a
         #: generated table go stale silently, and these are the same shape.
