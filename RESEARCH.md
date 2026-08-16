@@ -659,16 +659,56 @@ Verified 2026-08-15.
   matrices**. It models how annotators differ; the failure this testbed measures is what
   they agree on.
 
-**What is deliberately not claimed.** The three papers above, with FedDS (Dong, Zhu, Shang
-and Xue, *Information Sciences* 745:123425, 2026 --- cited in full at finding 12, where its
-diagonal-dominance assumption is what the cliff violates), are the current
+- Kobalczyk, K., & van der Schaar, M. (2026). Discovery of Hidden Miscalibration Regimes.
+  [arXiv:2605.13484](https://arxiv.org/abs/2605.13484) (13 May 2026). Verified 2026-08-16.
+  **Marks the boundary on the model-evaluation side**, which is where the largest current
+  body of work on unnameable failure regions lives, and which the entries above do not
+  reach. It discovers coherent regions of over- and underconfidence *without* assuming
+  predefined data partitions, which is the same refusal finding 30 makes, and it does so by
+  learning a geometry to smooth in: "let `phi: X -> R^d` be a learnable representation
+  map", then smoothing "residuals among examples that are close in a learned representation
+  of the input". The partition is dispensed with; the per-item input is not.
+
+- Garg, A., Aïvodji, U., Ebrahimi Kahou, S., & Michalski, V. (2026). Discovering Latent
+  Groups for Robust Classification. [arXiv:2606.23609](https://arxiv.org/abs/2606.23609)
+  (22 June 2026). Verified 2026-08-16.
+  **The same boundary, drawn by the method that assumes least.** Neural Classification
+  Trees route each sample to an "easy" or "hard" node by prediction correctness and reuse
+  the routes as pseudo-labels, with no subgroup supervision anywhere in the pipeline --
+  latent groups recovered from nothing but the model's own errors. It still begins from
+  `x_i` in `X`, "an input image", through "a shared backbone `f_theta: X -> R^d`": the
+  routing is over learned per-sample features.
+
+**What is deliberately not claimed.** The related-work entries above, with FedDS (Dong,
+Zhu, Shang and Xue, *Information Sciences* 745:123425, 2026 --- cited in full at finding
+12, where its diagonal-dominance assumption is what the cliff violates), are the current
 state of the nearest literature, and the pattern across them is the finding's actual
-position rather than a claim of novelty: every one reads a **per-annotator stream** and
-every one targets *differences between* annotators. This setting has neither -- only
-per-task vote sums -- and the error is one the annotators share. The wider literature on
-latent structure in crowd labelling (worker-clustering models, latent-class extensions of
-minimax entropy) was read and is not cited as grounding for the same reason: the
-comparison would be decorative when the observation models do not meet.
+position rather than a claim of novelty. It is one pattern read along two axes, because the
+literature splits that way and the single sentence that used to stand here was wrong on
+half the list: it said every entry reads a per-annotator stream, which was never true of
+the conformal-prediction entry, whose subpopulation is inferred from individual datapoints
+and not from annotators at all.
+
+On the annotation side --- AHEAD, FedQual, FedDS --- every method reads a **per-annotator
+stream** and targets *differences between* annotators. This setting has neither: only
+per-task vote sums, because finding 18's protocol removed the rest, and the error is one
+the annotators share.
+
+On the per-item side --- the two entries directly above, the slice-discovery and
+hidden-stratification family they come from, and the conformal-prediction entry that opens
+this section --- the partition is already gone, which is why these are the closest
+relatives finding 30 has. What remains is a **per-item representation**: a backbone, an
+embedding, a learnable map from the input to `R^d`, a datapoint to infer membership from,
+some space in which two items can be near each other. Every one of them clusters, routes,
+or smooths in such a space. An aggregator holding a vote sum and a contributor count has no
+such space, and no amount of method transfer creates one. That is why the residual rank is
+worth reporting and is *not* a better slice-discovery method: it answers their question
+under an observation model where their input does not exist.
+
+The wider literature on latent structure in crowd labelling (worker-clustering models,
+latent-class extensions of minimax entropy) was read and is not cited as grounding for the
+same reason the annotation side is bounded rather than built on: the comparison would be
+decorative when the observation models do not meet.
 
 The honest statement about the instrument is the one finding 29 already makes:
 overdispersion diagnostics are standard wherever counts are modelled, what was not found
