@@ -387,6 +387,11 @@ _METRIC_META: dict[str, tuple[str, str]] = {
         "Observed variance of per-task vote sums over the binomial variance at the same "
         "rate; 1 is independent error, above 1 is a shared component",
     ),
+    "latent_blindspot.dispersion_gap": (
+        "1",
+        "Largest gap between the dispersion index on a channel-keyed and a report-keyed "
+        "blind spot; near zero is a statistic that cannot tell the two apart",
+    ),
     "selective_risk.cell": (
         "1",
         "Errors among published labels, under one abstention policy and withhold budget",

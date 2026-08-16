@@ -64,15 +64,21 @@ Needs no model and no network.
 
 import argparse
 import json
-import statistics
-from dataclasses import dataclass, replace
 from pathlib import Path
-from random import Random
 
 from pharos.analyst import AnalystPolicy, Proposal, evidence_shown
 from pharos.disclosure import DROP_COMPARTMENTS, KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
-from pharos.governance import blind_fleet, contributions_for, ladder, observe
+from pharos.governance import blind_fleet, contributions_for, ladder
+from pharos.governance.channel import (
+    ALPHA,
+    PERMUTATION_SEED,
+    PERMUTATIONS,
+    Detection,
+    compartment_carriage,
+    scan_channels,
+    verdict_rates,
+)
 from pharos.inference import partition_by_contributor
 from pharos.labels import Compartment, declassify
 from pharos.provenance import run_provenance
@@ -102,21 +108,6 @@ CHANNEL_RUNGS = (
 )
 SHARES = ladder(FLEET, CHANNEL_RUNGS)
 
-#: Significance level for a detection. The gate's own convention elsewhere in this
-#: repo is three sigma, whose one-sided normal tail is 0.00135, so 0.001 is the nearest
-#: round threshold at least as strict. It is deliberately not tuned here: a threshold
-#: picked after seeing the effect is not a threshold. `PERMUTATIONS` has to be large
-#: enough to resolve it, since a permutation p-value cannot go below 1 / (m + 1).
-ALPHA = 0.001
-
-#: Permutations in the null. One pooled null rather than several small ones: this drew
-#: 21 nulls of 200 and reported the median z, which spends the same budget to estimate
-#: the same quantity less precisely. The floor on an achievable p-value is 1 / (m + 1),
-#: so this resolves down to 2.4e-4 and can therefore actually decide ALPHA.
-PERMUTATIONS = 4200
-
-PERMUTATION_SEED = 90210
-
 #: Verdict noise for the sweep. Zero is the idealized fleet this finding was first
 #: measured on and is kept as the reference column, but it is a degenerate case rather
 #: than a clean one: with no noise every analyst is identical and deterministic, each
@@ -125,151 +116,6 @@ PERMUTATION_SEED = 90210
 #: repo's own `inattentive` rate from `pharos.analyst`, so it is the fleet the rest of
 #: the project already treats as realistic rather than a number chosen here.
 NOISE_LEVELS = (0.0, 0.05, 0.15)
-
-
-@dataclass(frozen=True, slots=True)
-class Detection:
-    """The conditional-independence statistic for one channel, against its null."""
-
-    channel: str
-    delta: float
-    null_mean: float
-    p_value: float
-    extreme: int
-    permutations: int
-    detected: bool
-    strata: int
-
-    def as_dict(self) -> dict[str, object]:
-        return {
-            "channel": self.channel,
-            # The effect, and the thing to read for *extent*: it is linear in the blind
-            # share. A p-value cannot report extent, because it saturates at its own
-            # floor once the effect is comfortably significant.
-            "delta": round(self.delta, 4),
-            "null_mean": round(self.null_mean, 4),
-            # Not rounded to a fixed number of places: these span several orders of
-            # magnitude and 2.4e-4 is the floor, so a fixed rounding would flatten the
-            # strong results into one another.
-            "p_value": float(f"{self.p_value:.3g}"),
-            "extreme": self.extreme,
-            "permutations": self.permutations,
-            "detected": self.detected,
-            "strata": self.strata,
-        }
-
-
-def verdict_rates(partitioned: dict[str, list[tuple[str, bool]]]) -> dict[str, float]:
-    """Each task's share of significant verdicts, as the aggregator already sees it.
-
-    Read from the per-task vote sums of finding 18's protocol. No contributor is
-    distinguishable here, which is the point: the statistic must survive the protocol
-    that made finding 11's attack impossible.
-    """
-    view = observe(partitioned)
-    return {task: view.votes[task] / view.seen[task] for task in view.seen if view.seen[task] > 0}
-
-
-def stratified_delta(
-    rates: dict[str, float],
-    carries: dict[str, bool],
-    evidence: dict[str, int],
-) -> tuple[float, int]:
-    """Mean gap in verdict rate between carrying and non-carrying tasks, within strata.
-
-    Signed so that a *negative* delta means tasks carrying the channel are called
-    significant less often than equally-evidenced tasks that do not carry it, which is
-    the direction a blind spot produces. Strata with either side empty contribute
-    nothing rather than zero: an absent comparison is not a null result.
-    """
-    gaps: list[float] = []
-    used = 0
-    for level in sorted(set(evidence.values())):
-        with_channel = [rates[t] for t in rates if evidence[t] == level and carries[t]]
-        without = [rates[t] for t in rates if evidence[t] == level and not carries[t]]
-        if not with_channel or not without:
-            continue
-        gaps.append(statistics.fmean(with_channel) - statistics.fmean(without))
-        used += 1
-    return (statistics.fmean(gaps) if gaps else 0.0), used
-
-
-def detect(
-    rates: dict[str, float],
-    carries: dict[str, bool],
-    evidence: dict[str, int],
-    *,
-    permutations: int,
-    seed: int,
-) -> Detection | None:
-    """The observed stratified gap against a within-stratum permutation null.
-
-    Shuffling channel membership *within* an evidence level preserves how difficulty is
-    distributed and destroys only the association being tested, so a channel that merely
-    correlates with difficulty cannot score here. The statistic itself -- the mean gap
-    between carrying and non-carrying tasks within a stratum, averaged across strata --
-    is the standard one for this design.
-
-    **Significance is a permutation p-value, not a z-score.** This reported
-    `z = (null_mean - observed) / null_sd` until 2026-08-06, which was wrong in three
-    ways at once and wrong in the same place each time. A permutation test exists
-    precisely so the null's shape need not be assumed; standardizing against its mean
-    and standard deviation puts the normality assumption back. It is undefined when the
-    null has no spread, which is the case both of this finding's negative controls sit
-    in, so the controls "passed" from a division this code special-cased rather than
-    from evidence. And it invited a fix in kind: the previous attempt drew the null 21
-    times and reported the median z, which spends 4200 permutations to estimate a
-    quantity one pooled null of 4200 estimates better.
-
-        p = (b + 1) / (m + 1)
-
-    with `b` the number of permutations at least as extreme as the observed gap. The
-    `+1` on both sides is Phipson and Smyth (2010): the permuted draws generate an exact
-    discrete null distribution rather than an estimate of a tail probability, so the
-    observed value is one of its own draws. The naive `b / m` understates by about `1/m`
-    and can report zero, which is a claim no finite number of permutations supports. The
-    floor here is `1 / (m + 1)`.
-
-    The degenerate case then needs no handling at all. If every permutation returns the
-    observed gap -- a noiseless fleet, where each task's rate is fixed by its evidence
-    stratum and there is nothing left to shuffle -- then every draw is at least as
-    extreme, `b = m`, and `p = 1.0`. No detection, correctly, and by construction rather
-    than by a special case.
-
-    One-sided: a blind spot *depresses* the rate on carrying tasks, so a gap at least as
-    extreme is one at least as negative. Reporting a two-sided result would let an
-    elevated rate read as the same finding.
-    """
-    observed, strata = stratified_delta(rates, carries, evidence)
-    if strata == 0:
-        return None
-
-    by_level: dict[int, list[str]] = {}
-    for task in rates:
-        by_level.setdefault(evidence[task], []).append(task)
-
-    rng = Random(seed)  # noqa: S311
-    null: list[float] = []
-    for _ in range(permutations):
-        shuffled: dict[str, bool] = {}
-        for tasks_at_level in by_level.values():
-            flags = [carries[t] for t in tasks_at_level]
-            rng.shuffle(flags)
-            shuffled.update(dict(zip(tasks_at_level, flags, strict=True)))
-        null.append(stratified_delta(rates, shuffled, evidence)[0])
-
-    at_least_as_extreme = sum(1 for gap in null if gap <= observed)
-    p_value = (at_least_as_extreme + 1) / (permutations + 1)
-    return Detection(
-        channel="",
-        delta=observed,
-        null_mean=statistics.fmean(null),
-        p_value=p_value,
-        extreme=at_least_as_extreme,
-        permutations=permutations,
-        detected=p_value <= ALPHA,
-        strata=strata,
-    )
 
 
 def scan(
@@ -283,20 +129,13 @@ def scan(
     rates = verdict_rates(partitioned)
     by_id = {t.task_id: t for t in tasks}
     evidence = {task: len(evidence_shown(by_id[task])) for task in rates}
-
-    found: list[Detection] = []
-    for channel in Compartment:
-        carries = {
-            task: any(channel in r.label.compartments for r in by_id[task].sources)
-            for task in rates
-        }
-        result = detect(rates, carries, evidence, permutations=permutations, seed=seed)
-        if result is not None:
-            # `replace` rather than re-listing the fields: this rebuild used to name
-            # every field by hand, so adding one to Detection meant silently dropping it
-            # here unless the author remembered both sites.
-            found.append(replace(result, channel=channel.value))
-    return found
+    return scan_channels(
+        rates,
+        compartment_carriage(tasks, rates),
+        evidence,
+        permutations=permutations,
+        seed=seed,
+    )
 
 
 def main() -> int:

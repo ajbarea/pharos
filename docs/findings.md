@@ -72,7 +72,7 @@ scattered through it, and nothing in the grouping is a claim about how they rela
 | **Disclosure and identity** | [11. The stream still names the analyst](#11-the-gate-clears-every-item-and-the-stream-still-names-the-analyst) · [12. Reliability needs identity where it matters](#12-reliability-cannot-be-estimated-without-identity-where-it-matters) · [13. A tag can replace identity](#13-a-reliability-tag-can-replace-identity-and-the-leak-metric-cannot-tell-you-when) · [16. The cliff assumes independent fleets](#16-the-cliff-is-safe-only-because-the-fleets-were-drawn-independently) |
 | **Cost of running it** | [14. What the agent costs on its hardware](#14-what-the-agent-costs-on-the-hardware-it-is-meant-to-run-on) · [15. The budget is spent on the wrong variable](#15-the-standard-privacy-mechanism-spends-the-budget-on-the-wrong-variable) · [19. What an authority of record costs](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) |
 | **Estimating under aggregation** | [18. The cliff survives the protocol](#18-the-estimate-moves-under-secure-aggregation-and-the-cliff-does-not-move-with-it) · [19. An authority repairs it, at a price](#19-an-authority-of-record-repairs-the-cliff-and-its-price-explodes) · [20. Audit where the fleet splits](#20-audit-where-the-fleet-splits-and-the-prediction-that-said-otherwise) · [21. Where that policy stops working](#21-the-corpus-the-audit-policy-cannot-handle-built-on-purpose) · [22. The trace it leaves anyway](#22-the-trace-a-blind-spot-leaves-after-it-stops-leaving-disagreement) · [23. Provenance finds what is findable](#23-once-the-detector-names-the-channel-provenance-finds-the-corrupted-items-that-are-findable-at-all) |
-| **What a deployment does about it** | [28. Detection converts into coverage, not correction](#28-the-open-problem-answered-detection-converts-into-coverage-not-into-correction) · [29. The shape of the error, read from the aggregate](#29-the-shape-of-the-error-is-visible-from-the-aggregate-and-it-is-cheap-to-read-wrong) |
+| **What a deployment does about it** | [28. Detection converts into coverage, not correction](#28-the-open-problem-answered-detection-converts-into-coverage-not-into-correction) · [29. The shape of the error, read from the aggregate](#29-the-shape-of-the-error-is-visible-from-the-aggregate-and-it-is-cheap-to-read-wrong) · [30. The blind spot with no name](#30-the-blind-spot-with-no-name-is-detected-the-same-and-located-by-the-same-signal-read-one-sided) |
 | **Whether a result survives a parameter nobody chose** | [24. The crossing is a distribution over corpora](#24-the-crossing-is-a-distribution-over-corpora-not-a-share-and-a-majority-was-nine-analysts-talking) · [25. Not where we pointed the estimator](#25-the-cliff-is-not-where-we-pointed-the-estimator-except-at-the-crossing-itself) · [26. One of the headlines was the corpus](#26-findings-20-to-23-were-measured-on-one-corpus-and-one-of-their-headlines-was-that-corpus) |
 
 ## What these sizes can resolve
@@ -210,6 +210,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `error_shape` | 69 | yes | - |
 | `fleet_linkage` | 200 | yes | - |
 | `label_fidelity` | 40 | yes | - |
+| `latent_blindspot` | 200 | yes | - |
 | `learnability` | 600 | **no** | **rows[0]**: accuracy 0.482 does not beat the majority floor 0.685: this is not evidence of capability |
 | `learnability_replication` | 600 | **no** | **rows[0]**: accuracy 0.507 does not beat the majority floor 0.685: this is not evidence of capability |
 | `privacy_budget` | 200 | yes | - |
@@ -257,7 +258,7 @@ This table is generated from `results/` and CI fails when it drifts from them.
 | `triage_lift-qwen2.5-7b` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 | `triage_lift` | 40 | **no** | accuracy 0.450 does not beat the majority floor 0.650: this is not evidence of capability; recall is 1.000 while false positives exceed true positives: the model escalates indiscriminately, which scores well on recall alone |
 
-**27 of 60** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
+**27 of 61** assessed artifacts are flagged. A flagged number may still be quoted as evidence that something *failed*, which is what the flag asserts; it may not be quoted as evidence of capability.
 
 **Carrying no validity assessment, which is a gap rather than a pass:** `corpus_sensitivity`, `estimator_initialization`, `governance_sensitivity`.
 
@@ -3653,3 +3654,177 @@ different claims.
     matter how extreme, including the fleet whose index is 9.00. The arithmetic is now
     asserted at run time and refuses, in the same form
     `measure_corpus_sensitivity.py` already used on finding 22's permutation count.
+
+## 30. The blind spot with no name is detected the same, and located by the same signal read one-sided
+
+`scripts/measure_latent_blindspot.py`, `results/latent_blindspot.json`
+
+This repository has carried one residue since
+[finding 23](#23-once-the-detector-names-the-channel-provenance-finds-the-corrupted-items-that-are-findable-at-all),
+and its README states it in these words: finding 22 detects a blind spot aligned with a
+**known, public partition** of the corpus, and "a shared error that follows no observable
+partition would leave no trace in it either, and nothing here says how to find one."
+
+That sentence makes two claims and they come apart. The channel scan does lose everything,
+because a scan enumerates a small public family and an unnameable slice leaves nothing to
+enumerate. The **index of dispersion** never read a partition in the first place --- it
+reads per-task vote sums within an evidence stratum --- and the question is whether it
+notices the difference. It does not.
+
+**The construction, matched to finding 21's in every respect but one.**
+`AnalystPolicy.distrusted_reports` is the same wrong standard as `blind_compartment` with
+its handle removed: the blind analysts decline to credit a set of individual reports
+rather than a channel. The set is drawn so it corrupts what PARTNER corrupts on this
+corpus --- 20 verdicts of 200, all on tasks showing all three defining facts, so a lost
+report drops the reviewer below a conjunction of three --- and drawn uniformly within that
+stratum, which is what makes membership unpredictable from any column the corpus records.
+A balance precondition refuses a draw whose compartment carriage sits above the 99th
+percentile of uniform draws from the same pool, because a slice that *did* load onto a
+channel would be found by the scan and this finding would report the scan working as the
+scan failing.
+
+<!-- BEGIN GENERATED: latent-blindspot -->
+**What each detector says, by what the blind spot is keyed on.** `scan` is the channel detector of finding 22, which enumerates the corpus's compartments. `index` is the dispersion statistic of finding 29, which enumerates nothing. The latent columns are the median and range over 5 slice draws; `--` is a fleet with no variance to read. The unblinded row is marked `ref`: with no blind analyst the two constructions build the same fleet, so it cannot disagree and is excluded from the verdict, which rests on the 10 rows that can.
+
+| Blind of 9 | slip | scan, channel-keyed | scan, latent | index, channel-keyed | index, latent (range) |
+| --- | --- | --- | --- | --- | --- |
+| 1 | 0.0 | PARTNER | silent | 0.73 | 0.73 (0.73-0.73) |
+| 3 | 0.0 | PARTNER | silent | 2.36 | 2.36 (2.36-2.36) |
+| 5 | 0.0 | PARTNER | silent | 4.23 | 4.23 (4.23-4.23) |
+| 7 | 0.0 | PARTNER | silent | 6.42 | 6.42 (6.42-6.42) |
+| 9 | 0.0 | PARTNER | silent | 9.00 | 9.00 (9.00-9.00) |
+| 0 (ref) | 0.15 | silent | silent | 0.96 | 0.96 (0.96-0.96) |
+| 1 | 0.15 | silent | silent | 0.95 | 0.93 (0.89-0.96) |
+| 3 | 0.15 | silent | silent | 1.11 | 1.12 (1.03-1.18) |
+| 5 | 0.15 | PARTNER | silent | 1.44 | 1.46 (1.36-1.53) |
+| 7 | 0.15 | PARTNER | silent | 1.83 | 1.84 (1.70-1.92) |
+| 9 | 0.15 | PARTNER | silent | 2.57 | 2.53 (2.50-2.57) |
+
+**Localization at unanimity**, where every disagreement-reading rule is already at chance. Share of a 20-item withhold that landed on a label the estimator got wrong, over every slice draw and slip rate. `uniform` is the **best** of 21 untargeted draws rather than their median, because a median is not a floor and finding 28 had to retract a claim that beat one. `oracle` reads ground truth and is a bound rather than a method.
+
+| Rule | median | range |
+| --- | --- | --- |
+| `uniform` | 0.25 | 0.20-0.35 |
+| `margin` | 0.12 | 0.05-0.25 |
+| `posterior` | 0.12 | 0.10-0.25 |
+| `consensus` | 0.10 | 0.00-0.25 |
+| `deviation` | 1.00 | 0.85-1.00 |
+| `shortfall` | 1.00 | 1.00-1.00 |
+| `oracle` | 1.00 | 1.00-1.00 |
+
+**As the corrupted slice grows past the majority of its stratum.** The pool of tasks a discounted report can flip is 69 on this corpus, so the crossing sits between the two middle rows. Every cell is the median over 5 slice draws with the range beside it, because a slice is a sample and this sweep quoted one draw of it as a constant until it did not.
+
+| Slice | slip | draws | errors | `uniform` (best of 21) | `deviation` | `shortfall` |
+| --- | --- | --- | --- | --- | --- | --- |
+| 10 of 69 | 0.0 | 5 | 10 | 0.15 (0.10-0.20) | 0.50 (0.50-0.50) | 0.50 (0.50-0.50) |
+| 10 of 69 | 0.15 | 5 | 11 | 0.20 (0.15-0.20) | 0.55 (0.55-0.55) | 0.50 (0.50-0.50) |
+| 20 of 69 | 0.0 | 5 | 20 | 0.20 (0.20-0.35) | 1.00 (1.00-1.00) | 1.00 (1.00-1.00) |
+| 20 of 69 | 0.15 | 5 | 21 | 0.25 (0.20-0.35) | 0.95 (0.85-1.00) | 1.00 (1.00-1.00) |
+| 30 of 69 | 0.0 | 5 | 30 | 0.25 (0.25-0.40) | 1.00 (1.00-1.00) | 1.00 (1.00-1.00) |
+| 30 of 69 | 0.15 | 5 | 31 | 0.30 (0.25-0.40) | 0.65 (0.55-0.75) | 1.00 (1.00-1.00) |
+| 40 of 69 | 0.0 | 5 | 40 | 0.35 (0.30-0.45) | 0.00 (0.00-0.00) | 1.00 (1.00-1.00) |
+| 40 of 69 | 0.15 | 5 | 40 | 0.35 (0.30-0.45) | 0.30 (0.20-0.30) | 1.00 (1.00-1.00) |
+| 50 of 69 | 0.0 | 5 | 50 | 0.35 (0.35-0.45) | 0.05 (0.05-0.05) | 1.00 (1.00-1.00) |
+| 50 of 69 | 0.15 | 5 | 50 | 0.35 (0.35-0.45) | 0.10 (0.05-0.20) | 1.00 (1.00-1.00) |
+| 60 of 69 | 0.0 | 5 | 60 | 0.45 (0.40-0.50) | 0.55 (0.55-0.55) | 1.00 (1.00-1.00) |
+| 60 of 69 | 0.15 | 5 | 60 | 0.45 (0.40-0.50) | 0.25 (0.25-0.25) | 0.50 (0.40-0.55) |
+<!-- END GENERATED: latent-blindspot -->
+
+**Detection survives the loss of the partition, exactly.** At every share of a
+deterministic fleet the two constructions give the *same* index --- 0.73, 2.36, 4.23,
+6.42, 9.00 --- and the reason is worth stating because it is also the limit of the
+statistic: within a stratum the index depends on how many tasks the shared standard
+corrupts and not on which ones, so two slices of the same size in the same stratum are the
+same number to it. Once analysts slip independently the two fleets are different draws and
+the indices separate by a tenth at worst and hundredths typically --- 0.13 in the widest
+cell, under 0.10 in every other; the channel-keyed value then sits **inside the range
+five latent slice draws produce, in every cell that could fail**. The statistic cannot
+tell the two constructions apart.
+
+The scan is the mirror image. It is **silent on the latent construction in every cell**,
+and it names PARTNER on the channel-keyed twin wherever it can name anything --- which is
+not everywhere, and the table says so: at a 15% slip rate it does not fire below five of
+nine, which is finding 22's own detection floor rather than anything this construction
+did. The rows where both columns read silent are the rows where the instrument has no
+power, and reading them as agreement would be the mistake the paragraph above exists to
+prevent.
+
+**Localization survives too, and that was predicted to fail.** The docstring's third
+prediction was that ranking tasks by their within-stratum residual --- the per-task
+summands of the index --- would do no better than an untargeted draw at unanimity, on
+finding 21's reasoning that a unanimously blind fleet leaves nothing to distinguish a
+corrupted task from a merely unusual one. It is wrong. At unanimity `deviation` lands a
+median **1.00** of a 20-item withhold on a wrong label against the **best** of 21
+untargeted draws at 0.25, tying the oracle, with no channel named and no detection required
+first. The three disagreement-reading rules are all *below* that untargeted floor on the
+same fleets --- `margin` and `posterior` at 0.12, `consensus` at 0.10 --- which is finding
+28's result arriving again from a fleet with no channel in it.
+
+The reconciliation is the sentence above: the index is invariant to *which* tasks a
+standard corrupts, and its summands are not. A sum over residuals discards the information
+a rank over the same residuals keeps, and finding 29 read only the sum.
+
+**What the two-sided form costs, measured rather than asserted.** The fourth prediction
+was that if localization worked at all it would work only while the corrupted slice was a
+minority of its stratum, and the sweep was run to find the crossing. It is there. Once the
+corrupted slice sets its own stratum's rate the *clean* tasks become the outliers, and
+`deviation` falls to or below an untargeted draw in **5 of the 12 swept cells, none of them
+below 40 of the 69 eligible tasks** --- the pool's majority is 35, and the first inversion
+is on the other side of it. The worst cell is 40 of 69 on a noiseless fleet, where it lands
+**0.00** of a 20-item withhold on a wrong label, in all five slice draws, against an
+untargeted 0.35. That is the failure mode that matters, because a rule that is merely
+uninformative wastes a budget and a rule that is anti-informative spends it on correct
+labels. Degradation starts earlier than inversion: at 30 of 69 with analysts slipping it is
+already at a median 0.65 against a perfect 1.00 one row above.
+
+Every cell in that sweep is a median over the same five slice draws the grid uses, with its
+range printed beside it. It was measured at **one** draw first, and the difference is
+instructive rather than cosmetic: the structural claims are identical across draws --- the
+same inverted sizes, the same tie count --- while individual cells move by up to a tenth,
+so a single draw would have published 0.10 and 0.75 as though they were constants. This
+page has retracted five numbers that were properties of one sample.
+
+**Signing the residual removes the crossing, and names the assumption that does it.**
+`shortfall` is the same statistic read one-sided: audit where a stratum votes *low*, not
+where it votes far. A blind spot is a failure to credit evidence and a reviewer who credits
+less escalates less, so the corrupted tasks vote low whether they are ten of a stratum or
+fifty. It never falls to an untargeted draw in any cell of the sweep, and it **ties the oracle
+in 10 of the 12**. Both misses are worth naming rather than rounding away: at 10 of 69 with
+slip it takes 0.50 against the bound's 0.55, one task short, and at 60 of 69 with slip it
+takes a median 0.50 against 1.00, which is the real limit and is the subject of the
+paragraph below.
+
+That directional assumption is the scope condition and it is not new here: finding 22's
+detector is already one-sided, for this reason and in these terms. A shared error that
+*raised* the rate --- a fleet crediting something it should not --- needs the mirror of
+this rule, and nothing in the aggregate says which of the two a fleet has. The honest
+statement of what a deployment gets is therefore conditional in one place rather than two:
+it no longer needs a nameable channel, and it still needs to know which way its analysts
+are wrong.
+
+**Where it does break.** At 60 of 69 corrupted, with analysts slipping at 0.15, `shortfall`
+falls to a median 0.50 against the oracle's 1.00 --- nine of the sixty-nine remain clean,
+and a rate estimated from a stratum that is seven-eighths corrupted is no longer a
+reference. That is
+the same shape as every other limit on this page: the statistic needs a majority of the
+stratum to be doing the right thing, which is a weaker requirement than the majority of the
+*fleet* that findings 19 to 21 needed, and is a different quantity rather than a smaller
+one.
+
+!!! warning "This measures the class of failure that is unnameable, not the class that is unstructured"
+    The slice here follows no partition the corpus records, which is what the open problem
+    asked for. It is still a set of tasks that a shared standard corrupts *consistently*,
+    and that consistency is what the residual reads. A shared error applied erratically ---
+    the same analysts, the same habit, acting on it half the time --- would leave a weaker
+    trace and this page does not price it. The claim that travels is about the handle
+    being absent, not about the structure being absent.
+
+!!! note "What this does to the open problem"
+    The README's residue is withdrawn as stated. Detection does not require a public
+    partition, and neither does the remedy of
+    [finding 28](#28-the-open-problem-answered-detection-converts-into-coverage-not-into-correction):
+    withholding by the one-sided residual buys what withholding by the named channel bought,
+    on a fleet where no channel can be named. What replaces it is narrower and is a question
+    about the world rather than about this generator --- whether a real watch floor's shared
+    errors depress a rate consistently enough for a within-stratum residual to see them,
+    which is a claim about operational data that no corpus generated here can settle.

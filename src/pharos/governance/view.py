@@ -17,10 +17,10 @@ from dataclasses import dataclass, field, replace
 
 from pharos.analyst import Proposal, evidence_shown
 from pharos.governance.fleet import BLIND, MASK_SEED, blind_fleet, contributions_for
-from pharos.inference import federated_dawid_skene, partition_by_contributor
+from pharos.inference import FederatedDawidSkene, federated_dawid_skene, partition_by_contributor
 from pharos.tasks import TriageTask
 
-__all__ = ["ServerObservation", "fleet_view", "observe"]
+__all__ = ["ServerObservation", "fleet_view", "observe", "observe_with_estimate"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -67,9 +67,32 @@ class ServerObservation:
             return 1.0
         return abs(2.0 * self.votes.get(task, 0.0) - n) / n
 
+    def rates(self) -> dict[str, float]:
+        """Each task's share of significant verdicts, for tasks anybody saw.
 
-def observe(partitioned: dict[str, list[tuple[str, bool]]]) -> ServerObservation:
-    """The aggregator's view, assembled the way finding 18's protocol produces it."""
+        Arithmetic on the two sums this class already holds, so it belongs beside `margin`
+        rather than in the channel detector that happens to be its heaviest reader. It sat
+        there as a free function taking a view, which meant reading a rate off a view
+        required importing the module for scanning channels.
+        """
+        return {task: self.votes[task] / self.seen[task] for task in self.seen if self.seen[task]}
+
+
+def observe_with_estimate(
+    partitioned: dict[str, list[tuple[str, bool]]],
+) -> tuple[ServerObservation, FederatedDawidSkene]:
+    """The aggregator's view *and* the fit behind it, for callers that need both.
+
+    `observe` discards the estimate, so a caller wanting `converged` or the estimate's
+    own labels had no way to ask for them and re-ran the fit instead. Finding 30's
+    measurement did exactly that three times per cell -- once inside `observe`, once for
+    the labels, and once more inside `verdict_rates`. Returning both is how one fit serves
+    every reader of it.
+
+    `observe` stays the narrow door: a selection policy must not see the estimate object,
+    only the posterior the server holds. This is for measurement scripts assembling a
+    cell, not for anything a policy is handed.
+    """
     votes: dict[str, float] = {}
     seen: dict[str, float] = {}
     for rows in partitioned.values():
@@ -77,7 +100,12 @@ def observe(partitioned: dict[str, list[tuple[str, bool]]]) -> ServerObservation
             votes[task] = votes.get(task, 0.0) + (1.0 if verdict else 0.0)
             seen[task] = seen.get(task, 0.0) + 1.0
     estimate = federated_dawid_skene(partitioned, seed=MASK_SEED)
-    return ServerObservation(votes, seen, dict(estimate.posterior))
+    return ServerObservation(votes, seen, dict(estimate.posterior)), estimate
+
+
+def observe(partitioned: dict[str, list[tuple[str, bool]]]) -> ServerObservation:
+    """The aggregator's view, assembled the way finding 18's protocol produces it."""
+    return observe_with_estimate(partitioned)[0]
 
 
 def fleet_view(

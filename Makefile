@@ -116,6 +116,10 @@ error-shape:               ## Whether the shape of the error is visible from the
 	@mkdir -p results
 	uv run python scripts/measure_error_shape.py --out results/error_shape.json
 
+latent-blindspot:          ## Whether a blind spot with no nameable channel is findable (no model)
+	@mkdir -p results
+	uv run python scripts/measure_latent_blindspot.py --out results/latent_blindspot.json
+
 governance-sensitivity:    ## Whether findings 19-23 survive a fleet other than nine (no model)
 	@mkdir -p results
 	uv run python scripts/measure_governance_sensitivity.py --out results/governance_sensitivity.json
@@ -178,6 +182,7 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run python scripts/measure_channel_bias.py
 	uv run python scripts/measure_selective_risk.py
 	uv run python scripts/measure_error_shape.py
+	uv run python scripts/measure_latent_blindspot.py
 	uv run python scripts/measure_estimator_initialization.py
 	uv run python scripts/measure_fleet_sensitivity.py
 	uv run python scripts/logcheck.py

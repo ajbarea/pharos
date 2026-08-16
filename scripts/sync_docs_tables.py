@@ -1156,6 +1156,119 @@ def selective_risk() -> str:
     return "\n".join(lines)
 
 
+def latent_blindspot() -> str:
+    """Finding 30: what each detector and each rule does when the slice has no name.
+
+    Three tables, because the finding is three separate answers to one question and a page
+    carrying any two of them would read as a different result. The scan and the index
+    together say detection survives; the unanimity summary says localization does too; the
+    slice sweep says which form of the rule that depends on.
+    """
+    path = RESULTS / "latent_blindspot.json"
+    if not path.exists():
+        _fail(f"{path.relative_to(ROOT)} is missing; run `make latent-blindspot` first")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    grid = payload.get("grid") or []
+    sweep = payload.get("slice_sweep") or []
+    spread = payload.get("dispersion_spread") or []
+    if not grid or not sweep or not spread:
+        _fail("latent_blindspot.json is missing a section; refusing to emit a partial table")
+
+    fleet = payload["fleet"]
+    lines = [
+        "**What each detector says, by what the blind spot is keyed on.** `scan` is the "
+        "channel detector of finding 22, which enumerates the corpus's compartments. "
+        "`index` is the dispersion statistic of finding 29, which enumerates nothing. The "
+        "latent columns are the median and range over "
+        f"{len(payload['slice_seeds'])} slice draws; `--` is a fleet with no variance to "
+        "read. The unblinded row is marked `ref`: with no blind analyst the two "
+        "constructions build the same fleet, so it cannot disagree and is excluded from "
+        f"the verdict, which rests on the {payload['dispersion_cells_that_could_falsify']} "
+        "rows that can.",
+        "",
+        f"| Blind of {fleet} | slip | scan, channel-keyed | scan, latent | "
+        "index, channel-keyed | index, latent (range) |",
+        "| --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in spread:
+        cell = next(
+            c
+            for c in grid
+            if c["keying"] == "channel"
+            and c["n_blind"] == row["n_blind"]
+            and c["slip_rate"] == row["slip_rate"]
+        )
+        latent = [
+            c
+            for c in grid
+            if c["keying"].startswith("latent")
+            and c["n_blind"] == row["n_blind"]
+            and c["slip_rate"] == row["slip_rate"]
+        ]
+        fired = ", ".join(cell["channels_fired"]) or "silent"
+        latent_fired = ", ".join(sorted({ch for c in latent for ch in c["channels_fired"]}))
+        blind = row["n_blind"] if row["informative"] else f"{row['n_blind']} (ref)"
+        lines.append(
+            f"| {blind} | {row['slip_rate']} | {fired} | {latent_fired or 'silent'} "
+            f"| {row['channel_index']:.2f} | {row['latent_median']:.2f} "
+            f"({row['latent_min']:.2f}-{row['latent_max']:.2f}) |"
+        )
+
+    summary = payload["unanimity_precision"]
+    lines += [
+        "",
+        "**Localization at unanimity**, where every disagreement-reading rule is already "
+        f"at chance. Share of a {payload['report_budget']}-item withhold that landed on a "
+        "label the estimator got wrong, over every slice draw and slip rate. `uniform` is "
+        "the **best** of 21 untargeted draws rather than their median, because a median is "
+        "not a floor and finding 28 had to retract a claim that beat one. `oracle` reads "
+        "ground truth and is a bound rather than a method.",
+        "",
+        "| Rule | median | range |",
+        "| --- | --- | --- |",
+    ]
+    for rule, stats in summary.items():
+        if stats["median"] is None:
+            lines.append(f"| `{rule}` | -- | -- |")
+            continue
+        lines.append(
+            f"| `{rule}` | {stats['median']:.2f} | {stats['min']:.2f}-{stats['max']:.2f} |"
+        )
+
+    # Every row publishes its own draw count because a lopsided draw can be refused, and
+    # the caption used to hard-code row zero's for the whole table -- the generator
+    # publishing a per-row number and then quoting a constant over it, which is the same
+    # error the median column was carrying. Stated as a range when the rows disagree, and
+    # the `draws` column carries the per-row truth either way.
+    counts = sorted({int(row["draws"]) for row in sweep})
+    over = (
+        f"{counts[0]}" if len(counts) == 1 else f"{counts[0]}-{counts[-1]}, per the `draws` column,"
+    )
+    lines += [
+        "",
+        "**As the corrupted slice grows past the majority of its stratum.** The pool of "
+        f"tasks a discounted report can flip is {sweep[0]['eligible']} on this corpus, so "
+        "the crossing sits between the two middle rows. Every cell is the median over "
+        f"{over} slice draws with the range beside it, because a slice is a "
+        "sample and this sweep quoted one draw of it as a constant until it did not.",
+        "",
+        "| Slice | slip | draws | errors | `uniform` (best of 21) | `deviation` | `shortfall` |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for row in sweep:
+        cells = []
+        for rule in ("uniform", "deviation", "shortfall"):
+            rule_spread = row["precision"][rule]
+            cells.append(
+                f"{rule_spread['median']:.2f} ({rule_spread['min']:.2f}-{rule_spread['max']:.2f})"
+            )
+        lines.append(
+            f"| {row['size']} of {row['eligible']} | {row['slip_rate']} | {row['draws']} "
+            f"| {row['errors']['median']:.0f} | " + " | ".join(cells) + " |"
+        )
+    return "\n".join(lines)
+
+
 def error_shape() -> str:
     """Finding 29: the dispersion index across the share-by-noise grid, and what it costs.
 
@@ -1441,6 +1554,7 @@ BLOCKS = {
     "channel-bias": channel_bias,
     "selective-risk": selective_risk,
     "error-shape": error_shape,
+    "latent-blindspot": latent_blindspot,
 }
 
 #: A BEGIN marker on its own. Used to catch pairs the full pattern cannot match --

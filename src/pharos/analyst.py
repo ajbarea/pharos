@@ -233,6 +233,15 @@ class AnalystPolicy:
     choice for that slice: mean evidence shown is 1.88 on tasks carrying it against
     1.72 on tasks that do not, where SENSOR would be 2.00 against 0.48 and would
     therefore reintroduce the confound it is meant to remove.
+
+    `distrusted_reports` is the same wrong standard with its *handle* removed. A channel
+    is public corpus structure and one of a small enumerable family, so a detector can
+    scan the family and name the one that fires, which is what findings 22 and 23 rest
+    on. Reports are not a family anybody can scan. The set stands for a habit that keys
+    on something the corpus does not record --- a desk whose phrasing reads as
+    speculation, a source somebody was once burned by --- and it is the construction
+    finding 30 needs, because the open problem this repository carried was stated as a
+    shared error following no observable partition.
     """
 
     name: str
@@ -246,6 +255,7 @@ class AnalystPolicy:
     prohibited: frozenset[ProhibitedUse] = frozenset()
     purpose: Purpose = Purpose.FLEET_TRAINING
     blind_compartment: Compartment | None = None
+    distrusted_reports: frozenset[str] = frozenset()
 
     def __post_init__(self) -> None:
         if not 1 <= self.escalation_threshold <= len(SIGNIFICANT_PATTERN):
@@ -271,17 +281,28 @@ class AnalystPolicy:
     def evidence_visible_to(self, task: TriageTask) -> frozenset[str]:
         """The defining facts this reviewer actually credits.
 
-        Identical to `evidence_shown` unless the reviewer discounts a channel, in
-        which case facts reaching them only through that channel are not counted. The
-        reviewer is not lying and has not slipped: they read the page and declined to
+        Identical to `evidence_shown` unless the reviewer discounts something, in which
+        case facts reaching them only through the discounted reporting are not counted.
+        The reviewer is not lying and has not slipped: they read the page and declined to
         credit part of it, which is why this failure is invisible to every check that
         looks for noise or for inconsistency.
+
+        Two discounting rules, and the difference between them is the substance of
+        finding 30 rather than a convenience. `blind_compartment` keys on a *channel*,
+        which is public corpus structure and one of a small enumerable family, so a
+        detector can scan the family and name the one that fires. `distrusted_reports`
+        keys on individual reports, which is a set the corpus does not record and which
+        no detector can enumerate: it stands for a habit ("this desk's phrasing reads as
+        speculation") that leaves no column to condition on.
         """
-        if self.blind_compartment is None:
+        if self.blind_compartment is None and not self.distrusted_reports:
             return evidence_shown(task)
+        blinded = self.blind_compartment
         shown: set[str] = set()
         for report in task.sources:
-            if self.blind_compartment in report.label.compartments:
+            if blinded is not None and blinded in report.label.compartments:
+                continue
+            if report.report_id in self.distrusted_reports:
                 continue
             shown |= set(report.fact_ids)
         # Intersected with the defining pattern, exactly as `evidence_shown` does. A
