@@ -293,33 +293,61 @@ def test_no_script_restates_a_constant_the_package_already_owns():
     """
     import ast
     import importlib
+    import pkgutil
     from pathlib import Path
+
+    import pharos
 
     root = Path(__file__).resolve().parents[1]
 
+    # Discovered rather than listed, the way the collision guard above discovers
+    # `pharos.governance`'s submodules. A hand-written list of four modules covered the
+    # ones that had already gone wrong and left the rest of the package unwatched:
+    # `validity`, `secagg`, `gate`, `budget`, `uncertainty` and `disclosure` all export
+    # constants, and scripts already import from every one of them.
     exported: dict[str, object] = {}
-    for module in ("pharos.governance", "pharos.analyst", "pharos.tasks", "pharos.inference"):
+    modules = [f"pharos.{info.name}" for info in pkgutil.iter_modules(pharos.__path__)]
+    modules.append("pharos.governance")
+    modules += [
+        f"pharos.governance.{info.name}"
+        for info in pkgutil.iter_modules(importlib.import_module("pharos.governance").__path__)
+    ]
+    for module in modules:
         loaded = importlib.import_module(module)
         for name in dir(loaded):
             if name.isupper() and not name.startswith("_"):
                 exported.setdefault(name, getattr(loaded, name))
 
     restated: list[str] = []
-    for path in sorted((root / "scripts").glob("*.py")):
+    scanned = sorted((root / "scripts").glob("*.py"))
+    for path in scanned:
         for node in ast.parse(path.read_text(encoding="utf-8")).body:
-            if not isinstance(node, ast.Assign) or len(node.targets) != 1:
+            # `AnnAssign` as well as `Assign`, because `PERMUTATIONS: int = 4200` is a
+            # restatement that reads as ordinary style in a tree `ty` checks, and the
+            # annotation was enough to walk past this guard entirely.
+            if isinstance(node, ast.Assign) and len(node.targets) == 1:
+                target, assigned = node.targets[0], node.value
+            elif isinstance(node, ast.AnnAssign) and node.value is not None:
+                target, assigned = node.target, node.value
+            else:
                 continue
-            target = node.targets[0]
             if not isinstance(target, ast.Name) or not target.id.isupper():
                 continue
             try:
-                value = ast.literal_eval(node.value)
+                value = ast.literal_eval(assigned)
             except (ValueError, TypeError, SyntaxError):
                 # A name, a call, or an expression: already reading something rather
                 # than restating a literal, which is the shape being asked for.
                 continue
             if target.id in exported and exported[target.id] == value:
                 restated.append(f"{path.name}:{target.id} = {value!r}")
+
+    # A guard that passes by finding nothing is the failure this file names in its own
+    # docstring. Both halves have to be non-empty for the comparison above to mean
+    # anything: a renamed `scripts/`, or a package that stopped importing, would
+    # otherwise retire the check silently while the class it prevents came back.
+    assert exported, "no package constants were discovered, so nothing was compared"
+    assert scanned, "no scripts were scanned, so nothing was compared"
 
     assert not restated, (
         "scripts restating a constant the package exports with the same value: "
