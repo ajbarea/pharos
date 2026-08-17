@@ -87,10 +87,17 @@ jobs:
       url: '${{ steps.deployment.outputs.page_url }}'
     runs-on: ubuntu-latest
     steps:
-      # Twenty minutes, not the default ten: a slow Pages queue outlasts the timer and
-      # fails the job for a deployment that then lands anyway.
+      # Ten minutes is the ceiling, not a choice. This asked for twenty, on the reasoning
+      # that a slow Pages queue outlasts the timer and fails the job for a deployment that
+      # then lands anyway -- and the action clamps to its maximum of 600000ms, which is
+      # also its default, so the setting had never done anything and every run said so:
+      # "##[warning]timeout value is greater than the allowed maximum".
+      #
+      # Kept explicit at the maximum rather than deleted, because the next person to meet
+      # a queued deployment will reach for this input, and the ceiling is the answer they
+      # need. If the queue does outlast it, the job fails and the deployment still lands.
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
         id: deployment
         with:
-          timeout: 1200000
+          timeout: 600000
