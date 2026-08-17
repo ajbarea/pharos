@@ -262,13 +262,35 @@ def _make_ci_recipe() -> list[str]:
     return body
 
 
+def _normalize(command: str) -> str:
+    """One shell command in a form the Makefile and the workflow can be compared in.
+
+    Whitespace collapses because the workflow folds long commands over several lines;
+    `$$` becomes `$` because make escapes it; quotes go because `"$seed"` and `$$seed`
+    are the same loop variable written for two readers; and `;` goes because a loop
+    written across three lines separates with newlines where a one-liner needs the
+    semicolon, which is a difference in typography rather than in what runs.
+    """
+    return " ".join(command.replace("$$", "$").replace('"', "").replace(";", " ").split())
+
+
 def _workflow_runs() -> list[str]:
-    """Every `run:` command in the CI workflow, one per line."""
-    text = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    """Every `run:` command in the CI workflow, in order.
+
+    Parsed rather than grepped. The line-based version this replaces matched only steps
+    carrying a `name:`, because a bare `- run:` does not start its line -- so the
+    telemetry assertion, the three lint commands, the folded `pytest` invocation and
+    `pip-audit` were all invisible to it. Two of those were missing from `make ci` and
+    the check that exists to say so could not see them.
+    """
+    import yaml
+
+    doc = yaml.safe_load((ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8"))
     return [
-        line.strip().removeprefix("run:").strip()
-        for line in text.splitlines()
-        if line.strip().startswith("run:")
+        _normalize(step["run"])
+        for job in doc["jobs"].values()
+        for step in job.get("steps", [])
+        if "run" in step
     ]
 
 
@@ -302,6 +324,44 @@ def test_make_ci_runs_what_the_workflow_runs():
         f"  workflow order:  {remote}"
     )
     assert remote, "parsed no measurement steps out of the workflow; the parser broke"
+
+
+#: Workflow commands `make ci` is not expected to run, each with the reason. Setup is the
+#: only shape that qualifies so far: it prepares the environment the target assumes rather
+#: than being a gate the target skips.
+WORKFLOW_ONLY = {
+    "uv sync --all-groups": "environment setup; `make setup` does this before `make ci`",
+}
+
+#: Flags that only produce artifacts for the Codecov upload steps, which have no local
+#: counterpart. Dropped before comparing, so the command underneath can still be matched.
+UPLOAD_ONLY_FLAGS = {"--cov-report=xml", "--junitxml=junit.xml", "-o", "junit_family=legacy"}
+
+
+def test_make_ci_runs_the_workflows_tool_steps_too():
+    """The comparison above reads `scripts/`, and the drift was in the steps that do not.
+
+    `uv run python -c "... telemetry.configure() is False"` and `uv run pip-audit` were
+    both in `ci.yml` and neither was in `make ci`. Neither names a script, so the
+    measurement comparison could not see them, and the target's promise to be "exactly as
+    the workflow does" held only for the half of the workflow that happened to be checked.
+    """
+    local = {_normalize(c) for c in _make_ci_recipe()}
+    local = {" ".join(t for t in c.split() if t not in UPLOAD_ONLY_FLAGS) for c in local}
+
+    missing = []
+    for command in _workflow_runs():
+        if _measurements([command]) or command in WORKFLOW_ONLY:
+            continue
+        stripped = " ".join(t for t in command.split() if t not in UPLOAD_ONLY_FLAGS)
+        if stripped not in local:
+            missing.append(stripped)
+
+    assert not missing, (
+        "`ci.yml` runs commands `make ci` does not, so the local gate is a subset of the "
+        f"remote one and passes meaning less than it claims: {missing}. Add them to the "
+        "`ci` target, or name the reason in WORKFLOW_ONLY."
+    )
 
 
 def test_every_model_free_measurement_reaches_ci():
