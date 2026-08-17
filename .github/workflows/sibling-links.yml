@@ -17,13 +17,14 @@ on:
     # not worse than one that survives a night.
     - cron: "0 7 * * 1"
   workflow_dispatch:
-  # Also on changes to the pages that carry these pointers, so an edit here that adds a
-  # sibling path is checked at the moment it is written rather than the following Monday.
+  # Also when the exemption mapping itself changes, so an entry added on a Tuesday is
+  # checked that day rather than the following Monday. Only this file: the test reads
+  # `SIBLING_PATHS` and never opens a page, so a docs-only commit cannot move the verdict,
+  # and listing `README.md` or `docs/**` here would spend two clones and a full sync
+  # re-deriving an answer that could not have changed.
   push:
     branches: [main]
     paths:
-      - "README.md"
-      - "docs/**"
       - "tests/test_docs_claims.py"
 
 permissions:
@@ -39,16 +40,27 @@ jobs:
     steps:
       # Both under the workspace, so the sibling sits beside this repository the way the
       # test looks for it: it resolves `ROOT.parent / "kourai-khryseai"`.
+      #
+      # `persist-credentials: false` on both, matching `docs.yml`. Nothing here runs a git
+      # operation, and the steps that follow resolve and execute third-party packages, so
+      # the token has no reason to be sitting in either checkout's `.git/config`.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: pharos
+          persist-credentials: false
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ajbarea/kourai-khryseai
           path: kourai-khryseai
+          persist-credentials: false
+      # The glob is scoped to this repository. setup-uv matches it relative to the working
+      # directory, which is the workspace root here, and the workspace holds two checkouts
+      # -- so the default `**/uv.lock` would hash the neighbour's lockfile into this cache
+      # key and let its dependency bumps evict a cache nothing in pharos had changed.
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
+          cache-dependency-glob: pharos/uv.lock
       - run: uv sync --all-groups
         working-directory: pharos
 
@@ -57,8 +69,11 @@ jobs:
       # that silently produced nothing, and a green tick over "1 skipped" would leave the
       # exemption unverified in the one place built to verify it.
       #
-      # `--no-cov` because one test is not a coverage measurement and the floor would
-      # fail on it; `-rs` so a skip that does slip through is legible in the log.
+      # `--no-cov` is belt and braces, not a fix: `addopts` is `-q` alone and no
+      # `fail_under` is configured, so the floor arms only where `--cov-fail-under` is
+      # passed, which is the Makefile and `ci.yml`. Kept so that adding coverage to
+      # `addopts` later cannot fail this job over one test. `-rs` so a skip that does slip
+      # through is legible in the log.
       - name: Check the sibling still has the files this repository exempts
         working-directory: pharos
         env:
