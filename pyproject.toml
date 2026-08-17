@@ -74,6 +74,11 @@ dev = [
     "zensical",
     # Dependency vulnerability scan in CI, matching the sisters.
     "pip-audit",
+    # `tests/test_workflows.py` and the `make ci` parity check parse the workflow YAML.
+    # It was already installed, transitively through zensical, which is not the same as
+    # being available: a test that rests on someone else's dependency breaks on a bump
+    # that has nothing to do with it.
+    "pyyaml>=6.0",
 ]
 
 [build-system]
