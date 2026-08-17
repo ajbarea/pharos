@@ -53,6 +53,7 @@ from random import Random
 from pharos.analyst import Action, AnalystPolicy, Proposal
 from pharos.disclosure import KEEP_COMPARTMENTS
 from pharos.generate import GeneratorConfig, generate
+from pharos.governance import WRONG_THRESHOLD as _WRONG_THRESHOLD
 from pharos.governance import exact_wrong_majority
 from pharos.inference import agreement_with, dawid_skene
 from pharos.labels import declassify
@@ -65,8 +66,10 @@ SEED = 7
 EVENTS = 120
 FLEET = 9
 
-#: The wrong standard, matching finding 12 so the two are directly comparable.
-WRONG_THRESHOLD = 2
+#: The wrong standard, matching finding 12 so the two are directly comparable. Imported
+#: rather than restated: "matching finding 12" is the whole point of the constant, and a
+#: second `= 2` is the one way it can stop matching without anybody noticing.
+WRONG_THRESHOLD = _WRONG_THRESHOLD
 
 #: Population error rates worth pricing. 0.5 is included because it is where the two
 #: structures must agree: at a coin flip, clustering cannot change the mean.
