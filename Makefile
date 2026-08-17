@@ -161,10 +161,19 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	# existed and passed. Refusing is the same discipline every published artifact
 	# here already follows.
 	uv run python scripts/tree_fingerprint.py --write .gate-fingerprint >/dev/null
+	# Telemetry is a core dependency, so this is not an "is it installed" check. With the
+	# SDK present and no collector configured, configure() must report inactive and the
+	# run proceed unchanged: telemetry may never alter a measurement, only report one.
+	# Present in `ci.yml` and absent here until now, which is the drift this target's own
+	# promise forbids.
+	uv run python -c "from pharos import telemetry; assert telemetry.configure() is False"
 	uv run ruff format --check .
 	uv run ruff check .
 	uv run ty check
 	uv run pytest --cov=pharos --cov=scripts --cov-branch --cov-report=term-missing --cov-fail-under=92
+	# After the suite, matching `ci.yml`: a CVE in a transitive dependency must not mask a
+	# real test failure. The only step here that reaches the network.
+	uv run pip-audit
 	for seed in 1 7 11 23 101 202 303; do uv run python -m pharos.cli gate --seed $$seed --events 400; done
 	uv run python scripts/measure_analyst_review.py
 	uv run python scripts/measure_review_sweep.py
