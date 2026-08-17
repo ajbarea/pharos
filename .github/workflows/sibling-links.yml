@@ -1,0 +1,78 @@
+# Whether the paths this repository exempts as "living in a sibling" are still there.
+#
+# `tests/test_docs_claims.py` refuses to let a page point at a file that does not exist,
+# and exempts three paths that live in `kourai-khryseai` rather than here. The exemption
+# is itself checked -- by `test_a_sibling_exemption_names_a_repository_that_has_the_file`
+# -- and that check skips when the sibling is not checked out, which in the main CI job
+# is always. A run there reports "984 passed, 1 skipped", and the one is this.
+#
+# Skipping is the right call *there*: cloning a neighbour into the per-PR gate would
+# couple a required check to a repository that already depends on this one, and
+# `actions/checkout` cannot write beside a checkout made at the workspace root, so making
+# it run would mean restructuring every job in `ci.yml` for one assertion.
+#
+# So it runs here instead, on a schedule, which is the ordinary shape for cross-repository
+# validation: the failure it catches is a neighbour moving or renaming a file, which
+# happens on the neighbour's clock rather than on this repository's pull requests. Nothing
+# in a pharos PR can break it, and nothing in a pharos PR is blocked by it.
+name: Sibling links
+
+on:
+  schedule:
+    # Mondays, 07:00 UTC. Weekly rather than daily because the thing being watched is
+    # three static documentation paths, and a broken pointer that survives a weekend is
+    # not worse than one that survives a night.
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+  # Also on changes to the pages that carry these pointers, so an edit here that adds a
+  # sibling path is checked at the moment it is written rather than the following Monday.
+  push:
+    branches: [main]
+    paths:
+      - "README.md"
+      - "docs/**"
+      - "tests/test_docs_claims.py"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sibling-links-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sibling-links:
+    runs-on: ubuntu-latest
+    steps:
+      # Both under the workspace, so the sibling sits beside this repository the way the
+      # test looks for it: it resolves `ROOT.parent / "kourai-khryseai"`.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: pharos
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ajbarea/kourai-khryseai
+          path: kourai-khryseai
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          enable-cache: true
+      - run: uv sync --all-groups
+        working-directory: pharos
+
+      # `PHAROS_REQUIRE_SIBLINGS` turns the test's skip into a failure, because the
+      # sibling is checked out two steps above and the only way it can be missing here is
+      # a clone that silently produced nothing. A run reporting "1 skipped" and a green
+      # tick would leave the exemption unverified in the one place built to verify it,
+      # which is the state this file exists to end rather than reproduce.
+      #
+      # In the test rather than in a shell grep, which was the first attempt: it looked
+      # for "skipped" in pytest's output and pytest writes `SKIPPED`, so the guard could
+      # not fire. A condition worth enforcing is worth enforcing where it can be tested.
+      #
+      # `--no-cov` because one test is not a coverage measurement and the floor would
+      # fail on it; `-rs` so a skip that does slip through is legible in the log.
+      - name: Check the sibling still has the files this repository exempts
+        working-directory: pharos
+        env:
+          PHAROS_REQUIRE_SIBLINGS: "1"
+        run: uv run python -m pytest tests/test_docs_claims.py -rs --no-cov -q -k sibling_exemption

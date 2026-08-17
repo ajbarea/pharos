@@ -12,6 +12,7 @@ rest. What it does cover, it covers exhaustively, and the controls below prove t
 extraction can fail rather than merely pass.
 """
 
+import os
 import re
 from pathlib import Path
 
@@ -147,13 +148,27 @@ def test_every_repository_path_the_docs_name_exists(page):
 def test_a_sibling_exemption_names_a_repository_that_has_the_file():
     """An exemption that stopped being true is a path nobody checks in either repository.
 
-    Skipped rather than failed when the sibling is not checked out: this suite runs in CI
+    Skipped rather than failed when the sibling is not checked out: the main CI job runs
     with only this repository present, and a check that fails on a missing neighbour would
     fail for a reason that has nothing to do with the claim.
+
+    Except where the neighbour was checked out on purpose. `sibling-links.yml` clones it
+    two steps before running this, so there a skip means that clone silently produced
+    nothing, and the exemption goes unverified in the one place built to verify it.
+    `PHAROS_REQUIRE_SIBLINGS` says which situation this is.
+
+    The decision belongs here rather than in the workflow, which is the second attempt:
+    the first had the shell grep pytest's output for "skipped", and pytest writes
+    `SKIPPED`, so the guard against an unverified exemption could not fire.
     """
     for path, repo in SIBLING_PATHS.items():
         sibling = ROOT.parent / repo
         if not sibling.is_dir():
+            if os.environ.get("PHAROS_REQUIRE_SIBLINGS"):
+                pytest.fail(
+                    f"{repo} was required beside this repository and is not there, so the "
+                    "exemption was not checked. The checkout produced nothing."
+                )
             pytest.skip(f"{repo} is not checked out beside this repository")
         assert (sibling / path).exists(), (
             f"{path} is exempted as living in {repo}, and it does not exist there either"
