@@ -1,20 +1,13 @@
-# Whether the paths this repository exempts as "living in a sibling" are still there.
+# Checks the paths `tests/test_docs_claims.py` exempts as living in a sibling repository.
 #
-# `tests/test_docs_claims.py` refuses to let a page point at a file that does not exist,
-# and exempts three paths that live in `kourai-khryseai` rather than here. The exemption
-# is itself checked -- by `test_a_sibling_exemption_names_a_repository_that_has_the_file`
-# -- and that check skips when the sibling is not checked out, which in the main CI job
-# is always. A run there reports "984 passed, 1 skipped", and the one is this.
+# That test skips when the sibling is not checked out, which in the per-PR gate is always:
+# `actions/checkout` cannot write beside a checkout made at the workspace root, so running
+# it there would mean restructuring every job in `ci.yml` for one assertion, and would
+# couple a required check to a repository that already depends on this one.
 #
-# Skipping is the right call *there*: cloning a neighbour into the per-PR gate would
-# couple a required check to a repository that already depends on this one, and
-# `actions/checkout` cannot write beside a checkout made at the workspace root, so making
-# it run would mean restructuring every job in `ci.yml` for one assertion.
-#
-# So it runs here instead, on a schedule, which is the ordinary shape for cross-repository
-# validation: the failure it catches is a neighbour moving or renaming a file, which
-# happens on the neighbour's clock rather than on this repository's pull requests. Nothing
-# in a pharos PR can break it, and nothing in a pharos PR is blocked by it.
+# On a schedule instead, because the failure it catches -- a neighbour moving or renaming
+# a file -- happens on the neighbour's clock rather than on this repository's pull
+# requests. Nothing in a pharos PR can break it or waits for it.
 name: Sibling links
 
 on:
@@ -59,15 +52,10 @@ jobs:
       - run: uv sync --all-groups
         working-directory: pharos
 
-      # `PHAROS_REQUIRE_SIBLINGS` turns the test's skip into a failure, because the
-      # sibling is checked out two steps above and the only way it can be missing here is
-      # a clone that silently produced nothing. A run reporting "1 skipped" and a green
-      # tick would leave the exemption unverified in the one place built to verify it,
-      # which is the state this file exists to end rather than reproduce.
-      #
-      # In the test rather than in a shell grep, which was the first attempt: it looked
-      # for "skipped" in pytest's output and pytest writes `SKIPPED`, so the guard could
-      # not fire. A condition worth enforcing is worth enforcing where it can be tested.
+      # `PHAROS_REQUIRE_SIBLINGS` turns the test's skip into a failure: the sibling is
+      # checked out two steps above, so the only way it can be missing here is a clone
+      # that silently produced nothing, and a green tick over "1 skipped" would leave the
+      # exemption unverified in the one place built to verify it.
       #
       # `--no-cov` because one test is not a coverage measurement and the floor would
       # fail on it; `-rs` so a skip that does slip through is legible in the log.

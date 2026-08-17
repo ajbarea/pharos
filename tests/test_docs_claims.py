@@ -156,10 +156,6 @@ def test_a_sibling_exemption_names_a_repository_that_has_the_file():
     two steps before running this, so there a skip means that clone silently produced
     nothing, and the exemption goes unverified in the one place built to verify it.
     `PHAROS_REQUIRE_SIBLINGS` says which situation this is.
-
-    The decision belongs here rather than in the workflow, which is the second attempt:
-    the first had the shell grep pytest's output for "skipped", and pytest writes
-    `SKIPPED`, so the guard against an unverified exemption could not fire.
     """
     for path, repo in SIBLING_PATHS.items():
         sibling = ROOT.parent / repo
