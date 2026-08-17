@@ -51,6 +51,7 @@ from pathlib import Path
 from typing import Any
 
 from pharos.governance import ALPHA, DEPLOYABLE, REFUSED_EXIT
+from pharos.governance import PERMUTATIONS as _PERMUTATIONS
 from pharos.provenance import run_provenance
 from pharos.telemetry import get_logger, progress, record
 
@@ -68,10 +69,12 @@ DRAWS = (1, 7, 11, 23, 101, 202, 303, 404)
 #: minutes each and would confound which dimension moved a result.
 FLEET = 9
 
-#: Permutations for the channel detector. The committed count, for the reason
+#: Permutations for the channel detector. Imported rather than restated, for the reason
 #: `measure_governance_sensitivity` gives: a p-value floors at 1/(m+1), and a sweep that
-#: reduced it would test a weaker instrument than the finding it is checking.
-PERMUTATIONS = 4200
+#: reduced it would test a weaker instrument than the finding it is checking. Written as
+#: its own `= 4200` beside an import of `REFUSED_EXIT` from the same package, which is
+#: the drift in miniature: one constant taken from the source and the next copied.
+PERMUTATIONS = _PERMUTATIONS
 
 #: What this sweep varies and what it holds fixed, declared in the artifact rather than
 #: left to be read off the code.

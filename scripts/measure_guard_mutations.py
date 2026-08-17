@@ -34,6 +34,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from pharos.governance import REFUSED_EXIT as _REFUSED_EXIT
 from pharos.provenance import run_provenance
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,7 +43,16 @@ OUT = ROOT / "results" / "guard_mutations.json"
 #: The precondition failed: the tree was dirty, or the suite was already red. Distinct
 #: from a crash and from a finding, because a mutation result measured against a broken
 #: baseline is not a weak result, it is not a result.
-REFUSED_EXIT = 3
+#:
+#: Imported rather than restated, and the reason is a shared *convention* rather than a
+#: consumed contract, which is worth being exact about. `governance.sweep` matches this
+#: code to tell a corpus that cannot host an experiment from a crash, and nothing runs
+#: this script automatically, so no caller reads the code emitted here. What is shared is
+#: the meaning: across this repository, exit 3 says "refused, and that is not a failure".
+#: The refusals differ -- there it is a corpus, here it is a dirty tree or an already-red
+#: suite -- and a second literal is how one of them drifts to a different number and the
+#: convention quietly stops being one.
+REFUSED_EXIT = _REFUSED_EXIT
 
 
 @dataclass(frozen=True)

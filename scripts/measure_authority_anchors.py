@@ -47,6 +47,7 @@ from pharos.governance import (
     ladder,
     summarize_thresholds,
 )
+from pharos.governance import REPAIRED as _REPAIRED
 from pharos.inference import (
     agreement_with,
     federated_dawid_skene,
@@ -87,7 +88,10 @@ COMPOSITIONS = ladder(FLEET, ANCHOR_RUNGS)
 #: some *unanchored* label actually changed, because anchoring a task the estimator gets
 #: wrong removes it from the denominator and lifts agreement without correcting
 #: anything. Finding 21's threshold table was withdrawn over exactly that.
-REPAIRED = 0.95
+#:
+#: Imported rather than restated. The package owns this threshold and this script had
+#: its own copy of the number, which is two literals that must agree.
+REPAIRED = _REPAIRED
 
 #: Seeds for choosing which tasks the authority rules on. Distinct from the corpus seed
 #: so the anchor draw cannot correlate with corpus structure by accident.
