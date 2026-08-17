@@ -12,7 +12,9 @@ rest. What it does cover, it covers exhaustively, and the controls below prove t
 extraction can fail rather than merely pass.
 """
 
+import os
 import re
+import sys
 from pathlib import Path
 
 import pytest
@@ -144,20 +146,144 @@ def test_every_repository_path_the_docs_name_exists(page):
     assert not missing, f"{page.relative_to(ROOT)} points at paths that do not exist: {missing}"
 
 
+def siblings_are_required() -> bool:
+    """`PHAROS_REQUIRE_SIBLINGS` read as a flag rather than as a string.
+
+    `os.environ.get(name)` alone makes `0` and `false` mean on, because both are non-empty
+    strings. A documented switch that cannot be switched off the obvious way is a switch
+    nobody can trust.
+    """
+    return os.environ.get("PHAROS_REQUIRE_SIBLINGS", "").strip().lower() not in {
+        "",
+        "0",
+        "false",
+        "no",
+    }
+
+
 def test_a_sibling_exemption_names_a_repository_that_has_the_file():
     """An exemption that stopped being true is a path nobody checks in either repository.
 
-    Skipped rather than failed when the sibling is not checked out: this suite runs in CI
+    Skipped rather than failed when the sibling is not checked out: the main CI job runs
     with only this repository present, and a check that fails on a missing neighbour would
     fail for a reason that has nothing to do with the claim.
+
+    Except where the neighbour was checked out on purpose. `sibling-links.yml` clones it
+    two steps before running this, so there a skip means that clone silently produced
+    nothing, and the exemption goes unverified in the one place built to verify it.
+    `PHAROS_REQUIRE_SIBLINGS` says which situation this is.
+
+    Absent repositories are collected rather than acted on where they are found. Skipping
+    inside the loop ends the whole test at the first one, so a second sibling that is not
+    checked out would take the first sibling's paths down with it, unasserted -- the
+    silent-skip failure this exemption exists to prevent, one repository over.
     """
+    absent: list[str] = []
     for path, repo in SIBLING_PATHS.items():
         sibling = ROOT.parent / repo
         if not sibling.is_dir():
-            pytest.skip(f"{repo} is not checked out beside this repository")
+            absent.append(repo)
+            continue
         assert (sibling / path).exists(), (
             f"{path} is exempted as living in {repo}, and it does not exist there either"
         )
+
+    if not absent:
+        return
+    named = ", ".join(sorted(set(absent)))
+    if siblings_are_required():
+        pytest.fail(
+            f"{named} was required beside this repository and is not there, so the "
+            "exemption was not checked. The checkout produced nothing."
+        )
+    pytest.skip(f"{named} is not checked out beside this repository")
+
+
+@pytest.mark.parametrize(
+    ("value", "required"),
+    [(None, False), ("", False), ("0", False), ("false", False), ("1", True), ("true", True)],
+)
+def test_the_sibling_requirement_reads_its_variable_as_a_flag(monkeypatch, value, required):
+    """`0` has to mean off. It is the first thing anyone tries when turning a switch off."""
+    if value is None:
+        monkeypatch.delenv("PHAROS_REQUIRE_SIBLINGS", raising=False)
+    else:
+        monkeypatch.setenv("PHAROS_REQUIRE_SIBLINGS", value)
+    assert siblings_are_required() is required
+
+
+@pytest.mark.parametrize(
+    ("sibling_present", "required", "outcome"),
+    [(True, True, "passes"), (False, False, "skips"), (False, True, "fails")],
+)
+def test_the_sibling_guard_reports_what_its_workflow_depends_on(
+    monkeypatch, tmp_path, sibling_present, required, outcome
+):
+    """The three states `sibling-links.yml` rests on, asserted rather than described.
+
+    The scheduled workflow is the only place that sets `PHAROS_REQUIRE_SIBLINGS`, so the
+    line turning a skip into a failure never executes in a local or per-PR run. Without
+    this, a refactor that removed it -- reordering the guard below the skip, renaming the
+    variable, hoisting the directory check out of the loop -- would leave every run here
+    green while the scheduled job went back to skipping under a green tick, which is the
+    defect that workflow exists to close.
+    """
+    root = tmp_path / "pharos"
+    root.mkdir()
+    if sibling_present:
+        for path, repo in SIBLING_PATHS.items():
+            target = tmp_path / repo / path
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("", encoding="utf-8")
+    monkeypatch.setattr(sys.modules[__name__], "ROOT", root)
+    monkeypatch.setenv("PHAROS_REQUIRE_SIBLINGS", "1" if required else "0")
+
+    if outcome == "passes":
+        test_a_sibling_exemption_names_a_repository_that_has_the_file()
+        return
+
+    # Both outcomes are caught and the type asserted afterwards, rather than naming only
+    # the expected one. A `Skipped` raised inside `pytest.raises(Failed)` is not caught,
+    # so it propagates and marks *this* test skipped -- green, and reporting nothing. A
+    # guard that fails to fail would have been invisible here, which is the failure this
+    # test is about.
+    expected = pytest.fail.Exception if outcome == "fails" else pytest.skip.Exception
+    with pytest.raises((pytest.fail.Exception, pytest.skip.Exception)) as excinfo:
+        test_a_sibling_exemption_names_a_repository_that_has_the_file()
+    assert type(excinfo.value) is expected, (
+        f"expected the guard to {outcome[:-1]}, and it raised {type(excinfo.value).__name__}"
+    )
+
+
+def test_an_absent_sibling_does_not_take_another_repositorys_paths_with_it(monkeypatch, tmp_path):
+    """The skip used to end the test where it was raised, which is one repository too early.
+
+    All three exemptions name one neighbour today, so this is the shape of a second one
+    being added rather than a live defect. The check that matters is that the repository
+    which *is* checked out still gets asserted: here its exempted file is missing, so a
+    loop that stopped at the absent neighbour would report a skip and never notice.
+    """
+    root = tmp_path / "pharos"
+    root.mkdir()
+    (tmp_path / "present-repo" / "docs").mkdir(parents=True)
+    monkeypatch.setattr(sys.modules[__name__], "ROOT", root)
+    monkeypatch.setattr(
+        sys.modules[__name__],
+        "SIBLING_PATHS",
+        {"docs/kept.md": "present-repo", "docs/gone.md": "absent-repo"},
+    )
+    monkeypatch.setenv("PHAROS_REQUIRE_SIBLINGS", "1")
+
+    # Skip and fail are caught here for the same reason as above: a loop that stops at the
+    # absent neighbour raises one of them, and an uncaught `Skipped` would mark this test
+    # skipped rather than red.
+    with pytest.raises((AssertionError, pytest.fail.Exception, pytest.skip.Exception)) as excinfo:
+        test_a_sibling_exemption_names_a_repository_that_has_the_file()
+    assert type(excinfo.value) is AssertionError, (
+        "the present repository's exemption went unasserted because the absent one ended "
+        f"the loop first, raising {type(excinfo.value).__name__}"
+    )
+    assert "docs/kept.md is exempted as living in" in str(excinfo.value)
 
 
 def test_the_extractors_can_fail():

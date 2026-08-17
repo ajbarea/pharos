@@ -79,7 +79,11 @@ belong here.
 ## ci_audit
 
 - workflows: `.github/workflows/ci.yml` (lint-and-test on 3.12/3.13/3.14,
-  shortcut-gate), `.github/workflows/docs.yml` (Zensical build + Pages deploy)
+  shortcut-gate), `.github/workflows/docs.yml` (Zensical build + Pages deploy),
+  `.github/workflows/sibling-links.yml` (weekly, plus any push to
+  `tests/test_docs_claims.py`: clones `kourai-khryseai` beside this repository and runs
+  the one exemption test the per-PR gate can only skip). Not a required check, and it is
+  the only workflow whose failure arrives by notification rather than on a pull request.
 - required checks on `main`: all three `lint-and-test` legs plus `shortcut-gate`
   (which also replays the analyst grid over the committed verdicts). 3.14 was
   added late, and until 2026-08-15 it was the only leg not required — while also
