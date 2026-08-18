@@ -70,10 +70,18 @@ Every exported measurement and manifest records audit provenance metadata:
   "generated_at": "2026-07-30T19:12:04+00:00",
   "python": "3.13.1",
   "platform": "Linux-6.6.87-x86_64",
-  "model": "qwen2.5:7b-instruct",
-  "seed": 7
+  "executable": ".venv/bin/python3",
+  "seed": 7,
+  "model": "qwen2.5:7b-instruct"
 }
 ```
+
+The first seven keys are in every artifact this repository has written. The rest are
+conditional, and their absence is information: `seed` appears where a run is seeded,
+while `model`, `model_key` and `endpoint` appear only where a model was called --- so a
+measurement that claims to be model-free and carries a `model` is a measurement that is
+not what it says. Individual scripts add their own parameters beside these, such as the
+draw or fleet count a sweep ran over.
 
 !!! note "Deterministic Manifests vs. Measurement Stamps"
     Measurement result artifacts log timestamps and `git_dirty` flags. Dataset `manifest.json` files **omit timestamps** to ensure two manifests built from identical seeds yield identical hashes.
