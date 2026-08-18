@@ -166,11 +166,17 @@ indent-style = "space"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-# `slow` runs by default and is marked only so it can be deselected deliberately with
-# `-m "not slow"`. The one test carrying it re-runs every model-free measurement and
-# checks what they logged, which duplicates the `logcheck` CI step -- and earned its
-# place the first time it ran, by catching that GLAD does not converge on one fleet
-# composition whose numbers were already written up.
+# `slow` runs by default, so `make test` and a bare `pytest` still carry it: locally it is
+# the one command that checks the whole sweep, and it earned that the first time it ran, by
+# catching that GLAD does not converge on one fleet composition whose numbers were already
+# written up.
+#
+# It is deselected in `make ci` and in the CI matrix, which is what the marker exists for.
+# The test shells out to `scripts/logcheck.py`, and both of those already run that command
+# as its own step -- so keeping it here ran the entire measurement sweep a second time in
+# `make ci` and a further three times across the interpreter matrix, to assert a strict
+# subset of what the step asserts. It buys no coverage either, since the measurements run
+# as subprocesses: the total is the same to the hundredth with it and without it.
 markers = ["slow: re-runs the measurements; minutes, not seconds"]
 
 [tool.ty.src]
