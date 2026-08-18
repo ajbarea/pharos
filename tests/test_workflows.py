@@ -13,7 +13,12 @@ import pytest
 import yaml
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
+#: Both extensions, because GitHub accepts both and a guard that reads only one is a
+#: guard a new workflow can be added past. A `.yaml` file here would otherwise be checked
+#: by nothing while `test_there_are_workflows_to_check` stayed green on the others.
+WORKFLOWS = sorted(
+    p for ext in ("*.yml", "*.yaml") for p in (ROOT / ".github" / "workflows").glob(ext)
+)
 
 #: Checkouts that must keep their credentials, each with the reason. A job that pushes,
 #: tags, or fetches another ref during the run needs the token in `.git/config`; nothing
@@ -66,11 +71,19 @@ def test_every_action_is_pinned_to_a_commit(workflow):
     Already true of every action here. Asserted so that it stays true of the next one,
     since a `@v4` reads as perfectly ordinary in review.
     """
-    floating = [
-        step["uses"]
-        for _, step in _steps(workflow)
-        if "uses" in step and "@" in step["uses"] and len(step["uses"].split("@")[1]) != 40
-    ]
+    floating = []
+    for _, step in _steps(workflow):
+        uses = step.get("uses")
+        if not uses or uses.startswith("./"):
+            # A path into this repository is versioned by the commit being run. There is
+            # nothing to pin it to.
+            continue
+        _, _, ref = uses.partition("@")
+        # No `@` at all is the case an earlier version of this test waved through: a
+        # `docker://image:tag` step is a moving target with no ref to check, so an
+        # unpinnable `uses` is unpinned rather than exempt.
+        if len(ref) != 40:
+            floating.append(uses)
     assert not floating, (
         f"{workflow.name} uses actions pinned to something other than a full commit sha: {floating}"
     )
@@ -85,6 +98,9 @@ def test_every_workflow_states_its_permissions(workflow):
     """
     doc = yaml.safe_load(workflow.read_text(encoding="utf-8"))
     jobs = doc.get("jobs") or {}
+    # `all()` over no jobs is True, so a workflow that parses to nothing would satisfy the
+    # assertion below without stating anything.
+    assert jobs, f"{workflow.name} declares no jobs, so it was checked for nothing"
     assert "permissions" in doc or all("permissions" in job for job in jobs.values()), (
         f"{workflow.name} states no `permissions:`, at the top level or on every job, so "
         "its token scope is whatever the repository default happens to be"

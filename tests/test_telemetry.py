@@ -404,3 +404,48 @@ def test_the_summary_orders_errors_first_then_by_count():
     finally:
         t._TALLY.counts.clear()
         t._TALLY.counts.update(saved)
+
+
+def test_usable_cpus_reports_the_allocation_not_the_machine(monkeypatch):
+    """The number a pool may be sized from, which is not what the hardware has.
+
+    `cluster/README.md` records what the difference costs: a 96-core node with eight CPUs
+    granted, numerical libraries sizing pools from 96, and a job that sat on one byte of
+    output for twenty minutes. Anything choosing a worker count has to ask this, not
+    `os.cpu_count`, so all three of its answers are pinned here.
+    """
+    monkeypatch.setattr(telemetry.os, "cpu_count", lambda: 96)
+
+    # 3.13+: the cross-platform answer, which respects an affinity mask.
+    monkeypatch.setattr(telemetry.os, "process_cpu_count", lambda: 8, raising=False)
+    assert telemetry.usable_cpus() == 8
+
+    # 3.12 on Linux: no `process_cpu_count`, so fall back to the affinity mask itself.
+    monkeypatch.delattr(telemetry.os, "process_cpu_count", raising=False)
+    monkeypatch.setattr(telemetry.os, "sched_getaffinity", lambda _pid: {0, 1, 2, 3}, raising=False)
+    assert telemetry.usable_cpus() == 4
+
+    # Neither available: the machine count is the last resort, not the first answer.
+    monkeypatch.delattr(telemetry.os, "sched_getaffinity", raising=False)
+    assert telemetry.usable_cpus() == 96
+
+
+def test_execution_context_flags_the_mismatch_it_exists_to_report(monkeypatch):
+    """`oversubscription_risk` is the whole point: it fires when the two disagree."""
+    monkeypatch.setattr(telemetry.os, "cpu_count", lambda: 96)
+    monkeypatch.setattr(telemetry.os, "process_cpu_count", lambda: 8, raising=False)
+    for name in (
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+    context = telemetry.execution_context()
+    assert (context["machine_cpus"], context["usable_cpus"]) == (96, 8)
+    assert context["oversubscription_risk"] is True
+
+    # Capping the pools is what reconciles them, so the risk clears.
+    monkeypatch.setenv("OMP_NUM_THREADS", "8")
+    assert telemetry.execution_context()["oversubscription_risk"] is False
