@@ -108,6 +108,11 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           disable_search: true
+          # The uploader is handed an explicit file and told not to search, so its
+          # plugins have nothing left to do -- they exist to find or generate a report.
+          # Left on, they run the gcov, coverage.py and xcode collectors against a tree
+          # that has none, and print three warnings per run saying so.
+          plugins: noop
       - name: Upload test results to Codecov
         if: ${{ !cancelled() && matrix.python-version == '3.14' }}
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
@@ -117,6 +122,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           disable_search: true
+          plugins: noop
       # Dependency vulnerability scan, matching the sisters. Runs last so a CVE in a
       # transitive dependency does not mask a real test failure.
       - name: Audit dependencies
