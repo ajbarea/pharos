@@ -96,12 +96,15 @@ belong here.
 - The shortcut-gate job is blocking and is a release condition, not a formality: a
   corpus whose surface baseline is unmeasured, insignificant against its own null,
   or above the ceiling cannot support a triage claim.
-- expected noise: one `rdflib` DeprecationWarning via `mlcroissant`, upstream, once per
-  matrix leg. `pip-audit` is currently clean.
+- expected noise: one `rdflib` DeprecationWarning via `mlcroissant`, upstream, raised
+  three times per matrix leg -- once per test in `test_croissant_validation.py`, which is
+  what `3 warnings` in the pytest summary is. `pip-audit` is currently clean.
 - the coverage denominator is interpreter-dependent, so one floor is three bars. Under
   3.14 a bare annotation is not an executable statement (deferred annotations), so
-  dataclass fields leave the denominator: the same commit measures 92.66% on 3.12 and
-  3.13 and 92.26% on 3.14. The strictest leg is the one not required on `main`, and the
+  dataclass fields leave the denominator. The gap is the durable part, four tenths of a
+  point in both runs measured so far; the totals move with every commit, so read them from
+  the run rather than from here (on 2026-08-18, 92.74% on 3.12 and 3.13 against 92.34% on
+  3.14). The strictest leg is the one not required on `main`, and the
   leg that uploads to Codecov is the most generous. See the comment beside the pytest
   step in `ci.yml`.
 
