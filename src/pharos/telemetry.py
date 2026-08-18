@@ -525,8 +525,9 @@ def usable_cpus() -> int:
 def execution_context() -> dict[str, Any]:
     """What a slow run needs explained: how much parallelism is real.
 
-    `os.cpu_count()` reports the machine's CPUs; `sched_getaffinity` reports the
-    ones this process may actually use. Under a Slurm cgroup those differ, and
+    `os.cpu_count()` reports the machine's CPUs; `usable_cpus` reports the ones this
+    process may actually use, which is `os.process_cpu_count` where it exists and the
+    affinity mask before that. Under a Slurm cgroup those differ, and
     numerical libraries size their thread pools from the former unless told
     otherwise. The result is a process spawning many times more threads than it has
     cores to run them on, which does not error, does not warn, and simply takes
@@ -536,8 +537,11 @@ def execution_context() -> dict[str, Any]:
     would reconcile them, and `oversubscription_risk` is set when they disagree and
     nothing has capped the pools.
     """
-    machine_cpus = os.cpu_count() or 0
     usable = usable_cpus()
+    # `os.cpu_count()` returning None used to make this 0 while `usable` floors at 1, so
+    # the record claimed a machine smaller than the process running on it. Unknown is
+    # reported as the count we do know rather than as a smaller number we do not.
+    machine_cpus = os.cpu_count() or usable
 
     thread_vars = {
         name: os.environ.get(name)

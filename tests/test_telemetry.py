@@ -462,3 +462,18 @@ def test_execution_context_flags_the_mismatch_it_exists_to_report(monkeypatch):
     # Capping the pools is what reconciles them, so the risk clears.
     monkeypatch.setenv("OMP_NUM_THREADS", "8")
     assert telemetry.execution_context()["oversubscription_risk"] is False
+
+
+def test_execution_context_never_reports_a_machine_smaller_than_the_process(monkeypatch):
+    """`os.cpu_count()` returning None must not print a 96-core node as having fewer than one.
+
+    `usable_cpus` floors at 1 and `machine_cpus` used to floor at 0, so the one record
+    written to explain a slow run described a machine smaller than the process on it.
+    """
+    monkeypatch.setattr(telemetry.os, "cpu_count", lambda: None)
+    monkeypatch.setattr(telemetry.os, "process_cpu_count", lambda: 4, raising=False)
+
+    context = telemetry.execution_context()
+    assert context["machine_cpus"] >= context["usable_cpus"]
+    assert (context["machine_cpus"], context["usable_cpus"]) == (4, 4)
+    assert context["oversubscription_risk"] is False
