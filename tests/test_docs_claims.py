@@ -286,6 +286,89 @@ def test_an_absent_sibling_does_not_take_another_repositorys_paths_with_it(monke
     assert "docs/kept.md is exempted as living in" in str(excinfo.value)
 
 
+#: Enough of the number words to name a finding count, which is what this repository
+#: writes them for. Digits are accepted too; the README happens to spell it out.
+_UNITS = {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
+}
+_TENS = {
+    "twenty": 20,
+    "thirty": 30,
+    "forty": 40,
+    "fifty": 50,
+    "sixty": 60,
+    "seventy": 70,
+    "eighty": 80,
+    "ninety": 90,
+}
+
+
+def spelled_number(word: str) -> int | None:
+    """`thirty-one` as 31. None when the word is not a number this understands."""
+    word = word.strip().lower()
+    if word.isdigit():
+        return int(word)
+    if word in _UNITS:
+        return _UNITS[word]
+    if word in _TENS:
+        return _TENS[word]
+    tens, _, unit = word.partition("-")
+    if tens in _TENS and unit in _UNITS:
+        return _TENS[tens] + _UNITS[unit]
+    return None
+
+
+def test_the_readme_counts_the_findings_the_findings_page_has():
+    """A count in prose is a second copy of something the page already knows.
+
+    The rest of this repository refuses to write one down twice, and the generated blocks
+    exist so a table cannot disagree with its artifact. This one number sits in `README.md`
+    with nothing recounting it, and it moves every time a finding lands -- which is exactly
+    when nobody is looking at the sentence above the link.
+    """
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    claimed = re.search(r"^([A-Za-z-]+|\d+) findings so far", readme, re.MULTILINE)
+    assert claimed, (
+        "README no longer says how many findings there are in the form this checks. "
+        "Update the pattern here, or drop the count and this test with it."
+    )
+    count = spelled_number(claimed.group(1))
+    assert count is not None, f"README says {claimed.group(1)!r} findings, which is not a number"
+
+    numbered = [
+        int(n)
+        for n in re.findall(
+            r"^## (\d+)\. ", (ROOT / "docs" / "findings.md").read_text("utf-8"), re.MULTILINE
+        )
+    ]
+    assert count == len(numbered), (
+        f"README says {count} findings and findings.md has {len(numbered)}. The count is "
+        "written in two places, so one of them is now wrong."
+    )
+    # A removed finding would leave the count right and the numbering holed.
+    assert numbered == list(range(1, len(numbered) + 1)), (
+        f"findings.md numbers are not 1..{len(numbered)}: {numbered}"
+    )
+
+
 def test_the_extractors_can_fail():
     """The control. Both extractors are regular expressions over prose, and a regular
     expression that matches nothing is indistinguishable from one that found nothing.
