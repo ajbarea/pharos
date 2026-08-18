@@ -26,6 +26,7 @@ import os
 import subprocess
 import sys
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -236,8 +237,20 @@ def main() -> int:
     #: re-review that security tooling schedules on a timer, run every time instead.
     used_scope: dict[str, set[str]] = {}
 
+    # Swept concurrently, reported in `SCRIPTS` order. Every one of these is a separate
+    # process that writes nothing -- `--out` has no default, so the artifact writes are
+    # all behind it -- and each seeds its own generator, so what a run produces does not
+    # depend on what else is running. Concurrency here buys wall clock on a blocking
+    # gate and changes no number. Thread environment is deliberately left alone: pinning
+    # BLAS threads would change reduction order, and this is not the place to discover
+    # what that does to a threshold.
+    workers = min(len(SCRIPTS), os.cpu_count() or 1)
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = pool.map(lambda s: run(s, debug=args.debug), SCRIPTS)
+        swept = dict(zip(SCRIPTS, results, strict=True))
+
     for script in SCRIPTS:
-        records, code = run(script, debug=args.debug)
+        records, code = swept[script]
         if code != 0:
             failures.append(f"{script} exited {code}")
         levels: Counter[str] = Counter(str(r.get("level", "?")) for r in records)
