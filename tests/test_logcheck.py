@@ -271,7 +271,15 @@ def _normalize(command: str) -> str:
     written across three lines separates with newlines where a one-liner needs the
     semicolon, which is a difference in typography rather than in what runs.
     """
-    return " ".join(command.replace("$$", "$").replace('"', "").replace(";", " ").split())
+    collapsed = " ".join(command.replace("$$", "$").replace('"', "").replace(";", " ").split())
+    # A trailing discard of stdout is volume, not behaviour: `make ci` silences the tree
+    # stamp because it prints a hash nobody reads at that point, and the workflow does not.
+    # Only this exact suffix, so a redirect that sends output somewhere real still counts as
+    # a difference between the two.
+    for suffix in (" >/dev/null 2>&1", " >/dev/null"):
+        if collapsed.endswith(suffix):
+            return collapsed[: -len(suffix)]
+    return collapsed
 
 
 def _workflow_runs() -> list[str]:
@@ -283,14 +291,22 @@ def _workflow_runs() -> list[str]:
     `pip-audit` were all invisible to it. Two of those were missing from `make ci` and
     the check that exists to say so could not see them.
     """
+    return [command for _, commands in _workflow_runs_by_job() for command in commands]
+
+
+def _workflow_runs_by_job() -> list[tuple[str, list[str]]]:
+    """`(job name, its run commands in order)`.
+
+    Grouped rather than flattened, because the ordering question is only answerable per
+    job: the workflow splits across `lint-and-test` and `shortcut-gate`, which run in
+    parallel and have no order relative to each other, while `make ci` is one sequence.
+    """
     import yaml
 
     doc = yaml.safe_load((ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8"))
     return [
-        _normalize(step["run"])
-        for job in doc["jobs"].values()
-        for step in job.get("steps", [])
-        if "run" in step
+        (name, [_normalize(step["run"]) for step in job.get("steps", []) if "run" in step])
+        for name, job in doc["jobs"].items()
     ]
 
 
@@ -338,6 +354,11 @@ WORKFLOW_ONLY = {
 UPLOAD_ONLY_FLAGS = {"--cov-report=xml", "--junitxml=junit.xml", "-o", "junit_family=legacy"}
 
 
+def _strip_upload_flags(command: str) -> str:
+    """A command without the flags that exist only to feed the Codecov upload steps."""
+    return " ".join(token for token in command.split() if token not in UPLOAD_ONLY_FLAGS)
+
+
 def test_make_ci_runs_the_workflows_tool_steps_too():
     """The comparison above reads `scripts/`, and the drift was in the steps that do not.
 
@@ -346,14 +367,13 @@ def test_make_ci_runs_the_workflows_tool_steps_too():
     measurement comparison could not see them, and the target's promise to be "exactly as
     the workflow does" held only for the half of the workflow that happened to be checked.
     """
-    local = {_normalize(c) for c in _make_ci_recipe()}
-    local = {" ".join(t for t in c.split() if t not in UPLOAD_ONLY_FLAGS) for c in local}
+    local = {_strip_upload_flags(_normalize(c)) for c in _make_ci_recipe()}
 
     missing = []
     for command in _workflow_runs():
         if _measurements([command]) or command in WORKFLOW_ONLY:
             continue
-        stripped = " ".join(t for t in command.split() if t not in UPLOAD_ONLY_FLAGS)
+        stripped = _strip_upload_flags(command)
         if stripped not in local:
             missing.append(stripped)
 
@@ -361,6 +381,78 @@ def test_make_ci_runs_the_workflows_tool_steps_too():
         "`ci.yml` runs commands `make ci` does not, so the local gate is a subset of the "
         f"remote one and passes meaning less than it claims: {missing}. Add them to the "
         "`ci` target, or name the reason in WORKFLOW_ONLY."
+    )
+
+
+#: Commands whose position in `make ci` deliberately differs from the workflow's, with the
+#: reason. Order is asserted below, so a difference that is intended has to say so here.
+ORDER_EXEMPT = {
+    "uv run python scripts/tree_fingerprint.py --write .gate-fingerprint": (
+        "the workflow stamps after the gate seeds, inside `shortcut-gate`; `make ci` stamps "
+        "before lint and the suite. In CI the suite runs in a different job and cannot be "
+        "covered by this stamp at all, so the local window is deliberately the wider of the "
+        "two. Matching the workflow here would mean covering less."
+    ),
+}
+
+
+def _first_out_of_order(wanted: list[str], actual: list[str]) -> str | None:
+    """The first element of `wanted` that `actual` does not contain in that relative order.
+
+    A subsequence test rather than an equality one: `make ci` legitimately holds commands
+    between the workflow's, because the workflow splits the same sequence over two jobs and
+    each job carries setup that the local target does not repeat.
+    """
+    remaining = iter(actual)
+    for want in wanted:
+        if not any(have == want for have in remaining):
+            return want
+    return None
+
+
+def test_make_ci_runs_them_in_the_workflows_order():
+    """Membership is not enough: several of these steps are only correct where they sit.
+
+    `pip-audit` runs after the suite so a CVE in a transitive dependency cannot mask a real
+    test failure. `tree_fingerprint --verify` is last so it covers every step above it. A
+    set comparison calls all of those arrangements equal, and the check above was a set
+    comparison, so a step could have moved anywhere without failing anything.
+    """
+    recipe = [_strip_upload_flags(_normalize(c)) for c in _make_ci_recipe()]
+
+    for job, commands in _workflow_runs_by_job():
+        wanted = [
+            _strip_upload_flags(c)
+            for c in commands
+            if c not in WORKFLOW_ONLY and c not in ORDER_EXEMPT
+        ]
+        stray = _first_out_of_order(wanted, recipe)
+        assert stray is None, (
+            f"`make ci` does not run `{stray}` in the order `{job}` does. The workflow's "
+            "steps have to appear in the target in the same relative order, since several "
+            "of them are only correct where they sit. Reorder the `ci` target, or name the "
+            "command in ORDER_EXEMPT with the reason its position differs."
+        )
+
+
+def test_make_ci_runs_nothing_the_workflow_does_not():
+    """The other direction. A local gate that is a superset passes what CI would fail.
+
+    The pair of checks above only ever asked whether the workflow's commands reached the
+    target. A command added to `make ci` alone would sail through both, and the developer
+    running it would be gating on something CI never checks -- which reads as a stricter
+    local gate right up until it is the reason a green pull request breaks `main`.
+    """
+    remote = {_strip_upload_flags(c) for c in _workflow_runs()}
+    local_only = [
+        c
+        for c in (_strip_upload_flags(_normalize(c)) for c in _make_ci_recipe())
+        if c not in remote and not c.startswith("#")
+    ]
+    assert not local_only, (
+        f"`make ci` runs commands `ci.yml` does not: {local_only}. Either the workflow is "
+        "missing a gate the local target has, or the target has grown something the gate "
+        "never verifies."
     )
 
 
