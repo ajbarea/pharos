@@ -369,6 +369,39 @@ def test_the_readme_counts_the_findings_the_findings_page_has():
     )
 
 
+#: Provenance keys a run adds only when they apply, and what their absence says. Anything
+#: outside this set and `run_provenance`'s own keys is undocumented in `releasing.md`.
+CONDITIONAL_PROVENANCE = {"seed", "model", "model_key", "endpoint"}
+
+
+def test_the_documented_provenance_block_matches_what_a_run_writes():
+    """`releasing.md` prints a provenance object. It printed one that could not occur.
+
+    The block omitted `executable`, which `run_provenance` has put in all 74 committed
+    artifacts, and showed `model`, which only appears where a model was actually called.
+    A reader writing a consumer against that block would have missed a field that is
+    always there and expected one that is usually not.
+    """
+    import json as _json
+
+    from pharos.provenance import run_provenance
+
+    text = (ROOT / "docs" / "releasing.md").read_text(encoding="utf-8")
+    fence = re.search(r"```json\n(\{.*?\})\n```", text, re.DOTALL)
+    assert fence, "releasing.md no longer shows a JSON provenance block in the form this checks"
+    documented = set(_json.loads(fence.group(1)))
+
+    always = set(run_provenance())
+    assert always <= documented, (
+        f"`run_provenance` writes {sorted(always - documented)} and `releasing.md` does not "
+        "show it. A key present in every artifact belongs in the block a reader copies."
+    )
+    assert documented <= always | CONDITIONAL_PROVENANCE, (
+        f"`releasing.md` shows {sorted(documented - always - CONDITIONAL_PROVENANCE)}, which "
+        "no run writes unconditionally and which nothing here documents as conditional."
+    )
+
+
 def test_the_extractors_can_fail():
     """The control. Both extractors are regular expressions over prose, and a regular
     expression that matches nothing is indistinguishable from one that found nothing.
