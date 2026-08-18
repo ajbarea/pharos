@@ -494,15 +494,28 @@ def usable_cpus() -> int:
 
     `os.process_cpu_count` is the answer where it exists (3.13+) and is cross-platform;
     `sched_getaffinity` is the Linux answer before that. Both respect an affinity mask, so
-    both report what a Slurm allocation or a container actually granted. `os.cpu_count()`
-    is the last resort because it reports the hardware and nothing else.
+    both report what Slurm's cpuset actually granted. `os.cpu_count()` is the last resort
+    because it reports the hardware and nothing else.
+
+    An affinity mask is not the only way a CPU budget is expressed: a cgroup CPU *quota*
+    (`cpu.max`, what `docker --cpus` and a Kubernetes CPU limit set) throttles time slices
+    without narrowing the mask, so every answer here overcounts under one. Reading the quota
+    is deliberately not done, because nothing in this repository runs under one -- the
+    cluster path is Slurm, which constrains cores. Add it when that stops being true; do not
+    assume this number already covers it. cpython#80235 is still open on the same question.
 
     Sizing a pool from the machine count is what `execution_context` exists to warn about,
     so nothing here should compute it a second way.
     """
     counter = getattr(os, "process_cpu_count", None)
     if counter is not None:
-        return counter() or 1
+        count = counter()
+        # Checked rather than declared: `getattr` hands back `Any`, and a `count: int`
+        # annotation would assert the type to the checker without anyone verifying it.
+        # `process_cpu_count` is also documented to return None when it cannot tell, and
+        # the affinity mask below is a better answer to that than 1 is.
+        if isinstance(count, int) and count > 0:
+            return count
     try:
         return len(os.sched_getaffinity(0)) or 1
     except (AttributeError, OSError):  # not available on every platform

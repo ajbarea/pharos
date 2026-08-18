@@ -430,6 +430,19 @@ def test_usable_cpus_reports_the_allocation_not_the_machine(monkeypatch):
     assert telemetry.usable_cpus() == 96
 
 
+def test_usable_cpus_prefers_the_mask_when_the_count_is_undeterminable(monkeypatch):
+    """`process_cpu_count` returning None must not collapse the answer to 1.
+
+    It is documented to return None when it cannot tell. Treating that as "one CPU" would
+    serialize a job that has eight, which is the same class of wrong answer as claiming 96
+    -- just in the direction that looks safe.
+    """
+    monkeypatch.setattr(telemetry.os, "cpu_count", lambda: 96)
+    monkeypatch.setattr(telemetry.os, "process_cpu_count", lambda: None, raising=False)
+    monkeypatch.setattr(telemetry.os, "sched_getaffinity", lambda _pid: {0, 1, 2, 3}, raising=False)
+    assert telemetry.usable_cpus() == 4
+
+
 def test_execution_context_flags_the_mismatch_it_exists_to_report(monkeypatch):
     """`oversubscription_risk` is the whole point: it fires when the two disagree."""
     monkeypatch.setattr(telemetry.os, "cpu_count", lambda: 96)
