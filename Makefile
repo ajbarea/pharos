@@ -170,7 +170,7 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run ruff format --check .
 	uv run ruff check .
 	uv run ty check
-	uv run pytest --cov=pharos --cov=scripts --cov-branch --cov-report=term-missing --cov-fail-under=92
+	uv run pytest -m "not slow" --cov=pharos --cov=scripts --cov-branch --cov-report=term-missing --cov-fail-under=92
 	# After the suite, matching `ci.yml`: a CVE in a transitive dependency must not mask a
 	# real test failure. The only step here that reaches the network.
 	uv run pip-audit

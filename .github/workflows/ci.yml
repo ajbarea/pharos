@@ -84,8 +84,16 @@ jobs:
       # verdict here, because nothing in src/ or scripts/ branches on interpreter
       # version and so no leg can cover a line another cannot reach. It would only
       # start to matter if version-conditional code appeared.
+      # `-m "not slow"`: the one slow test shells out to `scripts/logcheck.py`, which the
+      # blocking `shortcut-gate` job runs as its own step. Running it here too put the
+      # whole measurement sweep on every interpreter, three times per run, for an
+      # assertion that is a strict subset of what that step already makes -- logcheck
+      # exits non-zero on a failed script, an unexpected warning, an expected warning
+      # that stopped firing, and a stale scoped tolerance, which is one more condition
+      # than the test checks. It contributes no coverage either: the measurements run as
+      # subprocesses, so the total is 92.34% with or without it.
       - run: >
-          uv run pytest --cov=pharos --cov=scripts --cov-branch
+          uv run pytest -m "not slow" --cov=pharos --cov=scripts --cov-branch
           --cov-report=term-missing --cov-report=xml --cov-fail-under=92
           --junitxml=junit.xml -o junit_family=legacy
       # Only one matrix leg uploads. Three reports would be merged into the same commit
