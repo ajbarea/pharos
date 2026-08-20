@@ -53,16 +53,16 @@ croissant = [
 # and OpenTelemetry; the corpus and the gate never need a web server.
 ui = [
     "fastapi>=0.115",
-    "uvicorn>=0.52.1",
+    "uvicorn>=0.52.3",
     # FastAPI TestClient backend. starlette deprecates plain httpx in favour of httpx2.
     "httpx2>=2.10.0",
 ]
 dev = [
     "pytest>=9.0",
     "pytest-cov>=6.0",
-    "ruff>=0.16.2",
-    "ty>=0.0.70,<0.1",
-    "hypothesis>=6.165.3",
+    "ruff>=0.16.3",
+    "ty>=0.0.72,<0.1",
+    "hypothesis>=6.165.10",
     # Present in dev so the optional telemetry path is genuinely exercised by the
     # suite rather than pragma-excluded from it.
     "opentelemetry-api>=1.30",
