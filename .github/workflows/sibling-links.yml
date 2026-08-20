@@ -57,7 +57,7 @@ jobs:
       # directory, which is the workspace root here, and the workspace holds two checkouts
       # -- so the default `**/uv.lock` would hash the neighbour's lockfile into this cache
       # key and let its dependency bumps evict a cache nothing in pharos had changed.
-      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
           cache-dependency-glob: pharos/uv.lock
