@@ -29,6 +29,8 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+from pharos.telemetry import usable_cpus
+
 ROOT = Path(__file__).resolve().parents[1]
 
 #: Measurements that run anywhere: no model server, no GPU, no network.
@@ -244,7 +246,14 @@ def main() -> int:
     # gate and changes no number. Thread environment is deliberately left alone: pinning
     # BLAS threads would change reduction order, and this is not the place to discover
     # what that does to a threshold.
-    workers = min(len(SCRIPTS), os.cpu_count() or 1)
+    #
+    # Sized from what this process may use, not from what the machine has. Those differ
+    # under a Slurm allocation or a container, and `cluster/README.md` records what the
+    # difference cost once: a 96-core node with eight CPUs granted, numerical libraries
+    # sizing pools from 96, and a job that sat on one byte of output for twenty minutes.
+    # `usable_cpus` is the same function `execution_context` reports and warns from, so
+    # the sweep cannot disagree with the telemetry about how much parallelism is real.
+    workers = min(len(SCRIPTS), usable_cpus())
     with ThreadPoolExecutor(max_workers=workers) as pool:
         results = pool.map(lambda s: run(s, debug=args.debug), SCRIPTS)
         swept = dict(zip(SCRIPTS, results, strict=True))
