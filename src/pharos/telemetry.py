@@ -489,11 +489,45 @@ def progress(event: str, **attributes: object) -> None:
     get_logger().info(event, extra={"event": event, **{str(k): v for k, v in attributes.items()}})
 
 
+def usable_cpus() -> int:
+    """CPUs this process may actually use, which is not how many the machine has.
+
+    `os.process_cpu_count` is the answer where it exists (3.13+) and is cross-platform;
+    `sched_getaffinity` is the Linux answer before that. Both respect an affinity mask, so
+    both report what Slurm's cpuset actually granted. `os.cpu_count()` is the last resort
+    because it reports the hardware and nothing else.
+
+    An affinity mask is not the only way a CPU budget is expressed: a cgroup CPU *quota*
+    (`cpu.max`, what `docker --cpus` and a Kubernetes CPU limit set) throttles time slices
+    without narrowing the mask, so every answer here overcounts under one. Reading the quota
+    is deliberately not done, because nothing in this repository runs under one -- the
+    cluster path is Slurm, which constrains cores. Add it when that stops being true; do not
+    assume this number already covers it. cpython#80235 is still open on the same question.
+
+    Sizing a pool from the machine count is what `execution_context` exists to warn about,
+    so nothing here should compute it a second way.
+    """
+    counter = getattr(os, "process_cpu_count", None)
+    if counter is not None:
+        count = counter()
+        # Checked rather than declared: `getattr` hands back `Any`, and a `count: int`
+        # annotation would assert the type to the checker without anyone verifying it.
+        # `process_cpu_count` is also documented to return None when it cannot tell, and
+        # the affinity mask below is a better answer to that than 1 is.
+        if isinstance(count, int) and count > 0:
+            return count
+    try:
+        return len(os.sched_getaffinity(0)) or 1
+    except (AttributeError, OSError):  # not available on every platform
+        return os.cpu_count() or 1
+
+
 def execution_context() -> dict[str, Any]:
     """What a slow run needs explained: how much parallelism is real.
 
-    `os.cpu_count()` reports the machine's CPUs; `sched_getaffinity` reports the
-    ones this process may actually use. Under a Slurm cgroup those differ, and
+    `os.cpu_count()` reports the machine's CPUs; `usable_cpus` reports the ones this
+    process may actually use, which is `os.process_cpu_count` where it exists and the
+    affinity mask before that. Under a Slurm cgroup those differ, and
     numerical libraries size their thread pools from the former unless told
     otherwise. The result is a process spawning many times more threads than it has
     cores to run them on, which does not error, does not warn, and simply takes
@@ -503,11 +537,11 @@ def execution_context() -> dict[str, Any]:
     would reconcile them, and `oversubscription_risk` is set when they disagree and
     nothing has capped the pools.
     """
-    machine_cpus = os.cpu_count() or 0
-    try:
-        usable_cpus = len(os.sched_getaffinity(0))
-    except (AttributeError, OSError):  # not available on every platform
-        usable_cpus = machine_cpus
+    usable = usable_cpus()
+    # `os.cpu_count()` returning None used to make this 0 while `usable` floors at 1, so
+    # the record claimed a machine smaller than the process running on it. Unknown is
+    # reported as the count we do know rather than as a smaller number we do not.
+    machine_cpus = os.cpu_count() or usable
 
     thread_vars = {
         name: os.environ.get(name)
@@ -521,11 +555,11 @@ def execution_context() -> dict[str, Any]:
     capped = any(value for value in thread_vars.values())
     return {
         "machine_cpus": machine_cpus,
-        "usable_cpus": usable_cpus,
+        "usable_cpus": usable,
         "thread_limits": thread_vars,
         "slurm_job_id": os.environ.get("SLURM_JOB_ID"),
         "slurm_cpus_per_task": os.environ.get("SLURM_CPUS_PER_TASK"),
-        "oversubscription_risk": bool(machine_cpus > usable_cpus and not capped),
+        "oversubscription_risk": bool(machine_cpus > usable and not capped),
     }
 
 

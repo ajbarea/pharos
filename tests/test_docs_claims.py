@@ -270,7 +270,10 @@ def test_an_absent_sibling_does_not_take_another_repositorys_paths_with_it(monke
     monkeypatch.setattr(
         sys.modules[__name__],
         "SIBLING_PATHS",
-        {"docs/kept.md": "present-repo", "docs/gone.md": "absent-repo"},
+        # Absent first. With the present repository first, the assertion on its missing
+        # file fires on iteration one and the absent one is never reached -- so the test
+        # passed identically with and without the in-loop skip it exists to forbid.
+        {"docs/gone.md": "absent-repo", "docs/kept.md": "present-repo"},
     )
     monkeypatch.setenv("PHAROS_REQUIRE_SIBLINGS", "1")
 
