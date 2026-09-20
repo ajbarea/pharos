@@ -19,12 +19,17 @@ _COMMIT_SHA = re.compile(r"[0-9a-f]{40}")
 _IMAGE_DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+
+
 #: Both extensions, because GitHub accepts both and a guard that reads only one is a
 #: guard a new workflow can be added past. A `.yaml` file here would otherwise be checked
 #: by nothing while `test_there_are_workflows_to_check` stayed green on the others.
-WORKFLOWS = sorted(
-    p for ext in ("*.yml", "*.yaml") for p in (ROOT / ".github" / "workflows").glob(ext)
-)
+def _workflow_files(directory):
+    """Every workflow in a directory, under either spelling of the YAML extension."""
+    return sorted(p for ext in ("*.yml", "*.yaml") for p in directory.glob(ext))
+
+
+WORKFLOWS = _workflow_files(ROOT / ".github" / "workflows")
 
 #: Checkouts that must keep their credentials, each with the reason. A job that pushes,
 #: tags, or fetches another ref during the run needs the token in `.git/config`; nothing
@@ -187,3 +192,27 @@ def test_every_workflow_states_its_permissions(workflow):
         f"{workflow.name} states no `permissions:`, at the top level or on every job, so "
         "its token scope is whatever the repository default happens to be"
     )
+
+
+def test_the_collection_sees_both_spellings_of_the_extension(tmp_path):
+    """`.yaml` is as valid as `.yml`, and a guard that globs one checks the other for nothing.
+
+    The collection is what every parametrized guard below draws from, so narrowing it does
+    not fail anything -- it silently shrinks what is examined. This is the only thing that
+    goes red if it narrows again.
+    """
+    (tmp_path / "a.yml").write_text("", encoding="utf-8")
+    (tmp_path / "b.yaml").write_text("", encoding="utf-8")
+    assert [p.name for p in _workflow_files(tmp_path)] == ["a.yml", "b.yaml"]
+
+
+def test_a_workflow_declaring_no_jobs_is_not_approved_by_default(tmp_path):
+    """`all()` over no jobs is True, so an empty workflow would satisfy the permissions guard.
+
+    A workflow that parses to nothing states no `permissions:` either, so without the
+    emptiness check it passes by vacuity rather than by compliance.
+    """
+    workflow = tmp_path / "empty.yml"
+    workflow.write_text("name: empty\non: push\njobs: {}\n", encoding="utf-8")
+    with pytest.raises(AssertionError, match="declares no jobs"):
+        test_every_workflow_states_its_permissions(workflow)
