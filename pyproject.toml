@@ -5,7 +5,7 @@ description = "Labeled fleet testbed for federated personalization with a govern
 requires-python = ">=3.12,<3.15"
 dependencies = [
     "numpy>=2.5.3",
-    "scikit-learn>=1.6",
+    "scikit-learn>=1.9.1",
     # First-class, not an extra. Traceability is a property of the experiment, not
     # a debugging convenience: a surprising number has to be traceable to the run
     # that produced it. What stays true is that telemetry can never *change* a
@@ -71,7 +71,7 @@ dev = [
     # The docs site. In `dev` rather than run via `uv tool` because the docs
     # workflow builds with `uv run zensical`, matching the sister repositories, and a
     # tool-run version is not pinned by uv.lock so CI and local could drift.
-    "zensical",
+    "zensical>=0.0.63",
     # Dependency vulnerability scan in CI, matching the sisters.
     "pip-audit",
     # `tests/test_workflows.py` and the `make ci` parity check parse the workflow YAML.
