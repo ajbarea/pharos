@@ -5,7 +5,7 @@ description = "Labeled fleet testbed for federated personalization with a govern
 requires-python = ">=3.12,<3.15"
 dependencies = [
     "numpy>=2.5.3",
-    "scikit-learn>=1.6",
+    "scikit-learn>=1.9.1",
     # First-class, not an extra. Traceability is a property of the experiment, not
     # a debugging convenience: a surprising number has to be traceable to the run
     # that produced it. What stays true is that telemetry can never *change* a
