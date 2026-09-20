@@ -410,7 +410,7 @@ qrels are in hand. `talkbank/callhome` is also public (CC-BY-NC-SA-4.0);
 `Salesforce/DiverseSumm` returned 401 and needs auth.
 
 **The three entries that matter most to Pharos are not public.** They have to be
-requested from Bo Light (jjlight@ncsu.edu):
+requested from Bo Light at LAS:
 
 - **Synthetic Org Chart v2 and v3.** v2 adds noise, lateral edges, and email headers;
   v3 adds email bodies and calendar invites. That is an organisational structure with

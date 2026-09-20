@@ -212,12 +212,9 @@ def test_an_unknown_scenario_name_lists_what_is_available():
 
 def test_an_unknown_sensitivity_names_the_valid_options():
     """A typo in a hand-written scenario should say what was expected."""
-    import tomllib
-
     assert "OPEN" in [s.name for s in Sensitivity]
     with pytest.raises(ScenarioError, match="expected one of"):
         scenario_module._enum(Sensitivity, "TOP_SECRET", "sensitivity")
-    assert tomllib  # imported to document that loading is TOML-based
 
 
 def test_loading_by_explicit_path_works(tmp_path):

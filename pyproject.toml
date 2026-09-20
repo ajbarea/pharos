@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Labeled fleet testbed for federated personalization with a governed disclosure boundary"
 requires-python = ">=3.12,<3.15"
 dependencies = [
-    "numpy>=2.5.2",
-    "scikit-learn>=1.6",
+    "numpy>=2.5.3",
+    "scikit-learn>=1.9.1",
     # First-class, not an extra. Traceability is a property of the experiment, not
     # a debugging convenience: a surprising number has to be traceable to the run
     # that produced it. What stays true is that telemetry can never *change* a
@@ -25,13 +25,13 @@ otel = []
 # runs `uv sync --all-groups`, which would drag a multi-gigabyte CUDA torch into
 # every lint-and-test run for code that only ever executes on a GPU node.
 train = [
-    "torch>=2.6",
+    "torch>=2.14.0",
     "peft>=0.14",
     # 5.0 floors the merged `warmup_steps`, which accepts a fraction of total steps
     # where 4.x had a separate `warmup_ratio`. On 4.x the float we pass truncates to
     # zero and the run trains with no warmup while looking identical.
-    "transformers>=5.15.0",
-    "accelerate>=1.3",
+    "transformers>=5.17.0",
+    "accelerate>=1.15.0",
     "datasets>=3.2",
 ]
 
@@ -53,16 +53,16 @@ croissant = [
 # and OpenTelemetry; the corpus and the gate never need a web server.
 ui = [
     "fastapi>=0.115",
-    "uvicorn>=0.52.1",
+    "uvicorn>=0.52.4",
     # FastAPI TestClient backend. starlette deprecates plain httpx in favour of httpx2.
-    "httpx2>=2.10.0",
+    "httpx2>=2.12.0",
 ]
 dev = [
     "pytest>=9.0",
     "pytest-cov>=6.0",
-    "ruff>=0.16.2",
-    "ty>=0.0.70,<0.1",
-    "hypothesis>=6.165.3",
+    "ruff>=0.16.8",
+    "ty>=0.0.82,<0.1",
+    "hypothesis>=6.168.0",
     # Present in dev so the optional telemetry path is genuinely exercised by the
     # suite rather than pragma-excluded from it.
     "opentelemetry-api>=1.30",
@@ -71,7 +71,7 @@ dev = [
     # The docs site. In `dev` rather than run via `uv tool` because the docs
     # workflow builds with `uv run zensical`, matching the sister repositories, and a
     # tool-run version is not pinned by uv.lock so CI and local could drift.
-    "zensical",
+    "zensical>=0.0.63",
     # Dependency vulnerability scan in CI, matching the sisters.
     "pip-audit",
     # `tests/test_workflows.py` and the `make ci` parity check parse the workflow YAML.
@@ -90,6 +90,7 @@ packages = ["src/pharos"]
 
 [tool.ruff]
 line-length = 100
+target-version = "py312"
 
 [tool.ruff.lint]
 select = [
@@ -192,6 +193,16 @@ extra-paths = ["scripts"]
 [tool.ty.rules]
 all = "warn"
 unresolved-import = "error"
+
+# `all = "warn"` opts into every rule ty ships, including ones added after this
+# config was written, and ty exits non-zero on a warning. unsound-assignment fires
+# where a value the checker can only see as `Any` is assigned to a narrower
+# annotation: `re.findall` returning `list[Any]`, attribute access on a dict of
+# dataclasses, and a module imported by path. In each case the annotation is the
+# intent being documented at a boundary the checker cannot see through, so the
+# annotation is the useful artifact; deleting it or narrowing with an assert would
+# lose information rather than add safety.
+unsound-assignment = "ignore"
 
 # The OpenTelemetry packages live in an optional extra and are deliberately absent
 # from the default environment, since Pharos must run offline with no collector.
