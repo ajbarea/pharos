@@ -149,16 +149,17 @@ def measure(
     truth = {task.task_id: task.significant for task in tasks}
     decisions = review_all(ensemble, tasks, proposals, seed=SEED)
 
-    rows = tuple(
-        Row(
-            policy=policy,
-            yield_=supervision_yield(mine, truth),
-            release=release_recovery(mine, proposals, ceiling=DEFAULT_CEILING),
+    rows = []
+    for policy in ensemble:
+        mine = [d for d in decisions if d.analyst == policy.name]
+        rows.append(
+            Row(
+                policy=policy,
+                yield_=supervision_yield(mine, truth),
+                release=release_recovery(mine, proposals, ceiling=DEFAULT_CEILING),
+            )
         )
-        for policy in ensemble
-        if (mine := [d for d in decisions if d.analyst == policy.name]) is not None
-    )
-    return ModelReview(len(proposals), action_agreement(decisions), rows)
+    return ModelReview(len(proposals), action_agreement(decisions), tuple(rows))
 
 
 def _print_table(model_key: str, review: ModelReview) -> None:
