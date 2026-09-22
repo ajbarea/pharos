@@ -62,6 +62,29 @@ def _action_refs(workflow: pathlib.Path):
                 yield job_name, step["uses"]
 
 
+def _image_refs(workflow: pathlib.Path):
+    """`(job name, where, image)` for every container image a job runs.
+
+    `jobs.<id>.container.image` and `jobs.<id>.services.<id>.image` are where a workflow
+    names a container, and neither is a `uses:`, so neither reaches `_action_refs`. A tag
+    is exactly as mutable here as it is on an action, and the runner pulls it at the
+    start of the job with this repository's token in the environment.
+
+    `container:` also takes a bare string as shorthand for `{image: ...}`, which is the
+    spelling a reader is most likely to reach for and the one a dict-only reader misses.
+    """
+    doc = yaml.safe_load(workflow.read_text(encoding="utf-8"))
+    for job_name, job in (doc.get("jobs") or {}).items():
+        container = job.get("container")
+        if isinstance(container, str):
+            yield job_name, "container", container
+        elif isinstance(container, dict) and container.get("image"):
+            yield job_name, "container", container["image"]
+        for service_name, service in (job.get("services") or {}).items():
+            if isinstance(service, dict) and service.get("image"):
+                yield job_name, f"services.{service_name}", service["image"]
+
+
 def test_there_are_workflows_to_check():
     """The guards below compare against what they find, so finding nothing must fail."""
     assert WORKFLOWS, "no workflow files were parsed, so every check in this file is vacuous"
@@ -103,11 +126,14 @@ def test_every_action_is_pinned_to_a_commit(workflow):
     """
     floating = []
     for _, uses in _action_refs(workflow):
-        if not uses or uses.startswith("./"):
+        if uses and uses.startswith("./"):
             # A path into this repository is versioned by the commit being run. There is
             # nothing to pin it to.
             continue
-        _, _, ref = uses.partition("@")
+        # A bare `uses:` parses to None. It used to be skipped here, which exempted it
+        # from the rule stated below rather than failing it. `or ""` keeps the partition
+        # safe and lets it fall through to be reported like any other unpinned ref.
+        _, _, ref = (uses or "").partition("@")
         # No `@` at all is the case an earlier version of this test waved through: a
         # `docker://image:tag` step is a moving target with no ref to check, so an
         # unpinnable `uses` is unpinned rather than exempt. A `docker://` step pinned by
@@ -115,7 +141,7 @@ def test_every_action_is_pinned_to_a_commit(workflow):
         # strongest form GitHub documents for one, and there is no 40-character
         # equivalent to rewrite it into.
         if not _COMMIT_SHA.fullmatch(ref) and not _IMAGE_DIGEST.fullmatch(ref):
-            floating.append(uses)
+            floating.append(uses or "<empty `uses:`>")
     assert not floating, (
         f"{workflow.name} uses actions pinned to something other than a full commit sha: {floating}"
     )
@@ -216,3 +242,93 @@ def test_a_workflow_declaring_no_jobs_is_not_approved_by_default(tmp_path):
     workflow.write_text("name: empty\non: push\njobs: {}\n", encoding="utf-8")
     with pytest.raises(AssertionError, match="declares no jobs"):
         test_every_workflow_states_its_permissions(workflow)
+
+
+@pytest.mark.parametrize("workflow", WORKFLOWS, ids=lambda p: p.name)
+def test_every_container_image_is_pinned_to_a_digest(workflow):
+    """A tag on a container is as mutable as a tag on an action, and pulled the same way.
+
+    `test_every_action_is_pinned_to_a_commit` already requires a `docker://` step to
+    carry a digest. `container:` and `services:` name a container without going through
+    `uses:`, so they reached none of that: a job could run `alpine:latest` beside steps
+    every one of which was required to be a full sha.
+
+    A digest keeps the readable tag alongside it -- `alpine:3.20@sha256:...` -- so this
+    checks the ref after the `@` rather than forbidding the tag.
+    """
+    floating = [
+        f"{where}: {image}"
+        for _, where, image in _image_refs(workflow)
+        if not _IMAGE_DIGEST.fullmatch(image.partition("@")[2])
+    ]
+    assert not floating, (
+        f"{workflow.name} runs container images pinned to a tag rather than a digest: "
+        f"{floating}. Pin as `image:tag@sha256:<64 hex>`, keeping the tag for the reader."
+    )
+
+
+def test_the_digest_guard_sees_both_spellings_of_container(tmp_path):
+    """`container:` takes a bare string as well as a mapping, and the string is shorthand.
+
+    A reader that only descends into a mapping misses the spelling most likely to be
+    written by hand, which is the same shape of miss as the job-level `uses:`.
+    """
+    workflow = tmp_path / "probe.yml"
+    workflow.write_text(
+        "name: probe\non: push\npermissions:\n  contents: read\n"
+        "jobs:\n"
+        "  shorthand:\n"
+        "    container: alpine:latest\n"
+        "    steps: []\n"
+        "  mapping:\n"
+        "    container:\n"
+        "      image: alpine:latest\n"
+        "    steps: []\n",
+        encoding="utf-8",
+    )
+    assert [where for _, where, _ in _image_refs(workflow)] == ["container", "container"]
+    with pytest.raises(AssertionError, match="pinned to a tag rather than a digest"):
+        test_every_container_image_is_pinned_to_a_digest(workflow)
+
+
+def test_the_digest_guard_sees_a_service_image(tmp_path):
+    """A service container is pulled for the whole job and is named nowhere else."""
+    workflow = tmp_path / "probe.yml"
+    workflow.write_text(
+        "name: probe\non: push\npermissions:\n  contents: read\n"
+        "jobs:\n  probe:\n    runs-on: ubuntu-latest\n"
+        "    services:\n      db:\n        image: postgres:16\n"
+        "    steps: []\n",
+        encoding="utf-8",
+    )
+    assert [where for _, where, _ in _image_refs(workflow)] == ["services.db"]
+    with pytest.raises(AssertionError, match="pinned to a tag rather than a digest"):
+        test_every_container_image_is_pinned_to_a_digest(workflow)
+
+
+def test_the_digest_guard_accepts_a_digest_with_its_tag(tmp_path):
+    """The readable tag stays; it is the ref after the `@` that has to be a digest."""
+    digest = "sha256:" + "ab" * 32
+    workflow = tmp_path / "probe.yml"
+    workflow.write_text(
+        "name: probe\non: push\npermissions:\n  contents: read\n"
+        f"jobs:\n  probe:\n    container: alpine:3.20@{digest}\n    steps: []\n",
+        encoding="utf-8",
+    )
+    test_every_container_image_is_pinned_to_a_digest(workflow)
+
+
+def test_a_bare_uses_key_is_reported_rather_than_skipped(tmp_path):
+    """An unpinnable `uses:` is unpinned, which is the rule the guard states beside it.
+
+    It was skipped by the same `not uses` that kept the partition safe, so the one
+    spelling that cannot be pinned at all was the one exempted from having to be.
+    """
+    workflow = tmp_path / "probe.yml"
+    workflow.write_text(
+        "name: probe\non: push\npermissions:\n  contents: read\n"
+        "jobs:\n  probe:\n    runs-on: ubuntu-latest\n    steps:\n      - uses:\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(AssertionError, match="empty"):
+        test_every_action_is_pinned_to_a_commit(workflow)
