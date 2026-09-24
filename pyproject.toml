@@ -26,7 +26,7 @@ otel = []
 # every lint-and-test run for code that only ever executes on a GPU node.
 train = [
     "torch>=2.14.0",
-    "peft>=0.14",
+    "peft>=0.21.0",
     # 5.0 floors the merged `warmup_steps`, which accepts a fraction of total steps
     # where 4.x had a separate `warmup_ratio`. On 4.x the float we pass truncates to
     # zero and the run trains with no warmup while looking identical.
@@ -53,9 +53,9 @@ croissant = [
 # and OpenTelemetry; the corpus and the gate never need a web server.
 ui = [
     "fastapi>=0.115",
-    "uvicorn>=0.52.4",
+    "uvicorn>=0.53.0",
     # FastAPI TestClient backend. starlette deprecates plain httpx in favour of httpx2.
-    "httpx2>=2.12.0",
+    "httpx2>=2.13.0",
 ]
 dev = [
     "pytest>=9.0",
