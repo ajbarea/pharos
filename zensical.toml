@@ -36,6 +36,7 @@ extra_css = [
 ]
 extra_javascript = [
   "javascripts/reveal.js",
+  "javascripts/particles.js",
   "https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/katex.min.js",
   "https://cdn.jsdelivr.net/npm/katex@0.18.9/dist/contrib/auto-render.min.js",
   "javascripts/katex.js",
