@@ -38,11 +38,27 @@ A labeled fleet testbed for federated personalization with a **governed disclosu
 
 ## What is Pharos? { .section-title }
 
-Federated personalization splits what a model learns into **local knowledge** and **shared knowledge**. Deciding which stays local is a disclosure problem, and public corpora cannot test it: their labels form a single sensitivity ladder, while real disclosure policy is not a ladder.
-{ .section-lead }
+<div class="why-grid" markdown>
 
-Pharos generates synthetic corpora whose labels carry a lattice, so two holders at the same level with different need-to-know compartments are **incomparable**, and measures privacy leakage, over-escalation and personalization against content-defined ground truth.
-{ .section-lead }
+<div class="why-card" style="--card-accent: var(--pharos-amber)" markdown>
+<span class="why-label">The problem</span>
+
+Federated personalization splits what a model learns into **local** and **shared** knowledge. Deciding which stays local is a disclosure problem.
+</div>
+
+<div class="why-card" style="--card-accent: var(--pharos-cyan)" markdown>
+<span class="why-label">The gap</span>
+
+Public corpora label on a single sensitivity ladder. Real disclosure policy is not a ladder: two holders at the same level with different compartments are **incomparable**.
+</div>
+
+<div class="why-card" style="--card-accent: var(--pharos-magenta)" markdown>
+<span class="why-label">Pharos</span>
+
+Synthetic corpora labelled on that lattice, with privacy leakage, over-escalation and personalization measured against content-defined ground truth.
+</div>
+
+</div>
 
 </div>
 
@@ -84,7 +100,7 @@ Pharos generates synthetic corpora whose labels carry a lattice, so two holders 
 
 </div>
 
-A seeded corpus, labelled on the lattice, checked by the shortcut gate, routed item by item to a personal adapter that never leaves its holder or to a shared fleet adapter, then aggregated by a robust rule. [The architecture](architecture.md) walks through each stage and every module.
+A seeded corpus is labelled on the lattice and checked by the shortcut gate. Each item routes to a personal adapter that never leaves its holder, or to a shared fleet adapter aggregated by a robust rule. [The architecture](architecture.md) walks through every stage and module.
 { .pipeline-caption }
 
 </div>
@@ -127,3 +143,8 @@ A seeded corpus, labelled on the lattice, checked by the shortcut gate, routed i
 </div>
 
 </div>
+
+<footer class="landing-footer" markdown>
+<span>2026 AJ Barea</span>
+[:material-github:](https://github.com/ajbarea/pharos){ aria-label="Pharos on GitHub" }
+</footer>

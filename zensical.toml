@@ -70,17 +70,21 @@ features = [
 # ---------------------------------------------------------------------------
 # Color palette — light/dark toggle
 # ---------------------------------------------------------------------------
+# Follows the reader's system setting until they toggle. Colours are the lighthouse's
+# own (docs/stylesheets/extra.css), not a theme preset.
 [[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
 scheme = "slate"
-primary = "indigo"
-accent = "amber"
+primary = "custom"
+accent = "custom"
 toggle.icon = "lucide/sun"
 toggle.name = "Switch to light mode"
 
 [[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
 scheme = "default"
-primary = "indigo"
-accent = "amber"
+primary = "custom"
+accent = "custom"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to dark mode"
 

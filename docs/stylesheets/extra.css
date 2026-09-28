@@ -5,6 +5,31 @@
  * makes the file lie about what the site contains.
  */
 
+/* The theme's colours, taken from the lighthouse: its cyan beam for links and the
+ * active page, its amber beam for hover. Each value clears WCAG AA on its scheme's
+ * page: #0b7676 is 5.4:1 on white, #3fd1cf is 8.7:1 on the slate page. */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #0b7676;
+  --md-primary-fg-color--light: #0e9c9c;
+  --md-primary-fg-color--dark: #085c5c;
+  --md-primary-bg-color: #fff;
+  --md-primary-bg-color--light: #ffffffb3;
+  --md-accent-fg-color: #b45309;
+  --md-accent-fg-color--transparent: #b453091a;
+  --md-typeset-a-color: #0b7676;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #22c8c8;
+  --md-primary-fg-color--light: #5fd9d7;
+  --md-primary-fg-color--dark: #139a9a;
+  --md-primary-bg-color: #06201f;
+  --md-primary-bg-color--light: #06201fb3;
+  --md-accent-fg-color: #f0a020;
+  --md-accent-fg-color--transparent: #f0a0201a;
+  --md-typeset-a-color: #3fd1cf;
+}
+
 /* Tables carry most of this site's content -- gate rounds, findings, model sweeps,
  * label cells. The theme already wraps each one in `.md-typeset__scrollwrap` and
  * `.md-typeset__table` to give it horizontal scroll, so this sheet must not add a
@@ -37,6 +62,30 @@
 .md-typeset table:not([class]) td:first-child {
   width: 1%;
   white-space: nowrap;
+}
+
+/* On a phone the theme squeezes every table to the screen, so a four-column findings
+ * table wraps its prose one word per line and one table ran 9,000px tall. Wide tables
+ * keep a readable width instead and scroll sideways inside the theme's own wrapper. */
+@media (max-width: 44.9375em) {
+  /* A first column of prose (group names, row labels) wraps on a phone; pinning it
+   * to one line left the other column a sliver. Code names stay on one line. */
+  .md-typeset table:not([class]) td:first-child {
+    min-width: 7rem;
+    white-space: normal;
+  }
+
+  .md-typeset table:not([class]):has(th:nth-child(3)) {
+    min-width: 30rem;
+  }
+
+  .md-typeset table:not([class]):has(th:nth-child(4)) {
+    min-width: 40rem;
+  }
+
+  .md-typeset table:not([class]):has(th:nth-child(6)) {
+    min-width: 48rem;
+  }
 }
 
 /* The admonitions on the findings and gate pages carry corrections and caveats,
