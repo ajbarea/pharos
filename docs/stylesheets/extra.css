@@ -5,6 +5,31 @@
  * makes the file lie about what the site contains.
  */
 
+/* The theme's colours, taken from the lighthouse: its cyan beam for links and the
+ * active page, its amber beam for hover. Each value clears WCAG AA on its scheme's
+ * page: #0b7676 is 5.4:1 on white, #3fd1cf is 8.7:1 on the slate page. */
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #0b7676;
+  --md-primary-fg-color--light: #0e9c9c;
+  --md-primary-fg-color--dark: #085c5c;
+  --md-primary-bg-color: #fff;
+  --md-primary-bg-color--light: #ffffffb3;
+  --md-accent-fg-color: #b45309;
+  --md-accent-fg-color--transparent: #b453091a;
+  --md-typeset-a-color: #0b7676;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #22c8c8;
+  --md-primary-fg-color--light: #5fd9d7;
+  --md-primary-fg-color--dark: #139a9a;
+  --md-primary-bg-color: #06201f;
+  --md-primary-bg-color--light: #06201fb3;
+  --md-accent-fg-color: #f0a020;
+  --md-accent-fg-color--transparent: #f0a0201a;
+  --md-typeset-a-color: #3fd1cf;
+}
+
 /* Tables carry most of this site's content -- gate rounds, findings, model sweeps,
  * label cells. The theme already wraps each one in `.md-typeset__scrollwrap` and
  * `.md-typeset__table` to give it horizontal scroll, so this sheet must not add a
@@ -39,6 +64,30 @@
   white-space: nowrap;
 }
 
+/* On a phone the theme squeezes every table to the screen, so a four-column findings
+ * table wraps its prose one word per line and one table ran 9,000px tall. Wide tables
+ * keep a readable width instead and scroll sideways inside the theme's own wrapper. */
+@media (max-width: 44.9375em) {
+  /* A first column of prose (group names, row labels) wraps on a phone; pinning it
+   * to one line left the other column a sliver. Code names stay on one line. */
+  .md-typeset table:not([class]) td:first-child {
+    min-width: 7rem;
+    white-space: normal;
+  }
+
+  .md-typeset table:not([class]):has(th:nth-child(3)) {
+    min-width: 30rem;
+  }
+
+  .md-typeset table:not([class]):has(th:nth-child(4)) {
+    min-width: 40rem;
+  }
+
+  .md-typeset table:not([class]):has(th:nth-child(6)) {
+    min-width: 48rem;
+  }
+}
+
 /* The admonitions on the findings and gate pages carry corrections and caveats,
  * which are the parts a reader most needs to notice. Give warnings a little more
  * presence than the theme default without shouting. */
@@ -46,37 +95,34 @@
   border-left-width: 0.3rem;
 }
 
-/* ── State-of-the-Art UX Uplift for Zensical Docs ── */
+/* Admonitions are read, not clicked, so they get a softer edge and no hover motion. */
 .md-typeset .admonition {
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(8px);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.md-typeset .admonition:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-}
-
-/* Custom Badges & Chips */
+/* The beam chips under the hero. Text is mixed toward the page's foreground so it
+ * keeps a readable contrast in both schemes; the fill and border carry the hue. */
 .pharos-chip {
+  --chip: var(--pharos-amber);
   display: inline-block;
   padding: 0.2rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--chip) 70%, transparent);
   border-radius: 6px;
+  background: color-mix(in srgb, var(--chip) 12%, transparent);
+  color: color-mix(in srgb, var(--chip) 70%, var(--md-default-fg-color));
+  font-family: var(--md-code-font);
   font-size: 0.78rem;
   font-weight: 700;
-  font-family: var(--md-code-font);
   letter-spacing: 0.03em;
-  margin: 0.1rem 0.2rem;
+  margin: 0.15rem 0.2rem;
 }
 
-.pharos-chip-amber { background: rgba(240, 160, 32, 0.15); color: #f0a020; border: 1px solid #f0a020; }
-.pharos-chip-cyan { background: rgba(34, 200, 200, 0.15); color: #22c8c8; border: 1px solid #22c8c8; }
-.pharos-chip-magenta { background: rgba(212, 38, 127, 0.15); color: #d4267f; border: 1px solid #d4267f; }
-.pharos-chip-rust { background: rgba(255, 183, 77, 0.15); color: #ffb74d; border: 1px solid #ffb74d; }
+.pharos-chip-cyan { --chip: var(--pharos-cyan); }
+.pharos-chip-magenta { --chip: var(--pharos-magenta); }
+.pharos-chip-rust { --chip: var(--pharos-rust); }
 
-/* Grid Cards Container for Docs */
+/* Component cards on the architecture page. The surface is a tint of the page's
+ * own colours, so it follows the scheme instead of staying a dark slab. */
 .docs-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -85,16 +131,10 @@
 }
 
 .docs-card {
-  background: var(--md-card-bg, rgba(20, 25, 35, 0.5));
+  background: color-mix(in srgb, var(--md-default-fg-color) 3%, var(--md-default-bg-color));
   border: 1px solid var(--md-default-fg-color--lightest);
   border-radius: 12px;
   padding: 1.4rem;
-  transition: transform 0.25s ease, border-color 0.25s ease;
-}
-
-.docs-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--pharos-cyan);
 }
 
 .docs-card h3 {
@@ -107,4 +147,3 @@
   text-align: center;
   margin: 1.5rem 0;
 }
-
