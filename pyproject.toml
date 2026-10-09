@@ -25,12 +25,12 @@ otel = []
 # runs `uv sync --all-groups`, which would drag a multi-gigabyte CUDA torch into
 # every lint-and-test run for code that only ever executes on a GPU node.
 train = [
-    "torch>=2.14.0",
-    "peft>=0.21.0",
+    "torch>=2.14.1",
+    "peft>=0.21.2",
     # 5.0 floors the merged `warmup_steps`, which accepts a fraction of total steps
     # where 4.x had a separate `warmup_ratio`. On 4.x the float we pass truncates to
     # zero and the run trains with no warmup while looking identical.
-    "transformers>=5.17.0",
+    "transformers>=5.18.0",
     "accelerate>=1.15.0",
     "datasets>=3.2",
 ]
@@ -52,7 +52,7 @@ croissant = [
 # The explorer web UI. Optional so the core install stays at numpy, scikit-learn,
 # and OpenTelemetry; the corpus and the gate never need a web server.
 ui = [
-    "fastapi>=0.115",
+    "fastapi>=0.142.2",
     "uvicorn>=0.54.0",
     # FastAPI TestClient backend. starlette deprecates plain httpx in favour of httpx2.
     "httpx2>=2.13.0",
@@ -60,7 +60,7 @@ ui = [
 dev = [
     "pytest>=9.0",
     "pytest-cov>=6.0",
-    "ruff>=0.16.9",
+    "ruff>=0.16.10",
     "ty>=0.0.82,<0.1",
     "hypothesis>=6.168.0",
     # Present in dev so the optional telemetry path is genuinely exercised by the
