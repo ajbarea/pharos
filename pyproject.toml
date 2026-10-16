@@ -204,6 +204,12 @@ unresolved-import = "error"
 # lose information rather than add safety.
 unsound-assignment = "ignore"
 
+# truthiness-test-of-none-union flags `if x:` on an Optional. Every site here means
+# the falsy collapse: an empty env var is unset, a zero SD leaves the z-score
+# undefined, an empty cell list or zero count is missing. `bool(x)` would only
+# restate that, and `is not None` would change what the measurement scripts report.
+truthiness-test-of-none-union = "ignore"
+
 # The OpenTelemetry packages live in an optional extra and are deliberately absent
 # from the default environment, since Pharos must run offline with no collector.
 # Their imports are guarded by try/except ImportError at the only site that uses

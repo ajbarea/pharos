@@ -31,7 +31,7 @@ import json
 import logging
 import os
 import sys
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from typing import Any, override
@@ -286,7 +286,7 @@ def get_logger() -> logging.Logger:
 
 
 @contextmanager
-def span(name: str, **attributes: object) -> Iterator[None]:
+def span(name: str, **attributes: object) -> Generator[None]:
     """A span when tracing is active, a no-op otherwise.
 
     Deliberately swallows nothing: an exception inside the block propagates, and is
