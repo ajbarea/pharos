@@ -110,7 +110,6 @@
 
 .pharos-chip-cyan { --chip: var(--pharos-cyan); }
 .pharos-chip-magenta { --chip: var(--pharos-magenta); }
-.pharos-chip-rust { --chip: var(--pharos-rust); }
 
 /* Component cards on the architecture page. The surface is a tint of the page's
  * own colours, so it follows the scheme instead of staying a dark slab. */

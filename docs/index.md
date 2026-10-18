@@ -24,7 +24,7 @@ A labeled fleet testbed for federated personalization with a **governed disclosu
 
 <div class="hero-beams" markdown>
 
-<span class="pharos-chip pharos-chip-amber">Sensitivity</span> <span class="pharos-chip pharos-chip-cyan">Compartments</span> <span class="pharos-chip pharos-chip-magenta">Capacity</span> <span class="pharos-chip pharos-chip-rust">Velocity-FL Rust</span>
+<span class="pharos-chip pharos-chip-amber">Sensitivity</span> <span class="pharos-chip pharos-chip-cyan">Compartments</span> <span class="pharos-chip pharos-chip-magenta">Capacity</span>
 
 </div>
 
@@ -118,7 +118,7 @@ A seeded corpus is labelled on the lattice and checked by the shortcut gate. Eac
   <a href="explorer/" class="feature-card" style="--card-accent: var(--pharos-cyan)">
     <span class="feature-icon" style="mask-image: url(assets/icons/compass-outline.svg)" aria-hidden="true"></span>
     <span class="feature-name">Visual Explorer</span>
-    <p>The corpus, the lattice, gate rounds and triage review, in the browser.</p>
+    <p>The corpus, the lattice, the shortcut gate, analyst review and every exit priced, in the browser.</p>
   </a>
   <a href="findings/" class="feature-card" style="--card-accent: var(--pharos-magenta)">
     <span class="feature-icon" style="mask-image: url(assets/icons/chart-box-outline.svg)" aria-hidden="true"></span>

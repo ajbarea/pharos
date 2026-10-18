@@ -193,21 +193,39 @@ def test_every_verdict_colour_is_readable_in_both_themes():
     verdict spelled out, so this passing is not what makes the tab accessible. It is
     what stops the redundant channel from being the only usable one.
     """
-    page = (Path(__file__).resolve().parents[1] / "src/pharos/static/index.html").read_text(
-        encoding="utf-8"
-    )
-    themes = {
-        "light": dict(
-            re.findall(r"--(\w+): (#[0-9a-f]{6})", page.split("prefers-color-scheme")[0])
-        ),
-        "dark": dict(re.findall(r"--(\w+): (#[0-9a-f]{6})", page.split("prefers-color-scheme")[1])),
-    }
     failures = []
-    for name, tokens in themes.items():
+    for name, tokens in _theme_tokens().items():
         for token in ("ok", "amber", "bad", "accent", "muted", "fg"):
             assert token in tokens, f"{name} theme no longer defines --{token}"
-            for surface in ("card", "bg"):
+            for surface in ("card", "bg", "panel"):
                 ratio = _contrast(tokens[token], tokens[surface])
                 if ratio < 4.5:
                     failures.append(f"{name}/--{token} on --{surface} = {ratio:.2f}")
     assert not failures, f"below WCAG AA 4.5:1: {failures}"
+
+
+def test_text_on_every_button_fill_is_readable_in_both_themes():
+    """A fill that works in one scheme can fail in the other.
+
+    White on the light scheme's deep accent reads at 7:1. The same white on the dark
+    scheme's pastel accent read at 2.49:1, and at 1.66:1 on the dark green download
+    button, because every button set its text to `#fff` in both schemes. Each scheme now
+    names its own `--on-accent`.
+    """
+    failures = []
+    for name, tokens in _theme_tokens().items():
+        for fill in ("accent", "ok", "amber"):
+            ratio = _contrast(tokens["on-accent"], tokens[fill])
+            if ratio < 4.5:
+                failures.append(f"{name}/--on-accent on --{fill} = {ratio:.2f}")
+    assert not failures, f"below WCAG AA 4.5:1: {failures}"
+
+
+def _theme_tokens() -> dict[str, dict[str, str]]:
+    """The page's colour tokens per scheme, read from its stylesheet."""
+    page = (Path(__file__).resolve().parents[1] / "src/pharos/static/index.html").read_text(
+        encoding="utf-8"
+    )
+    light, dark = page.split("prefers-color-scheme")[:2]
+    pattern = r"--([\w-]+): (#[0-9a-f]{6})"
+    return {"light": dict(re.findall(pattern, light)), "dark": dict(re.findall(pattern, dark))}
