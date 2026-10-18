@@ -37,9 +37,12 @@ on:
 permissions:
   contents: read
 
+# Deploys from main queue behind each other and are never cancelled. A pull request
+# gets its own group, so a queue of PR builds cannot cancel a waiting one into a
+# "cancelled" required check, and a newer push to the same PR replaces the older run.
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('docs-pr-{0}', github.ref) || 'pages' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:

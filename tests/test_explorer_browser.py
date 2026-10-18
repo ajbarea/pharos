@@ -124,8 +124,9 @@ def browser() -> Iterator[Browser]:
         try:
             chromium = playwright.chromium.launch()
         except PlaywrightError as exc:
-            # The docs job installs Chromium. There, a skip would pass by absence.
-            if os.environ.get("CI"):
+            # The docs job installs Chromium, and `make explorer-check` names a frozen
+            # explorer to test. In either, a skip would pass by testing nothing.
+            if os.environ.get("CI") or os.environ.get("PHAROS_EXPLORER_DIR"):
                 raise
             pytest.skip(
                 f"Chromium is not installed; run `uv run playwright install chromium`: {exc}"
@@ -175,11 +176,62 @@ def _ready(page: Page) -> None:
     page.wait_for_selector("#escapes-list article", state="attached")
 
 
+#: Each model-free view: its tab, the button that runs it, and the card it fills.
+VIEWS = [
+    ("tab-btn-corpus", "#c-go", "#c-out"),
+    ("tab-btn-lattice", "#l-go", "#l-out"),
+    ("tab-btn-gate", "#g-go", "#g-out"),
+    ("tab-btn-review", "#r-go", "#r-out"),
+]
+
+
+def _render(page: Page, tab_id: str, button: str, out: str) -> str:
+    """Run one view and return its result's text, failing on the page's error line.
+
+    A render that throws prints its message as a bare `.bad` span in place of the
+    result. That is how the model tab hid a `ReferenceError` on every run.
+    """
+    page.click(f"#{tab_id}")
+    page.click(button)
+    page.wait_for_function(
+        "([b, o]) => !document.querySelector(b).disabled && !document.querySelector(o).hidden",
+        arg=[button, out],
+    )
+    error = page.eval_on_selector(out, "o => o.querySelector(':scope > .bad')?.textContent")
+    assert error is None, f"{tab_id} rendered an error: {error}"
+    return page.inner_text(out)
+
+
 def _enabled_tab_ids(page: Page) -> list[str]:
     ids = page.eval_on_selector_all(
         '[role="tab"]', "tabs => tabs.filter(t => !t.disabled).map(t => t.id)"
     )
     return [str(tab_id) for tab_id in ids]
+
+
+def test_every_view_renders_what_the_bundle_holds(open_page, bundle):
+    """Each view's result, checked against the frozen answer rather than for being there."""
+    page = open_page()
+    _ready(page)
+    seed = page.input_value("#c-seed")
+    corpus = bundle["corpus"][seed]
+    results = {tab_id: _render(page, tab_id, button, out) for tab_id, button, out in VIEWS}
+
+    significant = sum(1 for row in corpus["export_rows"] if row["is_plant"])
+    tiles = page.eval_on_selector_all(
+        "#c-out .metric-card",
+        "cards => cards.map(c => [c.querySelector('.metric-label').textContent.trim(),"
+        " c.querySelector('.metric-value').textContent.trim()])",
+    )
+    assert dict(tiles) == {
+        "Total Reports": str(corpus["n_reports"]),
+        "Events Sampled": str(corpus["n_events"]),
+        "Lattice Cells": str(len(corpus["label_histogram"])),
+        "Significant Plants": str(significant),
+    }
+    assert "The holder may read the object." in results["tab-btn-lattice"]
+    assert str(bundle["gate"][seed]["surface_baseline"]) in results["tab-btn-gate"]
+    assert bundle["review"][seed]["0"]["true"]["task_id"] in results["tab-btn-review"]
 
 
 def test_every_tab_opens_its_own_panel_and_only_that_one(open_page):
@@ -193,7 +245,6 @@ def test_every_tab_opens_its_own_panel_and_only_that_one(open_page):
             "panels => panels.filter(p => p.getBoundingClientRect().height > 0).map(p => p.id)",
         )
         assert shown == [panel_id], f"{tab_id} shows {shown}"
-        assert page.inner_text(f"#{panel_id}").strip(), f"{panel_id} opened empty"
         selected = page.eval_on_selector_all(
             '[role="tab"][aria-selected="true"]', "tabs => tabs.map(t => t.id)"
         )
@@ -243,9 +294,9 @@ def test_arrow_keys_walk_the_enabled_tabs_and_select_where_focus_lands(open_page
 def test_every_button_label_is_readable_in_both_schemes(open_page, color_scheme):
     page = open_page(color_scheme=color_scheme)
     _ready(page)
-    # The download buttons exist only once a corpus is on screen.
-    page.click("#c-go")
-    page.wait_for_selector("#c-dl-jsonl", state="visible")
+    # Every result on screen, so the buttons it reveals are measured too.
+    for view in VIEWS:
+        _render(page, *view)
     failures = []
     for tab_id in _enabled_tab_ids(page):
         page.click(f"#{tab_id}")
@@ -260,6 +311,8 @@ def test_every_button_label_is_readable_in_both_schemes(open_page, color_scheme)
 def test_no_tab_scrolls_sideways_at_phone_width(open_page):
     page = open_page(viewport=PHONE)
     _ready(page)
+    for view in VIEWS:
+        _render(page, *view)
     for tab_id in _enabled_tab_ids(page):
         page.click(f"#{tab_id}")
         overflow = page.evaluate(

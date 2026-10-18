@@ -59,9 +59,8 @@
     outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
-  /* Motion on this page is decoration: bar widths easing in. A reduced-motion
-     preference switches it off. Durations go to a value rather than `none` so
-     transitionend handlers still fire. */
+  /* A reduced-motion preference switches off any transition or animation on the
+     page, including one a later change adds. */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -106,7 +105,7 @@
   .bar-row { display: flex; align-items: center; gap: 0.8rem; font-size: 0.82rem; }
   .bar-label { width: 180px; font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .bar-track { flex: 1; height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 5px; background: var(--accent); transition: width 0.4s ease; }
+  .bar-fill { height: 100%; border-radius: 5px; background: var(--accent); }
   .bar-count { width: 45px; text-align: right; font-family: var(--mono); color: var(--muted); }
 
   .lattice-diagram { position: relative; padding: 1.2rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin: 1rem 0; text-align: center; }
@@ -418,7 +417,9 @@ $('c-go').onclick = async () => {
     $('c-dl-jsonl').style.display = 'inline-block';
     $('c-dl-manifest').style.display = 'inline-block';
     const maxVal = Math.max(...Object.values(d.label_histogram));
-    const plants = d.reports.filter(r => r.is_plant).length;
+    // Counted over every report. `reports` is a sample of the first few, and a count
+    // taken from it sat beside the corpus total as if it were the corpus's own.
+    const plants = d.export_rows.filter(r => r.is_plant).length;
     const barRows = Object.entries(d.label_histogram).map(([k, v]) => {
       const pct = Math.round((v / maxVal) * 100);
       return `<div class="bar-row">
@@ -691,6 +692,9 @@ function applyStaticMode() {
   if (triageTab) {
     triageTab.disabled = true;
     triageTab.title = 'Needs a running model. Available when you run the explorer locally.';
+    // A click before the bundle arrived can have selected it. A selected tab that is
+    // disabled keeps its panel open and takes the keyboard out of the tab list.
+    if (triageTab.getAttribute('aria-selected') === 'true') selectTab(tabs[0]);
   }
 
   const banner = $('offline-banner');
@@ -747,9 +751,11 @@ async function loadEscapes() {
 (async () => {
   await loadBundle();
   if (BUNDLE) applyStaticMode();
-  loadVocab().catch(() => {});
-  loadModels().catch(() => {});
-  loadEscapes().catch(() => {});
+  // A model list that fails offline is expected: there is no server to ask. Anything
+  // else failing is a broken page, so it is reported rather than swallowed.
+  loadVocab().catch((e) => console.error('vocabulary', e));
+  if (!BUNDLE) loadModels().catch((e) => console.error('models', e));
+  loadEscapes().catch((e) => console.error('escapes', e));
 })();
 </script>
 </body>
