@@ -138,6 +138,92 @@ def test_dominance_fails_closed_on_a_missing_side(client):
     assert client.post("/api/dominance", json={"holder": {}}).status_code == 400
 
 
+def test_the_lattice_table_agrees_with_the_library_on_every_pair(client):
+    """The page draws the whole lattice from this table, so every cell has to be right."""
+    from pharos.web import _cell_key, _compartment_subsets
+
+    table = client.get("/api/lattice").json()
+    cells = {
+        _cell_key(s.name, subset): Label(
+            s, frozenset(Compartment[c] for c in subset), Capacity.FREETEXT
+        )
+        for s in Sensitivity
+        for subset in _compartment_subsets()
+    }
+    assert set(table["pairs"]) == set(cells)
+    for holder_key, holder in cells.items():
+        for item_key, item in cells.items():
+            cell = table["pairs"][holder_key][item_key]
+            assert cell["holder_may_read_item"] == holder.dominates(item)
+            assert cell["item_may_read_holder"] == item.dominates(holder)
+
+
+def test_a_refusal_names_exactly_what_dominance_checks(client):
+    """The page explains a refusal from these fields, so they must match the verdict.
+
+    No shortfall on either condition must mean the read is allowed, and any shortfall
+    must mean it is refused, on every ordered pair of cells.
+    """
+    table = client.get("/api/lattice").json()
+    for row in table["pairs"].values():
+        for cell in row.values():
+            for allowed, short in (
+                (cell["holder_may_read_item"], cell["holder_short"]),
+                (cell["item_may_read_holder"], cell["item_short"]),
+            ):
+                assert allowed == (not short["level"] and not short["compartments"])
+
+
+def test_the_lattice_table_answers_what_the_dominance_endpoint_answers(client):
+    """Two routes to one decision, checked on the incomparable case and a comparable one."""
+    table = client.get("/api/lattice").json()
+    for holder, item in [
+        (("PROTECTED", ["SENSOR"]), ("PROTECTED", ["LIAISON"])),
+        (("RESTRICTED", ["SENSOR"]), ("INTERNAL", [])),
+    ]:
+        body = {
+            "holder": {"sensitivity": holder[0], "compartments": holder[1], "capacity": "SPAN"},
+            "item": {"sensitivity": item[0], "compartments": item[1], "capacity": "ENUM"},
+        }
+        direct = client.post("/api/dominance", json=body).json()
+        cell = table["pairs"][f"{holder[0]}|{','.join(holder[1])}"][
+            f"{item[0]}|{','.join(item[1])}"
+        ]
+        assert cell["incomparable"] == direct["incomparable"]
+        assert cell["holder_may_read_item"] == direct["holder_may_read_item"]
+        capacity = body[table["capacity_follows"]]["capacity"]
+        assert table["labels"][f"{cell['join']}|{capacity}"] == direct["join"]
+
+
+def test_review_all_is_each_task_reviewed_in_turn(client):
+    """One call for the whole matrix, and it must be the same answers, task by task."""
+    every = client.get("/api/review/all", params={"seed": 7, "verdict": False}).json()["tasks"]
+    assert every
+    for index in (0, 1, len(every) - 1):
+        one = client.get("/api/review", params={"seed": 7, "index": index, "verdict": False}).json()
+        assert every[index] == one
+
+
+def test_review_shows_the_reports_the_reviewers_read(client):
+    payload = client.get("/api/review", params={"seed": 7, "index": 3}).json()
+    corpus = client.get("/api/corpus", params={"seed": 7, "events": 40}).json()
+    texts = {r["report_id"]: r["text"] for r in corpus["reports"]}
+    assert payload["sources"]
+    for source in payload["sources"]:
+        assert texts[source["report_id"]] == source["text"]
+        assert set(source["label"]) == {"sensitivity", "compartments", "capacity", "rendered"}
+
+
+def test_gate_reports_the_threshold_it_actually_tests_against(client):
+    """Significance is the baseline against the null's 95th percentile, so ship that."""
+    payload = client.get("/api/gate?seed=7&events=60&null_trials=3").json()
+    assert payload["null_p95"] is not None
+    assert payload["leak_is_significant"] == (payload["surface_baseline"] > payload["null_p95"])
+    assert len(payload["band"]) == 2
+    for probe, folds in payload["per_fold_auc"].items():
+        assert len(folds) == len(payload["scored_centers"]), probe
+
+
 def test_gate_reports_its_own_reduced_settings(client):
     payload = client.get("/api/gate?seed=7&events=60&null_trials=3").json()
     assert 0.0 <= payload["surface_baseline"] <= 1.0

@@ -4,63 +4,67 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pharos explorer</title>
+<meta name="description" content="Pharos, a labeled testbed for federated personalization with a governed disclosure boundary: its corpus, label lattice, shortcut gate, analyst review and findings, computed by the same Python that produces the published numbers.">
 <style>
+  /* The docs site's teal and amber, so the explorer reads as part of it. */
   :root {
-    --bg: #fbfbfd; --fg: #16181d; --muted: #5b6270; --line: #dcdfe6;
-    --card: #ffffff; --accent: #3949ab; --amber: #a35f00;
-    --ok: #1b6e3c; --bad: #a32b2b; --mono: ui-monospace, "JetBrains Mono", Menlo, monospace;
-    /* An inset surface inside a card, and text set on an accent fill. Both are
-       per-scheme: white reads on the light scheme's deep accent and not on the
-       dark scheme's pastel one. */
-    --panel: #f3f4f8; --on-accent: #ffffff;
+    color-scheme: light;
+    --bg: #f4f7f7; --card: #ffffff; --panel: #f1f5f5; --line: #d3dfdf;
+    --fg: #0f1f1f; --ink-2: #41575a; --muted: #53686a;
+    --accent: #0b7676; --amber: #b45309; --ok: #1b7a3d; --bad: #b3261e;
+    /* Text set on an accent, amber or green fill. Per scheme: white reads on the
+       light scheme's deep fills and not on the dark scheme's bright ones. */
+    --on-accent: #ffffff;
+    /* What a holder may read, lit by the lighthouse's beam. */
+    --beam: #fbe3c0;
+    /* Review actions. Accept is the quiet case; the three objections carry colour. */
+    --revise: #256abf; --on-revise: #ffffff;
+    --escalate: #eb6834; --on-escalate: #0f1f1f;
+    /* Reports per label cell: one teal ramp, light to dark, with the cell's text
+       colour chosen so every count clears 4.5:1. */
+    --step-0: #e3fbfa; --step-1: #c3efee; --step-2: #9bdcdb; --step-3: #73c5c4;
+    --step-4: #46a7a6; --step-5: #016869;
+    --on-step-0: #0f1f1f; --on-step-1: #0f1f1f; --on-step-2: #0f1f1f;
+    --on-step-3: #0f1f1f; --on-step-4: #0f1f1f; --on-step-5: #ffffff;
+    --sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --bar: 3.5rem;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #14161a; --fg: #e6e8ec; --muted: #98a0ae; --line: #2c313a;
-      --card: #1b1e24; --accent: #8c9eff; --amber: #ffb74d;
-      --ok: #6ddf9c; --bad: #ff8a80;
-      --panel: #14171c; --on-accent: #10131a;
+      color-scheme: dark;
+      --bg: #0e1617; --card: #142022; --panel: #1b2a2c; --line: #2a3d3f;
+      --fg: #e2eded; --ink-2: #b0c4c5; --muted: #93a9aa;
+      --accent: #22c8c8; --amber: #f0a020; --ok: #5fd38d; --bad: #ff8a80;
+      --on-accent: #062020;
+      --beam: #4d3a14;
+      --revise: #3987e5; --on-revise: #000000;
+      --escalate: #d95926; --on-escalate: #000000;
+      --step-0: #0b2f2f; --step-1: #0b4343; --step-2: #0b5c5c; --step-3: #259595;
+      --step-4: #45b5b5; --step-5: #69d5d5;
+      --on-step-0: #e2eded; --on-step-1: #e2eded; --on-step-2: #e2eded;
+      --on-step-3: #062020; --on-step-4: #062020; --on-step-5: #062020;
     }
   }
+
   * { box-sizing: border-box; }
   body {
     margin: 0; background: var(--bg); color: var(--fg);
-    font: 15px/1.55 system-ui, -apple-system, "Inter", sans-serif;
+    font: 15px/1.5 var(--sans);
+    -webkit-font-smoothing: antialiased;
   }
-  header {
-    padding: 1.4rem 1.5rem 1rem; border-bottom: 1px solid var(--line);
+  [hidden] { display: none !important; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
-  h1 { margin: 0 0 .2rem; font-size: 1.3rem; letter-spacing: -.01em; }
-  h1 span { color: var(--amber); }
-  header p { margin: 0; color: var(--muted); max-width: 62ch; }
-  main { padding: 1.25rem 1.5rem 3rem; max-width: 1100px; }
-  nav { display: flex; gap: .3rem; flex-wrap: wrap; margin: 1rem 0 1.25rem; }
-  nav button {
-    background: none; border: 1px solid var(--line); color: var(--muted);
-    padding: .4rem .8rem; border-radius: 999px; cursor: pointer; font-size: .88rem;
-  }
-  nav button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-  /* A tab an offline build cannot serve. It is disabled in the DOM, and this is
-     what makes that visible -- a dead control that looks live is worse than one
-     that is plainly out of reach. */
-  nav button:disabled { opacity: .7; color: var(--muted); border-color: var(--line); cursor: not-allowed; text-decoration: line-through; }
-  .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 10px;
-    padding: 1rem 1.1rem; margin-bottom: 1rem;
-  }
-  .row { display: flex; gap: .8rem; flex-wrap: wrap; align-items: flex-end; }
-  label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: .2rem; }
-  input, select {
-    background: var(--bg); color: var(--fg); border: 1px solid var(--line);
-    border-radius: 6px; padding: .4rem .5rem; font: inherit; font-size: .9rem;
-  }
-  input[type=number] { width: 6.5rem; }
-  :focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-  /* A reduced-motion preference switches off any transition or animation on the
-     page, including one a later change adds. */
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code, .mono { font-family: var(--mono); font-size: .86em; }
+  h2, h3, h4 { margin: 0; line-height: 1.25; }
+
+  /* The one motion on the page is the scroll to an exit, and the script asks for
+     it smooth only without a reduced-motion preference. This switches off any CSS
+     transition or animation, including one a later change adds. */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -69,260 +73,483 @@
       scroll-behavior: auto !important;
     }
   }
-  /* Styling `input` at all overrides the browser's own disabled appearance, so a
-     frozen field came out pixel-identical to a live one: same colour, same
-     background, opacity 1. The attribute was set and said nothing. Restate it. */
-  input:disabled, select:disabled {
-    opacity: .65; color: var(--muted); cursor: not-allowed; border-style: dashed;
+
+  /* ── App bar: name, views, and the seed every view shares ── */
+  .appbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: stretch; gap: 1.75rem;
+    min-height: var(--bar); padding: 0 1.5rem;
+    background: var(--card); border-bottom: 1px solid var(--line);
   }
+  .wordmark {
+    align-self: center; margin: 0; font-size: 1.05rem; font-weight: 650;
+    letter-spacing: -.01em; white-space: nowrap;
+  }
+  .wordmark span { color: var(--amber); }
+  [role="tablist"] {
+    display: flex; gap: .15rem; overflow-x: auto; scrollbar-width: none;
+  }
+  [role="tab"] {
+    background: none; border: 0; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; padding: 0 .8rem; cursor: pointer; white-space: nowrap;
+    color: var(--ink-2); font: inherit; font-size: .93rem;
+  }
+  [role="tab"]:hover { color: var(--fg); }
+  [role="tab"][aria-selected="true"] { color: var(--fg); font-weight: 600; border-bottom-color: var(--accent); }
+  [role="tab"] .badge {
+    margin-left: .35rem; font-size: .72rem; font-weight: 500; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 0 .4rem;
+  }
+  .appbar-end { margin-left: auto; display: flex; align-items: center; gap: 1.25rem; }
+
+  /* A segmented control is a group of radios that look like one control. */
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; padding: 0; margin: 0; min-width: 0; }
+  .seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .seg label { position: relative; display: block; }
+  .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg span {
+    display: block; padding: .3rem .7rem; font-size: .88rem; color: var(--ink-2);
+    border-left: 1px solid var(--line); white-space: nowrap;
+  }
+  .seg label:first-of-type span { border-left: 0; border-radius: 5px 0 0 5px; }
+  .seg.stack { flex-direction: column; align-self: stretch; }
+  .seg.stack span { border-left: 0; border-top: 1px solid var(--line); border-radius: 0; }
+  .seg.stack label:first-of-type span { border-top: 0; border-radius: 5px 5px 0 0; }
+  .seg.stack label:last-of-type span { border-radius: 0 0 5px 5px; }
+  .seg label:last-of-type span { border-radius: 0 5px 5px 0; }
+  .seg input:checked + span { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .seed { display: flex; align-items: center; gap: .5rem; font-size: .88rem; color: var(--ink-2); }
+
+  .build { position: relative; font-size: .85rem; }
+  .build summary {
+    list-style: none; cursor: pointer; color: var(--ink-2); padding: .3rem .6rem;
+    border: 1px solid var(--line); border-radius: 999px; white-space: nowrap;
+  }
+  .build summary::-webkit-details-marker { display: none; }
+  .build[open] summary { color: var(--fg); border-color: var(--accent); }
+  .build-panel {
+    position: absolute; right: 0; top: calc(100% + .5rem); width: min(26rem, 90vw);
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: .9rem 1rem; color: var(--ink-2); line-height: 1.5;
+  }
+
+  /* ── A view: the rail explains and controls, the canvas answers ── */
+  .view {
+    display: grid; grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
+    min-height: calc(100vh - var(--bar));
+  }
+  .rail {
+    position: sticky; top: var(--bar); align-self: start;
+    max-height: calc(100dvh - var(--bar)); overflow-y: auto;
+    padding: 1.5rem 1.5rem 2rem; border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 1.15rem;
+  }
+  .rail h2 { font-size: 1.1rem; font-weight: 650; }
+  .rail p { margin: 0; color: var(--ink-2); font-size: .9rem; }
+  .rail h3 { font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: -.5rem; }
+  .canvas { min-width: 0; padding: 1.75rem 2rem 4rem; container-type: inline-size; }
+  .answer {
+    margin: 0 0 1.4rem; max-width: 62ch; font-size: 1.3rem; line-height: 1.4;
+    font-weight: 600; letter-spacing: -.01em; text-wrap: pretty;
+  }
+  .answer .sub { display: block; margin-top: .35rem; font-size: .95rem; font-weight: 400; color: var(--ink-2); letter-spacing: 0; }
+
+  /* Controls */
+  .control { display: flex; flex-direction: column; gap: .3rem; }
+  .control > span, fieldset > legend { font-size: .8rem; font-weight: 600; color: var(--muted); }
+  input, select {
+    background: var(--card); color: var(--fg); border: 1px solid var(--line);
+    border-radius: 6px; padding: .4rem .55rem; font: inherit; font-size: .9rem;
+  }
+  input[type="number"] { width: 7rem; }
+  input[type="search"] { width: 100%; }
+  fieldset.group { border: 1px solid var(--line); border-radius: 8px; padding: .7rem .8rem .8rem; margin: 0; display: flex; flex-direction: column; gap: .6rem; }
+  fieldset.group legend { padding: 0 .3rem; }
+  .row { display: flex; gap: .6rem; flex-wrap: wrap; align-items: flex-end; }
+  .checks { display: flex; flex-wrap: wrap; gap: .3rem .9rem; }
+  .checks label, .check { display: flex; gap: .35rem; align-items: center; font-size: .88rem; }
   button.go {
-    background: var(--accent); color: var(--on-accent); border: 0; border-radius: 6px;
-    padding: .45rem 1rem; cursor: pointer; font: inherit; font-size: .9rem;
+    align-self: flex-start; background: var(--accent); color: var(--on-accent);
+    border: 0; border-radius: 6px; padding: .45rem 1rem; cursor: pointer;
+    font: inherit; font-size: .9rem; font-weight: 600;
   }
-  button.go:disabled { opacity: .7; background: var(--muted); cursor: progress; }
-  table { border-collapse: collapse; width: 100%; font-size: .86rem; }
-  th, td { text-align: left; padding: .38rem .5rem; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 600; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+  button.go:disabled { opacity: .7; cursor: progress; }
+  button.plain {
+    align-self: flex-start; background: var(--card); color: var(--fg);
+    border: 1px solid var(--line); border-radius: 6px; padding: .4rem .8rem;
+    cursor: pointer; font: inherit; font-size: .88rem;
+  }
+  button.plain:hover { border-color: var(--accent); }
+  button.link {
+    align-self: flex-start; background: none; border: 0; padding: 0; cursor: pointer;
+    color: var(--accent); font: inherit; font-size: .88rem; text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Figures, tables, tags */
+  .figure { margin: 0 0 1.75rem; }
+  .figure figcaption, .caption { font-size: .85rem; color: var(--ink-2); margin: 0 0 .6rem; max-width: 70ch; }
+  .surface { background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
   .scroll { overflow-x: auto; }
-  code, .mono { font-family: var(--mono); font-size: .85em; }
-  .tag { display: inline-block; padding: .06rem .4rem; border-radius: 4px; border: 1px solid var(--line); font-family: var(--mono); font-size: .76rem; }
+  table { border-collapse: collapse; width: 100%; font-size: .87rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { font-size: .8rem; font-weight: 600; color: var(--muted); }
+  tbody tr:last-child > * { border-bottom: 0; }
+  .tag {
+    display: inline-block; padding: .05rem .4rem; border-radius: 4px; border: 1px solid var(--line);
+    font-family: var(--mono); font-size: .78rem; white-space: nowrap; background: var(--card);
+  }
   .ok { color: var(--ok); } .bad { color: var(--bad); } .muted { color: var(--muted); }
-  .note { color: var(--muted); font-size: .84rem; margin-top: .6rem; }
-  .verdict { font-size: 1.05rem; font-weight: 600; }
-  pre { white-space: pre-wrap; margin: .4rem 0 0; font-family: var(--mono); font-size: .82rem; color: var(--muted); }
-  fieldset { border: 1px solid var(--line); border-radius: 8px; padding: .6rem .8rem; }
-  legend { font-size: .78rem; color: var(--muted); padding: 0 .3rem; }
-  .chips { display: flex; gap: .5rem; flex-wrap: wrap; }
-  .chips label { display: flex; gap: .25rem; align-items: center; margin: 0; font-size: .85rem; color: var(--fg); }
-  [hidden] { display: none !important; }
+  .nowrap { white-space: nowrap; }
+  .note { color: var(--muted); font-size: .84rem; margin: .6rem 0 0; max-width: 70ch; }
+  .error { color: var(--bad); }
+  .legend { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; margin: 0 0 .8rem; padding: 0; list-style: none; font-size: .85rem; color: var(--ink-2); }
+  .legend li { display: flex; align-items: center; gap: .45rem; }
+  .swatch { width: 1.1rem; height: 1.1rem; border-radius: 3px; border: 1px solid var(--line); flex: none; display: inline-grid; place-items: center; font-size: .7rem; font-weight: 700; }
 
-  .grid-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.8rem; margin: 0.8rem 0 1.2rem; }
-  .metric-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 0.85rem 1rem; text-align: center; }
-  .metric-value { font-size: 1.5rem; font-weight: 800; color: var(--accent); margin: 0.2rem 0; font-family: var(--mono); }
-  .metric-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+  /* ── Corpus ── */
+  .counts { width: auto; border-collapse: separate; border-spacing: 2px; }
+  .counts th, .counts td { border: 0; padding: 0; }
+  .counts thead th { padding: 0 .5rem .35rem; text-align: center; vertical-align: bottom; font-family: var(--mono); font-weight: 500; font-size: .76rem; }
+  .counts tbody th { padding: 0 .8rem 0 0; vertical-align: middle; font-family: var(--mono); font-size: .78rem; font-weight: 500; color: var(--ink-2); }
+  .cell {
+    display: block; width: 100%; min-width: 5.5rem; height: 2.6rem; border: 0; border-radius: 4px;
+    font: 600 .95rem var(--sans); font-variant-numeric: tabular-nums; cursor: pointer;
+  }
+  .cell:disabled { background: var(--panel); color: var(--muted); font-weight: 400; cursor: default; }
+  .cell[aria-pressed="true"] { outline: 3px solid var(--amber); outline-offset: 1px; }
+  .s0 { background: var(--step-0); color: var(--on-step-0); }
+  .s1 { background: var(--step-1); color: var(--on-step-1); }
+  .s2 { background: var(--step-2); color: var(--on-step-2); }
+  .s3 { background: var(--step-3); color: var(--on-step-3); }
+  .s4 { background: var(--step-4); color: var(--on-step-4); }
+  .s5 { background: var(--step-5); color: var(--on-step-5); }
+  .reports td:first-child, .reports th:first-child { white-space: nowrap; }
+  .reports td.text { min-width: 20rem; max-width: 80ch; }
+  /* `overflow-x: clip` keeps the wrapper from becoming a scroll container, so the
+     header sticks to the viewport. On a canvas too narrow for the table the wrapper
+     scrolls instead, and a sticky header inside it would have nothing to stick to. */
+  .reports-wrap { overflow-x: clip; }
+  .reports thead th { position: sticky; top: var(--bar); background: var(--card); z-index: 1; }
+  @container (max-width: 60rem) {
+    .reports-wrap { overflow-x: auto; }
+    .reports thead th { position: static; }
+  }
+  .sort {
+    background: none; border: 0; padding: 0; cursor: pointer; font: inherit; color: inherit;
+    display: inline-flex; gap: .3rem; align-items: center;
+  }
+  .sort:hover { color: var(--fg); }
+  .corpus-top { display: flex; flex-wrap: wrap; gap: 0 3rem; align-items: start; }
+  .corpus-top > .figure { min-width: 0; max-width: 100%; }
 
-  .bar-chart { margin: 1rem 0; display: flex; flex-direction: column; gap: 0.45rem; background: var(--panel); border: 1px solid var(--line); padding: 0.9rem 1rem; border-radius: 8px; }
-  .bar-row { display: flex; align-items: center; gap: 0.8rem; font-size: 0.82rem; }
-  .bar-label { width: 180px; font-family: var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .bar-track { flex: 1; height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 5px; background: var(--accent); }
-  .bar-count { width: 45px; text-align: right; font-family: var(--mono); color: var(--muted); }
+  /* ── Lattice ── */
+  .lattice { width: auto; border-collapse: separate; border-spacing: 3px; }
+  .lattice th, .lattice td { border: 0; padding: 0; }
+  .lattice thead td { text-align: center; color: var(--muted); font-size: .7rem; line-height: 1; height: .95rem; }
+  .lattice thead th, .lattice tbody th { padding-right: .8rem; font-family: var(--mono); font-size: .76rem; font-weight: 500; color: var(--ink-2); text-align: right; white-space: nowrap; }
+  .lattice .gap { width: .7rem; }
+  .node {
+    display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 5px;
+    border: 1px solid var(--line); background: var(--panel); color: var(--muted);
+    font: 700 .78rem var(--sans); cursor: pointer; padding: 0;
+  }
+  .node:hover { border-color: var(--fg); }
+  /* The amber border is the cue that clears 3:1 against an unlit cell; the beam's
+     fill alone is too pale to carry the state. */
+  .node.reads { background: var(--beam); color: var(--fg); border: 2px solid var(--amber); }
+  .node.holder { background: var(--amber); color: var(--on-accent); border-color: var(--amber); }
+  .node.item { box-shadow: inset 0 0 0 3px var(--accent); color: var(--fg); }
+  .node.join { outline: 2px solid var(--fg); outline-offset: 2px; color: var(--fg); }
+  .node.holder.item, .node.holder.join { color: var(--on-accent); }
+  .lattice-wrap { display: grid; grid-template-columns: minmax(0, auto) minmax(16rem, 1fr); gap: 2rem; align-items: start; }
+  .lattice-wrap > * { min-width: 0; }
+  @container (max-width: 72rem) { .lattice-wrap { grid-template-columns: minmax(0, 1fr); } }
+  .verdicts th { width: 40%; color: var(--muted); font-weight: 500; }
+  .verdicts .tag, .facts .tag, .answer .tag { white-space: normal; overflow-wrap: anywhere; }
 
-  .lattice-diagram { position: relative; padding: 1.2rem; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; margin: 1rem 0; text-align: center; }
-  .lattice-level { display: flex; justify-content: center; gap: 1.2rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
-  .lattice-pill { padding: 0.4rem 0.8rem; border-radius: 6px; border: 1.5px solid var(--line); background: var(--card); font-size: 0.8rem; font-weight: 600; font-family: var(--mono); }
-  .lattice-pill.holder { border-color: var(--accent); color: var(--accent); }
-  .lattice-pill.object { border-color: var(--amber); color: var(--amber); }
-  .lattice-pill.join { border-color: var(--ok); color: var(--ok); }
+  /* ── Gate ── */
+  .chart { display: block; width: 100%; height: auto; font-family: var(--sans); }
+  .chart text { fill: var(--ink-2); font-size: 12px; }
+  .chart .axis text { fill: var(--muted); font-variant-numeric: tabular-nums; }
+  .chart .grid line { stroke: var(--line); stroke-width: 1; }
+  .chart .rowlabel { fill: var(--fg); font-size: 13px; font-weight: 600; }
+  .chart .chance { fill: var(--panel); }
+  .chart .chance-edge { stroke: var(--muted); stroke-width: 1.5; }
+  .chart .spread { fill: var(--step-1); stroke: var(--ink-2); stroke-width: 1; }
+  .chart .mean { stroke: var(--ink-2); stroke-width: 2; }
+  .chart .threshold { stroke: var(--amber); stroke-width: 2.5; }
+  .chart .threshold-label { fill: var(--amber); font-weight: 600; }
+  .chart .baseline { stroke: var(--accent); stroke-width: 2.5; }
+  .chart .baseline-label { fill: var(--accent); font-weight: 600; }
+  .chart .fold { fill: var(--card); stroke: var(--fg); stroke-width: 1.5; }
+  .chart .probe { fill: var(--fg); }
 
-  /* --- Escapes: the argument, one exit per row --- */
-  .escape { border: 1px solid var(--line); border-left-width: 5px; border-radius: 8px; background: var(--card); padding: .85rem 1rem; margin: .7rem 0; }
-  .escape.closes { border-left-color: var(--ok); }
-  .escape.bounded { border-left-color: var(--amber); }
-  .escape.open { border-left-color: var(--bad); }
-  .escape-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
-  .escape-objection { font-weight: 700; font-size: .95rem; margin: 0; }
+  /* ── Review ── */
+  .matrix { width: auto; border-collapse: separate; border-spacing: 2px; font-size: .8rem; }
+  .matrix th, .matrix td { border: 0; padding: 0; text-align: center; }
+  .matrix tbody th, .matrix thead th:first-child { text-align: right; padding-right: .7rem; font-family: var(--mono); font-weight: 500; font-size: .76rem; color: var(--ink-2); white-space: nowrap; }
+  .matrix .truth td { color: var(--muted); font-size: .72rem; padding: .15rem 0 .3rem; }
+  .colhead {
+    width: 1.9rem; height: 1.6rem; border: 0; border-radius: 4px; background: none; cursor: pointer;
+    font: 500 .74rem var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; padding: 0;
+  }
+  .colhead[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 700; }
+  .act {
+    display: block; width: 1.9rem; height: 1.9rem; border: 0; border-radius: 4px; cursor: pointer;
+    font: 700 .8rem var(--sans); padding: 0;
+  }
+  .act-accept { background: var(--panel); color: var(--muted); }
+  .act-revise { background: var(--revise); color: var(--on-revise); }
+  .act-escalate { background: var(--escalate); color: var(--on-escalate); }
+  .act-reject { background: var(--fg); color: var(--card); }
+  td.picked .act { box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--accent); }
+  .detail { margin-top: 2rem; }
+  .detail h3 { font-size: 1.1rem; margin-bottom: .5rem; }
+  .detail-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 2rem; align-items: start; margin-top: 1rem; }
+  @container (max-width: 75rem) { .detail-grid { grid-template-columns: minmax(0, 1fr); } }
+  .facts { margin: 0; color: var(--ink-2); max-width: 75ch; }
+  .facts + .facts { margin-top: .35rem; }
+  .sources { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .8rem; }
+  .sources li { padding: .75rem .9rem; }
+  .sources p { margin: .35rem 0 0; font-size: .88rem; color: var(--ink-2); }
+
+  /* ── Exits ── */
+  .tally { display: flex; flex-wrap: wrap; gap: 3px; margin: 0 0 1.5rem; padding: 0; list-style: none; }
+  .tally button {
+    width: 2.2rem; height: 2.2rem; border-radius: 4px; cursor: pointer; padding: 0;
+    font: 700 .95rem var(--sans); background: var(--card); border: 2px solid currentColor;
+  }
+  .tally .closes { color: var(--ok); } .tally .bounded { color: var(--amber); } .tally .open { color: var(--bad); }
+  .exits-section + .exits-section { margin-top: 2.25rem; }
+  .exits-section > h3 { font-size: .95rem; margin-bottom: .8rem; }
+  .escape {
+    display: grid; grid-template-columns: 9rem minmax(0, 62ch) minmax(0, 1fr); gap: 1.5rem;
+    padding: 1.1rem 0; border-top: 1px solid var(--line); scroll-margin-top: calc(var(--bar) + 1rem);
+  }
+  .escape:last-child { border-bottom: 1px solid var(--line); }
+  .escape-meta { display: flex; flex-direction: column; gap: .4rem; align-items: flex-start; }
+  .escape-objection { margin: 0; font-weight: 650; font-size: 1rem; }
+  .escape-outcome { margin: .45rem 0 0; font-size: .9rem; color: var(--ink-2); }
+  .escape-findings { font-size: .78rem; color: var(--muted); }
   /* Redundant encoding, not colour alone: the verdict is spelled out in the badge and
      carries a glyph, so it survives a greyscale print and a colour-vision deficiency.
-     The left border is a third channel and never the only one. */
-  .verdict-tag { font-family: var(--mono); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: .15rem .45rem; border-radius: 4px; border: 1px solid currentColor; white-space: nowrap; }
+     The tally's border is a third channel and never the only one. */
+  .verdict-tag { font-size: .78rem; font-weight: 700; padding: .1rem .5rem; border-radius: 4px; border: 1px solid currentColor; white-space: nowrap; }
   .verdict-tag.closes { color: var(--ok); }
   .verdict-tag.bounded { color: var(--amber); }
   .verdict-tag.open { color: var(--bad); }
-  .escape-findings { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
-  .escape-outcome { margin: .5rem 0 0; font-size: .87rem; color: var(--fg); }
-  .escape-readings { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: .6rem; padding-top: .55rem; border-top: 1px dashed var(--line); }
-  .reading { font-size: .78rem; }
-  .reading b { font-family: var(--mono); font-size: .95rem; color: var(--accent); display: block; }
-  .reading span { color: var(--muted); }
-  .reading code { font-size: .68rem; color: var(--muted); }
-  .escape.unmeasured { opacity: .75; border-left-style: dashed; }
+  .escape-readings { display: flex; flex-wrap: wrap; gap: 1rem 1.6rem; align-content: start; }
+  .reading { font-size: .8rem; max-width: 13rem; }
+  .reading b { display: block; font-size: 1.05rem; color: var(--fg); font-variant-numeric: tabular-nums; }
+  .reading span { color: var(--ink-2); }
+  .reading code { display: block; font-size: .72rem; color: var(--muted); margin-top: .1rem; }
+  .escape.unmeasured .escape-objection { color: var(--ink-2); }
+  @container (max-width: 64rem) {
+    .escape { grid-template-columns: 1fr; gap: .7rem; }
+    .escape-meta { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  }
+
+  /* ── Model ── */
+  pre { white-space: pre-wrap; margin: .4rem 0 0; font-family: var(--mono); font-size: .82rem; color: var(--ink-2); }
+  .cmd { padding: .8rem 1rem; max-width: 46rem; }
+  .verdict { font-size: 1.05rem; font-weight: 600; }
+
+  /* ── Narrow screens: the rail stacks above the canvas ── */
+  @media (max-width: 52rem) {
+    .appbar { flex-wrap: wrap; gap: 0 1rem; padding: .5rem 1rem 0; }
+    .wordmark { order: 1; }
+    .appbar-end { order: 2; margin-left: auto; gap: .6rem; }
+    [role="tablist"] { order: 3; flex-basis: 100%; height: 2.6rem; margin: 0 -1rem; padding: 0 .5rem; }
+    .view { grid-template-columns: 1fr; }
+    .rail { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--line); padding: 1.1rem 1rem 1.3rem; }
+    .canvas { padding: 1.25rem 1rem 3rem; }
+    .answer { font-size: 1.12rem; }
+    .reports td.text { min-width: 16rem; }
+    .build-panel { right: -1rem; }
+  }
 </style>
-
-
 </head>
 <body>
-<header>
-  <h1>Pharos <span>explorer</span></h1>
-  <p>A labeled testbed for federated personalization with a governed disclosure
-     boundary. Everything below runs against the same Python that produces the
-     published numbers.</p>
-  <p class="note" id="offline-banner" hidden></p>
+<header class="appbar">
+  <h1 class="wordmark">Pharos <span>explorer</span></h1>
+  <nav role="tablist" aria-label="Explorer views">
+    <button role="tab" id="tab-btn-corpus" data-tab="corpus" aria-selected="true" aria-controls="tab-corpus" tabindex="0">Corpus</button>
+    <button role="tab" id="tab-btn-lattice" data-tab="lattice" aria-selected="false" aria-controls="tab-lattice" tabindex="-1">Label lattice</button>
+    <button role="tab" id="tab-btn-gate" data-tab="gate" aria-selected="false" aria-controls="tab-gate" tabindex="-1">Shortcut gate</button>
+    <button role="tab" id="tab-btn-review" data-tab="review" aria-selected="false" aria-controls="tab-review" tabindex="-1">Analyst review</button>
+    <button role="tab" id="tab-btn-escapes" data-tab="escapes" aria-selected="false" aria-controls="tab-escapes" tabindex="-1">Every exit, priced</button>
+    <button role="tab" id="tab-btn-triage" data-tab="triage" aria-selected="false" aria-controls="tab-triage" tabindex="-1">Run a model</button>
+  </nav>
+  <div class="appbar-end">
+    <div class="seed" id="seed-control"></div>
+    <details class="build" id="build">
+      <summary id="build-summary">Live server</summary>
+      <div class="build-panel" id="build-panel">This page is talking to a local Pharos server, so any seed works and the model view can run.</div>
+    </details>
+  </div>
 </header>
 
 <main>
-  <nav role="tablist" aria-label="Explorer Sections">
-    <button role="tab" id="tab-btn-corpus" data-tab="corpus" aria-selected="true" aria-controls="tab-corpus" tabindex="0">Corpus</button>
-    <button role="tab" id="tab-btn-lattice" data-tab="lattice" aria-selected="false" aria-controls="tab-lattice" tabindex="-1">Label lattice</button>
-    <button role="tab" id="tab-btn-triage" data-tab="triage" aria-selected="false" aria-controls="tab-triage" tabindex="-1">Run a model</button>
-    <button role="tab" id="tab-btn-gate" aria-selected="false" data-tab="gate" aria-controls="tab-gate" tabindex="-1">Shortcut gate</button>
-    <button role="tab" id="tab-btn-review" data-tab="review" aria-selected="false" aria-controls="tab-review" tabindex="-1">Analyst review</button>
-    <button role="tab" id="tab-btn-escapes" data-tab="escapes" aria-selected="false" aria-controls="tab-escapes" tabindex="-1">Every exit, priced</button>
-  </nav>
-
-
   <!-- ── Corpus ─────────────────────────────────────────────── -->
-  <section id="tab-corpus" role="tabpanel" aria-labelledby="tab-btn-corpus">
-    <div class="card">
-      <div class="row">
-        <div><label for="c-seed">Seed</label><input id="c-seed" type="number" value="7"></div>
-        <div><label for="c-events">Events</label><input id="c-events" type="number" value="40"></div>
-        <button class="go" id="c-go">Generate</button>
-        <button class="go" id="c-dl-jsonl" style="display:none; background: var(--ok);" title="Download full dataset as JSONL">Download corpus.jsonl</button>
-        <button class="go" id="c-dl-manifest" style="display:none; background: var(--amber);" title="Download manifest certification JSON">Download manifest.json</button>
-      </div>
-      <p class="note">A corpus is fully determined by its seed and config. The same
+  <section class="view" id="tab-corpus" role="tabpanel" aria-labelledby="tab-btn-corpus">
+    <aside class="rail">
+      <h2>Corpus</h2>
+      <p>Maritime watch reports, each carrying a label of a sensitivity level and its
+        compartments. A corpus is fully determined by its seed and config: the same
         seed always produces the same bytes.</p>
-    </div>
-    <div class="card" id="c-out" hidden></div>
+      <div class="control" id="c-events-control">
+        <label class="control"><span>Events</span><input id="c-events" type="number" min="1" value="40"></label>
+      </div>
+      <fieldset class="seg" id="c-class"><legend>Class</legend>
+        <label><input type="radio" name="c-class" value="all" checked><span>All</span></label>
+        <label><input type="radio" name="c-class" value="significant"><span>Significant</span></label>
+        <label><input type="radio" name="c-class" value="routine"><span>Routine</span></label>
+      </fieldset>
+      <label class="control"><span>Search the text</span><input id="c-q" type="search" placeholder="vessel, operator, report ID"></label>
+      <button class="link" id="c-clear" hidden>Show every label cell</button>
+      <h3>Download this corpus</h3>
+      <div class="row">
+        <button class="plain" id="c-dl-jsonl">corpus.jsonl</button>
+        <button class="plain" id="c-dl-manifest">manifest.json</button>
+      </div>
+    </aside>
+    <div class="canvas" id="c-canvas"></div>
   </section>
-
 
   <!-- ── Lattice ────────────────────────────────────────────── -->
-  <section id="tab-lattice" role="tabpanel" aria-labelledby="tab-btn-lattice" hidden>
-    <div class="card">
-      <p class="note" style="margin-top:0">Sensitivity is a ladder; compartments are
-        not. Two labels at the same level with different compartments dominate in
-        neither direction, and that incomparability is the whole difficulty.</p>
-      <div class="row" style="align-items:flex-start">
-        <fieldset><legend>Holder (the reader)</legend>
-          <div class="row">
-            <div><label for="h-sens">Sensitivity</label><select id="h-sens"></select></div>
-            <div><label for="h-cap">Capacity</label><select id="h-cap"></select></div>
-          </div>
-          <div style="margin-top:.5rem"><label>Compartments</label>
-            <div class="chips" id="h-comps"></div></div>
-        </fieldset>
-        <fieldset><legend>Object (the thing read)</legend>
-          <div class="row">
-            <div><label for="i-sens">Sensitivity</label><select id="i-sens"></select></div>
-            <div><label for="i-cap">Capacity</label><select id="i-cap"></select></div>
-          </div>
-          <div style="margin-top:.5rem"><label>Compartments</label>
-            <div class="chips" id="i-comps"></div></div>
-        </fieldset>
-      </div>
-      <div class="row" style="margin-top:.8rem"><button class="go" id="l-go">Check dominance</button></div>
-    </div>
-    <div class="card" id="l-out" hidden></div>
-  </section>
-
-  <!-- ── Triage ─────────────────────────────────────────────── -->
-  <section id="tab-triage" role="tabpanel" aria-labelledby="tab-btn-triage" hidden>
-    <div class="card">
-      <div class="row">
-        <div style="min-width:19rem"><label for="t-model">Model</label><select id="t-model"></select></div>
-        <div><label for="t-seed">Seed</label><input id="t-seed" type="number" value="7"></div>
-        <div><label for="t-index">Task</label><input id="t-index" type="number" value="0"></div>
-        <button class="go" id="t-go">Run</button>
-      </div>
-      <p class="note" id="t-modelnote"></p>
-    </div>
-    <div class="card" id="t-out" aria-live="polite" role="status" hidden></div>
+  <section class="view" id="tab-lattice" role="tabpanel" aria-labelledby="tab-btn-lattice" hidden>
+    <aside class="rail">
+      <h2>Label lattice</h2>
+      <p>Sensitivity is a ladder; compartments are not. Two labels at the same level
+        with different compartments dominate in neither direction, and that
+        incomparability is the whole difficulty.</p>
+      <fieldset class="group" id="h-group"><legend>Holder, the reader</legend>
+        <div class="row">
+          <label class="control"><span>Sensitivity</span><select id="h-sens"></select></label>
+          <label class="control"><span>Capacity</span><select id="h-cap"></select></label>
+        </div>
+        <div class="control"><span>Compartments</span><div class="checks" id="h-comps"></div></div>
+      </fieldset>
+      <fieldset class="group" id="i-group"><legend>Object, the thing read</legend>
+        <div class="row">
+          <label class="control"><span>Sensitivity</span><select id="i-sens"></select></label>
+          <label class="control"><span>Capacity</span><select id="i-cap"></select></label>
+        </div>
+        <div class="control"><span>Compartments</span><div class="checks" id="i-comps"></div></div>
+      </fieldset>
+      <fieldset class="seg" id="l-sets"><legend>Selecting a cell sets the</legend>
+        <label><input type="radio" name="l-sets" value="item" checked><span>Object</span></label>
+        <label><input type="radio" name="l-sets" value="holder"><span>Holder</span></label>
+      </fieldset>
+      <p>Selecting a cell in the lattice sets the object, or the holder, to that cell.</p>
+    </aside>
+    <div class="canvas" id="l-canvas"></div>
   </section>
 
   <!-- ── Gate ───────────────────────────────────────────────── -->
-  <section id="tab-gate" role="tabpanel" aria-labelledby="tab-btn-gate" hidden>
-    <div class="card">
-      <p class="note" style="margin-top:0">The gate asks whether plant membership is
-        predictable from shape alone, reading no words. It is expected to score above
-        chance, because ground truth is defined by content. What matters is that the
-        baseline is measured and significant against its own permutation null.</p>
-      <div class="row">
-        <div><label for="g-seed">Seed</label><input id="g-seed" type="number" value="7"></div>
-        <div><label for="g-events">Events</label><input id="g-events" type="number" value="120"></div>
-        <button class="go" id="g-go">Run gate</button>
+  <section class="view" id="tab-gate" role="tabpanel" aria-labelledby="tab-btn-gate" hidden>
+    <aside class="rail">
+      <h2>Shortcut gate</h2>
+      <p>The gate asks whether plant membership is predictable from shape alone,
+        reading no words. It is expected to score above chance, because ground truth
+        is defined by content. What matters is that the baseline is measured and
+        significant against its own permutation null.</p>
+      <div class="control" id="g-live" hidden>
+        <label class="control"><span>Events</span><input id="g-events" type="number" min="1" value="120"></label>
+        <button class="go" id="g-go">Run the gate</button>
+        <p>A gate run takes seconds, so it waits for this button.</p>
       </div>
-    </div>
-    <div class="card" id="g-out" hidden></div>
+      <p id="g-fixed" hidden></p>
+    </aside>
+    <div class="canvas" id="g-canvas"></div>
   </section>
 
   <!-- ── Analyst review ─────────────────────────────────────── -->
-  <section id="tab-review" role="tabpanel" aria-labelledby="tab-btn-review" hidden>
-    <div class="card">
-      <p class="note" style="margin-top:0">A proposal is two assertions: a verdict,
-        and the label it would be released under. Each reviewer below differs from
-        the by-the-book one on exactly one axis. Watch the last column. A blocked
-        release is not automatically a refusal: a compartment shortfall is a ruling
-        somebody is entitled to make, so it reads <em>needs approval</em> and the
-        reviewer escalates instead. A level or capacity objection is nobody's to
-        lift and reads <em>withheld</em>.</p>
-      <p class="note"><strong>Reviewers are decision procedures with named
-        parameters, not simulated people.</strong> Each row bounds a mechanism and
-        estimates nothing about how a human analyst behaves.</p>
-      <div class="row">
-        <div><label for="r-seed">Seed</label><input id="r-seed" type="number" value="7"></div>
-        <div><label for="r-index">Task</label><input id="r-index" type="number" value="0"></div>
-        <div><label for="r-verdict">Proposed verdict</label>
-          <select id="r-verdict">
-            <option value="true">SIGNIFICANT</option>
-            <option value="false">ROUTINE</option>
-          </select></div>
-        <button class="go" id="r-go">Review</button>
-      </div>
-    </div>
-    <div class="card" id="r-out" hidden></div>
+  <section class="view" id="tab-review" role="tabpanel" aria-labelledby="tab-btn-review" hidden>
+    <aside class="rail">
+      <h2>Analyst review</h2>
+      <p>A proposal is two assertions: a verdict, and the label it would be released
+        under. Each reviewer differs from the by-the-book one on exactly one axis. A
+        compartment shortfall is a ruling somebody is entitled to make, so the reviewer
+        escalates; a level or capacity objection is nobody's to lift, and the release
+        is withheld.</p>
+      <p><strong>Reviewers are decision procedures with named parameters, not simulated
+        people.</strong> Each row bounds a mechanism and estimates nothing about how a
+        human analyst behaves.</p>
+      <fieldset class="seg" id="r-verdict"><legend>Proposed verdict</legend>
+        <label><input type="radio" name="r-verdict" value="true" checked><span>Significant</span></label>
+        <label><input type="radio" name="r-verdict" value="false"><span>Routine</span></label>
+      </fieldset>
+      <label class="check"><input type="checkbox" id="r-split"> Only tasks where the reviewers act differently</label>
+      <ul class="legend" aria-label="Actions">
+        <li><span class="swatch act-accept">·</span>accept</li>
+        <li><span class="swatch act-revise">R</span>revise</li>
+        <li><span class="swatch act-escalate">E</span>escalate</li>
+        <li><span class="swatch act-reject">✕</span>reject</li>
+      </ul>
+    </aside>
+    <div class="canvas" id="r-canvas"></div>
   </section>
 
   <!-- ── Every exit, priced ─────────────────────────────────── -->
-  <section id="tab-escapes" role="tabpanel" aria-labelledby="tab-btn-escapes" hidden>
-    <h2>Every exit, priced</h2>
-    <p class="muted">
-      The findings page is twenty-four results in reading order. The argument is not
-      twenty-four things: it is one tension, and a list of exits from it that were each
-      built and measured rather than argued about. Every number below is read from the
-      artifact named beneath it, never typed in.
-    </p>
-    <div id="escapes-tension"></div>
-    <h3>The exits</h3>
-    <div id="escapes-counts" class="grid-metrics"></div>
-    <div id="escapes-list"></div>
+  <section class="view" id="tab-escapes" role="tabpanel" aria-labelledby="tab-btn-escapes" hidden>
+    <aside class="rail">
+      <h2>Every exit, priced</h2>
+      <p>The findings page lists every result in reading order. The argument is not a
+        list: it is one tension, and a list of exits from it that were each built and
+        measured rather than argued about. Every number here is read from the artifact
+        named beneath it, never typed in.</p>
+      <fieldset class="seg stack" id="x-filter"><legend>Show</legend></fieldset>
+    </aside>
+    <div class="canvas" id="x-canvas">
+      <p class="answer" id="escapes-answer"></p>
+      <section class="exits-section" aria-labelledby="x-tension-h">
+        <h3 id="x-tension-h">The tension</h3>
+        <div id="escapes-tension"></div>
+      </section>
+      <section class="exits-section" aria-labelledby="x-exits-h">
+        <h3 id="x-exits-h">The exits, in the order the objections are raised</h3>
+        <ol class="tally" id="escapes-counts"></ol>
+        <div id="escapes-list"></div>
+      </section>
+    </div>
   </section>
 
+  <!-- ── Run a model ────────────────────────────────────────── -->
+  <section class="view" id="tab-triage" role="tabpanel" aria-labelledby="tab-btn-triage" hidden>
+    <aside class="rail">
+      <h2>Run a model</h2>
+      <p>One triage task from the corpus, answered by a model you choose. The governed
+        label of the answer is the join over every source report the task read.</p>
+      <div class="control" id="t-controls">
+        <label class="control"><span>Model</span><select id="t-model"></select></label>
+        <p id="t-modelnote"></p>
+        <label class="control"><span>Task</span><input id="t-index" type="number" min="0" value="0"></label>
+        <button class="go" id="t-go">Run</button>
+      </div>
+    </aside>
+    <div class="canvas">
+      <div id="t-offline" hidden>
+        <p class="answer">Running a model needs the local Pharos server.<span class="sub">This copy of the explorer is a frozen bundle with no backend, so it cannot call a model. Install Pharos and start the explorer locally:</span></p>
+        <pre class="cmd surface">uv sync --group ui
+uv run python -m pharos.cli serve</pre>
+        <p class="note">Then open http://127.0.0.1:8080. The model view lists the models you have pulled with Ollama.</p>
+      </div>
+      <div id="t-out" aria-live="polite" hidden></div>
+    </div>
+  </section>
 </main>
-
+<p class="sr-only" id="status" role="status" aria-live="polite"></p>
 
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-// Each tab names its panel in `aria-controls`, and that attribute is the only list of
-// panels there is. A second, hand-kept list is how "Every exit, priced" shipped with a
-// tab that selected and a panel that never opened.
-const tabs = [...document.querySelectorAll('[role="tab"]')];
-function selectTab(btn) {
-  for (const b of tabs) {
-    const on = b === btn;
-    b.setAttribute('aria-selected', String(on));
-    b.tabIndex = on ? 0 : -1;
-    $(b.getAttribute('aria-controls')).hidden = !on;
-  }
-}
-
-// Arrow keys walk the enabled tabs only. A disabled button cannot take focus, so
-// stepping onto one selected a tab the keyboard was not on.
-tabs.forEach((btn) => {
-  btn.onclick = () => selectTab(btn);
-  btn.onkeydown = (e) => {
-    const live = tabs.filter(b => !b.disabled);
-    const i = live.indexOf(btn);
-    const next = {
-      ArrowRight: live[(i + 1) % live.length],
-      ArrowLeft: live[(i - 1 + live.length) % live.length],
-      Home: live[0],
-      End: live[live.length - 1],
-    }[e.key];
-    if (!next) return;
-    e.preventDefault();
-    next.focus();
-    selectTab(next);
-  };
-});
-
-
-// ── Static mode ─────────────────────────────────────────────
+// ── Transport ────────────────────────────────────────────────
 //
-// The same page serves two ways: from `pharos.cli serve`, where every tab calls a
+// The same page serves two ways: from `pharos.cli serve`, where every view calls a
 // live FastAPI backend, and from GitHub Pages, where there is no backend at all
 // and a build-time bundle answers instead. Only the transport differs. Every
 // render path below is shared, and the bundle holds the responses those very
@@ -341,59 +568,32 @@ async function loadBundle() {
   return BUNDLE;
 }
 
-function staticAnswer(path, opts) {
+function staticAnswer(path) {
   const [route, query] = path.split('?');
   const q = new URLSearchParams(query || '');
   const seed = q.get('seed') ?? String(BUNDLE.seeds[0]);
-
   const needSeed = (table) => {
     const hit = BUNDLE[table][seed];
     if (!hit) throw new Error(`seed ${seed} is not in this offline build (have: ${BUNDLE.seeds.join(', ')})`);
     return hit;
   };
-
   switch (route) {
     case '/api/vocabulary': return BUNDLE.vocabulary;
     case '/api/escapes':    return BUNDLE.escapes;
     case '/api/corpus':     return needSeed('corpus');
     case '/api/gate':       return needSeed('gate');
-    case '/api/review': {
-      const per = needSeed('review');
-      const index = String(((+q.get('index') || 0) % BUNDLE.review_tasks + BUNDLE.review_tasks) % BUNDLE.review_tasks);
-      return per[index][q.get('verdict') === 'false' ? 'false' : 'true'];
-    }
-    case '/api/dominance': {
-      // Every field returned here was decided by pharos.labels and rendered by
-      // pharos.web. This assembles them; it does not compute any of them. The
-      // pair table says what dominates what and which cell the join lands in;
-      // the label table supplies every displayed string; `capacity_follows`
-      // names the side the join's capacity is copied from, so even that rule
-      // arrives as data rather than as a second copy of the Python.
-      const body = JSON.parse(opts.body);
-      const d = BUNDLE.dominance;
-      const cell = (l) => `${l.sensitivity}|${(l.compartments || []).slice().sort().join(',')}`;
-      const full = (l) => d.labels[`${cell(l)}|${l.capacity}`];
-      const hit = (d.pairs[cell(body.holder)] || {})[cell(body.item)];
-      const capacity = body[d.capacity_follows].capacity;
-      if (!hit || !full(body.holder) || !full(body.item)) {
-        throw new Error('that label pair is not in this offline build');
-      }
-      return {
-        holder: full(body.holder),
-        item: full(body.item),
-        holder_may_read_item: hit.holder_may_read_item,
-        item_may_read_holder: hit.item_may_read_holder,
-        incomparable: hit.incomparable,
-        join: d.labels[`${hit.join}|${capacity}`],
-      };
+    case '/api/lattice':    return BUNDLE.dominance;
+    case '/api/review/all': {
+      const verdict = q.get('verdict') === 'false' ? 'false' : 'true';
+      return { seed: +seed, verdict: verdict === 'true', tasks: needSeed('review')[verdict] };
     }
     default:
-      throw new Error('This tab needs a running model, which an offline build cannot provide. Run it locally: uv run python -m pharos.cli serve');
+      throw new Error('This view needs a running model, which an offline build cannot provide. Run it locally: uv run python -m pharos.cli serve');
   }
 }
 
 async function api(path, opts) {
-  if (BUNDLE) return staticAnswer(path, opts);
+  if (BUNDLE) return staticAnswer(path);
   const res = await fetch(path, opts);
   if (!res.ok) {
     let detail = res.statusText;
@@ -403,359 +603,854 @@ async function api(path, opts) {
   return res.json();
 }
 
-function busy(btn, on) { btn.disabled = on; btn.textContent = on ? 'Working…' : btn.dataset.label; }
+// Every GET is cached by its path, so returning to a view or a seed is instant
+// and a live server is asked each question once.
+const cache = new Map();
+function load(path) {
+  if (!cache.has(path)) cache.set(path, api(path).catch((e) => { cache.delete(path); throw e; }));
+  return cache.get(path);
+}
+
+// ── State, mirrored in the URL so a view can be linked ──────
+const state = {
+  tab: 'corpus', seed: 7, events: 40, gateEvents: 120,
+  corpus: { cell: null, cls: 'all', q: '', sort: 'id', dir: 1 },
+  lattice: {
+    // Opens on the case the lattice exists for: same level, different compartments.
+    holder: { sensitivity: 'PROTECTED', compartments: ['SENSOR'], capacity: 'ENUM' },
+    item: { sensitivity: 'PROTECTED', compartments: ['LIAISON'], capacity: 'ENUM' },
+    sets: 'item',
+  },
+  review: { verdict: true, task: null, split: false },
+  exits: { show: 'all' },
+};
+
+const labelParam = (l) => `${l.sensitivity}|${l.compartments.join(',')}|${l.capacity}`;
+function parseLabelParam(text, fallback) {
+  const [sensitivity, comps, capacity] = (text || '').split('|');
+  if (!sensitivity || capacity === undefined) return fallback;
+  return { sensitivity, compartments: comps ? comps.split(',').sort() : [], capacity };
+}
+
+function writeHash() {
+  const p = new URLSearchParams({ tab: state.tab, seed: String(state.seed) });
+  if (state.tab === 'corpus') {
+    if (state.corpus.cell) p.set('cell', state.corpus.cell);
+    if (state.corpus.cls !== 'all') p.set('class', state.corpus.cls);
+    if (state.corpus.q) p.set('q', state.corpus.q);
+    if (state.corpus.sort !== 'id' || state.corpus.dir !== 1) p.set('sort', `${state.corpus.dir < 0 ? '-' : ''}${state.corpus.sort}`);
+    if (!BUNDLE) p.set('events', String(state.events));
+  } else if (state.tab === 'lattice') {
+    p.set('holder', labelParam(state.lattice.holder));
+    p.set('object', labelParam(state.lattice.item));
+    if (state.lattice.sets !== 'item') p.set('sets', state.lattice.sets);
+  } else if (state.tab === 'gate' && !BUNDLE) {
+    p.set('events', String(state.gateEvents));
+  } else if (state.tab === 'review') {
+    p.set('verdict', String(state.review.verdict));
+    if (state.review.task !== null) p.set('task', String(state.review.task));
+    if (state.review.split) p.set('split', '1');
+  } else if (state.tab === 'escapes' && state.exits.show !== 'all') {
+    p.set('show', state.exits.show);
+  }
+  history.replaceState(null, '', '#' + p.toString());
+}
+
+function readHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (Object.hasOwn(VIEWS, p.get('tab') ?? '')) state.tab = p.get('tab');
+  if (p.get('seed') !== null && Number.isInteger(+p.get('seed'))) state.seed = +p.get('seed');
+  state.corpus.cell = p.get('cell');
+  state.corpus.cls = ['significant', 'routine'].includes(p.get('class')) ? p.get('class') : 'all';
+  state.corpus.q = p.get('q') || '';
+  const sort = (p.get('sort') || 'id').replace(/^-/, '');
+  state.corpus.sort = ['id', 'label', 'class'].includes(sort) ? sort : 'id';
+  state.corpus.dir = (p.get('sort') || '').startsWith('-') ? -1 : 1;
+  state.lattice.sets = p.get('sets') === 'holder' ? 'holder' : 'item';
+  const events = +p.get('events');
+  if (!BUNDLE && Number.isInteger(events) && events > 0) {
+    if (p.get('tab') === 'gate') state.gateEvents = events; else state.events = events;
+  }
+  // An offline build answers only for the seeds it froze.
+  if (BUNDLE && !BUNDLE.seeds.includes(state.seed)) state.seed = BUNDLE.seeds.includes(7) ? 7 : BUNDLE.seeds[0];
+  state.lattice.holder = parseLabelParam(p.get('holder'), state.lattice.holder);
+  state.lattice.item = parseLabelParam(p.get('object'), state.lattice.item);
+  if (p.get('verdict') !== null) state.review.verdict = p.get('verdict') !== 'false';
+  state.review.task = p.get('task') !== null ? +p.get('task') : null;
+  state.review.split = p.get('split') === '1';
+  state.exits.show = ['closes', 'bounded', 'open'].includes(p.get('show')) ? p.get('show') : 'all';
+}
+
+const announce = (text) => { $('status').textContent = text; };
+
+// ── Tabs ────────────────────────────────────────────────────
+// Each tab names its panel in `aria-controls`, and that attribute is the only list of
+// panels there is. A second, hand-kept list is how "Every exit, priced" shipped with a
+// tab that selected and a panel that never opened.
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function selectTab(btn) {
+  for (const b of tabs) {
+    const on = b === btn;
+    b.setAttribute('aria-selected', String(on));
+    b.tabIndex = on ? 0 : -1;
+    $(b.getAttribute('aria-controls')).hidden = !on;
+  }
+  state.tab = btn.dataset.tab;
+}
+
+tabs.forEach((btn) => {
+  btn.onclick = () => { selectTab(btn); render(); };
+  btn.onkeydown = (e) => {
+    const i = tabs.indexOf(btn);
+    const next = {
+      ArrowRight: tabs[(i + 1) % tabs.length],
+      ArrowLeft: tabs[(i - 1 + tabs.length) % tabs.length],
+      Home: tabs[0],
+      End: tabs[tabs.length - 1],
+    }[e.key];
+    if (!next) return;
+    e.preventDefault();
+    next.focus();
+    selectTab(next);
+    render();
+  };
+});
+
+// ── Rendering ───────────────────────────────────────────────
+// One render per change. A slow answer for a view the reader has already left is
+// dropped rather than painted over the view they moved to.
+let renderToken = 0;
+async function render() {
+  writeHash();
+  const token = ++renderToken;
+  const view = VIEWS[state.tab];
+  try {
+    await view.render(() => token === renderToken);
+  } catch (e) {
+    console.error(`${state.tab} view`, e);
+    if (token === renderToken) view.canvas().innerHTML = `<p class="answer error">${esc(e.message)}</p>`;
+  }
+}
+
+const say = (v) => v === null ? 'none' : (v ? 'SIGNIFICANT' : 'ROUTINE');
+const tag = (text) => `<span class="tag">${esc(text)}</span>`;
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 // ── Corpus ──────────────────────────────────────────────────
-let currentCorpusData = null;
+let currentCorpus = null;
+const cellKey = (sensitivity, compartments) => `${sensitivity}|${[...compartments].sort().join(',')}`;
 
-$('c-go').dataset.label = 'Generate';
-$('c-go').onclick = async () => {
-  const btn = $('c-go'); busy(btn, true);
-  try {
-    const d = await api(`/api/corpus?seed=${$('c-seed').value}&events=${$('c-events').value}`);
-    currentCorpusData = d;
-    $('c-dl-jsonl').style.display = 'inline-block';
-    $('c-dl-manifest').style.display = 'inline-block';
-    const maxVal = Math.max(...Object.values(d.label_histogram));
-    // Counted over every report. `reports` is a sample of the first few, and a count
-    // taken from it sat beside the corpus total as if it were the corpus's own.
-    const plants = d.export_rows.filter(r => r.is_plant).length;
-    const barRows = Object.entries(d.label_histogram).map(([k, v]) => {
-      const pct = Math.round((v / maxVal) * 100);
-      return `<div class="bar-row">
-        <div class="bar-label">${esc(k)}</div>
-        <div class="bar-track"><div class="bar-fill" style="width: ${pct}%;"></div></div>
-        <div class="bar-count">${v}</div>
-      </div>`;
-    }).join('');
-    const rows = d.reports.map(r => `<tr>
-        <td class="mono">${esc(r.report_id)}</td>
-        <td><span class="tag">${esc(r.label.rendered)}</span></td>
-        <td>${r.is_plant ? '<span class="ok">significant</span>' : '<span class="muted">routine</span>'}</td>
-        <td>${esc(r.text)}</td></tr>`).join('');
-    $('c-out').hidden = false;
-    $('c-out').innerHTML = `
-      <div class="grid-metrics">
-        <div class="metric-card"><div class="metric-value">${d.n_reports}</div><div class="metric-label">Total Reports</div></div>
-        <div class="metric-card"><div class="metric-value">${d.n_events}</div><div class="metric-label">Events Sampled</div></div>
-        <div class="metric-card"><div class="metric-value">${Object.keys(d.label_histogram).length}</div><div class="metric-label">Lattice Cells</div></div>
-        <div class="metric-card"><div class="metric-value">${plants}</div><div class="metric-label">Significant Plants</div></div>
-      </div>
-      <h4>📊 Label Cell Distribution across Lattice Space</h4>
-      <div class="bar-chart">${barRows}</div>
-      <p class="note">Sample of generated intelligence reports:</p>
-      <div class="scroll"><table><thead><tr><th>ID</th><th>Label</th><th>Class</th><th>Text</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-  } catch (e) { $('c-out').hidden = false; $('c-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+function corpusRows(d) {
+  const { cell, cls, q, sort, dir } = state.corpus;
+  const needle = q.trim().toLowerCase();
+  const rows = d.reports.filter((r) =>
+    (!cell || cellKey(r.label.sensitivity, r.label.compartments) === cell)
+    && (cls === 'all' || (cls === 'significant') === r.is_plant)
+    && (!needle || r.text.toLowerCase().includes(needle) || r.report_id.toLowerCase().includes(needle)));
+  const key = {
+    id: (r) => r.report_id,
+    label: (r) => r.label.rendered,
+    class: (r) => (r.is_plant ? 0 : 1),
+  }[sort];
+  return rows.sort((a, b) => (key(a) < key(b) ? -1 : key(a) > key(b) ? 1 : 0) * dir);
+}
 
-  busy(btn, false);
-};
+async function renderCorpus(current) {
+  const [d, vocab] = await Promise.all([
+    load(`/api/corpus?seed=${state.seed}&events=${state.events}`),
+    load('/api/vocabulary'),
+  ]);
+  if (!current()) return;
+  currentCorpus = d;
+
+  // Counted from the export rows, which hold every report however many there are.
+  const counts = new Map();
+  const significantCounts = new Map();
+  const sets = new Map([['', []]]);
+  for (const r of d.export_rows) {
+    const k = cellKey(r.sensitivity, r.compartments);
+    counts.set(k, (counts.get(k) || 0) + 1);
+    if (r.is_plant) significantCounts.set(k, (significantCounts.get(k) || 0) + 1);
+    const comps = [...r.compartments].sort();
+    sets.set(comps.join(','), comps);
+  }
+  const columns = [...sets.values()].sort((a, b) => a.length - b.length || a.join().localeCompare(b.join()));
+  const levels = [...vocab.sensitivity].reverse();
+  const max = Math.max(...counts.values());
+  const step = (n) => Math.min(5, Math.ceil((n / max) * 6) - 1);
+  const significant = d.export_rows.filter((r) => r.is_plant).length;
+  const cells = vocab.sensitivity.length * 2 ** vocab.compartments.length;
+  if (state.corpus.cell && !counts.has(state.corpus.cell)) state.corpus.cell = null;
+
+  // Both grids share one scale, so a cell's shade means the same count in each.
+  const grid = (table, cls, captionId) => `
+    <table class="counts" aria-describedby="${captionId}">
+      <thead><tr><th scope="col"><span class="sr-only">Sensitivity</span></th>${columns.map((c) =>
+        `<th scope="col">${c.length ? esc(c.join(' + ')) : 'none'}</th>`).join('')}</tr></thead>
+      <tbody>${levels.map((level) => `<tr><th scope="row">${esc(level)}</th>${columns.map((c) => {
+        const k = cellKey(level, c);
+        const n = table.get(k) || 0;
+        const name = `${level}, ${c.length ? c.join(' and ') : 'no compartment'}`;
+        const pressed = state.corpus.cell === k && (cls === 'all' || state.corpus.cls === cls);
+        return `<td><button class="cell${n ? ' s' + step(n) : ''}" data-cell="${esc(k)}" data-class="${cls}"
+          aria-pressed="${pressed}" aria-label="${esc(name)}: ${plural(n, cls === 'all' ? 'report' : 'significant report', cls === 'all' ? 'reports' : 'significant reports')}"
+          ${n ? '' : 'disabled'}>${n}</button></td>`;
+      }).join('')}</tr>`).join('')}</tbody>
+    </table>`;
+
+  const rows = corpusRows(d);
+  const sortHead = (key, text) => {
+    const on = state.corpus.sort === key;
+    const aria = on ? ` aria-sort="${state.corpus.dir > 0 ? 'ascending' : 'descending'}"` : '';
+    const arrow = on ? (state.corpus.dir > 0 ? '▲' : '▼') : '';
+    return `<th scope="col"${aria}><button class="sort" data-sort="${key}">${text}<span aria-hidden="true">${arrow}</span></button></th>`;
+  };
+  const listed = d.reports.length < d.n_reports
+    ? ` Listing the first ${d.reports.length} of ${d.n_reports}; the download holds every row.` : '';
+
+  $('c-canvas').innerHTML = `
+    <p class="answer">Seed ${d.seed} produced ${d.n_reports} reports from ${d.n_events} events, ${significant} of them significant.
+      <span class="sub">Their labels fill ${counts.size} of the lattice's ${cells} cells.</span></p>
+    <div class="corpus-top">
+      <figure class="figure">
+        <figcaption id="c-grid-cap">Every report, per label cell. Select a cell to list only its reports.</figcaption>
+        <div class="scroll">${grid(counts, 'all', 'c-grid-cap')}</div>
+      </figure>
+      <figure class="figure">
+        <figcaption id="c-sig-cap">The ${significant} significant reports, per label cell.</figcaption>
+        <div class="scroll">${grid(significantCounts, 'significant', 'c-sig-cap')}</div>
+      </figure>
+    </div>
+    <figure class="figure">
+      <figcaption id="c-table-cap">${plural(rows.length, 'report', 'reports')} shown of ${d.n_reports}.${listed}</figcaption>
+      <div class="surface reports-wrap"><table class="reports" aria-describedby="c-table-cap">
+        <thead><tr>${sortHead('id', 'Report')}${sortHead('label', 'Label')}${sortHead('class', 'Class')}<th scope="col">Type</th><th scope="col">Text</th></tr></thead>
+        <tbody>${rows.map((r) => `<tr>
+          <td class="mono">${esc(r.report_id)}</td>
+          <td>${tag(r.label.rendered)}</td>
+          <td>${r.is_plant ? '<span class="ok">significant</span>' : '<span class="muted">routine</span>'}</td>
+          <td class="mono muted">${esc(r.report_type)}</td>
+          <td class="text">${esc(r.text)}</td></tr>`).join('')}</tbody>
+      </table></div>
+    </figure>`;
+  $('c-clear').hidden = !state.corpus.cell;
+  announce(`Corpus for seed ${d.seed}: ${rows.length} of ${d.n_reports} reports shown.`);
+
+  $('c-canvas').querySelectorAll('.cell').forEach((b) => {
+    b.onclick = () => {
+      const again = b.getAttribute('aria-pressed') === 'true';
+      state.corpus.cell = again ? null : b.dataset.cell;
+      if (!again) state.corpus.cls = b.dataset.class;
+      syncControls();
+      render().then(() => $('c-canvas').querySelector(
+        `.cell[data-cell="${CSS.escape(b.dataset.cell)}"][data-class="${b.dataset.class}"]`)?.focus());
+    };
+  });
+  $('c-canvas').querySelectorAll('.sort').forEach((b) => {
+    b.onclick = () => {
+      if (state.corpus.sort === b.dataset.sort) state.corpus.dir *= -1;
+      else { state.corpus.sort = b.dataset.sort; state.corpus.dir = 1; }
+      render().then(() => $('c-canvas').querySelector(`.sort[data-sort="${b.dataset.sort}"]`)?.focus());
+    };
+  });
+}
+
+function download(name, type, content) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 $('c-dl-jsonl').onclick = () => {
-  if (!currentCorpusData || !currentCorpusData.export_rows) return;
-  const lines = currentCorpusData.export_rows.map(row => JSON.stringify(row));
-  const content = lines.join('\n') + '\n';
-  const blob = new Blob([content], { type: 'application/x-ndjson' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `corpus_seed_${currentCorpusData.seed}_events_${currentCorpusData.n_events}.jsonl`;
-  a.click();
-  URL.revokeObjectURL(url);
+  if (!currentCorpus) return;
+  download(`corpus_seed_${currentCorpus.seed}_events_${currentCorpus.n_events}.jsonl`, 'application/x-ndjson',
+    currentCorpus.export_rows.map((row) => JSON.stringify(row)).join('\n') + '\n');
 };
-
 $('c-dl-manifest').onclick = () => {
-  if (!currentCorpusData) return;
+  if (!currentCorpus) return;
   const manifest = {
-    seed: currentCorpusData.seed,
-    n_events: currentCorpusData.n_events,
-    n_reports: currentCorpusData.n_reports,
-    label_histogram: currentCorpusData.label_histogram,
-    provenance: typeof BUNDLE !== 'undefined' && BUNDLE ? BUNDLE.provenance : null,
+    seed: currentCorpus.seed,
+    n_events: currentCorpus.n_events,
+    n_reports: currentCorpus.n_reports,
+    label_histogram: currentCorpus.label_histogram,
+    provenance: BUNDLE ? BUNDLE.provenance : null,
   };
-  const content = JSON.stringify(manifest, null, 2) + '\n';
-  const blob = new Blob([content], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `manifest_seed_${currentCorpusData.seed}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+  download(`manifest_seed_${currentCorpus.seed}.json`, 'application/json', JSON.stringify(manifest, null, 2) + '\n');
 };
-
 
 // ── Lattice ─────────────────────────────────────────────────
-let vocab = null;
-async function loadVocab() {
-  vocab = await api('/api/vocabulary');
-  for (const side of ['h', 'i']) {
-    $(side + '-sens').innerHTML = vocab.sensitivity.map(s => `<option>${esc(s)}</option>`).join('');
-    $(side + '-cap').innerHTML = vocab.capacity.map(c => `<option>${esc(c)}</option>`).join('');
-    $(side + '-comps').innerHTML = vocab.compartments
-      .map(c => `<label><input type="checkbox" value="${esc(c)}"> ${esc(c)}</label>`).join('');
-  }
-  $('h-sens').value = 'RESTRICTED'; $('i-sens').value = 'PROTECTED';
+//
+// Every decision here was made by `pharos.labels` and every string rendered by
+// `pharos.web`: the page looks them up in the lattice table and composes nothing.
+// `capacity_follows` names the side the join's capacity is copied from, so even that
+// rule arrives as data rather than as a second copy of the Python.
+function decide(table, holder, item) {
+  const label = (l) => table.labels[`${cellKey(l.sensitivity, l.compartments)}|${l.capacity}`];
+  const hit = (table.pairs[cellKey(holder.sensitivity, holder.compartments)] || {})[cellKey(item.sensitivity, item.compartments)];
+  if (!hit || !label(holder) || !label(item)) throw new Error('that label pair is not in the lattice table');
+  const capacity = { holder, item }[table.capacity_follows].capacity;
+  return { ...hit, joinCell: hit.join, holder: label(holder), item: label(item), join: table.labels[`${hit.join}|${capacity}`] };
 }
-const gather = (side) => ({
-  sensitivity: $(side + '-sens').value,
-  capacity: $(side + '-cap').value,
-  compartments: [...$(side + '-comps').querySelectorAll('input:checked')].map(i => i.value),
+
+// Every compartment set, smallest first, in the order `pharos.web` enumerates them.
+function subsets(names) {
+  const out = [];
+  const pick = (start, size, acc) => {
+    if (acc.length === size) { out.push([...acc].sort()); return; }
+    for (let i = start; i < names.length; i++) pick(i + 1, size, [...acc, names[i]]);
+  };
+  for (let size = 0; size <= names.length; size++) pick(0, size, []);
+  return out;
+}
+
+function buildLatticeControls(vocab) {
+  for (const side of ['h', 'i']) {
+    $(side + '-sens').innerHTML = vocab.sensitivity.map((s) => `<option>${esc(s)}</option>`).join('');
+    $(side + '-cap').innerHTML = vocab.capacity.map((c) => `<option>${esc(c)}</option>`).join('');
+    $(side + '-comps').innerHTML = vocab.compartments
+      .map((c) => `<label><input type="checkbox" value="${esc(c)}"> ${esc(c)}</label>`).join('');
+    const key = side === 'h' ? 'holder' : 'item';
+    const onChange = () => {
+      state.lattice[key] = {
+        sensitivity: $(side + '-sens').value,
+        capacity: $(side + '-cap').value,
+        compartments: [...$(side + '-comps').querySelectorAll('input:checked')].map((i) => i.value).sort(),
+      };
+      render();
+    };
+    $(side + '-sens').onchange = onChange;
+    $(side + '-cap').onchange = onChange;
+    $(side + '-comps').onchange = onChange;
+  }
+}
+
+function syncLatticeControls() {
+  for (const [side, key] of [['h', 'holder'], ['i', 'item']]) {
+    const l = state.lattice[key];
+    $(side + '-sens').value = l.sensitivity;
+    $(side + '-cap').value = l.capacity;
+    $(side + '-comps').querySelectorAll('input').forEach((i) => { i.checked = l.compartments.includes(i.value); });
+  }
+  document.querySelector(`input[name="l-sets"][value="${state.lattice.sets}"]`).checked = true;
+}
+
+async function renderLattice(current) {
+  const [table, vocab] = await Promise.all([load('/api/lattice'), load('/api/vocabulary')]);
+  if (!current()) return;
+  syncLatticeControls();
+  const { holder, item } = state.lattice;
+  const d = decide(table, holder, item);
+  const holderCell = cellKey(holder.sensitivity, holder.compartments);
+  const itemCell = cellKey(item.sensitivity, item.compartments);
+
+  // Why a read is refused, from the two conditions `pharos.web` reports for it.
+  const why = (short, who, other) => [
+    short.level && `the ${who}’s level is below the ${other}’s`,
+    short.compartments.length && `the ${who} lacks ${short.compartments.join(' and ')}`,
+  ].filter(Boolean).join(' and ');
+  let answer;
+  if (d.holder_may_read_item && d.item_may_read_holder) answer = 'The holder and the object share a label cell, so each may read the other.';
+  else if (d.holder_may_read_item) answer = 'The holder may read the object.';
+  else if (d.item_may_read_holder) answer = `The holder may not read the object: ${why(d.holder_short, 'holder', 'object')}.`;
+  else answer = `Neither may read the other: ${why(d.holder_short, 'holder', 'object')}, and ${why(d.item_short, 'object', 'holder')}.`;
+
+  const columns = subsets(vocab.compartments);
+  const levels = [...vocab.sensitivity].reverse();
+  // A thin gap between compartment-set sizes, so the 1-4-6-4-1 shape of the sets shows.
+  const gapBefore = (i) => i > 0 && columns[i].length !== columns[i - 1].length;
+  const headRows = vocab.compartments.map((name) => `<tr><th scope="row">${esc(name)}</th>${columns.map((c, i) =>
+    `${gapBefore(i) ? '<td class="gap"></td>' : ''}<td>${c.includes(name) ? '●' : ''}</td>`).join('')}</tr>`).join('');
+  const focusCell = state.lattice.sets === 'holder' ? holderCell : itemCell;
+  const bodyRows = levels.map((level, r) => `<tr><th scope="row">${esc(level)}</th>${columns.map((c, i) => {
+    const k = cellKey(level, c);
+    const reads = table.pairs[holderCell][k].holder_may_read_item;
+    const roles = [k === holderCell && 'holder', k === itemCell && 'item', k === d.joinCell && 'join'].filter(Boolean);
+    const marks = [k === holderCell && 'H', k === itemCell && 'O', k === d.joinCell && '⊔'].filter(Boolean).join('');
+    const rendered = table.labels[`${k}|${item.capacity}`].rendered;
+    const said = [reads ? 'the holder may read it' : 'the holder may not read it',
+      k === holderCell && 'holder', k === itemCell && 'object', k === d.joinCell && 'join'].filter(Boolean).join(', ');
+    return `${gapBefore(i) ? '<td class="gap"></td>' : ''}<td><button class="node${reads ? ' reads' : ''} ${roles.join(' ')}"
+      data-cell="${esc(k)}" data-r="${r}" data-c="${i}" tabindex="${k === focusCell ? 0 : -1}"
+      aria-label="${esc(rendered)}: ${said}">${marks}</button></td>`;
+  }).join('')}</tr>`).join('');
+  const readable = Object.values(table.pairs[holderCell]).filter((x) => x.holder_may_read_item).length;
+
+  $('l-canvas').innerHTML = `
+    <p class="answer">${answer}<span class="sub">An output derived from both carries ${tag(d.join.rendered)}.</span></p>
+    <div class="lattice-wrap">
+      <figure class="figure">
+        <figcaption>All ${levels.length * columns.length} label cells: sensitivity up the side, the compartment set along the top. The holder may read the ${readable} lit cells.</figcaption>
+        <ul class="legend">
+          <li><span class="swatch" style="background:var(--beam);border:2px solid var(--amber)"></span>the holder may read it</li>
+          <li><span class="swatch" style="background:var(--amber);color:var(--on-accent);border-color:var(--amber)">H</span>holder</li>
+          <li><span class="swatch" style="box-shadow:inset 0 0 0 3px var(--accent)">O</span>object</li>
+          <li><span class="swatch" style="outline:2px solid var(--fg);outline-offset:1px">⊔</span>join, the least label above both</li>
+        </ul>
+        <div class="scroll"><table class="lattice">
+          <thead aria-hidden="true">${headRows}</thead>
+          <tbody>${bodyRows}</tbody>
+        </table></div>
+      </figure>
+      <div class="surface"><table class="verdicts">
+        <tr><th scope="row">Holder</th><td>${tag(d.holder.rendered)}</td></tr>
+        <tr><th scope="row">Object</th><td>${tag(d.item.rendered)}</td></tr>
+        <tr><th scope="row">Holder reads object</th><td>${d.holder_may_read_item ? '<span class="ok">allowed</span>' : '<span class="bad">blocked</span>'}</td></tr>
+        <tr><th scope="row">Object reads holder</th><td>${d.item_may_read_holder ? '<span class="ok">allowed</span>' : '<span class="bad">blocked</span>'}</td></tr>
+        <tr><th scope="row">Join (⊔)</th><td>${tag(d.join.rendered)}</td></tr>
+      </table>
+      <p class="note" style="padding:0 .6rem .6rem">The join is what a derived output inherits from both inputs. Capacity is taken from the ${esc(table.capacity_follows === 'item' ? 'object' : 'holder')} rather than joined.</p></div>
+    </div>`;
+  announce(answer);
+
+  $('l-canvas').querySelectorAll('.node').forEach((b) => {
+    // A grid of 64 buttons is one tab stop: arrow keys move within it.
+    b.onkeydown = (e) => {
+      const [r, c] = [+b.dataset.r, +b.dataset.c];
+      const to = { ArrowUp: [r - 1, c], ArrowDown: [r + 1, c], ArrowLeft: [r, c - 1], ArrowRight: [r, c + 1],
+        Home: [r, 0], End: [r, columns.length - 1] }[e.key];
+      const next = to && $('l-canvas').querySelector(`.node[data-r="${to[0]}"][data-c="${to[1]}"]`);
+      if (!next) return;
+      e.preventDefault();
+      b.tabIndex = -1;
+      next.tabIndex = 0;
+      next.focus();
+    };
+    b.onclick = () => {
+      const [sensitivity, comps] = b.dataset.cell.split('|');
+      const side = state.lattice.sets;
+      state.lattice[side] = { ...state.lattice[side], sensitivity, compartments: comps ? comps.split(',') : [] };
+      render().then(() => $('l-canvas').querySelector(`.node[data-cell="${CSS.escape(b.dataset.cell)}"]`)?.focus());
+    };
+  });
+}
+document.querySelectorAll('input[name="l-sets"]').forEach((r) => {
+  r.onchange = () => { state.lattice.sets = r.value; };
 });
-$('l-go').dataset.label = 'Check dominance';
-$('l-go').onclick = async () => {
-  const btn = $('l-go'); busy(btn, true);
-  try {
-    const d = await api('/api/dominance', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({holder: gather('h'), item: gather('i')}),
-    });
-    const verdict = d.incomparable
-      ? '<span class="bad">Incomparable.</span> Neither may read the other.'
-      : (d.holder_may_read_item
-          ? '<span class="ok">The holder may read the object.</span>'
-          : '<span class="bad">The holder may not read the object.</span>');
-    const holderTag = esc(d.holder.rendered);
-    const objectTag = esc(d.item.rendered);
-    const joinTag = esc(d.join.rendered);
-    $('l-out').hidden = false;
-    $('l-out').innerHTML = `
-      <p class="verdict">${verdict}</p>
-      <div class="lattice-diagram">
-        <h4>🔷 Security Lattice Position & Join Map</h4>
-        <div class="lattice-level">
-          <span class="lattice-pill holder">🔵 Holder (Reader): ${holderTag}</span>
-          <span class="lattice-pill object">🟡 Object (Item): ${objectTag}</span>
-        </div>
-        <div class="lattice-level">
-          <span class="lattice-pill join">🟣 Least Upper Bound Join (⊔): ${joinTag}</span>
+
+// ── Gate ────────────────────────────────────────────────────
+let gateData = null;
+// A failed run's message, kept with the inputs that produced it.
+let gateError = null;
+
+function gateChart(d, width) {
+  // On a narrow screen the row names go above their rows instead of beside them, so
+  // the plot keeps its width and its labels keep their size.
+  const narrow = width < 600;
+  const left = narrow ? 12 : 190, right = narrow ? 16 : 28, rowH = narrow ? 60 : 46, top = 34, axisH = 30;
+  const probes = Object.keys(d.per_fold_auc).sort();
+  const rows = [{ kind: 'null' }, ...probes.map((p) => ({ kind: 'probe', name: p }))];
+  const height = top + rows.length * rowH + axisH;
+  // The axis runs to 1 and starts at the tenth below the lowest value drawn, so the
+  // data uses the width instead of crowding into its top half.
+  const lowest = Math.min(d.band[0], ...Object.values(d.per_fold_auc).flat(),
+    ...(d.null_mean === null ? [] : [d.null_mean - d.null_sd]));
+  const floor = Math.max(0, Math.floor(lowest * 10) / 10);
+  const x = (v) => left + ((v - floor) / (1 - floor)) * (width - left - right);
+  const ticks = Array.from({ length: Math.round((1 - floor) * 10) + 1 }, (_, i) => Math.round((floor + i / 10) * 10) / 10);
+  const y = (i) => top + i * rowH + rowH / 2;
+  const plotBottom = top + rows.length * rowH;
+  const parts = [];
+  parts.push(`<g class="grid">${ticks.map((t) => `<line x1="${x(t)}" x2="${x(t)}" y1="${top - 6}" y2="${plotBottom}"/>`).join('')}</g>`);
+  parts.push(`<rect class="chance" x="${x(d.band[0])}" y="${top - 6}" width="${x(d.band[1]) - x(d.band[0])}" height="${plotBottom - top + 6}"/>`);
+  for (const edge of d.band) parts.push(`<line class="chance-edge" x1="${x(edge)}" x2="${x(edge)}" y1="${top - 6}" y2="${plotBottom}"/>`);
+  parts.push(`<text x="${(x(d.band[0]) + x(d.band[1])) / 2}" y="${top - 12}" text-anchor="middle">chance</text>`);
+  rows.forEach((row, i) => {
+    const cy = y(i);
+    if (row.kind === 'null') {
+      parts.push(narrow
+        ? `<text class="rowlabel" x="${left}" y="${cy - 16}">Null, ${d.null_trials} shuffles</text>`
+        : `<text class="rowlabel" x="${left - 14}" y="${cy + 4}" text-anchor="end">Null, ${d.null_trials} shuffles</text>`);
+      if (d.null_mean !== null) {
+        parts.push(`<rect class="spread" x="${x(d.null_mean - d.null_sd)}" y="${cy - 9}" width="${x(d.null_mean + d.null_sd) - x(d.null_mean - d.null_sd)}" height="18" rx="3"><title>null mean ${d.null_mean} ± ${d.null_sd}</title></rect>`);
+        parts.push(`<line class="mean" x1="${x(d.null_mean)}" x2="${x(d.null_mean)}" y1="${cy - 12}" y2="${cy + 12}"/>`);
+      }
+      if (d.null_p95 !== null) {
+        parts.push(`<line class="threshold" data-value="${d.null_p95}" x1="${x(d.null_p95)}" x2="${x(d.null_p95)}" y1="${cy - 15}" y2="${cy + 15}"><title>95th percentile of the null ${d.null_p95}</title></line>`);
+        parts.push(`<text class="threshold-label" x="${x(d.null_p95) + 7}" y="${cy + 4}">95th percentile ${d.null_p95}</text>`);
+      }
+    } else {
+      const name = esc(row.name.replace(/_/g, ' '));
+      parts.push(narrow
+        ? `<text class="rowlabel" x="${left}" y="${cy - 16}">${name}</text>`
+        : `<text class="rowlabel" x="${left - 14}" y="${cy + 4}" text-anchor="end">${name}</text>`);
+      d.per_fold_auc[row.name].forEach((v, f) => {
+        parts.push(`<circle class="fold" cx="${x(v)}" cy="${cy}" r="5"><title>${esc(row.name)}, held-out ${esc(d.scored_centers[f])}: ${v}</title></circle>`);
+      });
+      const mean = d.per_probe_auc[row.name];
+      parts.push(`<rect class="probe" x="${x(mean) - 2}" y="${cy - 13}" width="4" height="26" rx="1"><title>${esc(row.name)} AUC ${mean}</title></rect>`);
+    }
+  });
+  parts.push(`<line class="baseline" data-value="${d.surface_baseline}" x1="${x(d.surface_baseline)}" x2="${x(d.surface_baseline)}" y1="${top - 22}" y2="${plotBottom}"/>`);
+  parts.push(`<text class="baseline-label" x="${x(d.surface_baseline) + 7}" y="${top - 12}">surface baseline ${d.surface_baseline}</text>`);
+  parts.push(`<g class="axis">${ticks.map((t) => `<text x="${x(t)}" y="${plotBottom + 20}" text-anchor="middle">${t.toFixed(1)}</text>`).join('')}</g>`);
+  const desc = `Surface baseline ${d.surface_baseline}; null mean ${d.null_mean}, standard deviation ${d.null_sd}, 95th percentile ${d.null_p95}; probes ${probes.map((p) => `${p} ${d.per_probe_auc[p]}`).join(', ')}.`;
+  return `<svg class="chart" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-labelledby="g-chart-title g-chart-desc">
+    <title id="g-chart-title">AUC from ${floor.toFixed(1)} to 1: the null, each probe's folds, and the surface baseline</title>
+    <desc id="g-chart-desc">${esc(desc)}</desc>${parts.join('')}</svg>`;
+}
+
+function paintGate() {
+  const d = gateData;
+  const fig = $('g-figure');
+  if (!d || !fig) return;
+  fig.querySelector('.chart-slot').innerHTML = gateChart(d, Math.floor(fig.clientWidth));
+}
+
+async function renderGate(current) {
+  $('g-live').hidden = !!BUNDLE;
+  if (!BUNDLE && !cache.has(`/api/gate?seed=${state.seed}&events=${state.gateEvents}`)) {
+    const failed = gateError && gateError.key === `${state.seed}|${state.gateEvents}`;
+    $('g-canvas').innerHTML = failed
+      ? `<p class="answer error">${esc(gateError.message)}</p>`
+      : `<p class="answer">Run the gate to measure this seed.<span class="sub">The gate fits its probes on held-out watch centers and shuffles the labels to build its null.</span></p>`;
+    return;
+  }
+  const d = await load(`/api/gate?seed=${state.seed}&events=${state.gateEvents}`);
+  if (!current()) return;
+  gateData = d;
+  const significance = d.null_p95 === null
+    ? 'No permutation null was computed, so whether the leak is significant is unmeasured.'
+    : `Across ${d.null_trials} label shuffles the null’s 95th percentile is ${d.null_p95}, so the leak ${d.leak_is_significant ? 'is' : 'is not'} significant.`;
+  const probes = Object.keys(d.per_probe_auc).sort();
+  $('g-canvas').innerHTML = `
+    <p class="answer">Reading only the shape of each report, the strongest probe reaches an AUC of ${d.surface_baseline}.
+      <span class="sub">${significance}</span></p>
+    <figure class="figure" id="g-figure">
+      <figcaption>Each circle is one held-out watch center; each bar is a probe’s AUC across them. The shaded band is the null’s mean ± one standard deviation, and the leak counts as significant when the baseline clears the 95th percentile.</figcaption>
+      <div class="chart-slot"></div>
+    </figure>
+    <div class="surface scroll"><table>
+      <thead><tr><th scope="col">Measured</th><th scope="col">AUC</th><th scope="col">Per held-out center</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Surface baseline</th><td>${d.surface_baseline}</td><td class="muted">strongest probe</td></tr>
+        ${probes.map((p) => `<tr><th scope="row">${esc(p.replace(/_/g, ' '))}</th><td>${d.per_probe_auc[p]}</td>
+          <td>${d.per_fold_auc[p].map((v, f) => `${esc(d.scored_centers[f])} ${v}`).join(', ')}</td></tr>`).join('')}
+        <tr><th scope="row">Null</th><td>${d.null_mean} ± ${d.null_sd}</td><td>95th percentile ${d.null_p95}, from ${d.null_trials} shuffles</td></tr>
+        <tr><th scope="row">Chance band</th><td>${d.band[0]} to ${d.band[1]}</td><td class="muted">${d.passed ? 'the baseline is inside it' : 'the baseline is outside it'}</td></tr>
+      </tbody>
+    </table></div>
+    ${d.scored_centers.length < d.held_out_centers.length ? `<p class="note">${plural(d.held_out_centers.length - d.scored_centers.length, 'watch center has', 'watch centers have')} reports of one class only, so no AUC: ${d.held_out_centers.filter((c) => !d.scored_centers.includes(c)).map(esc).join(', ')}.</p>` : ''}
+    <p class="note">${esc(d.note)}</p>`;
+  paintGate();
+  const verdict = d.leak_is_significant === null ? 'significance unmeasured' : (d.leak_is_significant ? 'significant' : 'not significant');
+  announce(`Gate for seed ${d.seed}: surface baseline ${d.surface_baseline}, ${verdict}.`);
+}
+new ResizeObserver(() => { if (state.tab === 'gate') paintGate(); }).observe(document.body);
+
+$('g-go').onclick = async () => {
+  const btn = $('g-go');
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+  gateError = null;
+  try { await load(`/api/gate?seed=${state.seed}&events=${state.gateEvents}`); } catch (e) {
+    gateError = { key: `${state.seed}|${state.gateEvents}`, message: e.message };
+  }
+  btn.disabled = false;
+  btn.textContent = 'Run the gate';
+  render();
+};
+$('g-events').onchange = () => { state.gateEvents = +$('g-events').value; render(); };
+
+// ── Analyst review ──────────────────────────────────────────
+const GLYPH = { accept: '·', revise: 'R', escalate: 'E', reject: '✕' };
+const differs = (t) => new Set(t.reviewers.map((r) => r.action)).size > 1;
+
+async function renderReview(current) {
+  const all = await load(`/api/review/all?seed=${state.seed}&verdict=${state.review.verdict}`);
+  if (!current()) return;
+  const tasks = all.tasks;
+  const split = tasks.map((t, i) => i).filter((i) => differs(tasks[i]));
+  const shown = state.review.split ? split : tasks.map((t, i) => i);
+  if (state.review.task === null || !tasks[state.review.task] || !shown.includes(state.review.task)) {
+    state.review.task = split.length ? split[0] : 0;
+  }
+  const picked = state.review.task;
+  const names = tasks[0].reviewers.map((r) => r.analyst);
+
+  const matrix = `
+    <table class="matrix" aria-describedby="r-matrix-cap">
+      <thead>
+        <tr><th scope="col">Task</th>${shown.map((i) => `<th scope="col"><button class="colhead" data-task="${i}"
+          aria-pressed="${i === picked}" tabindex="${i === picked ? 0 : -1}" aria-label="${esc(tasks[i].task_id)}">${i}</button></th>`).join('')}</tr>
+        <tr class="truth"><th scope="row">Truth</th>${shown.map((i) => `<td title="${say(tasks[i].truth_significant)}">${tasks[i].truth_significant ? 'S' : 'R'}</td>`).join('')}</tr>
+      </thead>
+      <tbody>${names.map((name, ri) => `<tr><th scope="row">${esc(name)}</th>${shown.map((i) => {
+        const a = tasks[i].reviewers[ri].action;
+        return `<td class="${i === picked ? 'picked' : ''}"><button class="act act-${esc(a)}" data-task="${i}" tabindex="-1"
+          aria-label="${esc(name)} on ${esc(tasks[i].task_id)}: ${esc(a)}">${GLYPH[a] ?? esc(a)}</button></td>`;
+      }).join('')}</tr>`).join('')}</tbody>
+    </table>`;
+
+  const t = tasks[picked];
+  const dispo = (x) => x === 'release' ? '<span class="ok">clears the ceiling</span>'
+    : x === 'approval' ? 'needs approval' : '<span class="bad">withheld</span>';
+  const reviewerRows = t.reviewers.map((r) => {
+    const grounds = r.grounds.length ? r.grounds.map(tag).join(' ')
+      : (r.action === 'accept' ? '<span class="muted">—</span>' : '<span class="bad">not stated</span>');
+    const why = r.reasons.length ? r.reasons.map(tag).join(' ') : '<span class="muted">—</span>';
+    const fix = r.corrected_release === null ? '<span class="muted">no correction</span>'
+      : `${tag(r.corrected_release.rendered)} ${dispo(r.correction_disposition)}`;
+    return `<tr><th scope="row" class="mono nowrap">${esc(r.analyst)}</th><td class="nowrap"><span class="act act-${esc(r.action)}" style="display:inline-grid;place-items:center;width:1.4rem;height:1.4rem;margin-right:.35rem" aria-hidden="true">${GLYPH[r.action] ?? ''}</span>${esc(r.action)}</td>
+      <td>${grounds}</td><td>${why}</td><td>${say(r.corrected_verdict)}</td><td>${fix}</td></tr>`;
+  }).join('');
+  const facts = t.evidence_shown.length ? `: ${t.evidence_shown.map(tag).join(' ')}` : '';
+  const decision = t.proposal_decision.reason === 'RELEASABLE' ? '' : ` ${tag(t.proposal_decision.reason)}`;
+
+  $('r-canvas').innerHTML = `
+    <p class="answer">Proposed as ${say(state.review.verdict).toLowerCase()}, the ${names.length} reviewers act differently on ${split.length} of ${tasks.length} tasks.</p>
+    <figure class="figure">
+      <figcaption id="r-matrix-cap">Each column is a task and each row a reviewer; the letter is the action it took. Select a task to see what it read and why each reviewer acted; with the keyboard, the arrow keys move between tasks.${state.review.split ? ` Showing the ${split.length} tasks where they differ.` : ''}</figcaption>
+      <div class="scroll">${matrix}</div>
+    </figure>
+    <section class="detail" aria-labelledby="r-detail-h">
+      <h3 id="r-detail-h">Task ${esc(t.task_id)}</h3>
+      <p class="facts">Proposed as <strong>${say(t.proposed_verdict)}</strong>; the truth is <strong>${say(t.truth_significant)}</strong>. The reports show ${t.evidence_shown.length} of the ${t.evidence_needed} defining facts${facts}.</p>
+      <p class="facts">The proposed release ${tag(t.proposed_release.rendered)} ${dispo(t.proposal_decision.disposition)}${decision} at the aggregator ceiling ${tag(t.ceiling.rendered)}.</p>
+      <div class="detail-grid">
+        <div class="surface scroll"><table>
+          <thead><tr><th scope="col">Reviewer</th><th scope="col">Action</th><th scope="col">Grounds</th><th scope="col">Reason</th><th scope="col">Corrected verdict</th><th scope="col">Corrected release</th></tr></thead>
+          <tbody>${reviewerRows}</tbody>
+        </table></div>
+        <div>
+          <h4 class="caption">The ${plural(t.sources.length, 'report', 'reports')} the reviewers read</h4>
+          <ol class="sources">${t.sources.map((s) => `<li class="surface"><span class="mono">${esc(s.report_id)}</span> ${tag(s.label.rendered)} <span class="muted mono">${esc(s.report_type)}</span><p>${esc(s.text)}</p></li>`).join('')}</ol>
         </div>
       </div>
-      <table>
-        <tr><th>Holder</th><td><span class="tag">${holderTag}</span></td></tr>
-        <tr><th>Object</th><td><span class="tag">${objectTag}</span></td></tr>
-        <tr><th>Holder reads object</th><td>${d.holder_may_read_item ? '✅ Allowed' : '❌ Blocked'}</td></tr>
-        <tr><th>Object reads holder</th><td>${d.item_may_read_holder ? '✅ Allowed' : '❌ Blocked'}</td></tr>
-        <tr><th>Join (⊔)</th><td><span class="tag">${joinTag}</span></td></tr>
-      </table>
-      <p class="note">The join (⊔) is what a derived output inherits from both inputs. Capacity is taken from the output rather than joined.</p>`;
-  } catch (e) { $('l-out').hidden = false; $('l-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
+    </section>`;
+  announce(`Analyst review, seed ${state.seed}: reviewers act differently on ${split.length} of ${tasks.length} tasks. Showing ${t.task_id}.`);
 
-  busy(btn, false);
-};
+  const pick = (task) => {
+    state.review.task = task;
+    render().then(() => $('r-canvas').querySelector(`.colhead[data-task="${task}"]`)?.focus());
+  };
+  $('r-canvas').querySelectorAll('[data-task]').forEach((b) => { b.onclick = () => pick(+b.dataset.task); });
+  // The matrix is one tab stop: the arrow keys move along the tasks it shows.
+  $('r-canvas').querySelectorAll('.colhead').forEach((b) => {
+    b.onkeydown = (e) => {
+      const at = shown.indexOf(+b.dataset.task);
+      const to = { ArrowRight: at + 1, ArrowLeft: at - 1, Home: 0, End: shown.length - 1 }[e.key];
+      if (to === undefined || shown[to] === undefined) return;
+      e.preventDefault();
+      pick(shown[to]);
+    };
+  });
+}
+document.querySelectorAll('input[name="r-verdict"]').forEach((r) => {
+  r.onchange = () => { state.review.verdict = r.value === 'true'; state.review.task = null; render(); };
+});
+$('r-split').onchange = () => { state.review.split = $('r-split').checked; render(); };
 
-// ── Triage ──────────────────────────────────────────────────
+// ── Every exit, priced ──────────────────────────────────────
+//
+// Renders the argument, not the mechanism. The values are strings the server
+// already formatted, so this file never decides how many decimals a measurement
+// deserves -- that belongs beside the measurement, in `pharos.escapes`.
+const VERDICT_GLYPH = { closes: '✓', bounded: '◐', open: '○' };
+
+function renderEscape(item, index) {
+  const verdict = VERDICT_GLYPH[item.verdict] ? item.verdict : 'open';
+  const findings = item.findings.map((n) => 'finding ' + n).join(', ');
+  const readings = item.readings.map((r) => `
+      <div class="reading">
+        <b>${r.value === null ? '—' : esc(r.value)}</b>
+        <span>${esc(r.label)}</span>
+        <code>${esc(r.artifact)}</code>
+      </div>`).join('');
+  return `
+    <article class="escape ${verdict}${item.measured ? '' : ' unmeasured'}" id="exit-${index}">
+      <div class="escape-meta">
+        <span class="verdict-tag ${verdict}">${VERDICT_GLYPH[verdict]} ${esc(item.verdict)}</span>
+        <span class="escape-findings">${esc(findings)}</span>
+      </div>
+      <div>
+        <p class="escape-objection">&ldquo;${esc(item.objection)}&rdquo;</p>
+        <p class="escape-outcome">${esc(item.outcome)}</p>
+        ${item.measured ? '' : '<p class="escape-outcome"><em>No artifact on disk for this exit right now, so its numbers are not shown. The exit is listed anyway: a list that quietly shortens when a file is missing would flatter the argument.</em></p>'}
+      </div>
+      <div class="escape-readings">${readings}</div>
+    </article>`;
+}
+
+async function renderEscapes(current) {
+  const data = await load('/api/escapes');
+  if (!current()) return;
+  const show = state.exits.show;
+  const filter = $('x-filter');
+  if (!filter.querySelector('input')) {
+    const total = data.escapes.length;
+    filter.insertAdjacentHTML('beforeend', [['all', `All ${total}`], ...data.verdicts.map((v) => [v, `${VERDICT_GLYPH[v]} ${data.counts[v]} ${v}`])]
+      .map(([v, text]) => `<label><input type="radio" name="x-filter" value="${esc(v)}"><span>${esc(text)}</span></label>`).join(''));
+    filter.querySelectorAll('input').forEach((r) => { r.onchange = () => { state.exits.show = r.value; render(); }; });
+  }
+  filter.querySelector(`input[value="${show}"]`).checked = true;
+
+  const c = data.counts;
+  $('escapes-answer').innerHTML = `${c.closes} exits close, ${c.bounded} are bounded and ${c.open} stay open.
+    <span class="sub">Each exit answers one objection to the tension with a measurement.</span>`;
+  $('escapes-tension').innerHTML = data.tension.map((item, i) => renderEscape(item, `t${i}`)).join('');
+  const visible = data.escapes.map((item, i) => [item, i]).filter(([item]) => show === 'all' || item.verdict === show);
+  $('escapes-list').innerHTML = visible.map(([item, i]) => renderEscape(item, i)).join('');
+  $('escapes-counts').innerHTML = data.escapes.map((item, i) => `
+    <li><button class="${esc(item.verdict)}" data-exit="${i}" aria-label="Exit ${i + 1}, ${esc(item.verdict)}: ${esc(item.objection)}" title="${esc(item.objection)}">${VERDICT_GLYPH[item.verdict] ?? ''}</button></li>`).join('');
+  $('escapes-counts').querySelectorAll('button').forEach((b) => {
+    b.onclick = () => {
+      if (!$('exit-' + b.dataset.exit)) { state.exits.show = 'all'; render().then(() => b.click()); return; }
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      $('exit-' + b.dataset.exit).scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
+    };
+  });
+  announce(`${c.closes} exits close, ${c.bounded} are bounded and ${c.open} stay open.`);
+}
+
+// ── Run a model ─────────────────────────────────────────────
 let catalog = [];
 async function loadModels() {
   const d = await api('/api/models');
   catalog = d.models;
-  $('t-model').innerHTML = catalog.map(m => {
+  $('t-model').innerHTML = catalog.map((m) => {
     const marks = [m.installed ? 'installed' : 'not pulled', m.verified ? 'verified' : 'candidate'];
     return `<option value="${esc(m.key)}"${m.key === d.default ? ' selected' : ''}>${esc(m.key)} — ${esc(m.parameters)} (${marks.join(', ')})</option>`;
   }).join('');
   showModelNote();
 }
 function showModelNote() {
-  const m = catalog.find(x => x.key === $('t-model').value);
+  const m = catalog.find((x) => x.key === $('t-model').value);
   if (!m) return;
-  const warn = m.installed ? '' : ` <span class="bad">Not pulled yet — run <code>ollama pull ${esc(m.tag)}</code>.</span>`;
+  const warn = m.installed ? '' : ` <span class="bad">Not pulled yet: run <code>ollama pull ${esc(m.tag)}</code>.</span>`;
   const ver = m.verified
     ? '<span class="ok">Verified: has answered a Pharos task.</span>'
     : '<span class="muted">Candidate: never run against a Pharos task yet.</span>';
-  $('t-modelnote').innerHTML = `<code>${esc(m.tag)}</code> · ~${m.approx_vram_gb} GB · ${ver}${warn}`;
+  $('t-modelnote').innerHTML = `<code>${esc(m.tag)}</code>, about ${m.approx_vram_gb} GB. ${ver}${warn}`;
 }
 $('t-model').onchange = showModelNote;
-$('t-go').dataset.label = 'Run';
 $('t-go').onclick = async () => {
-  const btn = $('t-go'); busy(btn, true);
+  const btn = $('t-go');
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+  $('t-out').hidden = false;
   try {
     const d = await api('/api/triage', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({model: $('t-model').value, seed: +$('t-seed').value, index: +$('t-index').value}),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: $('t-model').value, seed: state.seed, index: +$('t-index').value }),
     });
     const said = d.model_verdict === null ? 'unparseable' : (d.model_verdict ? 'SIGNIFICANT' : 'ROUTINE');
     const truth = d.truth_significant ? 'SIGNIFICANT' : 'ROUTINE';
     const mark = d.correct === null ? '<span class="muted">no verdict</span>'
       : (d.correct ? '<span class="ok">correct</span>' : '<span class="bad">wrong</span>');
-    $('t-out').hidden = false;
     $('t-out').innerHTML = `
       <p class="verdict">Model said <strong>${said}</strong>, truth is <strong>${truth}</strong> — ${mark}</p>
-      <table>
-        <tr><th>Task</th><td class="mono">${esc(d.task_id)}</td></tr>
-        <tr><th>Sources</th><td>${d.n_sources} reports</td></tr>
-        <tr><th>Model</th><td class="mono">${esc(d.model.tag)}</td></tr>
-        <tr><th>Governed label of the verdict</th><td><span class="tag">${esc(d.governed_label.rendered)}</span></td></tr>
-      </table>
+      <div class="surface scroll"><table>
+        <tr><th scope="row">Task</th><td class="mono">${esc(d.task_id)}</td></tr>
+        <tr><th scope="row">Sources</th><td>${d.n_sources} reports</td></tr>
+        <tr><th scope="row">Model</th><td class="mono">${esc(d.model.tag)}</td></tr>
+        <tr><th scope="row">Governed label of the verdict</th><td>${tag(d.governed_label.rendered)}</td></tr>
+      </table></div>
       <p class="note">The governed label is the join over every source that fed the
          turn, at ENUM capacity. It is what decides whether this verdict could train a
          shared adapter.</p>
       <p class="note">Raw model output:</p><pre>${esc(d.raw)}</pre>`;
-  } catch (e) { $('t-out').hidden = false; $('t-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
-  busy(btn, false);
+  } catch (e) { $('t-out').innerHTML = `<span class="error">${esc(e.message)}</span>`; }
+  btn.disabled = false;
+  btn.textContent = 'Run';
 };
 
+async function renderTriage() {
+  $('t-offline').hidden = !BUNDLE;
+  $('t-controls').hidden = !!BUNDLE;
+}
 
-// ── Gate ────────────────────────────────────────────────────
-$('g-go').dataset.label = 'Run gate';
-$('g-go').onclick = async () => {
-  const btn = $('g-go'); busy(btn, true);
-  try {
-    const d = await api(`/api/gate?seed=${$('g-seed').value}&events=${$('g-events').value}`);
-    const probes = Object.entries(d.per_probe_auc)
-      .map(([k, v]) => `<tr><th>${esc(k)}</th><td>${v}</td></tr>`).join('');
-    $('g-out').hidden = false;
-    $('g-out').innerHTML = `
-      <p class="verdict">Surface baseline <strong>${d.surface_baseline}</strong>
-         against a null of <strong>${d.null_mean}</strong> ± ${d.null_sd}</p>
-      <table>
-        <tr><th>Leak exceeds the null</th><td>${d.significant ? '<span class="ok">yes</span>' : '<span class="bad">no</span>'}</td></tr>
-        ${probes}
-      </table>
-      <p class="note">${esc(d.note)}</p>`;
-  } catch (e) { $('g-out').hidden = false; $('g-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
-  busy(btn, false);
+// ── Views ───────────────────────────────────────────────────
+const VIEWS = {
+  corpus: { render: renderCorpus, canvas: () => $('c-canvas') },
+  lattice: { render: renderLattice, canvas: () => $('l-canvas') },
+  gate: { render: renderGate, canvas: () => $('g-canvas') },
+  review: { render: renderReview, canvas: () => $('r-canvas') },
+  escapes: { render: renderEscapes, canvas: () => $('escapes-list') },
+  triage: { render: renderTriage, canvas: () => $('t-out') },
 };
 
-// ── Analyst review ──────────────────────────────────────────
-$('r-go').dataset.label = 'Review';
-$('r-go').onclick = async () => {
-  const btn = $('r-go'); busy(btn, true);
-  try {
-    const d = await api(`/api/review?seed=${$('r-seed').value}&index=${$('r-index').value}&verdict=${$('r-verdict').value}`);
-    const say = (v) => v === null ? '<span class="muted">none</span>' : (v ? 'SIGNIFICANT' : 'ROUTINE');
-    const dispo = (x) => x === 'release' ? '<span class="ok">clears ceiling</span>'
-      : x === 'approval' ? '<span class="tag">needs approval</span>'
-      : '<span class="bad">withheld</span>';
-    const rows = d.reviewers.map(r => {
-      const grounds = r.grounds.length
-        ? r.grounds.map(g => `<span class="tag">${esc(g)}</span>`).join(' ')
-        : (r.action === 'accept' ? '<span class="muted">—</span>' : '<span class="bad">not stated</span>');
-      const why = r.reasons.length
-        ? r.reasons.map(x => `<span class="tag">${esc(x)}</span>`).join(' ')
-        : '<span class="muted">—</span>';
-      const fix = r.corrected_release === null
-        ? '<span class="muted">no correction</span>'
-        : `<span class="tag">${esc(r.corrected_release.rendered)}</span> ` + dispo(r.correction_disposition);
-      return `<tr>
-        <td class="mono">${esc(r.analyst)}</td>
-        <td>${esc(r.action)}</td>
-        <td>${grounds}</td>
-        <td>${why}</td>
-        <td>${say(r.corrected_verdict)}</td>
-        <td>${fix}</td></tr>`;
-    }).join('');
-    $('r-out').hidden = false;
-    $('r-out').innerHTML = `
-      <p class="verdict">Proposed <strong>${say(d.proposed_verdict)}</strong>,
-         truth is <strong>${say(d.truth_significant)}</strong></p>
-      <table>
-        <tr><th>Task</th><td class="mono">${esc(d.task_id)}</td></tr>
-        <tr><th>Defining facts shown</th><td>${d.evidence_shown.length} of ${d.evidence_needed}
-            ${d.evidence_shown.map(f => `<span class="tag">${esc(f)}</span>`).join(' ')}</td></tr>
-        <tr><th>Proposed release</th><td><span class="tag">${esc(d.proposed_release.rendered)}</span>
-            ${dispo(d.proposal_decision.disposition)}
-            ${d.proposal_decision.reason === 'RELEASABLE' ? '' : `<span class="tag">${esc(d.proposal_decision.reason)}</span>`}</td></tr>
-        <tr><th>Aggregator ceiling</th><td><span class="tag">${esc(d.ceiling.rendered)}</span></td></tr>
-      </table>
-      <div class="scroll"><table><thead><tr>
-        <th>Reviewer</th><th>Action</th><th>Grounds</th><th>Reason</th><th>Corrected verdict</th><th>Corrected release</th>
-      </tr></thead><tbody>${rows}</tbody></table></div>
-      <p class="note">${esc(d.note)}</p>`;
-  } catch (e) { $('r-out').hidden = false; $('r-out').innerHTML = `<span class="bad">${esc(e.message)}</span>`; }
-  busy(btn, false);
-};
+// ── Seed, and the controls whose state lives outside one view ─
+function buildSeedControl() {
+  if (BUNDLE) {
+    if (!BUNDLE.seeds.includes(state.seed)) state.seed = BUNDLE.seeds.includes(7) ? 7 : BUNDLE.seeds[0];
+    $('seed-control').innerHTML = `<span aria-hidden="true">Seed</span><fieldset class="seg"><legend>Seed</legend>${BUNDLE.seeds.map((s) =>
+      `<label><input type="radio" name="seed" value="${s}"${s === state.seed ? ' checked' : ''}><span>${s}</span></label>`).join('')}</fieldset>`;
+    $('seed-control').querySelectorAll('input').forEach((r) => {
+      r.onchange = () => { state.seed = +r.value; state.review.task = null; state.corpus.cell = null; render(); };
+    });
+  } else {
+    $('seed-control').innerHTML = `<label class="seed">Seed <input id="seed-input" type="number" min="0" value="${state.seed}"></label>`;
+    $('seed-input').onchange = () => { state.seed = +$('seed-input').value; state.review.task = null; render(); };
+  }
+}
 
-// ── Offline build: constrain the controls to what was frozen ────────────────
-//
-// A number input that accepts any seed but only answers for three is a worse
-// experience than a dropdown of the three that work, so the inputs become
-// selects. Both expose `.value`, which is why every handler above is untouched.
+function syncControls() {
+  const seedRadio = document.querySelector(`input[name="seed"][value="${state.seed}"]`);
+  if (seedRadio) seedRadio.checked = true;
+  if ($('seed-input')) $('seed-input').value = state.seed;
+  document.querySelector(`input[name="c-class"][value="${state.corpus.cls}"]`).checked = true;
+  $('c-q').value = state.corpus.q;
+  document.querySelector(`input[name="r-verdict"][value="${state.review.verdict}"]`).checked = true;
+  $('r-split').checked = state.review.split;
+  if ($('c-events')) $('c-events').value = state.events;
+  $('g-events').value = state.gateEvents;
+}
+
+document.querySelectorAll('input[name="c-class"]').forEach((r) => {
+  r.onchange = () => { state.corpus.cls = r.value; render(); };
+});
+let searchTimer = null;
+$('c-q').oninput = () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { state.corpus.q = $('c-q').value; render(); }, 180);
+};
+$('c-clear').onclick = () => { state.corpus.cell = null; render(); };
+$('c-events').onchange = () => { state.events = +$('c-events').value; state.corpus.cell = null; render(); };
+
+// ── Offline build: say what was frozen, and where the rest lives ─
 function applyStaticMode() {
-  for (const id of ['c-seed', 'g-seed', 'r-seed']) {
-    const input = $(id);
-    if (!input) continue;
-    const select = document.createElement('select');
-    select.id = id;
-    select.innerHTML = BUNDLE.seeds.map(s => `<option${s === 7 ? ' selected' : ''}>${s}</option>`).join('');
-    input.replaceWith(select);
-  }
-  for (const [id, value] of [['c-events', BUNDLE.corpus_events], ['g-events', BUNDLE.gate_events]]) {
-    const input = $(id);
-    if (!input) continue;
-    input.value = value;
-    input.disabled = true;
-    input.title = 'Fixed in an offline build. Vary it with the CLI.';
-  }
-
-  // The model tab is the one thing a static page genuinely cannot do. Disable it
-  // rather than let a click fail: a dead button that explains itself is honest,
-  // a live button that errors is not.
-  const triageTab = document.querySelector('nav button[data-tab="triage"]');
-  if (triageTab) {
-    triageTab.disabled = true;
-    triageTab.title = 'Needs a running model. Available when you run the explorer locally.';
-    // A click before the bundle arrived can have selected it. A selected tab that is
-    // disabled keeps its panel open and takes the keyboard out of the tab list.
-    if (triageTab.getAttribute('aria-selected') === 'true') selectTab(tabs[0]);
-  }
-
-  const banner = $('offline-banner');
   const commit = (BUNDLE.provenance && BUNDLE.provenance.git_commit) || 'unknown';
-  banner.hidden = false;
-  banner.innerHTML =
-    `<strong>Offline build.</strong> There is no server behind this page: every answer below was ` +
-    `computed by Pharos at commit <span class="mono">${esc(commit)}</span> and frozen into a bundle, ` +
-    `so seeds are limited to ${BUNDLE.seeds.join(', ')} and the model tab is off. ` +
-    `For any seed, and to run a model, install it and use ` +
-    `<span class="mono">uv run python -m pharos.cli serve</span>.`;
-}
-
-// ── Every exit, priced ──────────────────────────────────────────────────────
-//
-// Renders the argument, not the mechanism. The values are strings the server
-// already formatted, so this file never decides how many decimals a measurement
-// deserves -- that belongs beside the measurement, in `pharos.escapes`.
-const VERDICT_GLYPH = { closes: '\u2713', bounded: '\u25D0', open: '\u25CB' };
-
-function renderEscape(item) {
-  const verdict = VERDICT_GLYPH[item.verdict] ? item.verdict : 'open';
-  const findings = item.findings.map(n => 'finding ' + n).join(', ');
-  const readings = item.readings.map(r => `
-      <div class="reading">
-        <b>${r.value === null ? '\u2014' : esc(r.value)}</b>
-        <span>${esc(r.label)}</span><br>
-        <code>${esc(r.artifact)}</code>
-      </div>`).join('');
-  return `
-    <article class="escape ${verdict}${item.measured ? '' : ' unmeasured'}">
-      <div class="escape-head">
-        <p class="escape-objection">&ldquo;${esc(item.objection)}&rdquo;</p>
-        <span class="verdict-tag ${verdict}">${VERDICT_GLYPH[verdict]} ${esc(item.verdict)}</span>
-        <span class="escape-findings">${esc(findings)}</span>
-      </div>
-      <p class="escape-outcome">${esc(item.outcome)}</p>
-      ${readings ? `<div class="escape-readings">${readings}</div>` : ''}
-      ${item.measured ? '' : '<p class="escape-outcome"><em>No artifact on disk for this exit right now, so its numbers are not shown. The exit is listed anyway: a list that quietly shortens when a file is missing would flatter the argument.</em></p>'}
-    </article>`;
-}
-
-async function loadEscapes() {
-  const data = await api('/api/escapes');
-  $('escapes-tension').innerHTML = data.tension.map(renderEscape).join('');
-  $('escapes-list').innerHTML = data.escapes.map(renderEscape).join('');
-  $('escapes-counts').innerHTML = data.verdicts.map(v => `
-    <div class="metric-card">
-      <p class="metric-value">${data.counts[v]}</p>
-      <p class="metric-label">${VERDICT_GLYPH[v]} ${esc(v)}</p>
-    </div>`).join('');
+  $('build-summary').textContent = 'Offline build';
+  $('build-panel').innerHTML =
+    `There is no server behind this page: every answer here was computed by Pharos at commit ` +
+    `<span class="mono">${esc(commit.slice(0, 12))}</span> and frozen into a bundle, so seeds are limited ` +
+    `to ${BUNDLE.seeds.join(', ')} and the model view is off. For any seed, and to run a model, install ` +
+    `Pharos and use <span class="mono">uv run python -m pharos.cli serve</span>.`;
+  $('c-events-control').innerHTML = `<p>${BUNDLE.corpus_events} events per seed in this build. Vary it with the CLI.</p>`;
+  $('g-fixed').hidden = false;
+  $('g-fixed').textContent = `${BUNDLE.gate_events} events and ${BUNDLE.gate_null_trials} label shuffles per seed in this build, fewer than the published runs.`;
+  const badge = document.createElement('span');
+  badge.className = 'badge';
+  badge.textContent = 'local only';
+  $('tab-btn-triage').append(badge);
 }
 
 (async () => {
   await loadBundle();
-  if (BUNDLE) applyStaticMode();
-  // A model list that fails offline is expected: there is no server to ask. Anything
-  // else failing is a broken page, so it is reported rather than swallowed.
-  loadVocab().catch((e) => console.error('vocabulary', e));
-  if (!BUNDLE) loadModels().catch((e) => console.error('models', e));
-  loadEscapes().catch((e) => console.error('escapes', e));
+  document.body.dataset.mode = BUNDLE ? 'static' : 'live';
+  readHash();
+  if (BUNDLE) {
+    state.events = BUNDLE.corpus_events;
+    state.gateEvents = BUNDLE.gate_events;
+    applyStaticMode();
+  } else {
+    loadModels().catch((e) => { $('t-modelnote').innerHTML = `<span class="error">${esc(e.message)}</span>`; });
+  }
+  buildSeedControl();
+  buildLatticeControls(await load('/api/vocabulary'));
+  syncControls();
+  selectTab($('tab-btn-' + state.tab));
+  window.addEventListener('hashchange', () => {
+    readHash();
+    syncControls();
+    selectTab($('tab-btn-' + state.tab));
+    render();
+  });
+  await render();
+  document.body.dataset.ready = 'true';
 })();
 </script>
 </body>

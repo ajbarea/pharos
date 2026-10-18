@@ -92,6 +92,28 @@ def test_the_gate_cross_validates_over_every_center():
         assert len(folds) == len(centers)
 
 
+def test_a_skipped_fold_is_reported_as_skipped():
+    """A center whose reports lack a class has no AUC, and the result must say which.
+
+    Each fold's AUC is matched to its center by position, so listing every center
+    beside a shorter list of AUCs pinned a score on the wrong center.
+    """
+    from pharos.generate import GeneratorConfig, generate
+
+    reports = generate(GeneratorConfig(seed=19, n_events=30))
+    classes: dict[str, set[bool]] = {}
+    for report in reports:
+        classes.setdefault(report.center.center_id, set()).add(report.is_plant)
+    one_class = {center for center, seen in classes.items() if len(seen) < 2}
+    assert one_class, "this corpus no longer has a single-class center; pick another seed"
+
+    result = run_gate(reports, null_trials=0)
+    assert set(result.scored_centers) == set(result.held_out_centers) - one_class
+    for folds in result.per_fold_auc.values():
+        assert len(folds) == len(result.scored_centers)
+    assert result.as_dict()["n_folds"] == len(result.scored_centers)
+
+
 def test_the_gate_reports_fold_spread_so_a_wide_mean_is_visible():
     result = run_gate(REPORTS)
     assert set(result.fold_spread) == set(result.per_probe_auc)

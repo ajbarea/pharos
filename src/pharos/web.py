@@ -24,6 +24,7 @@ numpy, scikit-learn, and OpenTelemetry.
     uv run python -m pharos.cli serve
 """
 
+import itertools
 from pathlib import Path
 from typing import Any
 
@@ -41,7 +42,7 @@ from pharos.export import corpus_row
 from pharos.gate import run_gate
 from pharos.generate import GeneratorConfig, generate
 from pharos.labels import Capacity, Compartment, Label, Sensitivity, declassify, join
-from pharos.tasks import build_triage_tasks
+from pharos.tasks import TriageTask, build_triage_tasks
 from pharos.world import SIGNIFICANT_PATTERN
 
 STATIC = Path(__file__).parent / "static"
@@ -115,6 +116,171 @@ def _parse_label(payload: dict[str, Any]) -> Label:
     return Label(sensitivity, compartments, capacity)
 
 
+def _shortfall(reader: Label, read: Label) -> dict[str, Any]:
+    """What keeps `reader` from reading `read`: the two conditions `dominates` checks.
+
+    Reported so the page can say why a read is refused rather than guess. Nothing here
+    decides anything: `_decide` takes the verdict from `dominates`, and a test holds
+    the two to agreeing on every pair of cells.
+    """
+    return {
+        "level": reader.sensitivity < read.sensitivity,
+        "compartments": sorted(str(c) for c in read.compartments - reader.compartments),
+    }
+
+
+def _decide(holder: Label, item: Label) -> dict[str, Any]:
+    """What `pharos.labels` rules about one ordered pair: both directions and the join.
+
+    Both directions, because the interesting case is when neither holds and a one-way
+    answer hides it. The join takes the item's capacity, which is the rule the lattice
+    table reports as `capacity_follows`.
+    """
+    forward = holder.dominates(item)
+    backward = item.dominates(holder)
+    return {
+        "holder_may_read_item": forward,
+        "item_may_read_holder": backward,
+        "incomparable": not forward and not backward,
+        "holder_short": _shortfall(holder, item),
+        "item_short": _shortfall(item, holder),
+        "join": join([holder, item], capacity=item.capacity),
+    }
+
+
+def _compartment_subsets() -> list[list[str]]:
+    """Every compartment set, which is what makes the lattice a lattice.
+
+    Enumerated rather than sampled: the interesting cells are the incomparable
+    ones, and those are exactly the pairs a sampler would be most likely to miss.
+    """
+    members = list(Compartment)
+    return [
+        sorted(str(c) for c in combination)
+        for size in range(len(members) + 1)
+        for combination in itertools.combinations(members, size)
+    ]
+
+
+def _cell_key(sensitivity: str, compartments: list[str], capacity: str | None = None) -> str:
+    inner = ",".join(compartments)
+    return f"{sensitivity}|{inner}" + (f"|{capacity}" if capacity else "")
+
+
+def lattice_table() -> dict[str, Any]:
+    """Every label cell, and what `pharos.labels` decides about every ordered pair of them.
+
+    Capacity is not part of the pair key, because dominance does not consult it: keying
+    on all four capacities stored the same 4,096 answers four times over. So two tables.
+    `labels` holds every rendered label payload the page can display, so no label string
+    is ever formatted in JavaScript. `pairs` holds each decision, with the join named by
+    its cell. `capacity_follows` names the side the join's capacity is copied from, so
+    even that rule reaches the page as data rather than as a second copy of it.
+    """
+    subsets = _compartment_subsets()
+    labels: dict[str, Any] = {}
+    cells: dict[str, Label] = {}
+    for sensitivity in Sensitivity:
+        for compartments in subsets:
+            members = frozenset(Compartment[c] for c in compartments)
+            for capacity in Capacity:
+                label = Label(sensitivity, members, capacity)
+                labels[_cell_key(sensitivity.name, compartments, capacity.name)] = _label_payload(
+                    label
+                )
+            cells[_cell_key(sensitivity.name, compartments)] = Label(
+                sensitivity, members, Capacity.FREETEXT
+            )
+
+    pairs: dict[str, dict[str, Any]] = {}
+    for holder_key, holder in cells.items():
+        row: dict[str, Any] = {}
+        for item_key, item in cells.items():
+            decision = _decide(holder, item)
+            joined = decision.pop("join")
+            decision["join"] = _cell_key(
+                joined.sensitivity.name, sorted(str(c) for c in joined.compartments)
+            )
+            row[item_key] = decision
+        pairs[holder_key] = row
+    return {"capacity_follows": "item", "labels": labels, "pairs": pairs}
+
+
+def _review_tasks(seed: int) -> list[TriageTask]:
+    """The analyst-review tasks for a seed: one per event of a 40-event corpus."""
+    from fastapi import HTTPException
+
+    tasks = build_triage_tasks(generate(GeneratorConfig(seed=seed, n_events=40)))
+    if not tasks:
+        raise HTTPException(500, "no tasks generated")
+    return tasks
+
+
+def _review(task: TriageTask, verdict: bool, seed: int) -> dict[str, Any]:
+    """What every reviewer in the default grid does with one proposed verdict on a task.
+
+    The interesting cell is a reviewer who objects and whose own correction is still
+    not releasable: the objection is real, and acting on it changes nothing.
+    """
+    release = declassify(task.label, KEEP_COMPARTMENTS)
+    proposal = Proposal(task.task_id, verdict, release)
+    rows = []
+    for policy in DEFAULT_ENSEMBLE:
+        decision = policy.review(task, proposal, seed=seed)
+        corrected = decision.corrected_release
+        rows.append(
+            {
+                "analyst": policy.name,
+                "escalation_threshold": policy.escalation_threshold,
+                "escalates": policy.escalates,
+                "action": str(decision.action),
+                "grounds": sorted(str(g) for g in decision.grounds),
+                "reasons": sorted(str(r) for r in decision.reasons),
+                "corrected_verdict": decision.corrected_verdict,
+                "corrected_release": None if corrected is None else _label_payload(corrected),
+                "correction_releasable": (
+                    None if corrected is None else DEFAULT_CEILING.dominates(corrected)
+                ),
+                # What the reviewer's own correction would meet at the ceiling.
+                # A correction that is merely blocked and one that nobody may
+                # ever authorise look identical without this.
+                "correction_disposition": (
+                    None if corrected is None else str(policy.judge_release(corrected).disposition)
+                ),
+            }
+        )
+
+    return {
+        "task_id": task.task_id,
+        "seed": seed,
+        "truth_significant": task.significant,
+        "proposed_verdict": verdict,
+        "evidence_shown": sorted(evidence_shown(task)),
+        "evidence_needed": len(SIGNIFICANT_PATTERN),
+        # The reports the reviewers read, so the page can show the task and not only
+        # what was decided about it.
+        "sources": [
+            {
+                "report_id": r.report_id,
+                "report_type": str(r.report_type),
+                "text": r.text,
+                "label": _label_payload(r.label),
+            }
+            for r in task.sources
+        ],
+        "proposed_release": _label_payload(release),
+        "ceiling": _label_payload(DEFAULT_CEILING),
+        "proposal_releasable": DEFAULT_CEILING.dominates(release),
+        "proposal_decision": admit(release, DEFAULT_CEILING).as_dict(),
+        "reviewers": rows,
+        "note": (
+            "Reviewers are decision procedures with named parameters, not "
+            "simulated people. Each row bounds a mechanism and estimates no "
+            "population."
+        ),
+    }
+
+
 def create_app():
     from fastapi import FastAPI, HTTPException
     from fastapi.responses import FileResponse
@@ -148,8 +314,12 @@ def create_app():
         return escapes.argument()
 
     @app.get("/api/corpus")
-    def api_corpus(seed: int = 7, events: int = 40, limit: int = 12) -> dict[str, Any]:
-        """A small corpus, its label histogram, export rows, and a sample of reports."""
+    def api_corpus(seed: int = 7, events: int = 40, limit: int = MAX_LIMIT) -> dict[str, Any]:
+        """A small corpus: its label histogram, its export rows, and up to `limit` reports.
+
+        The reports carry each label rendered here, so the page can list them without
+        formatting a label string of its own.
+        """
         seed = _bounded("seed", seed, 0, 2**31 - 1)
         events = _bounded("events", events, 1, MAX_EVENTS)
         limit = _bounded("limit", limit, 1, MAX_LIMIT)
@@ -190,16 +360,18 @@ def create_app():
             item = _parse_label(payload["item"])
         except (KeyError, ValueError) as exc:
             raise HTTPException(400, str(exc)) from exc
-        forward = holder.dominates(item)
-        backward = item.dominates(holder)
+        decision = _decide(holder, item)
         return {
             "holder": _label_payload(holder),
             "item": _label_payload(item),
-            "holder_may_read_item": forward,
-            "item_may_read_holder": backward,
-            "incomparable": not forward and not backward,
-            "join": _label_payload(join([holder, item], capacity=item.capacity)),
+            **decision,
+            "join": _label_payload(decision["join"]),
         }
+
+    @app.get("/api/lattice")
+    def api_lattice() -> dict[str, Any]:
+        """Every label cell and every pairwise decision, for drawing the whole lattice."""
+        return lattice_table()
 
     @app.get("/api/gate")
     def api_gate(seed: int = 7, events: int = 120, null_trials: int = 8) -> dict[str, Any]:
@@ -209,14 +381,13 @@ def create_app():
         null_trials = _bounded("null_trials", null_trials, 0, MAX_NULL_TRIALS)
         reports = generate(GeneratorConfig(seed=seed, n_events=events))
         result = run_gate(reports, null_trials=null_trials)
+        # The whole verdict, not a summary of it: significance is the baseline against
+        # the null's 95th percentile, so a page showing only the mean and spread would
+        # be picturing a test the gate does not run.
         return {
             "seed": seed,
             "events": events,
-            "surface_baseline": round(result.surface_baseline, 4),
-            "null_mean": round(result.null_mean, 4) if result.null_mean is not None else None,
-            "null_sd": round(result.null_sd, 4) if result.null_sd is not None else None,
-            "significant": result.leak_is_significant,
-            "per_probe_auc": {k: round(v, 4) for k, v in result.per_probe_auc.items()},
+            **result.as_dict(),
             "note": (
                 "Fewer events and fewer null trials than the published runs, so this "
                 "is noisier than the numbers in the paper. Use the CLI to reproduce those."
@@ -275,65 +446,21 @@ def create_app():
         """What every reviewer in the default grid does with one proposed verdict.
 
         Takes the verdict as a parameter rather than calling a model, so the page can
-        show both cases side by side without waiting on a backend. The interesting
-        cell is a reviewer who objects and whose own correction is still not
-        releasable: the objection is real, and acting on it changes nothing.
+        show both cases side by side without waiting on a backend.
         """
         seed = _bounded("seed", seed, 0, 2**31 - 1)
         index = _bounded("index", index, 0, 2**31 - 1)
-        reports = generate(GeneratorConfig(seed=seed, n_events=40))
-        tasks = build_triage_tasks(reports)
-        if not tasks:
-            raise HTTPException(500, "no tasks generated")
-        task = tasks[index % len(tasks)]
+        tasks = _review_tasks(seed)
+        return _review(tasks[index % len(tasks)], verdict, seed)
 
-        release = declassify(task.label, KEEP_COMPARTMENTS)
-        proposal = Proposal(task.task_id, verdict, release)
-        rows = []
-        for policy in DEFAULT_ENSEMBLE:
-            decision = policy.review(task, proposal, seed=seed)
-            corrected = decision.corrected_release
-            rows.append(
-                {
-                    "analyst": policy.name,
-                    "escalation_threshold": policy.escalation_threshold,
-                    "escalates": policy.escalates,
-                    "action": str(decision.action),
-                    "grounds": sorted(str(g) for g in decision.grounds),
-                    "reasons": sorted(str(r) for r in decision.reasons),
-                    "corrected_verdict": decision.corrected_verdict,
-                    "corrected_release": None if corrected is None else _label_payload(corrected),
-                    "correction_releasable": (
-                        None if corrected is None else DEFAULT_CEILING.dominates(corrected)
-                    ),
-                    # What the reviewer's own correction would meet at the ceiling.
-                    # A correction that is merely blocked and one that nobody may
-                    # ever authorise look identical without this.
-                    "correction_disposition": (
-                        None
-                        if corrected is None
-                        else str(policy.judge_release(corrected).disposition)
-                    ),
-                }
-            )
-
+    @app.get("/api/review/all")
+    def api_review_all(seed: int = 7, verdict: bool = True) -> dict[str, Any]:
+        """Every task's review at once, from one corpus rather than one per task."""
+        seed = _bounded("seed", seed, 0, 2**31 - 1)
         return {
-            "task_id": task.task_id,
             "seed": seed,
-            "truth_significant": task.significant,
-            "proposed_verdict": verdict,
-            "evidence_shown": sorted(evidence_shown(task)),
-            "evidence_needed": len(SIGNIFICANT_PATTERN),
-            "proposed_release": _label_payload(release),
-            "ceiling": _label_payload(DEFAULT_CEILING),
-            "proposal_releasable": DEFAULT_CEILING.dominates(release),
-            "proposal_decision": admit(release, DEFAULT_CEILING).as_dict(),
-            "reviewers": rows,
-            "note": (
-                "Reviewers are decision procedures with named parameters, not "
-                "simulated people. Each row bounds a mechanism and estimates no "
-                "population."
-            ),
+            "verdict": verdict,
+            "tasks": [_review(task, verdict, seed) for task in _review_tasks(seed)],
         }
 
     return app
