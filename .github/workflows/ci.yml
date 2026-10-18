@@ -92,8 +92,11 @@ jobs:
       # that stopped firing, and a stale scoped tolerance, which is one more condition
       # than the test checks. It contributes no coverage either: the measurements run as
       # subprocesses, so the total is 92.34% with or without it.
+      #
+      # `not browser`: those drive Chromium, which this job does not install. The docs
+      # `build` job installs it and runs them against the explorer it publishes.
       - run: >
-          uv run pytest -m "not slow" --cov=pharos --cov=scripts --cov-branch
+          uv run pytest -m "not slow and not browser" --cov=pharos --cov=scripts --cov-branch
           --cov-report=term-missing --cov-report=xml --cov-fail-under=92
           --junitxml=junit.xml -o junit_family=legacy
       # Only one matrix leg uploads. Three reports would be merged into the same commit

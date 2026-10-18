@@ -62,14 +62,26 @@ jobs:
 
       # The `ui` group is here for the explorer freeze below, which imports the
       # FastAPI app to call its endpoints. Nothing serves it; the app is used as a
-      # library so the bundle and the live page cannot answer differently.
+      # library so the bundle and the live page cannot answer differently. `browser`
+      # is for the check that runs the frozen page.
       - name: Install Dependencies
-        run: uv sync --group dev --group ui --frozen
+        run: uv sync --group dev --group ui --group browser --frozen
 
       # Must precede the Zensical build, which copies docs/explorer verbatim into
       # the site. The directory is gitignored and exists only inside this job.
       - name: Freeze the explorer
         run: uv run python scripts/build_static_explorer.py --out docs/explorer
+
+      # The test suite calls the explorer's endpoints from Python and never runs the
+      # page, which is how a tab that never opened reached the published site. This
+      # runs the copy this job is about to publish, so what passes is what deploys.
+      - name: Install Chromium
+        run: uv run playwright install --with-deps chromium
+
+      - name: Check the explorer in a browser
+        run: uv run pytest -m browser tests/test_explorer_browser.py
+        env:
+          PHAROS_EXPLORER_DIR: docs/explorer
 
       - name: Build Documentation
         run: uv run zensical build --clean

@@ -1,4 +1,4 @@
-.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty secure authority audit blindspot channel-bias selective-risk error-shape fleet-sensitivity teacher-fleet logcheck docs-tables explorer ci
+.PHONY: help setup lint test gate results review sweep power linkage consensus tagged edge budget correlated difficulty secure authority audit blindspot channel-bias selective-risk error-shape fleet-sensitivity teacher-fleet logcheck docs-tables explorer explorer-check ci
 
 help:                      ## Show available targets
 	@grep -E '^[a-z-]+:.*?##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -141,6 +141,9 @@ docs-tables:               ## Refresh the docs tables that restate a committed a
 explorer:                  ## Freeze the explorer into docs/explorer for static hosting
 	uv run python scripts/build_static_explorer.py --out docs/explorer
 
+explorer-check: explorer   ## Freeze the explorer, then run it in Chromium as the docs job does
+	PHAROS_EXPLORER_DIR=docs/explorer uv run pytest -m browser tests/test_explorer_browser.py
+
 review:                    ## Replay the committed model verdicts past the analyst grid (no model)
 	@mkdir -p results
 	uv run python scripts/measure_analyst_review.py --out results/analyst_review.json
@@ -170,7 +173,7 @@ ci:                        ## Run every CI gate in order, exactly as the workflo
 	uv run ruff format --check .
 	uv run ruff check .
 	uv run ty check
-	uv run pytest -m "not slow" --cov=pharos --cov=scripts --cov-branch --cov-report=term-missing --cov-fail-under=92
+	uv run pytest -m "not slow and not browser" --cov=pharos --cov=scripts --cov-branch --cov-report=term-missing --cov-fail-under=92
 	# After the suite, matching `ci.yml`: a CVE in a transitive dependency must not mask a
 	# real test failure. The only step here that reaches the network.
 	uv run pip-audit

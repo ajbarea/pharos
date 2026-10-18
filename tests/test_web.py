@@ -37,6 +37,44 @@ def test_the_page_is_served_and_is_self_contained(client):
         assert remote not in body, f"page reaches out to {remote}"
 
 
+def test_the_page_invents_no_values(client):
+    """Every number on the page comes from an endpoint, so the page has no use for chance.
+
+    A visualizer tab once printed a `Math.random()` string as a "SHA-256 digest" beside a
+    typed-in latency, on a page whose header says everything runs against the Python.
+    """
+    assert "Math.random" not in client.get("/").text
+
+
+def test_every_tab_names_a_panel_and_every_panel_has_a_tab(client):
+    """Panel switching reads `aria-controls`, so a tab without its panel is a dead tab.
+
+    The browser test checks that each panel opens; this checks the wiring it relies on,
+    on every interpreter, without a browser.
+    """
+    from html.parser import HTMLParser
+    from typing import override
+
+    class Roles(HTMLParser):
+        def __init__(self) -> None:
+            super().__init__()
+            self.controls: list[str] = []
+            self.panels: list[str] = []
+
+        @override
+        def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+            found = dict(attrs)
+            if found.get("role") == "tab":
+                self.controls.append(found.get("aria-controls") or "")
+            elif found.get("role") == "tabpanel":
+                self.panels.append(found.get("id") or "")
+
+    roles = Roles()
+    roles.feed(client.get("/").text)
+    assert roles.controls, "found no tabs; the parser or the page changed"
+    assert sorted(roles.controls) == sorted(roles.panels)
+
+
 def test_vocabulary_comes_from_the_enums(client):
     payload = client.get("/api/vocabulary").json()
     assert payload["sensitivity"] == [s.name for s in Sensitivity]

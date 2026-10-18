@@ -57,6 +57,12 @@ ui = [
     # FastAPI TestClient backend. starlette deprecates plain httpx in favour of httpx2.
     "httpx2>=2.13.0",
 ]
+# Runs the explorer page in Chromium (`tests/test_explorer_browser.py`). Its own group so
+# the explorer's server dependencies do not pull a browser driver. The browser itself is
+# not a Python package: `uv run playwright install chromium`.
+browser = [
+    "playwright>=1.63.0",
+]
 dev = [
     "pytest>=9.0",
     "pytest-cov>=6.0",
@@ -178,7 +184,10 @@ addopts = "-q"
 # `make ci` and a further three times across the interpreter matrix, to assert a strict
 # subset of what the step asserts. It buys no coverage either, since the measurements run
 # as subprocesses: the total is the same to the hundredth with it and without it.
-markers = ["slow: re-runs the measurements; minutes, not seconds"]
+markers = [
+    "slow: re-runs the measurements; minutes, not seconds",
+    "browser: drives Chromium against a frozen explorer; the docs build job runs these",
+]
 
 [tool.ty.src]
 include = ["src", "tests", "scripts"]

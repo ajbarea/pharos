@@ -24,7 +24,7 @@ A labeled fleet testbed for federated personalization with a **governed disclosu
 
 <div class="hero-beams" markdown>
 
-<span class="pharos-chip pharos-chip-amber">Sensitivity</span> <span class="pharos-chip pharos-chip-cyan">Compartments</span> <span class="pharos-chip pharos-chip-magenta">Capacity</span> <span class="pharos-chip pharos-chip-rust">Velocity-FL Rust</span>
+<span class="pharos-chip pharos-chip-amber">Sensitivity</span> <span class="pharos-chip pharos-chip-cyan">Compartments</span> <span class="pharos-chip pharos-chip-magenta">Capacity</span>
 
 </div>
 
