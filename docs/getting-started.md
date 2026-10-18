@@ -56,12 +56,14 @@ uv run python -m pharos.cli serve     # Available at http://127.0.0.1:8080
 
 ### Explorer Tabs Overview
 
-1. 📜 **Corpus**: Generate datasets and inspect labelled maritime reports.
-2. 📐 **Lattice**: Explore sensitivity levels, need-to-know compartments, and dominance rules.
-3. 🤖 **Model**: Run live triage tasks against registered models (local server mode only).
-4. 🛡️ **Gate**: Run shortcut detection and read the surface baseline against its permutation null (mean and standard deviation).
-5. 👥 **Review**: Test proposed verdicts against the simulated analyst grid.
-6. ⚖️ **Every exit, priced**: The tension the findings measure, and each exit from it with its verdict and the artifact its numbers come from.
+1. 📜 **Corpus**: Every labelled maritime report for a seed, counted per label cell, with a filterable table and the JSONL download.
+2. 📐 **Label lattice**: Every label cell, lit where a holder may read, with the object and their join marked.
+3. 🛡️ **Shortcut gate**: The surface baseline against its permutation null, drawn with the 95th percentile the significance test uses.
+4. 👥 **Analyst review**: Every task against every reviewer in the default grid, and the reports each task's reviewers read.
+5. ⚖️ **Every exit, priced**: The tension the findings measure, and each exit from it with its verdict and the artifact its numbers come from.
+6. 🤖 **Run a model**: A live triage task against a registered model (local server mode only).
+
+The seed is shared by every view, and the address bar records the view, the seed and the view's selections, so a link reopens the same view.
 
 !!! tip "Hosted vs. Live Explorer"
     * **Hosted Static UI**: Built as a frozen client with zero runtime backend dependencies. Computed deterministically at build time for seeds 1, 7, and 101.

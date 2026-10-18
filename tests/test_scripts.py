@@ -843,8 +843,15 @@ def test_bundle_covers_every_frozen_input(bundle):
         assert str(seed) in payload["corpus"]
         assert str(seed) in payload["gate"]
         per_seed = payload["review"][str(seed)]
-        assert set(per_seed) == {str(i) for i in range(bse.REVIEW_TASKS)}
-        assert set(per_seed["0"]) == {"true", "false"}
+        assert set(per_seed) == {"true", "false"}
+        # Both verdicts over the same tasks, in the same order, or the page's matrix
+        # would pair a task with another task's review.
+        ids = [task["task_id"] for task in per_seed["true"]]
+        assert ids, "the freeze carried no review tasks"
+        assert ids == [task["task_id"] for task in per_seed["false"]]
+        # Every report is listed, not a sample of them.
+        corpus = payload["corpus"][str(seed)]
+        assert len(corpus["reports"]) == corpus["n_reports"]
 
 
 def test_every_dominance_lookup_the_page_can_make_resolves(bundle):
@@ -906,11 +913,10 @@ def test_the_builder_refuses_when_an_endpoint_disappears():
 
 
 def test_compartment_subsets_enumerate_the_whole_lattice():
-    import build_static_explorer as bse
-
     from pharos.labels import Compartment
+    from pharos.web import _compartment_subsets
 
-    subsets = bse._compartment_subsets()
+    subsets = _compartment_subsets()
     assert len(subsets) == 2 ** len(Compartment)
     assert [] in subsets
     assert sorted(str(c) for c in Compartment) in subsets

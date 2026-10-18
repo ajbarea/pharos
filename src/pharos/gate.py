@@ -116,6 +116,8 @@ class GateResult:
     n_train: int
     n_test: int
     held_out_centers: tuple[str, ...]
+    #: The held-out centers that produced a fold, aligned with each `per_fold_auc` tuple.
+    scored_centers: tuple[str, ...] = ()
     per_probe_auc: dict[str, float] = field(default_factory=dict)
     per_fold_auc: dict[str, tuple[float, ...]] = field(default_factory=dict)
     fold_spread: dict[str, float] = field(default_factory=dict)
@@ -166,10 +168,11 @@ class GateResult:
             "n_train": self.n_train,
             "n_test": self.n_test,
             "held_out_centers": list(self.held_out_centers),
+            "scored_centers": list(self.scored_centers),
             "per_probe_auc": {k: round(v, 4) for k, v in self.per_probe_auc.items()},
             "per_fold_auc": {k: [round(x, 4) for x in v] for k, v in self.per_fold_auc.items()},
             "fold_spread": {k: round(v, 4) for k, v in self.fold_spread.items()},
-            "n_folds": len(self.held_out_centers),
+            "n_folds": len(self.scored_centers),
             "surface_baseline": round(self.surface_baseline, 4),
             "null_mean": None if self.null_mean is None else round(self.null_mean, 4),
             "null_sd": None if self.null_sd is None else round(self.null_sd, 4),
@@ -227,12 +230,17 @@ class _Sweep(NamedTuple):
     mean_auc: dict[str, float]
     per_fold: dict[str, list[float]]
     fold_sizes: list[int]
+    #: The held-out centers whose folds were scored, in `per_fold` order. A center
+    #: whose reports lack one of the two classes has no AUC and is skipped, so this can
+    #: be shorter than the list of centers.
+    scored_centers: tuple[str, ...]
 
 
 def _verdict_auc(reports: list[Report], center_ids: tuple[str, ...]) -> _Sweep:
     """Cross-validated AUC per probe, plus the verdict statistic and fold sizes."""
     per_fold: dict[str, list[float]] = {}
     fold_sizes: list[int] = []
+    scored: list[str] = []
     for held_out in center_ids:
         train = [r for r in reports if r.center.center_id != held_out]
         test = [r for r in reports if r.center.center_id == held_out]
@@ -240,13 +248,14 @@ def _verdict_auc(reports: list[Report], center_ids: tuple[str, ...]) -> _Sweep:
         if not fold:
             continue
         fold_sizes.append(len(test))
+        scored.append(held_out)
         for probe, auc in fold.items():
             per_fold.setdefault(probe, []).append(auc)
     if not per_fold:
         raise ValueError("no usable fold: every split lacked both classes")
     mean_auc = {probe: float(np.mean(values)) for probe, values in per_fold.items()}
     worst = max(mean_auc, key=lambda probe: abs(mean_auc[probe] - 0.5))
-    return _Sweep(mean_auc[worst], mean_auc, per_fold, fold_sizes)
+    return _Sweep(mean_auc[worst], mean_auc, per_fold, fold_sizes, tuple(scored))
 
 
 def permutation_null(
@@ -339,7 +348,12 @@ def run_gate(
     # analysable from its own log stream without re-deriving anything.
     for probe, value in mean_auc.items():
         record("gate.probe_auc", value, probe=probe, n_reports=len(reports))
-    record("gate.surface_baseline", sweep.verdict, n_reports=len(reports), n_folds=len(center_ids))
+    record(
+        "gate.surface_baseline",
+        sweep.verdict,
+        n_reports=len(reports),
+        n_folds=len(sweep.scored_centers),
+    )
     record("gate.duration", round(time.monotonic() - gate_started, 2), n_reports=len(reports))
     if null_mean is not None:
         record("gate.null_mean", null_mean, trials=null_trials)
@@ -351,6 +365,7 @@ def run_gate(
         n_train=len(reports) - (fold_sizes[0] if fold_sizes else 0),
         n_test=sum(fold_sizes),
         held_out_centers=center_ids,
+        scored_centers=sweep.scored_centers,
         per_probe_auc=mean_auc,
         per_fold_auc={probe: tuple(v) for probe, v in per_fold.items()},
         fold_spread=spread,

@@ -153,6 +153,7 @@ def open_page(browser: Browser, explorer_url: str) -> Iterator[Callable[..., Pag
         viewport: ViewportSize = WIDE,
         color_scheme: Literal["light", "dark"] = "light",
         setup: Callable[[Page], None] | None = None,
+        hash: str = "",
     ) -> Page:
         context = browser.new_context(viewport=viewport, color_scheme=color_scheme)
         contexts.append(context)
@@ -161,7 +162,7 @@ def open_page(browser: Browser, explorer_url: str) -> Iterator[Callable[..., Pag
         page.on("console", console)
         if setup:
             setup(page)
-        page.goto(explorer_url)
+        page.goto(explorer_url + hash)
         return page
 
     yield open_
@@ -171,80 +172,46 @@ def open_page(browser: Browser, explorer_url: str) -> Iterator[Callable[..., Pag
 
 
 def _ready(page: Page) -> None:
-    """Wait for the offline build to finish wiring itself up."""
-    page.wait_for_selector("#offline-banner:not([hidden])")
-    page.wait_for_selector("#escapes-list article", state="attached")
+    """Wait for the page to load its data and paint its first view."""
+    page.wait_for_function("document.body.dataset.ready === 'true'")
 
 
-#: Each model-free view: its tab, the button that runs it, and the card it fills.
-VIEWS = [
-    ("tab-btn-corpus", "#c-go", "#c-out"),
-    ("tab-btn-lattice", "#l-go", "#l-out"),
-    ("tab-btn-gate", "#g-go", "#g-out"),
-    ("tab-btn-review", "#r-go", "#r-out"),
-]
-
-
-def _render(page: Page, tab_id: str, button: str, out: str) -> str:
-    """Run one view and return its result's text, failing on the page's error line.
-
-    A render that throws prints its message as a bare `.bad` span in place of the
-    result. That is how the model tab hid a `ReferenceError` on every run.
-    """
-    page.click(f"#{tab_id}")
-    page.click(button)
-    page.wait_for_function(
-        "([b, o]) => !document.querySelector(b).disabled && !document.querySelector(o).hidden",
-        arg=[button, out],
-    )
-    error = page.eval_on_selector(out, "o => o.querySelector(':scope > .bad')?.textContent")
-    assert error is None, f"{tab_id} rendered an error: {error}"
-    return page.inner_text(out)
-
-
-def _enabled_tab_ids(page: Page) -> list[str]:
-    ids = page.eval_on_selector_all(
-        '[role="tab"]', "tabs => tabs.filter(t => !t.disabled).map(t => t.id)"
-    )
+def _tab_ids(page: Page) -> list[str]:
+    ids = page.eval_on_selector_all('[role="tab"]', "tabs => tabs.map(t => t.id)")
     return [str(tab_id) for tab_id in ids]
 
 
-def test_every_view_renders_what_the_bundle_holds(open_page, bundle):
-    """Each view's result, checked against the frozen answer rather than for being there."""
-    page = open_page()
-    _ready(page)
-    seed = page.input_value("#c-seed")
-    corpus = bundle["corpus"][seed]
-    results = {tab_id: _render(page, tab_id, button, out) for tab_id, button, out in VIEWS}
-
-    significant = sum(1 for row in corpus["export_rows"] if row["is_plant"])
-    tiles = page.eval_on_selector_all(
-        "#c-out .metric-card",
-        "cards => cards.map(c => [c.querySelector('.metric-label').textContent.trim(),"
-        " c.querySelector('.metric-value').textContent.trim()])",
+def _open(page: Page, tab_id: str) -> str:
+    """Select a tab and wait for its view to paint its answer; return the panel id."""
+    page.click(f"#{tab_id}")
+    panel_id = str(page.get_attribute(f"#{tab_id}", "aria-controls"))
+    page.wait_for_function(
+        """id => {
+          const answer = document.querySelector('#' + id + ' .answer');
+          return answer && answer.offsetParent !== null && answer.textContent.trim().length > 0;
+        }""",
+        arg=panel_id,
     )
-    assert dict(tiles) == {
-        "Total Reports": str(corpus["n_reports"]),
-        "Events Sampled": str(corpus["n_events"]),
-        "Lattice Cells": str(len(corpus["label_histogram"])),
-        "Significant Plants": str(significant),
-    }
-    assert "The holder may read the object." in results["tab-btn-lattice"]
-    assert str(bundle["gate"][seed]["surface_baseline"]) in results["tab-btn-gate"]
-    assert bundle["review"][seed]["0"]["true"]["task_id"] in results["tab-btn-review"]
+    # A view that throws paints its message where the answer goes. Waiting for any
+    # answer would accept it, which is how a broken render could pass.
+    error = page.eval_on_selector(
+        f"#{panel_id}", "p => p.querySelector('.answer.error')?.textContent"
+    )
+    assert error is None, f"{tab_id} failed to render: {error}"
+    return panel_id
 
 
 def test_every_tab_opens_its_own_panel_and_only_that_one(open_page):
     page = open_page()
     _ready(page)
-    for tab_id in _enabled_tab_ids(page):
-        page.click(f"#{tab_id}")
-        panel_id = page.get_attribute(f"#{tab_id}", "aria-controls")
+    for tab_id in _tab_ids(page):
+        panel_id = _open(page, tab_id)
         shown = page.eval_on_selector_all(
             '[role="tabpanel"]',
             "panels => panels.filter(p => p.getBoundingClientRect().height > 0).map(p => p.id)",
         )
         assert shown == [panel_id], f"{tab_id} shows {shown}"
+        assert page.inner_text(f"#{panel_id}").strip(), f"{panel_id} opened empty"
         selected = page.eval_on_selector_all(
             '[role="tab"][aria-selected="true"]', "tabs => tabs.map(t => t.id)"
         )
@@ -261,13 +228,16 @@ def test_the_exits_panel_shows_every_exit_the_bundle_carries(open_page, bundle):
     assert all(cards.nth(i).is_visible() for i in range(expected))
 
 
-def test_arrow_keys_walk_the_enabled_tabs_and_select_where_focus_lands(open_page):
+def test_arrow_keys_walk_every_tab_and_select_where_focus_lands(open_page):
+    """No tab is disabled, the offline model tab included: its view explains itself.
+
+    A disabled tab cannot take focus, which is how stepping onto one once selected a
+    tab the keyboard was not on.
+    """
     page = open_page()
     _ready(page)
-    enabled = _enabled_tab_ids(page)
-    # The offline build disables the model tab. Without a disabled tab to step over,
-    # this test could not tell skipping it from never meeting it.
-    assert len(enabled) < page.locator('[role="tab"]').count()
+    enabled = _tab_ids(page)
+    assert page.locator('[role="tab"]:disabled').count() == 0
 
     def state() -> dict[str, Any]:
         return page.evaluate(
@@ -294,12 +264,9 @@ def test_arrow_keys_walk_the_enabled_tabs_and_select_where_focus_lands(open_page
 def test_every_button_label_is_readable_in_both_schemes(open_page, color_scheme):
     page = open_page(color_scheme=color_scheme)
     _ready(page)
-    # Every result on screen, so the buttons it reveals are measured too.
-    for view in VIEWS:
-        _render(page, *view)
     failures = []
-    for tab_id in _enabled_tab_ids(page):
-        page.click(f"#{tab_id}")
+    for tab_id in _tab_ids(page):
+        _open(page, tab_id)
         failures.extend(
             f"{tab_id} / {row['button']}: {row['ratio']}"
             for row in page.evaluate(BUTTON_CONTRAST)
@@ -311,10 +278,8 @@ def test_every_button_label_is_readable_in_both_schemes(open_page, color_scheme)
 def test_no_tab_scrolls_sideways_at_phone_width(open_page):
     page = open_page(viewport=PHONE)
     _ready(page)
-    for view in VIEWS:
-        _render(page, *view)
-    for tab_id in _enabled_tab_ids(page):
-        page.click(f"#{tab_id}")
+    for tab_id in _tab_ids(page):
+        _open(page, tab_id)
         overflow = page.evaluate(
             "() => document.documentElement.scrollWidth - document.documentElement.clientWidth"
         )
@@ -353,8 +318,254 @@ def test_live_mode_renders_a_model_answer(open_page, monkeypatch):
         page.route("**/api/**", forward)
 
     page = open_page(setup=as_live_server)
+    _ready(page)
     page.wait_for_selector("#t-model option", state="attached")
     page.click("#tab-btn-triage")
     page.click("#t-go")
     page.wait_for_function("() => !document.getElementById('t-go').disabled")
     assert "Model said SIGNIFICANT" in page.inner_text("#t-out")
+
+
+def test_every_view_answers_on_arrival_without_a_click(open_page, bundle):
+    """The bundle already holds every answer, so no view should open on an empty form."""
+    page = open_page()
+    _ready(page)
+    seed = str(page.eval_on_selector('input[name="seed"]:checked', "r => r.value"))
+    corpus = bundle["corpus"][seed]
+    significant = sum(1 for row in corpus["export_rows"] if row["is_plant"])
+    answers = {
+        tab_id: page.inner_text(f"#{_open(page, tab_id)} .answer") for tab_id in _tab_ids(page)
+    }
+    assert f"{corpus['n_reports']} reports" in answers["tab-btn-corpus"]
+    assert f"{significant} of them significant" in answers["tab-btn-corpus"]
+    assert str(bundle["gate"][seed]["surface_baseline"]) in answers["tab-btn-gate"]
+    counts = bundle["escapes"]["counts"]
+    assert f"{counts['closes']} exits close" in answers["tab-btn-escapes"]
+
+
+def test_every_view_uses_the_width_of_a_wide_screen(open_page):
+    """At 1920 the views were pinned to the left 1100 pixels and the rest sat empty."""
+    page = open_page()
+    _ready(page)
+    for tab_id in _tab_ids(page):
+        panel_id = _open(page, tab_id)
+        box = page.evaluate(
+            """id => {
+              const canvas = document.querySelector('#' + id + ' .canvas').getBoundingClientRect();
+              return {right: canvas.right, width: canvas.width, viewport: innerWidth};
+            }""",
+            panel_id,
+        )
+        assert box["right"] >= box["viewport"] - 1, f"{tab_id} stops short of the right edge"
+        assert box["width"] >= 0.75 * box["viewport"], f"{tab_id} canvas is {box['width']}px"
+
+
+def test_a_link_reopens_the_view_it_was_copied_from(open_page, bundle):
+    page = open_page()
+    _ready(page)
+    seed = str(bundle["seeds"][-1])
+    page.click(f'input[name="seed"][value="{seed}"]', force=True)
+    _open(page, "tab-btn-lattice")
+    page.click('#l-canvas .node[data-cell="RESTRICTED|LEGAL,SENSOR"]')
+    page.wait_for_function("location.hash.includes('object=RESTRICTED')")
+    link = page.url
+
+    # A fresh page from the link alone, as a reader who was sent it would open it.
+    again = open_page(hash="#" + link.split("#", 1)[1])
+    _ready(again)
+    assert again.get_attribute("#tab-btn-lattice", "aria-selected") == "true"
+    assert again.eval_on_selector('input[name="seed"]:checked', "r => r.value") == seed
+    assert again.input_value("#i-sens") == "RESTRICTED"
+    ticked = again.eval_on_selector_all(
+        "#i-comps input:checked", "boxes => boxes.map(b => b.value)"
+    )
+    assert sorted(ticked) == ["LEGAL", "SENSOR"]
+
+
+def test_the_corpus_lists_every_report_and_a_cell_narrows_it(open_page, bundle):
+    page = open_page()
+    _ready(page)
+    seed = str(page.eval_on_selector('input[name="seed"]:checked', "r => r.value"))
+    corpus = bundle["corpus"][seed]
+    _open(page, "tab-btn-corpus")
+    assert page.locator("#c-canvas table.reports tbody tr").count() == corpus["n_reports"]
+
+    cell = page.locator('#c-canvas .cell[data-class="all"]:not([disabled])').first
+    key = str(cell.get_attribute("data-cell"))
+    sensitivity, compartments = key.split("|")
+    expected = sum(
+        1
+        for row in corpus["export_rows"]
+        if row["sensitivity"] == sensitivity
+        and ",".join(sorted(row["compartments"])) == compartments
+    )
+    cell.click()
+    page.wait_for_function(
+        "n => document.querySelectorAll('#c-canvas table.reports tbody tr').length === n",
+        arg=expected,
+    )
+
+
+def test_review_opens_on_the_first_task_where_the_reviewers_act_differently(open_page, bundle):
+    page = open_page()
+    _ready(page)
+    seed = str(page.eval_on_selector('input[name="seed"]:checked', "r => r.value"))
+    tasks = bundle["review"][seed]["true"]
+    first = next(t for t in tasks if len({r["action"] for r in t["reviewers"]}) > 1)
+    _open(page, "tab-btn-review")
+    assert first["task_id"] in page.inner_text("#r-detail-h")
+
+
+def test_the_gate_draws_the_threshold_the_gate_tests_against(open_page, bundle):
+    """Significance is the baseline against the null's 95th percentile, not its spread."""
+    page = open_page()
+    _ready(page)
+    seed = str(page.eval_on_selector('input[name="seed"]:checked', "r => r.value"))
+    gate = bundle["gate"][seed]
+    _open(page, "tab-btn-gate")
+    assert page.get_attribute("#g-canvas .threshold", "data-value") == str(gate["null_p95"])
+    assert page.get_attribute("#g-canvas .baseline", "data-value") == str(gate["surface_baseline"])
+
+
+def test_the_longest_label_fits_a_phone(open_page):
+    """Every compartment held is the longest label the lattice can print."""
+    longest = "RESTRICTED|LEGAL,LIAISON,PARTNER,SENSOR|FREETEXT"
+    page = open_page(viewport=PHONE, hash=f"#tab=lattice&holder={longest}&object={longest}")
+    _ready(page)
+    _open(page, "tab-btn-lattice")
+    assert "RESTRICTED[LEGAL,LIAISON,PARTNER,SENSOR]" in page.inner_text("#l-canvas .verdicts")
+    overflow = page.evaluate(
+        "() => document.documentElement.scrollWidth - document.documentElement.clientWidth"
+    )
+    assert overflow <= 0, f"the lattice scrolls {overflow}px sideways at {PHONE['width']}px"
+
+
+@pytest.mark.parametrize(
+    ("holder", "item"),
+    [
+        # Same level, different compartments: the case the lattice exists for.
+        ("PROTECTED|SENSOR", "PROTECTED|LIAISON"),
+        # Different levels, still incomparable: the holder is higher and lacks one.
+        ("RESTRICTED|SENSOR", "PROTECTED|LIAISON,SENSOR"),
+        # Comparable: the holder dominates.
+        ("RESTRICTED|LEGAL", "INTERNAL|"),
+    ],
+)
+def test_the_lattice_says_what_blocks_each_read(open_page, bundle, holder, item):
+    """The sentence is built from the shortfall Python reports, so it is checked against it."""
+    page = open_page(hash=f"#tab=lattice&holder={holder}|ENUM&object={item}|ENUM")
+    _ready(page)
+    answer = page.inner_text(f"#{_open(page, 'tab-btn-lattice')} .answer")
+    cell = bundle["dominance"]["pairs"][holder][item]
+    if cell["holder_may_read_item"]:
+        assert answer.startswith("The holder may read the object.")
+        return
+    for who, other, short in (
+        ("holder", "object", cell["holder_short"]),
+        ("object", "holder", cell["item_short"]),
+    ):
+        if short["compartments"]:
+            assert f"the {who} lacks {' and '.join(short['compartments'])}" in answer
+        if short["level"]:
+            assert f"the {who}\u2019s level is below the {other}\u2019s" in answer
+
+
+@pytest.mark.parametrize("color_scheme", ["light", "dark"])
+def test_the_cues_that_carry_an_answer_clear_three_to_one(open_page, color_scheme):
+    """WCAG 1.4.11: a lit lattice cell and the gate's null and chance band must be visible."""
+    page = open_page(color_scheme=color_scheme)
+    _ready(page)
+    _open(page, "tab-btn-lattice")
+    lattice = page.evaluate(
+        BUTTON_CONTRAST.split("return [...document")[0]
+        + """return {
+          lit: ratio(parse(getComputedStyle(document.querySelector('.node.reads')).borderTopColor),
+                     parse(getComputedStyle(document.querySelector('.node:not(.reads):not(.holder)')).backgroundColor)),
+        };
+      }"""
+    )
+    _open(page, "tab-btn-gate")
+    gate = page.evaluate(
+        BUTTON_CONTRAST.split("return [...document")[0]
+        + """const page = parse(getComputedStyle(document.body).backgroundColor);
+        return {
+          edge: ratio(parse(getComputedStyle(document.querySelector('.chance-edge')).stroke), page),
+          spread: ratio(parse(getComputedStyle(document.querySelector('.spread')).stroke), page),
+        };
+      }"""
+    )
+    for name, value in {**lattice, **gate}.items():
+        assert value >= 3, f"{name} is {value:.2f}:1 in {color_scheme}"
+
+
+def test_a_hash_naming_no_view_falls_back_to_the_first(open_page):
+    """`tab=btn-corpus` once matched a tab button's id and left the page blank."""
+    page = open_page(hash="#tab=btn-corpus&seed=abc&holder=|||")
+    _ready(page)
+    assert page.get_attribute("#tab-btn-corpus", "aria-selected") == "true"
+    assert page.inner_text("#c-canvas .answer").strip()
+
+
+def test_each_grid_is_a_single_tab_stop(open_page):
+    """The review matrix put 360 buttons between the tabs and the task it opened."""
+    page = open_page()
+    _ready(page)
+    for tab_id, grid in (
+        ("tab-btn-review", "#r-canvas .matrix"),
+        ("tab-btn-lattice", "#l-canvas .lattice"),
+    ):
+        _open(page, tab_id)
+        stops = page.eval_on_selector_all(
+            f"{grid} button", "bs => bs.filter(b => b.tabIndex >= 0).length"
+        )
+        assert stops == 1, f"{grid} has {stops} tab stops"
+    _open(page, "tab-btn-review")
+    page.focus("#r-canvas .colhead[tabindex='0']")
+    before = page.inner_text("#r-detail-h")
+    page.keyboard.press("ArrowRight")
+    page.wait_for_function(
+        "t => document.querySelector('#r-detail-h').textContent !== t", arg=before
+    )
+    assert page.evaluate("document.activeElement.classList.contains('colhead')")
+
+
+def test_live_gate_names_only_the_centers_it_scored(open_page, monkeypatch):
+    """A center with one class has no fold; its neighbour's AUC once wore its name."""
+    from fastapi.testclient import TestClient
+
+    import pharos.web
+
+    client = TestClient(pharos.web.create_app())
+    expected = client.get("/api/gate?seed=19&events=30").json()
+    skipped = set(expected["held_out_centers"]) - set(expected["scored_centers"])
+    assert skipped, "seed 19 at 30 events no longer skips a fold; pick another input"
+
+    def forward(route: Route, request: PlaywrightRequest) -> None:
+        parts = urlsplit(request.url)
+        response = client.request(
+            request.method,
+            parts.path + (f"?{parts.query}" if parts.query else ""),
+            content=request.post_data_buffer,
+            headers={"content-type": request.headers.get("content-type", "application/json")},
+        )
+        route.fulfill(
+            status=response.status_code,
+            body=response.content,
+            content_type=response.headers.get("content-type"),
+        )
+
+    def as_live_server(page: Page) -> None:
+        page.route("**/bundle.json", lambda route: route.fulfill(status=404))
+        page.route("**/api/**", forward)
+
+    page = open_page(setup=as_live_server, hash="#tab=gate&seed=19&events=30")
+    _ready(page)
+    page.click("#g-go")
+    page.wait_for_selector("#g-canvas .chart")
+    titles = " ".join(
+        page.eval_on_selector_all("#g-canvas .fold title", "ts => ts.map(t => t.textContent)")
+    )
+    for center in skipped:
+        assert center not in titles
+    for center in expected["scored_centers"]:
+        assert center in titles
