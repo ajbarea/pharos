@@ -17,9 +17,11 @@ import functools
 import http.server
 import json
 import os
+import shutil
 import subprocess
 import sys
 import threading
+import time
 from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import Any, Literal, override
@@ -199,6 +201,43 @@ def _open(page: Page, tab_id: str) -> str:
     )
     assert error is None, f"{tab_id} failed to render: {error}"
     return panel_id
+
+
+def test_a_returning_reader_gets_the_bundle_a_redeploy_published(browser, explorer_dir, tmp_path):
+    """A redeploy keeps the bundle's URL, so a reader's cached copy must not outlive it.
+
+    The page once fetched it with `force-cache`, which never asks the server again: a
+    returning reader got the new page with the old bundle, and three views threw.
+    """
+    site = tmp_path / "site"
+    shutil.copytree(explorer_dir, site)
+    bundle_file = site / "bundle.json"
+    deployed = json.loads(bundle_file.read_text(encoding="utf-8"))
+    dropped = str(deployed["seeds"][-1])
+
+    handler = functools.partial(_QuietHandler, directory=str(site))
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    url = f"http://127.0.0.1:{server.server_address[1]}/"
+    context = browser.new_context(viewport=WIDE)
+    try:
+        page = context.new_page()
+        page.goto(url)
+        _ready(page)
+        assert dropped in page.inner_text("#seed-control")
+
+        redeployed = dict(deployed, seeds=deployed["seeds"][:-1])
+        bundle_file.write_text(json.dumps(redeployed), encoding="utf-8")
+        later = time.time() + 60
+        os.utime(bundle_file, (later, later))
+
+        page.goto(url)
+        _ready(page)
+        assert dropped not in page.inner_text("#seed-control"), "the page kept the old bundle"
+    finally:
+        context.close()
+        server.shutdown()
+        server.server_close()
 
 
 def test_every_tab_opens_its_own_panel_and_only_that_one(open_page):
