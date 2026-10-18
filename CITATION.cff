@@ -12,7 +12,7 @@ abstract: >-
   aggregator-side machinery those measurements run through.
 type: software
 authors:
-  - given-names: Arnaldo
+  - given-names: AJ
     family-names: Barea
     email: ajb6289@rit.edu
     affiliation: Rochester Institute of Technology
