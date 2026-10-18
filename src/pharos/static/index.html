@@ -1316,7 +1316,7 @@ async function loadModels() {
   catalog = d.models;
   $('t-model').innerHTML = catalog.map((m) => {
     const marks = [m.installed ? 'installed' : 'not pulled', m.verified ? 'verified' : 'candidate'];
-    return `<option value="${esc(m.key)}"${m.key === d.default ? ' selected' : ''}>${esc(m.key)} — ${esc(m.parameters)} (${marks.join(', ')})</option>`;
+    return `<option value="${esc(m.key)}"${m.key === d.default ? ' selected' : ''}>${esc(m.key)}, ${esc(m.parameters)} (${marks.join(', ')})</option>`;
   }).join('');
   showModelNote();
 }
@@ -1345,7 +1345,7 @@ $('t-go').onclick = async () => {
     const mark = d.correct === null ? '<span class="muted">no verdict</span>'
       : (d.correct ? '<span class="ok">correct</span>' : '<span class="bad">wrong</span>');
     $('t-out').innerHTML = `
-      <p class="verdict">Model said <strong>${said}</strong>, truth is <strong>${truth}</strong> — ${mark}</p>
+      <p class="verdict">Model said <strong>${said}</strong>, truth is <strong>${truth}</strong>: ${mark}.</p>
       <div class="surface scroll"><table>
         <tr><th scope="row">Task</th><td class="mono">${esc(d.task_id)}</td></tr>
         <tr><th scope="row">Sources</th><td>${d.n_sources} reports</td></tr>

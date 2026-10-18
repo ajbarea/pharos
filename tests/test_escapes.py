@@ -125,6 +125,26 @@ def test_the_counts_add_up_to_the_exits_served():
     assert set(served["counts"]) == set(VERDICTS)
 
 
+def test_the_argument_reads_as_prose_rather_than_latex():
+    """The explorer prints these strings as they are, so LaTeX punctuation shows raw.
+
+    `---` is an em-dash only to LaTeX. On the page it read "unanimity --- but" in three
+    places, and none of the tests that read this argument looked at its punctuation.
+    """
+
+    def strings(value: object) -> list[str]:
+        if isinstance(value, str):
+            return [value]
+        if isinstance(value, dict):
+            return [s for item in value.values() for s in strings(item)]
+        if isinstance(value, list | tuple):
+            return [s for item in value for s in strings(item)]
+        return []
+
+    raw = [s for s in strings(argument()) if "--" in s or "\u2014" in s or "\\" in s]
+    assert not raw, f"LaTeX or em-dash punctuation in the served argument: {raw}"
+
+
 def test_the_freeze_carries_the_same_argument_the_server_does(tmp_path, monkeypatch):
     """The offline page is a client of this module, not a second rendering of it.
 

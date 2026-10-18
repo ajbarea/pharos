@@ -378,8 +378,8 @@ ESCAPES = (
         findings=(28,),
         verdict="bounded",
         outcome=(
-            "The exit works, and it is the only one left standing at unanimity --- but "
-            "it buys coverage rather than accuracy, and it inverts the rule a deployment "
+            "The exit works, and it is the only one left standing at unanimity. It "
+            "buys coverage rather than accuracy, and it inverts the rule a deployment "
             "would otherwise reach for. Withholding where the fleet is least confident "
             "is exact while one dissenter remains and falls to chance at unanimity, "
             "because the corrupted items are the ones the fleet agrees on. Withholding "
@@ -439,14 +439,14 @@ ESCAPES = (
         outcome=(
             "Answerable, and with less than the detector needs. Within an evidence "
             "stratum a fleet applying one rule votes identically, so independent slips "
-            "are binomial and a shared standard is not --- it splits the stratum into "
+            "are binomial and a shared standard is not: it splits the stratum into "
             "two deterministic groups, and a mixture of two rates is overdispersed. The "
             "index of dispersion reads 1 on a fleet with no shared blind spot at every "
             "noise level and rises with the share carrying one, needing only per-task "
             "vote sums, contributor counts and public evidence counts: no channel to "
             "name, no per-analyst stream, no ground truth. What bounds it is that it "
             "goes quiet as independent noise rises, and it names the wrong rule in the "
-            "cells where it does --- confidently, not by abstaining. The saving grace is "
+            "cells where it does, confidently rather than by abstaining. The saving grace is "
             "measured rather than assumed: those cells are ones where the winning rule "
             "beats an untargeted draw by about one task, so following the index there "
             "costs a hundredth of the published error rate. It cannot diagnose a fleet "
