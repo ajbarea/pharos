@@ -199,6 +199,9 @@ def test_metrics_record_into_a_histogram_when_a_meter_exists():
 
 
 def test_configure_with_an_endpoint_activates_tracing(monkeypatch):
+    # The providers stay global for the rest of the session; disabled, they never
+    # try to export to a collector that is not there.
+    monkeypatch.setenv("OTEL_SDK_DISABLED", "true")
     try:
         assert telemetry.configure(otlp_endpoint="http://localhost:4318") is True
         assert telemetry._TRACING_ACTIVE is True
