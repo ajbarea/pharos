@@ -347,13 +347,16 @@ def test_the_policy_pair_is_exactly_the_ruling_under_test():
     assert len(by_name) == 2, "policy names collide"
 
 
-def test_compare_models_reports_nothing_when_there_is_nothing_to_report(tmp_path, monkeypatch):
+def test_compare_models_reports_nothing_when_there_is_nothing_to_report(
+    tmp_path, monkeypatch, capsys
+):
     """An empty results directory must exit non-zero rather than print an empty
     table that reads like a finding."""
     import compare_models
 
     monkeypatch.setattr(compare_models, "RESULTS", tmp_path)
     assert compare_models.main() == 1
+    assert "no sweep artifacts" in capsys.readouterr().err
 
 
 # ---------------------------------------------------------------------------

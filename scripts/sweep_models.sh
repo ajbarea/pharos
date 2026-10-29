@@ -22,7 +22,7 @@ installed() {
   local tags
   tags="$(curl -sf http://localhost:11434/api/tags)" || return 1
   python3 -c "import json,sys; print(' '.join(m['name'] for m in json.load(sys.stdin).get('models',[])))" \
-    <<<"$tags"
+    <<<"$tags" 2>/dev/null
 }
 
 gpu_share() {
@@ -35,7 +35,7 @@ for m in json.load(sys.stdin).get('models', []):
 }
 
 PRESENT="$(installed)" || {
-  echo "error: no Ollama API at localhost:11434; start it with \`ollama serve\`" >&2
+  echo "error: no Ollama API at localhost:11434 (no answer, or not its JSON); start it with \`ollama serve\`" >&2
   exit 1
 }
 KEYS="$(uv run python -c "from pharos.models import REGISTRY; print(' '.join(REGISTRY))")"
@@ -55,7 +55,7 @@ for key in $KEYS; do
       --model "$key" --tasks "$TASKS" \
       --out "results/triage_lift-${key}.json" >"$log" 2>&1 \
     && gpu_share \
-    || { echo "    !! $key failed; last lines of $log:" >&2; tail -n 5 "$log" >&2; }
+    || { echo "    !! $key failed; last lines of $log:" >&2; tail -n 5 "$log" >&2 || true; }
 
   ollama stop "$tag" >/dev/null 2>&1 || true
 done
