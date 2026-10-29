@@ -19,6 +19,7 @@ Run from the repo root with Ollama serving:
 import argparse
 import json
 import statistics
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -51,7 +52,7 @@ def main() -> int:
     accuracy = detector_accuracy(reports)
     print(f"detector on this corpus: {accuracy.as_dict()}")
     if accuracy.f1 < 0.95:
-        print("detector too weak to interpret attribution; aborting")
+        print("detector too weak to interpret attribution; aborting", file=sys.stderr)
         return 1
 
     tasks = build_tasks(reports, limit=args.tasks)

@@ -32,6 +32,7 @@ footprint arithmetic stays runnable anywhere.
 import argparse
 import json
 import statistics
+import sys
 import time
 import urllib.error
 import urllib.request
@@ -296,7 +297,10 @@ def main() -> int:
         tasks = build_triage_tasks(generate(GeneratorConfig(seed=SEED, n_events=EVENTS)))
         print(f"\ntiming {args.tasks} triage decisions on {args.model}:")
         if not evict(args.model, endpoint=args.endpoint):
-            print("  WARNING: could not evict the model; cold start below is not cold")
+            print(
+                "  WARNING: could not evict the model; cold start below is not cold",
+                file=sys.stderr,
+            )
         seconds = timed_decisions(args.model, endpoint=args.endpoint, tasks=tasks, limit=args.tasks)
         latency = split_latency(seconds)
         print(f"  cold start {latency.cold_start_s:.1f}s, which is the weights reaching VRAM")

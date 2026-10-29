@@ -347,13 +347,16 @@ def test_the_policy_pair_is_exactly_the_ruling_under_test():
     assert len(by_name) == 2, "policy names collide"
 
 
-def test_compare_models_reports_nothing_when_there_is_nothing_to_report(tmp_path, monkeypatch):
+def test_compare_models_reports_nothing_when_there_is_nothing_to_report(
+    tmp_path, monkeypatch, capsys
+):
     """An empty results directory must exit non-zero rather than print an empty
     table that reads like a finding."""
     import compare_models
 
     monkeypatch.setattr(compare_models, "RESULTS", tmp_path)
     assert compare_models.main() == 1
+    assert "no sweep artifacts" in capsys.readouterr().err
 
 
 # ---------------------------------------------------------------------------
@@ -534,7 +537,7 @@ def test_evaluate_surfaces_validity_concerns_rather_than_swallowing_them(_fake_t
 
     _evaluate_with(["ROUTINE", "ROUTINE", "junk", "junk"], tasks, _fake_torch)
 
-    printed = capsys.readouterr().out
+    printed = capsys.readouterr().err
     assert "validity concerns" in printed
 
 
@@ -733,7 +736,7 @@ def test_label_fidelity_aborts_when_the_detector_is_too_weak_to_interpret(
     )
 
     assert mlf.main() == 1
-    assert "detector too weak" in capsys.readouterr().out
+    assert "detector too weak" in capsys.readouterr().err
 
 
 # --------------------------------------------------------------- analyst review -----

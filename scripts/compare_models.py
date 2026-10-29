@@ -24,6 +24,7 @@ within-task term is small here -- unlike the reasoning conditions, where it is n
 """
 
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -90,7 +91,9 @@ def main() -> int:
         )
 
     if not rows:
-        print(f"no sweep artifacts in {RESULTS}. Run scripts/sweep_models.sh first.")
+        print(
+            f"no sweep artifacts in {RESULTS}. Run scripts/sweep_models.sh first.", file=sys.stderr
+        )
         return 1
 
     header = (

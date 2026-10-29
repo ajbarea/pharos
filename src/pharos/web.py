@@ -25,6 +25,7 @@ numpy, scikit-learn, and OpenTelemetry.
 """
 
 import itertools
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -470,7 +471,7 @@ def serve(host: str = "127.0.0.1", port: int = 8080) -> int:
     try:
         import uvicorn
     except ImportError:
-        print("The explorer needs the ui group: uv sync --group ui")  # noqa: T201
+        print("The explorer needs the ui group: uv sync --group ui", file=sys.stderr)  # noqa: T201
         return 1
     uvicorn.run(create_app(), host=host, port=port, log_level="info")
     return 0

@@ -16,11 +16,13 @@ set -euo pipefail
 
 TASKS="${1:-40}"
 cd "$(dirname "$0")/.."
-mkdir -p results
+mkdir -p results logs
 
 installed() {
-  curl -sf http://localhost:11434/api/tags \
-    | python3 -c "import json,sys; print(' '.join(m['name'] for m in json.load(sys.stdin).get('models',[])))"
+  local tags
+  tags="$(curl -sf http://localhost:11434/api/tags)" || return 1
+  python3 -c "import json,sys; print(' '.join(m['name'] for m in json.load(sys.stdin).get('models',[])))" \
+    <<<"$tags" 2>/dev/null
 }
 
 gpu_share() {
@@ -32,27 +34,32 @@ for m in json.load(sys.stdin).get('models', []):
 " || true
 }
 
-PRESENT="$(installed)"
+PRESENT="$(installed)" || {
+  echo "error: no Ollama API at localhost:11434 (no answer, or not its JSON); start it with \`ollama serve\`" >&2
+  exit 1
+}
 KEYS="$(uv run python -c "from pharos.models import REGISTRY; print(' '.join(REGISTRY))")"
 
 echo "sweep: ${TASKS} triage tasks per model"
 for key in $KEYS; do
   tag="$(uv run python -c "from pharos.models import resolve; print(resolve('$key').tag)")"
   if [[ " $PRESENT " != *" $tag "* ]]; then
-    echo ">>> skip $key ($tag not pulled)"
+    echo ">>> skip $key ($tag not pulled)" >&2
     continue
   fi
 
   echo ">>> $key  ($tag)"
+  # Each model's output is kept, so a failed run can be read after the sweep moves on.
+  log="logs/sweep-${key}.log"
   uv run python scripts/measure_triage_lift.py \
       --model "$key" --tasks "$TASKS" \
-      --out "results/triage_lift-${key}.json" >/dev/null 2>&1 \
+      --out "results/triage_lift-${key}.json" >"$log" 2>&1 \
     && gpu_share \
-    || echo "    !! failed"
+    || { echo "    !! $key failed; last lines of $log:" >&2; tail -n 5 "$log" >&2 || true; }
 
   ollama stop "$tag" >/dev/null 2>&1 || true
 done
 
 echo
 echo ">>> sweep complete"
-uv run python scripts/compare_models.py 2>/dev/null || ls -la results/triage_lift-*.json
+uv run python scripts/compare_models.py || ls -la results/triage_lift-*.json

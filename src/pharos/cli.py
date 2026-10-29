@@ -139,7 +139,7 @@ def _export(config: GeneratorConfig, out: Path) -> int:
     manifest = build_manifest(config)
     _report(manifest)
     if not manifest.usable:
-        print("refusing to export: this corpus did not pass its own gate")
+        print("refusing to export: this corpus did not pass its own gate", file=sys.stderr)
         return 1
 
     corpus_path = out / "corpus.jsonl"

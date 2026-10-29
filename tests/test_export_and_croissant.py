@@ -181,7 +181,7 @@ def test_exported_croissant_digest_matches_the_exported_corpus(tmp_path):
     assert record["distribution"][0]["sha256"] == sha256((tmp_path / "corpus.jsonl").read_bytes())
 
 
-def test_export_refuses_a_corpus_that_fails_its_own_gate(tmp_path, monkeypatch):
+def test_export_refuses_a_corpus_that_fails_its_own_gate(tmp_path, monkeypatch, capsys):
     """A citable artifact whose gate rejected it is worse than no artifact."""
     import pharos.cli as cli
 
@@ -195,3 +195,4 @@ def test_export_refuses_a_corpus_that_fails_its_own_gate(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, "build_manifest", unusable)
     assert main(["export", "--seed", "5", "--events", "120", "--out", str(tmp_path)]) == 1
     assert not (tmp_path / "corpus.jsonl").exists()
+    assert "refusing to export" in capsys.readouterr().err

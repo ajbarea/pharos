@@ -71,7 +71,7 @@ def test_a_difference_far_below_display_precision_still_fails(tmp_path, capsys):
     right = _write(tmp_path, "b.json", _artifact({"1": (b, "d1")}))
 
     assert module.compare(left, right) == 1
-    assert "1 of 1 seeds differ" in capsys.readouterr().out
+    assert "1 of 1 seeds differ" in capsys.readouterr().err
 
 
 def test_differing_corpora_are_refused_rather_than_compared(tmp_path, capsys):
@@ -131,9 +131,9 @@ def test_every_differing_seed_is_reported_not_just_the_first(tmp_path, capsys):
     )
 
     assert _module().compare(left, right) == 1
-    out = capsys.readouterr().out
-    assert "2 of 3 seeds differ" in out
-    assert "seed 1:" in out and "seed 11:" in out
+    err = capsys.readouterr().err
+    assert "2 of 3 seeds differ" in err
+    assert "seed 1:" in err and "seed 11:" in err
 
 
 def test_the_committed_artifacts_still_show_what_the_prose_reports(tmp_path):

@@ -16,6 +16,7 @@ Run from the repo root with Ollama serving:
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from pharos.attribute import DEFAULT_ENDPOINT, DEFAULT_MODEL, generate_text
@@ -132,9 +133,9 @@ def main() -> int:
         tp=tp, fp=fp, tn=tn, fn=fn, unparsed=unparsed, label=f"triage:{spec.key}"
     )
     if not validity.quotable:
-        print("\nVALIDITY CONCERNS -- quote this number only with these attached:")
+        print("\nVALIDITY CONCERNS -- quote this number only with these attached:", file=sys.stderr)
         for concern in validity.concerns:
-            print(f"  - {concern}")
+            print(f"  - {concern}", file=sys.stderr)
 
     if args.out:
         args.out.write_text(

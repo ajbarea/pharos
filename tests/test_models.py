@@ -145,4 +145,4 @@ def test_serve_reports_the_missing_group_rather_than_traceback(monkeypatch, caps
 
     monkeypatch.setattr(builtins, "__import__", no_uvicorn)
     assert serve() == 1
-    assert "uv sync --group ui" in capsys.readouterr().out
+    assert "uv sync --group ui" in capsys.readouterr().err

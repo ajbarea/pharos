@@ -144,9 +144,9 @@ def compare(left: Path, right: Path) -> int:
 
     print()
     if mismatches:
-        print(f"{len(mismatches)} of {len(a['baselines'])} seeds differ:")
+        print(f"{len(mismatches)} of {len(a['baselines'])} seeds differ:", file=sys.stderr)
         for seed, x, y in mismatches:
-            print(f"  seed {seed}: {x}  vs  {y}")
+            print(f"  seed {seed}: {x}  vs  {y}", file=sys.stderr)
         LOG.warning(
             "gate.cross_machine_mismatch",
             extra={"event": "gate.cross_machine_mismatch", "n_mismatched": len(mismatches)},

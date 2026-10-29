@@ -22,6 +22,7 @@ the verdicts come from disk, so this runs in CI and reproduces exactly.
 
 import argparse
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -192,7 +193,10 @@ def main() -> int:
 
     artifacts = sorted(args.results.glob("triage_lift-*.json"))
     if not artifacts:
-        print(f"no triage_lift-*.json under {args.results}; run scripts/sweep_models.sh first")
+        print(
+            f"no triage_lift-*.json under {args.results}; run scripts/sweep_models.sh first",
+            file=sys.stderr,
+        )
         return 1
 
     print(f"{len(tasks)} triage tasks at seed {SEED}, {len(DEFAULT_ENSEMBLE)} reviewers")
