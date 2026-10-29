@@ -310,9 +310,9 @@ def evaluate(
         tp=tp, fp=fp, tn=tn, fn=fn, unparsed=unparsed, label=f"adapter:{label}"
     )
     if not validity.quotable:
-        print(f"\n!! {label} measurement has validity concerns:")
+        print(f"\n!! {label} measurement has validity concerns:", file=sys.stderr)
         for concern in validity.concerns:
-            print(f"   - {concern}")
+            print(f"   - {concern}", file=sys.stderr)
 
     return EvalResult(
         label=label,

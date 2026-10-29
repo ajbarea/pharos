@@ -19,6 +19,7 @@ Run from the repo root with Ollama serving:
 import argparse
 import json
 import statistics
+import sys
 from pathlib import Path
 
 from pharos.attribute import DEFAULT_ENDPOINT, DEFAULT_MODEL, generate_text, label_by_provenance
@@ -77,7 +78,7 @@ def main() -> int:
     reports = generate(GeneratorConfig(seed=args.seed, n_events=args.events))
     accuracy = detector_accuracy(reports)
     if accuracy.f1 < 0.95:
-        print(f"detector too weak to interpret results: {accuracy.as_dict()}")
+        print(f"detector too weak to interpret results: {accuracy.as_dict()}", file=sys.stderr)
         return 1
     print(f"detector: {accuracy.as_dict()}")
 

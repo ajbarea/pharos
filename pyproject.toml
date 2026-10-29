@@ -109,6 +109,8 @@ select = [
     "FURB",
     "TCH",
     "FLY",
+    "G",
+    "LOG",
 ]
 fixable = ["ALL"]
 unfixable = ["T20"]
@@ -172,7 +174,7 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+addopts = "-q -ra"
 # `slow` runs by default, so `make test` and a bare `pytest` still carry it: locally it is
 # the one command that checks the whole sweep, and it earned that the first time it ran, by
 # catching that GLAD does not converge on one fleet composition whose numbers were already

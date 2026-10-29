@@ -34,6 +34,7 @@ Needs no model and no network.
 import argparse
 import json
 import statistics
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -469,7 +470,8 @@ def main() -> int:
             "\nFAIL: these rows carry the published claim and did not converge:\n  "
             + "\n  ".join(stalled_load_bearing)
             + "\nTheir magnitudes cannot be quoted, so the finding no longer stands as"
-            " written."
+            " written.",
+            file=sys.stderr,
         )
         return 1
     return 0

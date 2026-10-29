@@ -11,6 +11,11 @@ on:
 permissions:
   contents: read
 
+# ruff prints lint and format findings as annotations on the PR's changed lines. Set here
+# rather than as a flag, so each step stays the same command `make ci` runs.
+env:
+  RUFF_OUTPUT_FORMAT: github
+
 concurrency:
   # Group by COMMIT on main and by REF on pull requests, which are different problems.
   #

@@ -534,7 +534,7 @@ def test_evaluate_surfaces_validity_concerns_rather_than_swallowing_them(_fake_t
 
     _evaluate_with(["ROUTINE", "ROUTINE", "junk", "junk"], tasks, _fake_torch)
 
-    printed = capsys.readouterr().out
+    printed = capsys.readouterr().err
     assert "validity concerns" in printed
 
 
@@ -733,7 +733,7 @@ def test_label_fidelity_aborts_when_the_detector_is_too_weak_to_interpret(
     )
 
     assert mlf.main() == 1
-    assert "detector too weak" in capsys.readouterr().out
+    assert "detector too weak" in capsys.readouterr().err
 
 
 # --------------------------------------------------------------- analyst review -----

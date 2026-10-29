@@ -46,3 +46,6 @@ docs/explorer/
 mutants/
 # Per-session worktrees (see the parallel-sessions convention).
 .claude/worktrees/
+# Log files, and the per-model sweep logs scripts/sweep_models.sh writes.
+*.log
+logs/
