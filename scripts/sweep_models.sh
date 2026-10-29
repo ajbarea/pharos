@@ -19,8 +19,10 @@ cd "$(dirname "$0")/.."
 mkdir -p results logs
 
 installed() {
-  curl -sf http://localhost:11434/api/tags \
-    | python3 -c "import json,sys; print(' '.join(m['name'] for m in json.load(sys.stdin).get('models',[])))"
+  local tags
+  tags="$(curl -sf http://localhost:11434/api/tags)" || return 1
+  python3 -c "import json,sys; print(' '.join(m['name'] for m in json.load(sys.stdin).get('models',[])))" \
+    <<<"$tags"
 }
 
 gpu_share() {
