@@ -37,6 +37,7 @@ concurrency:
 jobs:
   sibling-links:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       # Both under the workspace, so the sibling sits beside this repository the way the
       # test looks for it: it resolves `ROOT.parent / "kourai-khryseai"`.
@@ -61,6 +62,8 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: pharos/uv.lock
+          prune-cache: true
+          save-cache: ${{ github.ref == 'refs/heads/main' }}
       - run: uv sync --all-groups
         working-directory: pharos
 
