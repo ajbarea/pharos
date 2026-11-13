@@ -30,7 +30,7 @@ train = [
     # 5.0 floors the merged `warmup_steps`, which accepts a fraction of total steps
     # where 4.x had a separate `warmup_ratio`. On 4.x the float we pass truncates to
     # zero and the run trains with no warmup while looking identical.
-    "transformers>=5.22.0",
+    "transformers>=5.22.1",
     "accelerate>=1.15.0",
     "datasets>=5.1.0",
 ]
@@ -67,8 +67,8 @@ dev = [
     "pytest>=9.2.0",
     "pytest-cov>=6.0",
     "ruff>=0.17.3",
-    "ty>=0.0.94,<0.1",
-    "hypothesis>=6.170.13",
+    "ty>=0.0.98,<0.1",
+    "hypothesis>=6.170.14",
     # Present in dev so the optional telemetry path is genuinely exercised by the
     # suite rather than pragma-excluded from it.
     "opentelemetry-api>=1.45.2",
@@ -77,7 +77,7 @@ dev = [
     # The docs site. In `dev` rather than run via `uv tool` because the docs
     # workflow builds with `uv run zensical`, matching the sister repositories, and a
     # tool-run version is not pinned by uv.lock so CI and local could drift.
-    "zensical>=0.0.73",
+    "zensical>=0.1.0",
     # Dependency vulnerability scan in CI, matching the sisters.
     "pip-audit",
     # `tests/test_workflows.py` and the `make ci` parity check parse the workflow YAML.
@@ -203,7 +203,7 @@ extra-paths = ["scripts"]
 
 [tool.ty.rules]
 all = "warn"
-unresolved-import = "error"
+import-not-found = "error"
 
 # `all = "warn"` opts into every rule ty ships, including ones added after this
 # config was written, and ty exits non-zero on a warning. unsound-assignment fires
@@ -229,7 +229,7 @@ truthiness-test-of-none-union = "ignore"
 include = ["src/pharos/telemetry.py"]
 
 [tool.ty.overrides.rules]
-unresolved-import = "ignore"
+import-not-found = "ignore"
 
 # The adapter experiment's stack (torch, peft, transformers) and the external
 # validator's `datasets` live in optional extras and are deliberately absent from the
@@ -240,7 +240,7 @@ unresolved-import = "ignore"
 include = ["scripts/train_adapter.py", "scripts/validate_gate_externally.py"]
 
 [tool.ty.overrides.rules]
-unresolved-import = "ignore"
+import-not-found = "ignore"
 
 [tool.coverage.report]
 # What coverage can honestly measure here.
