@@ -203,7 +203,7 @@ extra-paths = ["scripts"]
 
 [tool.ty.rules]
 all = "warn"
-unresolved-import = "error"
+import-not-found = "error"
 
 # `all = "warn"` opts into every rule ty ships, including ones added after this
 # config was written, and ty exits non-zero on a warning. unsound-assignment fires
@@ -229,7 +229,7 @@ truthiness-test-of-none-union = "ignore"
 include = ["src/pharos/telemetry.py"]
 
 [tool.ty.overrides.rules]
-unresolved-import = "ignore"
+import-not-found = "ignore"
 
 # The adapter experiment's stack (torch, peft, transformers) and the external
 # validator's `datasets` live in optional extras and are deliberately absent from the
@@ -240,7 +240,7 @@ unresolved-import = "ignore"
 include = ["scripts/train_adapter.py", "scripts/validate_gate_externally.py"]
 
 [tool.ty.overrides.rules]
-unresolved-import = "ignore"
+import-not-found = "ignore"
 
 [tool.coverage.report]
 # What coverage can honestly measure here.
